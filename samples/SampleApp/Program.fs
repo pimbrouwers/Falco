@@ -5,7 +5,7 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
-open Wildebeest
+open Falco
 
 type Person =
     {
