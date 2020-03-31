@@ -343,6 +343,8 @@ let bars =
 
 ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilites.
 
+> To use the authentication helpers. Ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`. 
+
 Authentication control flow:
 
 ```f#
@@ -387,11 +389,62 @@ let secureDocHandler : HttpHandler =
 
 ## Security
 
-Documentation coming soon.
+Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, as easily as an XSS attack can be carried out against an unprotected website, protecting against them is just as easy. 
+
+The [Microsoft.AspNetCore.Antiforgery][14] package provides the required utilities to easily protect yourself against such attacks.
+
+Falco provides a few handlers via `Falco.Security.Xss`:
+
+```f#
+let formView (token : AntiforgeryTokenSet) = 
+    html [] [
+        body [] [
+                form [ _method "post" ] [
+                        // using the CSRF HTML helper
+                        antiforgeryInput token
+                        input [ _type "submit"; _value "Submit" ]
+                    ]                                
+            ]
+    ]
+    
+// a custom handler that requires the CSRF token
+let csrfHandler (token : AntiforgeryTokenSet) : HttpHandler = 
+    fun (next: HttpFunc) (ctx : HttpContext) ->                                
+        htmlView (formView token) next ctx
+
+let routes =
+    [
+        // using CSRF html handler
+        get  "/token" (csrfHtmlOut formView)
+
+        // using token control-flow handler
+        post "/token" (ifTokenValid (textOut "intruder!") >=> text "oh hi there ;)")
+
+        // using the tokenizer with a cutom handler
+        get  "/manual-token" (csrfTokenizer csrfHandler)
+    ]
+```
+
+### Crytography
+
+Many sites have the requirement of secure log in and sign up. Thus, generating strong hashes and random salts is of critical importance. Falco helpers are accessed by importing `Falco.Auth.Crypto`.
+
+```f#
+// Generating salt,
+// using System.Security.Cryptography.RandomNumberGenerator,
+// create a random 16 byte salt and base 64 encode
+let salt = salt 16 
+
+// Hashing password
+// Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
+// 25,000 iterations and 32 bytes in length
+let password = "5upe45ecure"
+let hashedPassword = password |> sha256 25000 32  //
+``` 
 
 ## Why "Falco"?
 
-It's all about [Kestrel][1]. A simply beautiful piece of software that has been a game changer for the .NET web stack. In the animal kingdom, "Kestrel" is a name given to several members of the falcon genus, also known as "Falco".
+It's all about [Kestrel][1], a simply beautiful piece of software that has been a game changer for the .NET web stack. In the animal kingdom, "Kestrel" is a name given to several members of the falcon genus, also known as "Falco".
 
 ## Find a bug?
 
@@ -414,3 +467,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [11]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/options "F# Options"
 [12]: https://wiki.haskell.org/Combinator "Combinator"
 [13]: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1 "Overview of ASP.NET Core authentication"
+[14]: https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1 "Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core"
