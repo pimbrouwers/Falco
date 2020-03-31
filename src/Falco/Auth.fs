@@ -5,25 +5,18 @@ open System.Security.Principal
 open Microsoft.AspNetCore.Http
 open Falco.ViewEngine
 
+type IPrincipal with
+    member this.IsAuthenticated() =
+        match this.Identity with 
+        | null -> false
+        | _    -> 
+            this.Identity.IsAuthenticated
+
 type HttpContext with 
     member this.IsAuthenticated () =
         match this.User with
         | null -> false 
-        | _    ->
-            match this.User.Identity with 
-            | null -> false
-            | _    -> 
-                this.User.Identity.IsAuthenticated
-
-type IIdentity with    
-    member this.GetNameIdentifer () =            
-        let i = this :?> ClaimsIdentity
-        i.FindFirst(ClaimTypes.NameIdentifier).Value
-        |> parseInt 
-            
-type IPrincipal with
-    member this.GetNameIdentifier() =
-        this.Identity.GetNameIdentifer()
+        | _    -> this.User.IsAuthenticated()
 
 let ifAuthenticated notAuthenticated : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->

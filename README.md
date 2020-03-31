@@ -195,13 +195,13 @@ let jsonHandler : HttpHandler =
 Set Status Code
 ```f#
 let notFoundHandler : HttpHandler =
-    setStatusCode 404
+    setStatusCode 404 >=> textOut "Not Found"
 ```
 
 HTTP Redirect
 ```f#
-let forbiddenHandler : HttpHandler =
-    setStatusCode 403 >=> textOut "Forbidden"
+let oldUrlHandler : HttpHandler =
+    redirect "/new-url" false
 ```
 
 ### Creating new `HttpHandler`'s
@@ -341,7 +341,49 @@ let bars =
 
 ## Authentication
 
-Documentation coming soon.
+ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilites.
+
+Authentication control flow:
+
+```f#
+// prevent user from accessing secure endpoint
+let secureResourceHandler : HttpHandler =
+    ifAuthenticated (redirect "/forbidden" false) 
+    >=> textOut "hello authenticated person"
+
+// prevent authenticated user from accessing anonymous-only end-point
+let anonResourceOnlyHandler : HttpHandler =
+    ifNotAuthenticated (redirect "/" false) 
+    >=> textOut "hello anonymous"
+```
+
+Secure views:
+```f#
+let doc (principal : ClaimsPrincipal option) = 
+    let isAuthenticated = 
+        match user with 
+        | Some u -> u.Identity.IsAuthenticated 
+        | None   -> false
+
+    html [ _lang "en" ] [
+        head [] [
+            meta  [ _charset "UTF-8" ]
+            meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
+            meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
+            title [] [ raw "Sample App" ]                                        
+            link  [ _href "/style.css"; _rel "stylesheet"]
+        ]
+        body [] [                     
+                main [] [
+                        yield h1 [] [ raw "Sample App" ]
+                        if isAuthenticated then yield p  [] [ raw "Hello logged in user" ]
+                    ]
+            ]
+    ]
+
+let secureDocHandler : HttpHandler =
+    authHtmlOut doc
+```
 
 ## Security
 
@@ -371,3 +413,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [10]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1 "ASP.NET Core Middlware"
 [11]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/options "F# Options"
 [12]: https://wiki.haskell.org/Combinator "Combinator"
+[13]: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1 "Overview of ASP.NET Core authentication"
