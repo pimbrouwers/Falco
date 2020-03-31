@@ -124,7 +124,7 @@ let routes =
 
 ## Request Handling
 
-A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of an HTTP Request. It is the core unit of work in [ASP.NET Core Middleware][10]. Middleware added to the pipeline, can be expected to sequentially processes incoming requests. 
+A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of an HTTP Request. It is the core unit of work in [ASP.NET Core Middleware][10]. Middleware added to the pipeline can be expected to sequentially processes incoming requests. 
 
 In functional programming, it is VERY common to [compose][9] many functions into larger ones, which process input sequentially and produce output. The beauty of this approach is that it leads to software built of many small, easily tested, functions. 
 
@@ -149,6 +149,7 @@ The composition of two `HttpHandler`'s can be accomplished using the `compose` f
 > `>=>` is really just a function composition. But `>>` wouldn't work here since the return type of the left function isn't the argument of the right, rather it is a monad that needs to be unwrapped. Which is exactly what `>=>` does.
 
 ### Composing two `HttpHandler`'s
+
 ```f#
 let forbiddenHandler : HttpHandler =
   setStatusCode 403 >=> textOut "Forbidden"
@@ -161,7 +162,8 @@ The built-in `HttpHandler`'s will likely only take you so far. Luckily creating 
 The following handlers reuse the built-in `textOut` handler:
 
 ```f#
-let helloHandler : HttpHandler = textOut "hello"
+let helloHandler : HttpHandler = 
+  textOut "hello"
 
 let helloYouHandler (name : string) : HttpHandler = 
   let msg = sprintf "Hello %s" name
@@ -180,7 +182,7 @@ let helloHandler : HttpHandler =
 
 ## View Engine
 
-Documentation coming soon.
+Producing HTML is critical in most 
 
 ## Authentication
 
@@ -189,6 +191,14 @@ Documentation coming soon.
 ## Security
 
 Documentation coming soon.
+
+## Find a bug?
+
+There's an [issue](https://github.com/pimbrouwers/Falco/issues) for that.
+
+## License
+
+Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON. Licensed under [Apache License 2.0](https://github.com/pimbrouwers/Falco/blob/master/LICENSE).
 
 [1]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1 "Kestrel web server implementation in ASP.NET Core"
 [2]: https://devblogs.microsoft.com/dotnet/system-io-pipelines-high-performance-io-in-net/ "System.IO.Pipelines: High performance IO in .NET"
