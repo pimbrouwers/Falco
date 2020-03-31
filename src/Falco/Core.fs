@@ -26,7 +26,8 @@ module Core =
         }
     
     let toStr x = x.ToString()
-    
+    let strJoin (sep : string) (lst : string array) = String.Join(sep, lst)
+        
     let tryParseWith (tryParseFunc: string -> bool * _) = tryParseFunc >> function
         | true, v    -> Some v
         | false, _   -> None

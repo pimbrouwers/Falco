@@ -4,11 +4,9 @@
 module Routing =    
     open Microsoft.AspNetCore.Builder
     open Microsoft.AspNetCore.Routing
-    open Microsoft.Extensions.DependencyInjection
     
-    let rec mapHttpEndpoints (r : IEndpointRouteBuilder) (endPoints : HttpEndpoint list) =
-        if endPoints.Length > 0 then 
-            let e = endPoints.Head
+    let mapHttpEndpoints (r : IEndpointRouteBuilder) (endPoints : HttpEndpoint list) =
+        for e in endPoints do            
             let rd = createRequestDelete e.Handler
 
             match e.Verb with
@@ -19,9 +17,7 @@ module Routing =
             | _      -> r.Map(e.Pattern, rd)
             |> ignore
 
-            mapHttpEndpoints r endPoints.Tail
-        else 
-            r
+        r
     
     type IApplicationBuilder with
         member this.UseHttpEndPoints(endPoints : HttpEndpoint list) =

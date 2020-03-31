@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="Core.fs" />
     <Compile Include="Routing.fs" />
+    <Compile Include="Html.fs" />
     <Compile Include="Response.fs" />
   </ItemGroup>
 
