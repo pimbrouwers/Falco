@@ -192,6 +192,10 @@ Documentation coming soon.
 
 Documentation coming soon.
 
+## Why "Falco"?
+
+It's all about [Kestrel][0]. A simply beautiful piece of software that has been a game changer for the .NET web stack. In the animal kingdom, "Kestrel" is a name given to several members of the falcon genus, also known as "Falco".
+
 ## Find a bug?
 
 There's an [issue](https://github.com/pimbrouwers/Falco/issues) for that.
