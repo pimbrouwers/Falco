@@ -64,9 +64,10 @@ let helloHandler : HttpHandler =
     textOut "hello world"
 
 let configureApp (app : IApplicationBuilder) =      
-    let routes = [        
-        get "/" helloHandler
-    ]
+    let routes = 
+        [        
+            get "/" helloHandler
+        ]
 
     app.UseDeveloperExceptionPage()       
        .UseHttpEndPoints(routes) // Activate Falco
@@ -91,6 +92,8 @@ Run the application:
 ```
 dotnet run HelloWorldApp
 ```
+
+So in about 50 lines of code including comments and generous spacing/verticality, you've got an industrial-strength "hello world" web app. Which we achieved using primarily base ASP.NET libraries. Pretty sweet!
 
 ## Sample Applications 
 
