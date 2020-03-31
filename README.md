@@ -14,7 +14,7 @@ The goal of this project was to design the thinnest possible API on top of the b
 - Non-compositional routing built upon the new [Endpoint Routing][3] feature in .NET Core.
 - Compositional request handling. 
 
-Following this approach leaves the difficult work of matching & dispatching requests to the core ASP.NET Team and creating the request handling to you. Any performance improvements made to the core libraries are thus passed directly on to your solution. It also means that developers with experience using .NET Core, either C# or F#, will be intimately familiar with the base ASP.NET integration.
+Following this approach leaves the difficult work of matching & dispatching requests to the core ASP.NET Team and the request handling to you. Any performance improvements made to the core libraries are thus passed directly on to your solution. And also means that developers with experience using .NET Core, either C# or F#, will be familiar with the base ASP.NET integration.
 
 ## Quick Start
 
@@ -69,7 +69,7 @@ let configureApp (app : IApplicationBuilder) =
     ]
 
     app.UseDeveloperExceptionPage()       
-       .UseHttpEndPoints(routes) // Activating Falco
+       .UseHttpEndPoints(routes) // Activate Falco
        |> ignore
 
 [<EntryPoint>]
@@ -94,7 +94,7 @@ dotnet run HelloWorldApp
 
 ## Sample Applications 
 
-A few sample applications can be found in the [/samples][6] directory.
+Code is always worth a thousand words, so for the most up-to-date usage, the [/samples][6] directory contains a few sample applications.
 
 | Sample | Description |
 | ------ | ----------- |
@@ -103,9 +103,9 @@ A few sample applications can be found in the [/samples][6] directory.
 
 ## Routing
 
-The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP VERB) to a `RequestDelegate`, a promise to process a request. 
+The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to a `RequestDelegate`, a promise to process a request. 
 
-Bearing this in mind, routing can practically be represented by a list of these "mappings" `(verb : string) -> (pattern : string) -> (handler : HttpHandler)`.
+Bearing this in mind, routing can practically be represented by a list of these "mappings".
 
 ```f#
 let routes = 
@@ -124,7 +124,7 @@ let routes =
 
 ## Request Handling
 
-A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of an HTTP Request. It is the core unit of work in [ASP.NET Core Middleware][10]. Once added to the pipeline, middleware will sequentially processes incoming requests. 
+A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of an HTTP Request. It is the core unit of work in [ASP.NET Core Middleware][10]. Middleware added to the pipeline, can be expected to sequentially processes incoming requests. 
 
 In functional programming, it is VERY common to [compose][9] many functions into larger ones, which process input sequentially and produce output. The beauty of this approach is that it leads to software built of many small, easily tested, functions. 
 
@@ -142,14 +142,14 @@ At the lowest level is the `HttpFuncResult`, which not unlike a `RequestDelegate
 
 Performing this work is the `HttpFunc` which upon reception of an `HttpContext` will (eventully) return the optional `HttpContext`.
 
-To enable glueing this operations together, the `HttpHandler` receives an `HttpFunc` and return another `HttpFunc`. Doing this enables us to use a combinator to combine two `HttpHandler`'s into one using Kleisli composition (i.e. the output of the left function produces monadic input for the right). 
+To enable glueing these operations together, we use a [combinator][12] to combine two `HttpHandler`'s into one using Kleisli composition (i.e. the output of the left function produces monadic input for the right). 
 
-The composition of two `HttpHandler`'s can be accomplished using the "fish" operator: `>=>`.
+The composition of two `HttpHandler`'s can be accomplished using the `compose` function, or the "fish" operator `>=>`.
 
-> `>=>` is really just a function composition, but `>>` wouldn't work here since the return type of the left function isn't the argument of the right, rather it is a monad that needs to be unwrapped. Which is exactly what `>=>` does.
+> `>=>` is really just a function composition. But `>>` wouldn't work here since the return type of the left function isn't the argument of the right, rather it is a monad that needs to be unwrapped. Which is exactly what `>=>` does.
 
+### Composing two `HttpHandler`'s
 ```f#
-// An example composing two built-in HttpHandler's
 let forbiddenHandler : HttpHandler =
   setStatusCode 403 >=> textOut "Forbidden"
 ```
@@ -201,3 +201,4 @@ Documentation coming soon.
 [9]: https://en.wikipedia.org/wiki/Function_composition "Function composition"
 [10]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1 "ASP.NET Core Middlware"
 [11]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/options "F# Options"
+[12]: https://wiki.haskell.org/Combinator "Combinator"
