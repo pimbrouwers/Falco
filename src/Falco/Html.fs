@@ -20,9 +20,9 @@ let attr key value =
     | Some v -> KeyValue (key, v)
     | None   -> NonValue key
 
-let rawText content = Text content
+let raw content = Text content
 
-let encodedText content = Text (WebUtility.HtmlEncode content)
+let enc content = Text (WebUtility.HtmlEncode content)
 
 let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
     ((tag, List.toArray attr), children)
@@ -46,7 +46,7 @@ let rec buildXml doc tag =
     | Text text -> 
         text :: doc
     | SelfClosingNode (e, attrs) -> 
-        sprintf "<%s %s/>" e (createAttrs attrs) :: doc
+        sprintf "<%s%s />" e (createAttrs attrs) :: doc
     | ParentNode ((e, attrs), children) ->        
         let c =             
             [|

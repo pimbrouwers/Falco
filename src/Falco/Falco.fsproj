@@ -17,6 +17,8 @@
     <Compile Include="Routing.fs" />
     <Compile Include="Html.fs" />
     <Compile Include="Response.fs" />
+    <Compile Include="Auth.fs" />
+    <Compile Include="Security.fs" />
   </ItemGroup>
 
   <ItemGroup>
