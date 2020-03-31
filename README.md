@@ -155,6 +155,55 @@ let forbiddenHandler : HttpHandler =
   setStatusCode 403 >=> textOut "Forbidden"
 ```
 
+### Built-in `HttpHandler`'s
+
+Plain-text
+```f#
+let textHandler =
+    textOut "Hello World"
+```
+
+HTML
+```f#
+let doc = 
+    html [] [
+            head [] [            
+                    title [] [ raw "Sample App" ]                                                    
+                ]
+            body [] [                     
+                    h1 [] [ raw "Sample App" ]
+                ]
+        ] 
+
+let htmlHandler : HttpHandler =
+    htmlOut doc
+```
+
+JSON (uses the default `System.Text.Json.JsonSerializer`)
+```f#
+type Person =
+    {
+        First : string
+        Last  : string
+    }
+
+let jsonHandler : HttpHandler =
+    { First = "John"; Last = "Doe" }
+    |> jsonOut
+```
+
+Set Status Code
+```f#
+let notFoundHandler : HttpHandler =
+    setStatusCode 404
+```
+
+HTTP Redirect
+```f#
+let forbiddenHandler : HttpHandler =
+    setStatusCode 403 >=> textOut "Forbidden"
+```
+
 ### Creating new `HttpHandler`'s
 
 The built-in `HttpHandler`'s will likely only take you so far. Luckily creating new `HttpHandler`'s is very easy.
@@ -249,10 +298,23 @@ let master (title : string) (content : XmlNode list) =
         body [] content
     ]  
 
+let divider = 
+    hr [ _class "divider" ]
+
 let homeView =
     master "Homepage" [
-            h1 [] [ raw "Hello World from my homepage" ]
+            h1 [] [ raw "Homepage" ]
+            divider
+            p  [] [ raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
         ]
+
+let aboutViw =
+    master "About Us" [
+            h1 [] [ raw "About Us" ]
+            divider
+            p  [] [ raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+        ]
+
 ```
 
 ### Extending the view engine
