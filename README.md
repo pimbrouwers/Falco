@@ -343,7 +343,7 @@ let bars =
 
 ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilites.
 
-> To use the authentication helpers. Ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`. 
+> To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`. 
 
 Authentication control flow:
 
@@ -394,6 +394,8 @@ Cross-site scripting attacks are extremely common, since they are quite simple t
 The [Microsoft.AspNetCore.Antiforgery][14] package provides the required utilities to easily protect yourself against such attacks.
 
 Falco provides a few handlers via `Falco.Security.Xss`:
+
+> To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`. 
 
 ```f#
 let formView (token : AntiforgeryTokenSet) = 
