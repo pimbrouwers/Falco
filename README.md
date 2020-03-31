@@ -10,9 +10,9 @@ Falco is a micro-library built upon the high-performance components of ASP.NET C
 
 Many people often regard of ASP.NET as a big, monolithic framework. Synonymous with ASP.NET MVC. MVC is indeed a large (albeit *very* good) framework. But underneath, is a highly componential suite of tools that you can use in absence of the MVC assemblies.
 
-The goal of this project was to design the thinnest possible API on top of the base ASP.NET components. Aimed at supporting:
-- Simple, non-compositional abstraction built upon the new [Endpoint Routing][3] feature in .NET Core, and let developer's program.
-- Functional, compositional HTTP handlers that would process incoming requests. 
+The goal of this project was to design the thinnest possible API on top of the base ASP.NET library. Aimed at supporting:
+- Non-compositional routing built upon the new [Endpoint Routing][3] feature in .NET Core.
+- Compositional request handling. 
 
 Following this approach leaves the difficult work of matching & dispatching requests to the core ASP.NET Team and creating the request handling to you. Any performance improvements made to the core libraries are thus passed directly on to your solution. It also means that developers with experience using .NET Core, either C# or F#, will be intimately familiar with the base ASP.NET integration.
 
@@ -152,6 +152,30 @@ The composition of two `HttpHandler`'s can be accomplished using the "fish" oper
 // An example composing two built-in HttpHandler's
 let forbiddenHandler : HttpHandler =
   setStatusCode 403 >=> textOut "Forbidden"
+```
+
+### Creating new `HttpHandler`'s
+
+The built-in `HttpHandler`'s will likely only take you so far. Luckily creating new `HttpHandler`'s is very easy.
+
+The following handlers reuse the built-in `textOut` handler:
+
+```f#
+let helloHandler : HttpHandler = textOut "hello"
+
+let helloYouHandler (name : string) : HttpHandler = 
+  let msg = sprintf "Hello %s" name
+  textOut msg
+```
+
+The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client. The 
+
+```f#
+let helloHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->        
+        let name = ctx.RouteValue "name" |> Option.defaultValue "someone"
+        let msg = sprintf "hi %s" name 
+        textOut msg next ctx
 ```
 
 ## View Engine
