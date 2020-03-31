@@ -18,7 +18,7 @@ module Core =
 
     type HttpHandler = HttpFunc -> HttpFunc    
 
-    type HttpVerb = GET | POST | PUT | DELETE | ALL
+    type HttpVerb = GET | POST | PUT | DELETE | ANY
 
     type HttpEndpoint = 
         {

@@ -27,16 +27,16 @@ module Routing =
             this.UseRouting()
                 .UseEndpoints(fun r -> useEndPoints r)
     
-    let createRoute method pattern handler = 
+    let route method pattern handler = 
         { 
             Pattern = pattern
             Verb  = method
             Handler = handler
         }
 
-    let route pattern handler  = createRoute ALL pattern handler
-    let get pattern handler    = createRoute GET pattern handler
-    let post pattern handler   = createRoute POST pattern handler
-    let put pattern handler    = createRoute PUT pattern handler
-    let delete pattern handler = createRoute DELETE pattern handler
+    let any pattern handler    = route ANY pattern handler
+    let get pattern handler    = route GET pattern handler
+    let post pattern handler   = route POST pattern handler
+    let put pattern handler    = route PUT pattern handler
+    let delete pattern handler = route DELETE pattern handler
     

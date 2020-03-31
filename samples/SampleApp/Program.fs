@@ -62,12 +62,12 @@ let configureServices (services : IServiceCollection) =
 
 let configureApp (app : IApplicationBuilder) =      
     let routes = [
-        get   "/secure"             (ifAuthenticated (redirect "/forbidden" false) >=> textOut "hello authenticated person")
-        get   "/html"               myHtmlOutHandler
-        get   "/json"               myJsonHandler
-        get   "/hello/{name:alpha}" helloHandler
-        get   "/forbidden"          (setStatusCode 403 >=> textOut "Forbidden")
-        route "/"                   (textOut "index")
+        get "/secure"             (ifAuthenticated (redirect "/forbidden" false) >=> textOut "hello authenticated person")
+        get "/html"               myHtmlOutHandler
+        get "/json"               myJsonHandler
+        get "/hello/{name:alpha}" helloHandler
+        get "/forbidden"          (setStatusCode 403 >=> textOut "Forbidden")
+        any "/"                   (textOut "index")
     ]
 
     app.UseDeveloperExceptionPage()
