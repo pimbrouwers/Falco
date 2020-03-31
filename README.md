@@ -131,7 +131,7 @@ A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of
 
 In functional programming, it is VERY common to [compose][9] many functions into larger ones, which process input sequentially and produce output. The beauty of this approach is that it leads to software built of many small, easily tested, functions. 
 
-If we apply this thought pattern to individual HTTP request processing, we can compose our web applications by "glueing" together many little (often) reusable functions.
+If we apply this thought pattern to individual HTTP request processing, we can compose our web applications by "gluing" together many little (often) reusable functions.
 
 To support this approrach we need only a few simple types:
 
@@ -145,7 +145,7 @@ At the lowest level is the `HttpFuncResult`, which not unlike a `RequestDelegate
 
 Performing this work is the `HttpFunc` which upon reception of an `HttpContext` will (eventully) return the optional `HttpContext`.
 
-To enable glueing these operations together, we use a [combinator][12] to combine two `HttpHandler`'s into one using Kleisli composition (i.e. the output of the left function produces monadic input for the right). 
+To enable gluing these operations together, we use a [combinator][12] to combine two `HttpHandler`'s into one using Kleisli composition (i.e. the output of the left function produces monadic input for the right). 
 
 The composition of two `HttpHandler`'s can be accomplished using the `compose` function, or the "fish" operator `>=>`.
 
