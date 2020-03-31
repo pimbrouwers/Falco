@@ -1,7 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <AssemblyName>Falco</AssemblyName>
+    <Version>1.0.0</Version>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    
+    <!-- General info -->
+    <Description>A simple functional F# library for building brilliant ASP.NET web applications.</Description>
+    <Copyright>Copyright 2020 Pim Brouwers</Copyright>
+    <Authors>Pim Brouwers</Authors>
+    <NeutralLanguage>en-CA</NeutralLanguage>
+
+    <!-- Build config -->
+    <DebugType>portable</DebugType>
+    <OutputType>Library</OutputType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- NuGet config -->
+    <PackageId>Falco</PackageId>
+    <PackageTags>fsharp;functional;falco;asp.net core;asp.net;.net core;routing;view engine;web</PackageTags>        
+    <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/pimbrouwers/Falco</RepositoryUrl>
+
+    <!-- SourceLink settings -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.*" />
     <PackageReference Include="TaskBuilder.fs" Version="2.1.*" />
   </ItemGroup>
 
@@ -19,10 +48,6 @@
     <Compile Include="Response.fs" />
     <Compile Include="Auth.fs" />
     <Compile Include="Security.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.7.*" />
   </ItemGroup>
 
 </Project>
