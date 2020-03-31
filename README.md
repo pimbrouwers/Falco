@@ -182,7 +182,100 @@ let helloHandler : HttpHandler =
 
 ## View Engine
 
-Producing HTML is critical in most 
+A core feature of Falco is the functional view engine. Using it means:
+
+- Writing your views in plain F#, directly in your assembly.
+- Markup is compiled along-side the rest of your code. Leading to improved performance and ultimately simpler deployments.
+
+Most of the standard HTML tags & attributes have been mapped to F# functions, which produce objects to represent the HTML node. Node's are either:
+- `Text` which represents `string` values.
+- `SelfClosingNode` which represent self-closing tags (i.e. `<br />`).
+- `ParentNode` which represent typical tags with, optionally, other tags within it (i.e. `<div>...</div>`).
+
+```f#
+let doc = html [ _lang "en" ] [
+        head [] [
+            meta  [ _charset "UTF-8" ]
+            meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
+            meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
+            title [] [ raw "Sample App" ]                                        
+            link  [ _href "/style.css"; _rel "stylesheet"]
+        ]
+        body [] [                     
+                main [] [
+                        h1 [] [ raw "Sample App" ]
+                    ]
+            ]
+    ] 
+```
+
+Since views are plain F# they can easily be made strongly-typed:
+```f#
+type Person =
+    {
+        First : string
+        Last  : string
+    }
+
+let doc (person : Person) = 
+    html [ _lang "en" ] [
+        head [] [
+            meta  [ _charset "UTF-8" ]
+            meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
+            meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
+            title [] [ raw "Sample App" ]                                        
+            link  [ _href "/style.css"; _rel "stylesheet"]
+        ]
+        body [] [                     
+                main [] [
+                        h1 [] [ raw "Sample App" ]
+                        p  [] [ raw (sprintf "%s %s" person.First person.Last)]
+                    ]
+            ]
+    ] 
+```
+
+Views can also be combined to create more complex views and share output:
+```f#
+let master (title : string) (content : XmlNode list) =
+    html [ _lang "en" ] [
+        head [] [
+            meta  [ _charset "UTF-8" ]
+            meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
+            meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
+            title [] [ raw title ]                                        
+            link  [ _href "/style.css"; _rel "stylesheet"]
+        ]
+        body [] content
+    ]  
+
+let homeView =
+    master "Homepage" [
+            h1 [] [ raw "Hello World from my homepage" ]
+        ]
+```
+
+### Extending the view engine
+
+The view engine is extremely extensible since creating new tag's is simple. 
+
+An example to render `<svg>`'s:
+
+```f#
+let svg (width : float) (height : float) =
+    tag "svg" [
+            attr "version" "1.0"
+            attr "xmlns" "http://www.w3.org/2000/svg"
+            attr "viewBox" (sprintf "0 0 %f %f" width height)
+        ]
+
+let path d = tag "path" [ attr "d" d ] []
+
+let bars =
+    svg 384.0 384.0 [
+            path "M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0"
+        ]
+```
 
 ## Authentication
 
@@ -194,7 +287,7 @@ Documentation coming soon.
 
 ## Why "Falco"?
 
-It's all about [Kestrel][0]. A simply beautiful piece of software that has been a game changer for the .NET web stack. In the animal kingdom, "Kestrel" is a name given to several members of the falcon genus, also known as "Falco".
+It's all about [Kestrel][1]. A simply beautiful piece of software that has been a game changer for the .NET web stack. In the animal kingdom, "Kestrel" is a name given to several members of the falcon genus, also known as "Falco".
 
 ## Find a bug?
 
