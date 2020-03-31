@@ -66,9 +66,11 @@ module Core =
 
         member this.WriteBytes (bytes : byte[]) =        
             task {            
-                bytes.CopyTo(this.Response.BodyWriter.GetMemory(bytes.Length).Span)
-                this.Response.BodyWriter.Advance(bytes.Length)
+                let len = bytes.Length
+                bytes.CopyTo(this.Response.BodyWriter.GetMemory(len).Span)
+                this.Response.BodyWriter.Advance(len)
                 this.Response.BodyWriter.FlushAsync(this.RequestAborted) |> ignore
+                this.Response.ContentLength <- Nullable<int64>(len |> int64)
                 return Some this
             }
 
