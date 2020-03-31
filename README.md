@@ -10,9 +10,11 @@ Falco is a micro-library built upon the high-performance components of ASP.NET C
 
 Many people often regard of ASP.NET as a big, monolithic framework. Synonymous with ASP.NET MVC. MVC is indeed a large (albeit *very* good) framework. But underneath, is a highly componential suite of tools that you can use in absence of the MVC assemblies.
 
-The goal of this project was to design a simple, non-compositional abstraction on top of the new [Endpoint Routing][3] feature in .NET Core, and let developer's program functional, compositional HTTP handlers that would process incoming requests. 
+The goal of this project was to design the thinnest possible API on top of the base ASP.NET components. Aimed at supporting:
+- Simple, non-compositional abstraction built upon the new [Endpoint Routing][3] feature in .NET Core, and let developer's program.
+- Functional, compositional HTTP handlers that would process incoming requests. 
 
-Following this approach leaves the difficult work of matching & dispatching requests to the ASP.NET Team and creating the request handler's to you. Any performance improvements made to the core libraries are thus passed directly on to your solution.
+Following this approach leaves the difficult work of matching & dispatching requests to the core ASP.NET Team and creating the request handling to you. Any performance improvements made to the core libraries are thus passed directly on to your solution. It also means that developers with experience using .NET Core, either C# or F#, will be intimately familiar with the base ASP.NET integration.
 
 ## Quick Start
 
@@ -52,7 +54,7 @@ let configureServices (services : IServiceCollection) =
     services
         .AddResponseCaching()
         .AddResponseCompression()    
-        .AddRouting()        
+        .AddRouting() // Required for Falco
         |> ignore
 
 // ------------
@@ -67,7 +69,7 @@ let configureApp (app : IApplicationBuilder) =
     ]
 
     app.UseDeveloperExceptionPage()       
-       .UseHttpEndPoints(routes)
+       .UseHttpEndPoints(routes) // Activating Falco
        |> ignore
 
 [<EntryPoint>]
