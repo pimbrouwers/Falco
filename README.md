@@ -57,8 +57,6 @@ let configureLogging (loggerBuilder : ILoggingBuilder) =
 // ------------
 let configureServices (services : IServiceCollection) =
     services
-        .AddResponseCaching()
-        .AddResponseCompression()    
         .AddRouting() // Required for Falco
         |> ignore
 
