@@ -17,8 +17,9 @@ Key features:
 The goal of this project was to design the thinnest possible API on top of the base ASP.NET library. Aimed at supporting:
 - High-performance routing.
 - Isomorphic web applications.
-- Simple and composable request handling. 
-- A low barrier to entry for those new to functional programming.
+- Composable request handling. 
+- Simple integration into the ASP.NET pipeline.
+- Perhaps most importantly, a low barrier to entry for those new to functional programming.
 
 ## Quick Start
 
