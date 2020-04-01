@@ -8,8 +8,6 @@ Falco is a micro-library built upon the high-performance components of ASP.NET C
 
 > This project was *heavily* inspired by [Giraffe][4]. Those looking for a more mature & comprehensive web framework should definitely go check it out.
 
-Many people often regard of ASP.NET as a big, monolithic framework. Synonymous with ASP.NET MVC. MVC is indeed a large (albeit *very* good) framework. But underneath, is a highly componential suite of tools that you can use in absence of the MVC assemblies.
-
 The goal of this project was to design the thinnest possible API on top of the base ASP.NET library. Aimed at supporting:
 - Non-compositional routing built upon the new [Endpoint Routing][3] feature in .NET Core.
 - Compositional request handling. 
