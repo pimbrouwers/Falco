@@ -2,17 +2,23 @@
 
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-Falco is a micro-library built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3]. To facilitate building simple, fault-tolerant and blazing fast functional web applications using F#. 
+Falco is a micro-library for building simple, fault-tolerant and blazing fast functional web applications using F#. Built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3].
+
+Key features:
+- Simple and powerful routing API.
+- Composable request handling.
+- A native F# view engine.
+- Authentication and security utilities. 
 
 ## Why?
 
 > This project was *heavily* inspired by [Giraffe][4]. Those looking for a more mature & comprehensive web framework should definitely go check it out.
 
 The goal of this project was to design the thinnest possible API on top of the base ASP.NET library. Aimed at supporting:
-- Non-compositional routing built upon the new [Endpoint Routing][3] feature in .NET Core.
-- Compositional request handling. 
-
-Following this approach leaves the difficult work of matching & dispatching requests to the core ASP.NET Team and the request handling to you. Any performance improvements made to the core libraries are thus passed directly on to your solution. And also means that developers with experience using .NET Core, either C# or F#, will be familiar with the base ASP.NET integration.
+- High-performance routing.
+- Isomorphic web applications.
+- Simple and composable request handling. 
+- A low barrier to entry for those new to functional programming.
 
 ## Quick Start
 
