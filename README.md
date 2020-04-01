@@ -15,7 +15,7 @@ Key features:
 > This project was *heavily* inspired by [Giraffe][4]. Those looking for a more mature & comprehensive web framework should definitely go check it out. 
 
 The goal of this project was to design the thinnest possible API on top of the base ASP.NET library. Aimed at supporting:
-- Perhaps most importantly, a low barrier to entry for those new to functional programming.
+- A low barrier to entry for those new to functional programming.
 - High-performance routing.
 - Isomorphic web applications.
 - Composable request handling. 
