@@ -104,7 +104,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 | Sample | Description |
 | ------ | ----------- |
-| [HelloWorldApp][7] | A basic hello world app |
+| [HelloWorld][7] | A basic hello world app |
 | [SampleApp][8] | Demonstrates more complex topics: view engine, authentication and json |
 
 ## Routing
@@ -468,7 +468,7 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [4]: https://github.com/giraffe-fsharp/Giraffe "A native functional ASP.NET Core web framework for F# developers."
 [5]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#route-template-reference
 [6]: https://github.com/pimbrouwers/Falco/tree/master/samples
-[7]: https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorldApp
+[7]: https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld
 [8]: https://github.com/pimbrouwers/Falco/tree/master/samples/SampleApp
 [9]: https://en.wikipedia.org/wiki/Function_composition "Function composition"
 [10]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1 "ASP.NET Core Middlware"
