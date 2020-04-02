@@ -1,51 +1,16 @@
-module SampleApp 
+module SampleApp.Program
 
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.AspNetCore.Http
-open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Logging
+open System.IO
 open Falco
 open Falco.Auth
-open Falco.ViewEngine
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
+open SampleApp.Handlers
 
 // ------------
-// Handlers
-// ------------
-let helloHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->        
-        let name = ctx.RouteValue "name" |> Option.defaultValue "someone"
-        textOut (sprintf "hi %s" name) next ctx
-
-let myHtmlOutHandler : HttpHandler =
-    let myHtml = html [ _lang "en" ] [
-            head [] [
-                meta  [ _charset "UTF-8" ]
-                meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                title [] [ raw "Sample App" ]                                        
-                link  [ _href "/style.css"; _rel "stylesheet"]
-            ]
-            body [] [                     
-                    main [] [
-                            h1 [] [ raw "Sample App" ]
-                        ]
-                ]
-        ] 
-
-    htmlOut myHtml
-
-type Person =
-    {
-        First : string
-        Last  : string 
-    }
-
-let myJsonHandler : HttpHandler =
-    jsonOut { First = "Pim"; Last = "Brouwers" }
-   
-// ------------
-// Web App
+// Logging
 // ------------
 let configureLogging (loggerBuilder : ILoggingBuilder) =
     loggerBuilder
@@ -53,26 +18,35 @@ let configureLogging (loggerBuilder : ILoggingBuilder) =
         .AddConsole()
         .AddDebug() |> ignore
 
+// ------------
+// Services
+// ------------
 let configureServices (services : IServiceCollection) =
     services
         .AddResponseCaching()
-        .AddResponseCompression()    
+        .AddResponseCompression()            
         .AddRouting()
         |> ignore
 
+// ------------
+// Web App
+// ------------
 let configureApp (app : IApplicationBuilder) =      
     let routes = [
-        get "/secure"             (ifAuthenticated (redirect "/forbidden" false) >=> textOut "hello authenticated person")
-        get "/html"               myHtmlOutHandler
-        get "/json"               myJsonHandler
-        get "/hello/{name:alpha}" helloHandler
-        get "/forbidden"          (setStatusCode 403 >=> textOut "Forbidden")
-        any "/"                   (textOut "index")
+        get  "/new-user"           newUserViewHandler
+        post "/new-user"           newUserHandler
+        get  "/json"               myJsonOutHandler
+        get  "/html"               myHtmlOutHandler
+        get  "/secure"             (ifAuthenticated (redirect "/forbidden" false) >=> textOut "hello authenticated person")
+        get  "/forbidden"          (setStatusCode 403 >=> textOut "Forbidden")
+        get  "/hello/{name:alpha}" helloHandler
+        any  "/"                   (textOut "index")
     ]
 
     app.UseDeveloperExceptionPage()
        .UseStaticFiles()
        .UseHttpEndPoints(routes)
+       .UseNotFoundHandler(notFoundHandler)
        |> ignore
 
 [<EntryPoint>]
@@ -83,6 +57,7 @@ let main _ =
             .ConfigureLogging(configureLogging)
             .ConfigureServices(configureServices)
             .Configure(configureApp)          
+            .UseContentRoot(Directory.GetCurrentDirectory())
             .Build()
             .Run()
         0

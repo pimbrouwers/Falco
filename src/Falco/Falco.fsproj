@@ -39,15 +39,17 @@
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.7.*" />
+    <PackageReference Include="FastMember.NetCore" Version="1.1.0" />
     <PackageReference Include="TaskBuilder.fs" Version="2.1.*" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Core.fs" />
     <Compile Include="Routing.fs" />
+    <Compile Include="ModelBinding.fs" />
+    <Compile Include="Multipart.fs" />
     <Compile Include="Html.fs" />
-    <Compile Include="Request.fs" />
-    <Compile Include="Response.fs" />
+    <Compile Include="Handlers.fs" />
     <Compile Include="Auth.fs" />
     <Compile Include="Security.fs" />
   </ItemGroup>

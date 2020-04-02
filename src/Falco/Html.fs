@@ -31,33 +31,33 @@ let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
 let selfClosingTag (tag : string) (attr : XmlAttribute list) =
     (tag, List.toArray attr)
     |> SelfClosingNode
-   
-let rec buildXml doc tag =
-    let createAttrs attrs =
-        attrs
-        |> Array.map (fun attr ->
-            match attr with 
-            | KeyValue (k, v) -> (sprintf " %s=\"%s\"" k v)
-            | NonValue k      -> k)
-        |> strJoin ""
+
+let renderNode tag =   
+    let rec buildXml doc tag =
+        let createAttrs attrs =
+            attrs
+            |> Array.map (fun attr ->
+                match attr with 
+                | KeyValue (k, v) -> (sprintf " %s=\"%s\"" k v)
+                | NonValue k      -> k)
+            |> strJoin ""
 
            
-    match tag with 
-    | Text text -> 
-        text :: doc
-    | SelfClosingNode (e, attrs) -> 
-        sprintf "<%s%s />" e (createAttrs attrs) :: doc
-    | ParentNode ((e, attrs), children) ->        
-        let c =             
-            [|
-                for c in children do 
-                    buildXml [] c 
-                    |> List.toArray 
-                    |> strJoin ""
-            |]
-        sprintf "<%s%s>%s</%s>" e (createAttrs attrs) (strJoin "" c) e :: doc
-
-let renderNode tag =
+        match tag with 
+        | Text text -> 
+            text :: doc
+        | SelfClosingNode (e, attrs) -> 
+            sprintf "<%s%s />" e (createAttrs attrs) :: doc
+        | ParentNode ((e, attrs), children) ->        
+            let c =             
+                [|
+                    for c in children do 
+                        buildXml [] c 
+                        |> List.toArray 
+                        |> strJoin ""
+                |]
+            sprintf "<%s%s>%s</%s>" e (createAttrs attrs) (strJoin "" c) e :: doc
+    
     buildXml [] tag
     |> List.toArray
     |> strJoin ""
