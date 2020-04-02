@@ -25,13 +25,16 @@ let mapHttpEndpoints (r : IEndpointRouteBuilder) (endPoints : HttpEndpoint list)
     r
     
 type IApplicationBuilder with
-    member this.UseHttpEndPoints(endPoints : HttpEndpoint list) =
+    member this.UseHttpEndPoints (endPoints : HttpEndpoint list) =
         let useEndPoints (r : IEndpointRouteBuilder) =
             mapHttpEndpoints r endPoints |> ignore
 
         this.UseRouting()
             .UseEndpoints(fun r -> useEndPoints r)
-    
+            
+    member this.UseNotFoundHandler (notFoundHandler : HttpHandler) =
+        this.Run(createRequestDelete notFoundHandler)
+
 let route method pattern handler = 
     { 
         Pattern = pattern
