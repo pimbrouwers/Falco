@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Falco.Form
+module Falco.ModelBinding
 
 open System
 open System.Collections.Generic
@@ -19,7 +19,7 @@ let private createNewInstance<'a> (t : Type) =
 
     expr.Compile()    
     
-let tryParseForm<'a> (values : IDictionary<string, StringValues>) =
+let tryBindModel<'a> (values : IDictionary<string, StringValues>) =
     let t = typeof<'a>    
     let acc = typeAccessorCache.GetOrAdd(t.Name, TypeAccessor.Create(t))
     let newModel = createNewInstance<'a>(t).Invoke()
@@ -73,16 +73,20 @@ let tryParseForm<'a> (values : IDictionary<string, StringValues>) =
     | None   -> Ok newModel
 
 type HttpContext with
-    member this.GetFormValues () =
-        this.Request.Form
-        |> Seq.map (fun (kvp) -> kvp.Key, kvp.Value)
-        |> Map.ofSeq
+    member this.GetFormAsync () =
+        task {
+            let! result = this.Request.ReadFormAsync()
 
-    member this.TryGetFormValue (key : string) =
-        let parseForm = tryParseWith this.Request.Form.TryGetValue
-        match parseForm key with 
-        | Some v -> Some v
-        | None   -> None
+            return
+                result
+                |> Seq.map (fun (kvp) -> kvp.Key, kvp.Value)
+                |> Map.ofSeq    
+        }
+
+    member this.GetQuery () =
+        this.Request.Query
+        |> Seq.map (fun (kvp) -> kvp.Key, kvp.Value)
+        |> Map.ofSeq        
 
     member this.TryBindFormAsync<'a>() =
         task {
@@ -92,8 +96,14 @@ type HttpContext with
                 form
                 |> Seq.map (fun (kvp) -> kvp.Key, kvp.Value)
                 |> dict
-                |> tryParseForm<'a> 
+                |> tryBindModel<'a> 
         }
+
+    member this.TryBindQuery<'a>() =
+        this.Request.Query
+        |> Seq.map (fun (kvp) -> kvp.Key, kvp.Value)
+        |> dict
+        |> tryBindModel<'a>
 
 let tryBindForm<'a> (error : string -> HttpHandler) (success: 'a -> HttpHandler) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->  
@@ -105,3 +115,9 @@ let tryBindForm<'a> (error : string -> HttpHandler) (success: 'a -> HttpHandler)
                 | Ok form   -> success form) next ctx                
         }
 
+let tryBindQuery<'a> (error : string -> HttpHandler) (success: 'a -> HttpHandler) : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->  
+        let result = ctx.TryBindQuery<'a>()
+        (match result with 
+        | Error msg -> error msg
+        | Ok query  -> success query) next ctx

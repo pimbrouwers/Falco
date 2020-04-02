@@ -2,8 +2,12 @@
 module Falco.Core
 
 open System
+open System.Text
 open System.Threading.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
+open Microsoft.Extensions.Primitives
+open Microsoft.Net.Http.Headers
 
 // Exceptions
 exception InvalidDependencyException of string
@@ -57,3 +61,33 @@ let parseDateTime       = tryParseWith DateTime.TryParse
 let parseDateTimeOffset = tryParseWith DateTimeOffset.TryParse
 let parseTimeSpan       = tryParseWith TimeSpan.TryParse
 let parseGuid           = tryParseWith Guid.TryParse
+
+type HttpContext with        
+    member this.GetService<'a> () =
+        let t = typeof<'a>
+        match this.RequestServices.GetService t with
+        | null    -> raise (InvalidDependencyException t.Name)
+        | service -> service :?> 'a
+
+    member this.SetStatusCode (statusCode : int) =            
+        this.Response.StatusCode <- statusCode
+
+    member this.SetHeader name (content : string) =            
+        if not(this.Response.Headers.ContainsKey(name)) then
+            this.Response.Headers.Add(name, StringValues(content))
+
+    member this.SetContentType contentType =
+        this.SetHeader HeaderNames.ContentType contentType
+
+    member this.WriteBytes (bytes : byte[]) =        
+        task {            
+            let len = bytes.Length
+            bytes.CopyTo(this.Response.BodyWriter.GetMemory(len).Span)
+            this.Response.BodyWriter.Advance(len)
+            this.Response.BodyWriter.FlushAsync(this.RequestAborted) |> ignore
+            this.Response.ContentLength <- Nullable<int64>(len |> int64)
+            return Some this
+        }
+
+    member this.WriteString (str : string) =
+        this.WriteBytes (Encoding.UTF8.GetBytes str)

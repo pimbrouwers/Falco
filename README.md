@@ -9,7 +9,7 @@ Key features:
 - Composable request handling.
 - A native F# view engine.
 - Authentication and security utilities. 
-- Model binding.
+- Super-simple model binding.
 - Streaming `multipart/form-data` reader for [large uploads][15].
 
 ## Why?
