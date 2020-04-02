@@ -9,7 +9,7 @@ Key features:
 - Composable request handling.
 - A native F# view engine.
 - Authentication and security utilities. 
-- Super-simple model binding.
+- Super-simple, efficient model binding using [FastMember][16].
 - Streaming `multipart/form-data` reader for [large uploads][15].
 
 ## Why?
@@ -481,3 +481,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [13]: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1 "Overview of ASP.NET Core authentication"
 [14]: https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1 "Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core"
 [15]: https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming "Large file uploads"
+[16]: https://github.com/mgravell/fast-member/
