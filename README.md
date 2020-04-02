@@ -9,6 +9,8 @@ Key features:
 - Composable request handling.
 - A native F# view engine.
 - Authentication and security utilities. 
+- Model binding.
+- Streaming `multipart/form-data` reader for [large uploads][15].
 
 ## Why?
 
@@ -154,13 +156,6 @@ The composition of two `HttpHandler`'s can be accomplished using the `compose` f
 
 > `>=>` is really just a function composition. But `>>` wouldn't work here since the return type of the left function isn't the argument of the right, rather it is a monad that needs to be unwrapped. Which is exactly what `>=>` does.
 
-### Composing two `HttpHandler`'s
-
-```f#
-let forbiddenHandler : HttpHandler =
-  setStatusCode 403 >=> textOut "Forbidden"
-```
-
 ### Built-in `HttpHandler`'s
 
 Plain-text
@@ -201,6 +196,7 @@ let jsonHandler : HttpHandler =
 Set Status Code
 ```f#
 let notFoundHandler : HttpHandler =
+		// here we compose (>=>) two built-in handlers
     setStatusCode 404 >=> textOut "Not Found"
 ```
 
@@ -345,6 +341,14 @@ let bars =
         ]
 ```
 
+## Model Binding
+
+Docs coming soon.
+
+## Streaming `multipart/form-data` Reader
+
+Docs coming soon.
+
 ## Authentication
 
 ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilites.
@@ -476,3 +480,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [12]: https://wiki.haskell.org/Combinator "Combinator"
 [13]: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1 "Overview of ASP.NET Core authentication"
 [14]: https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1 "Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core"
+[15]: https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming "Large file uploads"

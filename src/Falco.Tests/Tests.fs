@@ -224,7 +224,7 @@ module Form =
                 "fguid", StringValues([|guid|])
             ]
 
-        let formTest = parseForm<FormTest> values
+        let formTest = tryParseForm<FormTest> values
         
         formTest
         |> Result.map (fun f -> f |> should equal expected)

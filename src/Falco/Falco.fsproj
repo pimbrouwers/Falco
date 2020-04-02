@@ -46,9 +46,10 @@
   <ItemGroup>
     <Compile Include="Core.fs" />
     <Compile Include="Routing.fs" />
-    <Compile Include="Html.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Form.fs" />
+    <Compile Include="Multipart.fs" />
+    <Compile Include="Html.fs" />
     <Compile Include="Response.fs" />
     <Compile Include="Auth.fs" />
     <Compile Include="Security.fs" />
