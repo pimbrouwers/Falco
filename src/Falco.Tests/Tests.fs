@@ -19,6 +19,7 @@ module Core =
         |> strJoin " "
         |> should equal "the man jumped high"
 
+module Routing =
     [<Fact>]
     let ``can create RequestDelegate from HttpHandler`` () =
         let handler = textOut "hello"
@@ -32,27 +33,8 @@ module Core =
         handler
         |> createRequestDelete
         |> should be ofExactType<RequestDelegate>
-     
-    module HttpContextExtensions =                
-        [<Fact>]
-        let ``WriteString writes to body and sets content length`` () =            
-            let ctx = Substitute.For<HttpContext>()
-            ctx.Response.Body <- new MemoryStream()
-            
-            let expected = "hello world"
-            
-            task {
-                ctx.WriteString expected |> ignore
-                ctx.Response.Body.Position <- 0L
-                use reader = new StreamReader(ctx.Response.Body)
-                let! body = reader.ReadToEndAsync()                
-                let contentLength = ctx.Response.ContentLength
-                
-                body          |> should equal expected
-                contentLength |> should equal (Encoding.UTF8.GetBytes expected)
-            }
-            |> ignore
-
+    
+module Request =
         [<Fact>]
         let ``RouteValue returns None for missing`` () =
             let ctx = Substitute.For<HttpContext>()
@@ -92,6 +74,28 @@ module Core =
 
             ctx.GetService<IAntiforgery>()
             |> should be instanceOfType<IAntiforgery>
+
+
+module Response =
+    [<Fact>]
+    let ``WriteString writes to body and sets content length`` () =            
+        let ctx = Substitute.For<HttpContext>()
+        ctx.Response.Body <- new MemoryStream()
+            
+        let expected = "hello world"
+            
+        task {
+            ctx.WriteString expected |> ignore
+            ctx.Response.Body.Position <- 0L
+            use reader = new StreamReader(ctx.Response.Body)
+            let! body = reader.ReadToEndAsync()                
+            let contentLength = ctx.Response.ContentLength
+                
+            body          |> should equal expected
+            contentLength |> should equal (Encoding.UTF8.GetBytes expected)
+        }
+        |> ignore
+    
 
 module Html =
     open Falco.ViewEngine
