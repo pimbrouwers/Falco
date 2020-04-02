@@ -196,14 +196,14 @@ let jsonHandler : HttpHandler =
 Set Status Code
 ```f#
 let notFoundHandler : HttpHandler =
-		// here we compose (>=>) two built-in handlers
+    // here we compose (>=>) two built-in handlers
     setStatusCode 404 >=> textOut "Not Found"
 ```
 
 HTTP Redirect
 ```f#
 let oldUrlHandler : HttpHandler =
-    redirect "/new-url" false
+    redirect "/new-url" true
 ```
 
 ### Creating new `HttpHandler`'s
