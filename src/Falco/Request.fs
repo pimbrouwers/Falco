@@ -4,6 +4,18 @@ module Falco.Request
 open Microsoft.AspNetCore.Http
 
 type HttpContext with    
+    member this.FormValues () =
+        this.Request.Form
+        |> Seq.map (fun kvp -> 
+            kvp.Key, kvp.Value |> Seq.map (fun s -> toStr s) |> Array.ofSeq)
+        |> Map.ofSeq
+
+    member this.FormValue (key : string) =
+        let parseForm = tryParseWith this.Request.Form.TryGetValue
+        match parseForm key with 
+        | Some v -> Some v
+        | None   -> None
+
     member this.RouteValues () =
         this.Request.RouteValues
         |> Seq.map (fun kvp -> kvp.Key, toStr kvp.Value)

@@ -43,3 +43,4 @@ let tryParseWith (tryParseFunc: string -> bool * _) = tryParseFunc >> function
     | false, _   -> None
             
 let parseInt = tryParseWith Int32.TryParse
+
