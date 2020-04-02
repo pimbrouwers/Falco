@@ -25,3 +25,11 @@ let newUserHandler : HttpHandler =
     tryBindForm<Person>
         jsonOut
         jsonOut
+
+let searchViewHandler : HttpHandler =
+    htmlOut searchView
+
+let searchResultsHandler : HttpHandler =
+    tryBindQuery<SearchQuery>
+        jsonOut
+        jsonOut

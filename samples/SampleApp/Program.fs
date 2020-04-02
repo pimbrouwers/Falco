@@ -33,6 +33,8 @@ let configureServices (services : IServiceCollection) =
 // ------------
 let configureApp (app : IApplicationBuilder) =      
     let routes = [
+        get  "/search"             searchViewHandler
+        get  "/search-results"     searchResultsHandler
         get  "/new-user"           newUserViewHandler
         post "/new-user"           newUserHandler
         get  "/json"               myJsonOutHandler

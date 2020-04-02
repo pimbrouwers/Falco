@@ -22,7 +22,9 @@ let homeView =
         ]
 
 let newUserView =
-    master "New User" [
+    let pageTitle = "New User"
+    master pageTitle [
+            h1   [] [ raw pageTitle ]
             form [ _method "post" ] [
                     label [] [ raw "First Name"]
                     input [ _name "first" ] 
@@ -31,3 +33,14 @@ let newUserView =
                     input [ _type "submit"; _value "Save" ]
                 ]
         ]
+
+let searchView =
+    let pageTitle = "Search"
+    master pageTitle [
+        h1   [] [ raw pageTitle ]
+        form [ _method "get"; _action "/search-results" ] [                
+                input [ _name "frag" ]                 
+                input [ _name "take"; _type "hidden"; _value "10" ]
+                input [ _type "submit"; _value "Search" ]
+            ]
+    ]
