@@ -41,6 +41,11 @@ let searchView =
         form [ _method "get"; _action "/search-results" ] [                
                 input [ _name "frag" ]                 
                 input [ _name "take"; _type "hidden"; _value "10" ]
+
+                input [ _name "n"; _type "hidden"; _value "1" ]
+                input [ _name "n"; _type "hidden"; _value "2" ]
+                input [ _name "n"; _type "hidden"; _value "3" ]
+
                 input [ _type "submit"; _value "Search" ]
             ]
     ]

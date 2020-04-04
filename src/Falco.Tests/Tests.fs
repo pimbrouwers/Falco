@@ -96,19 +96,36 @@ module Routing =
         routeValues.["name"] |> should equal "world"
 
 module ModelBinding =
+    [<Fact>] 
+    let ``Inline query operator ?  should work`` () =
+        let queryDict = 
+            [| 
+                "str", [|"John"|] |> StringValues
+                "num", [|"1"|]    |> StringValues 
+            |]
+            |> Map.ofArray
+            |> fun m -> Dictionary(m)
+
+        let query = QueryCollection(queryDict)
+        let ctx = Substitute.For<HttpContext>()
+        ctx.Request.Query.Returns(query) |> ignore
+
+        ctx.Query()?str.AsString()  |> should equal "John"
+        ctx.Query()?num.AsInteger() |> should equal 1
+
     [<Fact>]
     let ``GetFormAsync should produce Map<string, string[]>`` () =        
         let formDictionary = 
-            [| "name", StringValues([|"rick";"jim";"bob"|]) |]            
+            [| "name", [|"rick";"jim";"bob"|] |> StringValues |]            
             |> Map.ofArray
             |> fun m -> Dictionary(m)            
         let form = FormCollection(formDictionary)
         let ctx = Substitute.For<HttpContext>()
         ctx.Request.ReadFormAsync().Returns(form) |> ignore
-
+        
         let expected = 
             [|   
-                "name", StringValues([|"rick";"jim";"bob"|])
+                "name", [|"rick";"jim";"bob"|]
             |]
             |> Map.ofArray
 
@@ -130,6 +147,7 @@ module ModelBinding =
             FDateTimeOffset : DateTimeOffset
             FTimeSpan       : TimeSpan
             FGuid           : Guid
+            FStringList     : string seq
         }
 
     [<Fact>]
@@ -151,20 +169,22 @@ module ModelBinding =
                 FDateTimeOffset = DateTimeOffset.Parse offsetNow
                 FTimeSpan = TimeSpan.Parse timespan
                 FGuid = Guid.Parse guid
+                FStringList = ["John"; "Doe"]
             }
 
         let values = dict [ 
-                "fstring", StringValues([|"John Doe"|])
-                "fint16", StringValues([|"0"|])
-                "fint32", StringValues([|"0"|])
-                "fint64", StringValues([|"0"|])
-                "fbool", StringValues([|"true"|])
-                "ffloat", StringValues([|"0.0"|])
-                "fdecimal", StringValues([|"0"|])
-                "fdatetime", StringValues([|now|])
-                "fdatetimeoffset", StringValues([|offsetNow|])
-                "ftimespan", StringValues([|timespan|])
-                "fguid", StringValues([|guid|])
+                "fstring", [|"John Doe"|]
+                "fint16", [|"0"|]
+                "fint32", [|"0"|]
+                "fint64", [|"0"|]
+                "fbool", [|"true"|]
+                "ffloat", [|"0.0"|]
+                "fdecimal", [|"0"|]
+                "fdatetime", [|now|]
+                "fdatetimeoffset", [|offsetNow|]
+                "ftimespan", [|timespan|]
+                "fguid", [|guid|]
+                "fstringlist", [|"John"; "Doe"|]
             ]
 
         let formTest = tryBindModel<ModelTest> values
