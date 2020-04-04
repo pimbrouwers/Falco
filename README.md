@@ -196,14 +196,14 @@ let jsonHandler : HttpHandler =
 Set Status Code
 ```f#
 let notFoundHandler : HttpHandler =
-		// here we compose (>=>) two built-in handlers
+    // here we compose (>=>) two built-in handlers
     setStatusCode 404 >=> textOut "Not Found"
 ```
 
 HTTP Redirect
 ```f#
 let oldUrlHandler : HttpHandler =
-    redirect "/new-url" false
+    redirect "/new-url" true
 ```
 
 ### Creating new `HttpHandler`'s
@@ -226,7 +226,7 @@ The following function defines an `HttpHandler` which checks for a route value c
 ```f#
 let helloHandler : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->        
-        let name = ctx.RouteValue "name" |> Option.defaultValue "someone"
+        let name = ctx.TryGetRouteValue "name" |> Option.defaultValue "someone"
         let msg = sprintf "hi %s" name 
         textOut msg next ctx
 ```
