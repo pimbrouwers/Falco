@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Common.fs" />
+    <Compile Include="Model.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Handlers.fs" />
     <Compile Include="Program.fs" />

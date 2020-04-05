@@ -96,102 +96,67 @@ module Routing =
         routeValues.["name"] |> should equal "world"
 
 module ModelBinding =
+    [<Fact>]
+    let ``Can make StringCollectionReader from IQueryCollection`` () =
+        StringCollectionReader(QueryCollection(Dictionary()))        
+        |> should not' throw
+
+    [<Fact>]
+    let ``Can make StringCollectionReader from IFormCollection`` () =
+        StringCollectionReader(FormCollection(Dictionary()))        
+        |> should not' throw
+
     [<Fact>] 
-    let ``Inline query operator ?  should work`` () =
-        let queryDict = 
-            [| 
-                "str", [|"John"|] |> StringValues
-                "num", [|"1"|]    |> StringValues 
-            |]
-            |> Map.ofArray
-            |> fun m -> Dictionary(m)
-
-        let query = QueryCollection(queryDict)
-        let ctx = Substitute.For<HttpContext>()
-        ctx.Request.Query.Returns(query) |> ignore
-
-        ctx.Query()?str.AsString()  |> should equal "John"
-        ctx.Query()?num.AsInteger() |> should equal 1
-
-    [<Fact>]
-    let ``GetFormAsync should produce Map<string, string[]>`` () =        
-        let formDictionary = 
-            [| "name", [|"rick";"jim";"bob"|] |> StringValues |]            
-            |> Map.ofArray
-            |> fun m -> Dictionary(m)            
-        let form = FormCollection(formDictionary)
-        let ctx = Substitute.For<HttpContext>()
-        ctx.Request.ReadFormAsync().Returns(form) |> ignore
-        
-        let expected = 
-            [|   
-                "name", [|"rick";"jim";"bob"|]
-            |]
-            |> Map.ofArray
-
-        let formValues = ctx.GetFormAsync () |> Async.AwaitTask |> Async.RunSynchronously
-
-        formValues |> should equal expected
-    
-    [<CLIMutable>]
-    type ModelTest = 
-        {
-            Fstring         : string
-            Fint16          : int16
-            Fint32          : int32
-            Fint64          : int64                        
-            Fbool           : bool
-            Ffloat          : float
-            Fdecimal        : decimal
-            FDateTime       : DateTime
-            FDateTimeOffset : DateTimeOffset
-            FTimeSpan       : TimeSpan
-            FGuid           : Guid
-            FStringList     : string seq
-        }
-
-    [<Fact>]
-    let ``tryParseModel should produce record with CLIMutable containing primitives`` () =        
+    let ``Inline StringCollectionReader from query collection should resolve primitives`` () =
         let now = DateTime.Now.ToString()
         let offsetNow = DateTimeOffset.Now.ToString()
         let timespan = TimeSpan.FromSeconds(1.0).ToString()
         let guid = Guid().ToString()
-        let expected = 
-            { 
-                Fstring = "John Doe"
-                Fint16 = 0s
-                Fint32 = 0
-                Fint64 = 0L
-                Fbool = true
-                Ffloat = 0.0
-                Fdecimal = 0M
-                FDateTime = DateTime.Parse now
-                FDateTimeOffset = DateTimeOffset.Parse offsetNow
-                FTimeSpan = TimeSpan.Parse timespan
-                FGuid = Guid.Parse guid
-                FStringList = ["John"; "Doe"]
-            }
 
-        let values = dict [ 
-                "fstring", [|"John Doe"|]
-                "fint16", [|"0"|]
-                "fint32", [|"0"|]
-                "fint64", [|"0"|]
-                "fbool", [|"true"|]
-                "ffloat", [|"0.0"|]
-                "fdecimal", [|"0"|]
-                "fdatetime", [|now|]
-                "fdatetimeoffset", [|offsetNow|]
-                "ftimespan", [|timespan|]
-                "fguid", [|guid|]
-                "fstringlist", [|"John"; "Doe"|]
+        let values = 
+            [ 
+                "fstring", [|"John Doe"|] |> StringValues
+                "fint16", [|"16"|] |> StringValues
+                "fint32", [|"32"|] |> StringValues
+                "fint64", [|"64"|] |> StringValues
+                "fbool", [|"true"|] |> StringValues
+                "ffloat", [|"1.234"|] |> StringValues
+                "fdecimal", [|"4.567"|] |> StringValues
+                "fdatetime", [|now|] |> StringValues
+                "fdatetimeoffset", [|offsetNow|] |> StringValues
+                "ftimespan", [|timespan|] |> StringValues
+                "fguid", [|guid|] |> StringValues
             ]
+            |> Map.ofList
+            |> fun m -> Dictionary(m)
 
-        let formTest = tryBindModel<ModelTest> values
-        
-        formTest
-        |> Result.map (fun f -> f |> should equal expected)
-        |> Result.mapError (fun _ -> false |> should equal true) // always a fail
+        let query = StringCollectionReader(values)
+
+        query.TryGetString "fstring"                 |> Option.iter (should equal "John Doe")
+        query.TryGetInt16 "fint16"                   |> Option.iter (should equal 16s)
+        query.TryGetInt32 "fint32"                   |> Option.iter (should equal 32)
+        query.TryGetInt "fint32"                     |> Option.iter (should equal 32)
+        query.TryGetInt64 "fint64"                   |> Option.iter (should equal 64L)
+        query.TryGetBoolean "fbool"                  |> Option.iter (should equal true)
+        query.TryGetFloat "ffloat"                   |> Option.iter (should equal 1.234)
+        query.TryGetDecimal "fdecimal"               |> Option.iter (should equal 4.567M)
+        query.TryGetDateTime "fdatetime"             |> Option.iter (should equal (DateTime.Parse(now)))
+        query.TryGetDateTimeOffset "fdatetimeoffset" |> Option.iter (should equal (DateTimeOffset.Parse(offsetNow)))
+        query.TryGetTimeSpan "ftimespan"             |> Option.iter (should equal (TimeSpan.Parse(timespan)))
+        query.TryGetGuid "fguid"                     |> Option.iter (should equal (Guid.Parse(guid)))
+
+        query?fstring.AsString()                 |> should equal "John Doe"
+        query?fint16.AsInt16()                   |> should equal 16s
+        query?fint32.AsInt32()                   |> should equal 32
+        query?fint32.AsInt()                     |> should equal 32
+        query?fint64.AsInt64()                   |> should equal 64L
+        query?fbool.AsBoolean()                  |> should equal true
+        query?ffloat.AsFloat()                   |> should equal 1.234
+        query?fdecimal.AsDecimal()               |> should equal 4.567M
+        query?fdatetime.AsDateTime()             |> should equal (DateTime.Parse(now))
+        query?fdatetimeoffset.AsDateTimeOffset() |> should equal (DateTimeOffset.Parse(offsetNow))
+        query?ftimespan.AsTimeSpan()             |> should equal (TimeSpan.Parse(timespan))
+        query?fguid.AsGuid()                     |> should equal (Guid.Parse(guid))
 
 module Html =
     open Falco.ViewEngine

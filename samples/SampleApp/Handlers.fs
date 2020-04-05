@@ -2,6 +2,7 @@
 
 open Falco
 open Microsoft.AspNetCore.Http
+open SampleApp.Model
 open SampleApp.UI
 
 let notFoundHandler : HttpHandler =
@@ -22,14 +23,10 @@ let newUserViewHandler : HttpHandler =
     htmlOut newUserView
 
 let newUserHandler : HttpHandler = 
-    tryBindForm<Person>
-        jsonOut
-        jsonOut
+    tryBindForm Person.FromReader jsonOut jsonOut
 
 let searchViewHandler : HttpHandler =
     htmlOut searchView
 
 let searchResultsHandler : HttpHandler =
-    tryBindQuery<SearchQuery>
-        jsonOut
-        jsonOut
+    tryBindQuery SearchQuery.FromReader jsonOut jsonOut

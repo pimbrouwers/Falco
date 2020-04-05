@@ -39,7 +39,6 @@
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.7.*" />
-    <PackageReference Include="FastMember.NetCore" Version="1.1.0" />
     <PackageReference Include="TaskBuilder.fs" Version="2.1.*" />
   </ItemGroup>
 
