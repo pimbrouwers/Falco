@@ -19,15 +19,15 @@ let configureLogging (loggerBuilder : ILoggingBuilder) =
 // Services
 // ------------
 let configureServices (services : IServiceCollection) =
-    services
-        .AddResponseCaching()
-        .AddResponseCompression()    
+    services        
         .AddRouting()        
         |> ignore
 
 // ------------
 // Web App
 // ------------
+let notFoundHandler : HttpHandler =
+    setStatusCode 404 >=> textOut "Not found"
 
 let helloHandler : HttpHandler =
     textOut "hello world"
@@ -39,6 +39,7 @@ let configureApp (app : IApplicationBuilder) =
 
     app.UseDeveloperExceptionPage()       
        .UseHttpEndPoints(routes)
+       .UseNotFoundHandler(notFoundHandler)
        |> ignore
 
 [<EntryPoint>]

@@ -16,7 +16,7 @@ Key features:
 
 > This project was *heavily* inspired by [Giraffe][4]. Those looking for a more mature & comprehensive web framework should definitely go check it out. 
 
-The goal of this project was to design the thinnest possible API on top of the base ASP.NET library. Aimed at supporting:
+The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core library. Aimed at supporting:
 - A low barrier to entry for those new to functional programming.
 - Simple integration into the native ASP.NET pipeline.
 - High-performance routing.
@@ -58,24 +58,27 @@ let configureLogging (loggerBuilder : ILoggingBuilder) =
 // Services
 // ------------
 let configureServices (services : IServiceCollection) =
-    services
+    services        
         .AddRouting() // Required for Falco
         |> ignore
 
 // ------------
 // Web App
 // ------------
+let notFoundHandler : HttpHandler =
+    setStatusCode 404 >=> textOut "Not found"
+
 let helloHandler : HttpHandler =
     textOut "hello world"
 
 let configureApp (app : IApplicationBuilder) =      
-    let routes = 
-        [        
-            get "/" helloHandler
-        ]
+    let routes = [        
+        get "/" helloHandler
+    ]
 
     app.UseDeveloperExceptionPage()       
        .UseHttpEndPoints(routes) // Activate Falco
+       .UseNotFoundHandler(notFoundHandler) // Activate Falco not found handler
        |> ignore
 
 [<EntryPoint>]
@@ -158,13 +161,13 @@ The composition of two `HttpHandler`'s can be accomplished using the `compose` f
 
 ### Built-in `HttpHandler`'s
 
-Plain-text
+`textOut` - Plain Text responses
 ```f#
 let textHandler =
     textOut "Hello World"
 ```
 
-HTML
+`htmlOut` - HTML responses
 ```f#
 let doc = 
     html [] [
@@ -180,7 +183,7 @@ let htmlHandler : HttpHandler =
     htmlOut doc
 ```
 
-JSON (uses the default `System.Text.Json.JsonSerializer`)
+`jsonOut` - JSON responses (uses the default `System.Text.Json.JsonSerializer`)
 ```f#
 type Person =
     {
@@ -193,14 +196,14 @@ let jsonHandler : HttpHandler =
     |> jsonOut
 ```
 
-Set Status Code
+`setStatusCode` - Set the status code of the response
 ```f#
 let notFoundHandler : HttpHandler =
     // here we compose (>=>) two built-in handlers
     setStatusCode 404 >=> textOut "Not Found"
 ```
 
-HTTP Redirect
+`redirect` - 301/302 Redirect Response (boolean param to indicate permanency)
 ```f#
 let oldUrlHandler : HttpHandler =
     redirect "/new-url" true
@@ -244,20 +247,21 @@ Most of the standard HTML tags & attributes have been mapped to F# functions, wh
 - `ParentNode` which represent typical tags with, optionally, other tags within it (i.e. `<div>...</div>`).
 
 ```f#
-let doc = html [ _lang "en" ] [
-        head [] [
-            meta  [ _charset "UTF-8" ]
-            meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-            meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-            title [] [ raw "Sample App" ]                                        
-            link  [ _href "/style.css"; _rel "stylesheet"]
-        ]
-        body [] [                     
-                main [] [
-                        h1 [] [ raw "Sample App" ]
-                    ]
-            ]
-    ] 
+let doc = 
+    html [ _lang "en" ] [
+            head [] [
+                    meta  [ _charset "UTF-8" ]
+                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
+                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
+                    title [] [ raw "Sample App" ]                                        
+                    link  [ _href "/style.css"; _rel "stylesheet"]
+                ]
+            body [] [                     
+                    main [] [
+                            h1 [] [ raw "Sample App" ]
+                        ]
+                ]
+        ] 
 ```
 
 Since views are plain F# they can easily be made strongly-typed:
@@ -270,35 +274,35 @@ type Person =
 
 let doc (person : Person) = 
     html [ _lang "en" ] [
-        head [] [
-            meta  [ _charset "UTF-8" ]
-            meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-            meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-            title [] [ raw "Sample App" ]                                        
-            link  [ _href "/style.css"; _rel "stylesheet"]
-        ]
-        body [] [                     
-                main [] [
-                        h1 [] [ raw "Sample App" ]
-                        p  [] [ raw (sprintf "%s %s" person.First person.Last)]
-                    ]
-            ]
-    ] 
+            head [] [
+                    meta  [ _charset "UTF-8" ]
+                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
+                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
+                    title [] [ raw "Sample App" ]                                        
+                    link  [ _href "/style.css"; _rel "stylesheet"]
+                ]
+            body [] [                     
+                    main [] [
+                            h1 [] [ raw "Sample App" ]
+                            p  [] [ raw (sprintf "%s %s" person.First person.Last)]
+                        ]
+                ]
+        ] 
 ```
 
 Views can also be combined to create more complex views and share output:
 ```f#
 let master (title : string) (content : XmlNode list) =
     html [ _lang "en" ] [
-        head [] [
-            meta  [ _charset "UTF-8" ]
-            meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-            meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-            title [] [ raw title ]                                        
-            link  [ _href "/style.css"; _rel "stylesheet"]
-        ]
-        body [] content
-    ]  
+            head [] [
+                    meta  [ _charset "UTF-8" ]
+                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
+                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
+                    title [] [ raw title ]                                        
+                    link  [ _href "/style.css"; _rel "stylesheet"]
+                ]
+            body [] content
+        ]  
 
 let divider = 
     hr [ _class "divider" ]
@@ -378,20 +382,20 @@ let doc (principal : ClaimsPrincipal option) =
         | None   -> false
 
     html [ _lang "en" ] [
-        head [] [
-            meta  [ _charset "UTF-8" ]
-            meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-            meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-            title [] [ raw "Sample App" ]                                        
-            link  [ _href "/style.css"; _rel "stylesheet"]
+            head [] [
+                    meta  [ _charset "UTF-8" ]
+                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
+                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
+                    title [] [ raw "Sample App" ]                                        
+                    link  [ _href "/style.css"; _rel "stylesheet"]
+                ]
+            body [] [                     
+                    main [] [
+                            yield h1 [] [ raw "Sample App" ]
+                            if isAuthenticated then yield p  [] [ raw "Hello logged in user" ]
+                        ]
+                ]
         ]
-        body [] [                     
-                main [] [
-                        yield h1 [] [ raw "Sample App" ]
-                        if isAuthenticated then yield p  [] [ raw "Hello logged in user" ]
-                    ]
-            ]
-    ]
 
 let secureDocHandler : HttpHandler =
     authHtmlOut doc
@@ -399,7 +403,7 @@ let secureDocHandler : HttpHandler =
 
 ## Security
 
-Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, as easily as an XSS attack can be carried out against an unprotected website, protecting against them is just as easy. 
+Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them. 
 
 The [Microsoft.AspNetCore.Antiforgery][14] package provides the required utilities to easily protect yourself against such attacks.
 
@@ -410,14 +414,14 @@ Falco provides a few handlers via `Falco.Security.Xss`:
 ```f#
 let formView (token : AntiforgeryTokenSet) = 
     html [] [
-        body [] [
-                form [ _method "post" ] [
-                        // using the CSRF HTML helper
-                        antiforgeryInput token
-                        input [ _type "submit"; _value "Submit" ]
-                    ]                                
-            ]
-    ]
+            body [] [
+                    form [ _method "post" ] [
+                            // using the CSRF HTML helper
+                            antiforgeryInput token
+                            input [ _type "submit"; _value "Submit" ]
+                        ]                                
+                ]
+        ]
     
 // a custom handler that requires the CSRF token
 let csrfHandler (token : AntiforgeryTokenSet) : HttpHandler = 
@@ -439,7 +443,9 @@ let routes =
 
 ### Crytography
 
-Many sites have the requirement of secure log in and sign up. Thus, generating strong hashes and random salts is of critical importance. Falco helpers are accessed by importing `Falco.Auth.Crypto`.
+Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is of critical importance. 
+
+Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
 ```f#
 // Generating salt,
@@ -451,7 +457,7 @@ let salt = salt 16
 // Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
 // 25,000 iterations and 32 bytes in length
 let password = "5upe45ecure"
-let hashedPassword = password |> sha256 25000 32  //
+let hashedPassword = password |> sha256 25000 32
 ``` 
 
 ## Why "Falco"?

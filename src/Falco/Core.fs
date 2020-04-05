@@ -46,6 +46,19 @@ let strEquals s1 s2 = String.Equals(s1, s2, StringComparison.InvariantCultureIgn
 let strJoin (sep : string) (lst : string array) = String.Join(sep, lst)
         
 // parsing
+let parseOrFail parser msg v =
+    match parser v with 
+    | Some v -> v
+    | None   -> failwith msg
+
+let tryParseArray tryParser ary =
+    ary
+    |> Seq.map tryParser
+    |> Seq.fold (fun acc i ->
+        match (i, acc) with
+        | Some i, Some acc -> Some (Array.append acc [|i|])
+        | _ -> None) (Some [||])    
+
 let tryParseWith (tryParseFunc: string -> bool * _) = tryParseFunc >> function
     | true, v    -> Some v
     | false, _   -> None
