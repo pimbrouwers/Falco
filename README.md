@@ -14,14 +14,14 @@ Key features:
 
 ## Why?
 
-> This project was inspired by [Giraffe][4]. Those looking for a more mature & comprehensive web framework should definitely go check it out. 
-
 The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core library. Aimed at supporting:
 - A low barrier to entry for those new to functional programming.
 - Simple integration into the native ASP.NET pipeline.
 - High-performance routing.
 - Composable request handling. 
 - Isomorphic web development.
+
+> This project was inspired by [Giraffe][4]. Those looking for a more mature & comprehensive web framework should definitely go check it out. 
 
 ## Quick Start
 
