@@ -9,6 +9,7 @@ Key features:
 - Composable [request handling](#request-handling).
 - A native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
+- Support for [model validation](#model-validation)
 - [Authentication](#authentication) and [security](#security) utilities. 
 - Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
 
@@ -436,6 +437,41 @@ let searchResultsHandler : HttpHandler =
         SearchQuery.FromReader 
         errorHandler 
         successHandler
+```
+
+## Model Validation
+
+Validating data input is crucial before allowing it to enter the domian. This operation is likely performed after [model binding](#model-binding) has occurred. So this is an area where F#'s flexible type system shines, allowing us to create type members to determine validation state.
+
+Falco exposes an interface `type IModelValidator<'a> = abstract member Validate : unit -> Result<'a, string * 'a>` which specifies a type that has a `Validate` member which either succeeds and returns the **valid model**, or fails and returns a tuple containing an error message and the **invalid model**.
+
+```f#
+[<CLIMutable>]
+type UserLoginModel =
+    {
+        Email    : string
+        Password : string
+    }
+
+    member this.HasErrors() =
+        if      strEmpty this.Email 
+                || strEmpty this.Password             then Some "Email & password are required"                
+        else if this.Email !=~ "{EMAIL_REGEX}"                      
+                || this.Password !=~ {PASSWORD_REGEX} then Some "Invalid email/password"
+        else None
+
+    interface IModelValidator<UserLoginModel> with
+        member this.Validate() =
+            match this.HasErrors() with
+            | Some msg -> Error (msg, this)
+            | None     -> Ok this
+
+
+// An example handler, processing the user login attempt
+let exampleValidationHandler : HttpHandler =
+    tryValidate 
+        modelErrorView 
+        userLogInWorkflow
 ```
 
 ## Authentication

@@ -36,6 +36,14 @@ let (>=>) = compose
 let toStr x = 
     x.ToString()
 
+/// Check if string is null or whitespace
+let strEmpty str =
+    String.IsNullOrWhiteSpace(str)
+
+/// Check if string is not null or whitespace
+let strNotEmpty str =
+    not(strEmpty str)
+
 /// Case & culture insensistive string equality
 let strEquals s1 s2 = 
     String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)

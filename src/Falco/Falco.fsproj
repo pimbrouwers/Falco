@@ -46,6 +46,7 @@
     <Compile Include="Core.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="ModelBinding.fs" />
+    <Compile Include="Validation.fs" />
     <Compile Include="Multipart.fs" />
     <Compile Include="Html.fs" />
     <Compile Include="Handlers.fs" />
