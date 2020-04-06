@@ -10,7 +10,7 @@ Key features:
 - A native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
 - [Authentication](#authentication) and [security](#security) utilities. 
-- Streaming `multipart/form-data` reader for [large uploads][15].
+- Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
 
 ## Why?
 
