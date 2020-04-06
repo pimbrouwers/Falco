@@ -414,6 +414,28 @@ let exampleTryBindQueryHandler : HttpHandler =
             })
         errorHandler 
         successHandler
+
+// An example using a type and static binder, which can make things simpler
+[<CLIMutable>]
+type SearchQuery =
+    {
+        Frag : string
+        Page : int option
+        Take : int
+    }
+
+    static member FromReader (r : StringCollectionReader) =
+        Ok {
+            Frag = r?frag.AsString()
+            Page = r.TryGetInt "page"
+            Take = r?take.AsInt()
+        }
+
+let searchResultsHandler : HttpHandler =
+    tryBindQuery 
+        SearchQuery.FromReader 
+        errorHandler 
+        successHandler
 ```
 
 ## Streaming `multipart/form-data` Reader
