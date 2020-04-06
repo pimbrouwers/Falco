@@ -6,7 +6,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     
     <!-- General info -->
-    <Description>A simple functional F# library for building brilliant ASP.NET web applications.</Description>
+    <Description>A functional micro-library for building brilliant ASP.NET Core applications using F#.</Description>
     <Copyright>Copyright 2020 Pim Brouwers</Copyright>
     <Authors>Pim Brouwers</Authors>
     <NeutralLanguage>en-CA</NeutralLanguage>
