@@ -26,6 +26,6 @@ type SearchQuery =
     static member FromReader (r : StringCollectionReader) =
         Ok {
             Frag = r?frag.AsString()
-            Page = r.TryGetInt "page"
+            Page = r.TryGetInt "page"   
             Take = r?take.AsInt()
         }
