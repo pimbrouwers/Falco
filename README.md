@@ -445,6 +445,8 @@ Validating data input is crucial before allowing it to enter the domian. This op
 
 Falco exposes an interface `type IModelValidator<'a> = abstract member Validate : unit -> Result<'a, string * 'a>` which specifies a type that has a `Validate` member which either succeeds and returns the **valid model**, or fails and returns a tuple containing an error message and the **invalid model**.
 
+> Two infix operators (`=~` for *does match*, and `!=~` for *does not match*) are exposed to make string matching against regular expressions a little more terse. These will look familiar to anyone with a background in Perl.
+
 ```f#
 [<CLIMutable>]
 type UserLoginModel =
