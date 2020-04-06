@@ -30,3 +30,4 @@ let searchViewHandler : HttpHandler =
 
 let searchResultsHandler : HttpHandler =
     tryBindQuery SearchQuery.FromReader jsonOut jsonOut
+

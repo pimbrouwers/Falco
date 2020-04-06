@@ -438,10 +438,6 @@ let searchResultsHandler : HttpHandler =
         successHandler
 ```
 
-## Streaming `multipart/form-data` Reader
-
-Docs coming soon.
-
 ## Authentication
 
 ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilites.
@@ -501,6 +497,8 @@ Falco provides a few handlers via `Falco.Security.Xss`:
 > To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`. 
 
 ```f#
+open Falco.Xss 
+
 let formView (token : AntiforgeryTokenSet) = 
     html [] [
             body [] [
@@ -537,6 +535,8 @@ Many sites have the requirement of a secure log in and sign up (i.e. registering
 Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
 ```f#
+open Falco.Crypto 
+
 // Generating salt,
 // using System.Security.Cryptography.RandomNumberGenerator,
 // create a random 16 byte salt and base 64 encode
@@ -548,6 +548,27 @@ let salt = salt 16
 let password = "5upe45ecure"
 let hashedPassword = password |> sha256 25000 32
 ``` 
+
+## Handling Large Uploads
+
+Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size, and they recommend streaming the multipart data to avoid excess memory consumption.
+
+To make this process **a lot** easier Falco exposes an `HttpContext` extension method `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
+
+```f#
+open Falco.Multipart 
+
+let imageUploadHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let! form = ctx.TryStreamFormAsync() // Returns a standard IFormCollection
+            
+            return!
+                (match form with 
+                | Error msg -> setStatusCode 400 >=> textOut msg
+                | Ok form   -> ... ) next ctx
+        }
+```
 
 ## Why "Falco"?
 
