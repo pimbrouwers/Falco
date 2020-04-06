@@ -386,6 +386,8 @@ let parseQueryHandler : HttpHandler =
         let age       = form?Age.AsInt16()        // string -> int16
 ```
 
+> Use of the `?` dynamic operator also performs **case-insenstive** lookups against the collection.
+
 Further to this, generic `HttpHandler`'s are available to allow for the typical case of *try-or-fail* that asks for a: binding function and HttpHandler's for error and success cases.
 
 ```f#
