@@ -9,89 +9,98 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
 
-// Exceptions
+/// Represents a missing dependency, thrown on request
 exception InvalidDependencyException of string
 
-// Types
+/// The optional result of work performed against the HttpContext
 type HttpFuncResult = Task<HttpContext option>
 
+/// Specifies work to be performed against the HttpContext
 type HttpFunc = HttpContext -> HttpFuncResult
 
+/// Represents in-and-out processing of the HttpContext
 type HttpHandler = HttpFunc -> HttpFunc    
-    
-type HttpVerb = GET | POST | PUT | DELETE | ANY
 
-type HttpEndpoint = 
-    {
-        Pattern : string   
-        Verb  : HttpVerb
-        Handler : HttpHandler
-    }
-
-// Kleisli Composition
+/// Compose ("glue") HttpHandler's together
 let compose (handler1 : HttpHandler) (handler2 : HttpHandler) : HttpHandler =
     fun (final : HttpFunc) ->
-        let func = final |> handler2 |> handler1
+        let next = final |> handler2 |> handler1
         fun (ctx : HttpContext) ->
             match ctx.Response.HasStarted with
             | true  -> final ctx
-            | false -> func ctx
+            | false -> next ctx
         
 let (>=>) = compose
-    
-// strings    
-let toStr x = x.ToString()
 
-let strEquals s1 s2 = String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)
-let strJoin (sep : string) (lst : string array) = String.Join(sep, lst)
-        
-// parsing
+/// Call obj's ToString()
+let toStr x = 
+    x.ToString()
+
+/// Case & culture insensistive string equality
+let strEquals s1 s2 = 
+    String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)
+
+/// Join strings with a separator
+let strJoin (sep : string) (lst : string array) = 
+    String.Join(sep, lst)
+   
+/// Helper to wrap .NET tryParser's
+let parseWith (tryParseFunc: string -> bool * _) = 
+    tryParseFunc >> function
+    | true, v    -> Some v
+    | false, _   -> None
+  
+let parseInt            = parseWith Int32.TryParse
+let parseInt16          = parseWith Int16.TryParse
+let parseInt32          = parseInt
+let parseInt64          = parseWith Int64.TryParse
+let parseBoolean        = parseWith Boolean.TryParse
+let parseFloat          = parseWith Double.TryParse
+let parseDecimal        = parseWith Decimal.TryParse
+let parseDateTime       = parseWith DateTime.TryParse
+let parseDateTimeOffset = parseWith DateTimeOffset.TryParse
+let parseTimeSpan       = parseWith TimeSpan.TryParse
+let parseGuid           = parseWith Guid.TryParse
+
+/// Attempt to parse, or failwith message
 let parseOrFail parser msg v =
     match parser v with 
     | Some v -> v
     | None   -> failwith msg
 
-let tryParseArray tryParser ary =
+/// Attempt to parse array, returns none for failure
+let parseArray parser ary =
     ary
-    |> Seq.map tryParser
+    |> Seq.map parser
     |> Seq.fold (fun acc i ->
         match (i, acc) with
         | Some i, Some acc -> Some (Array.append acc [|i|])
         | _ -> None) (Some [||])    
 
-let tryParseWith (tryParseFunc: string -> bool * _) = tryParseFunc >> function
-    | true, v    -> Some v
-    | false, _   -> None
-            
-let parseInt            = tryParseWith Int32.TryParse
-let parseInt16          = tryParseWith Int16.TryParse
-let parseInt32          = parseInt
-let parseInt64          = tryParseWith Int64.TryParse
-let parseBoolean        = tryParseWith Boolean.TryParse
-let parseFloat          = tryParseWith Double.TryParse
-let parseDecimal        = tryParseWith Decimal.TryParse
-let parseDateTime       = tryParseWith DateTime.TryParse
-let parseDateTimeOffset = tryParseWith DateTimeOffset.TryParse
-let parseTimeSpan       = tryParseWith TimeSpan.TryParse
-let parseGuid           = tryParseWith Guid.TryParse
 
-type HttpContext with        
+type HttpContext with   
+    /// Attempt to obtain depedency from IServiceCollection
+    /// Throws InvalidDependencyException on null
     member this.GetService<'a> () =
         let t = typeof<'a>
         match this.RequestServices.GetService t with
         | null    -> raise (InvalidDependencyException t.Name)
         | service -> service :?> 'a
 
+    /// Set HttpResponse status code
     member this.SetStatusCode (statusCode : int) =            
         this.Response.StatusCode <- statusCode
 
+    /// Set HttpResponse header
     member this.SetHeader name (content : string) =            
         if not(this.Response.Headers.ContainsKey(name)) then
             this.Response.Headers.Add(name, StringValues(content))
 
+    /// Set HttpResponse ContentType header
     member this.SetContentType contentType =
         this.SetHeader HeaderNames.ContentType contentType
 
+    /// Write bytes to HttpResponse body
     member this.WriteBytes (bytes : byte[]) =        
         task {            
             let len = bytes.Length
@@ -102,5 +111,6 @@ type HttpContext with
             return Some this
         }
 
+    /// Write string to HttpResponse body
     member this.WriteString (str : string) =
         this.WriteBytes (Encoding.UTF8.GetBytes str)

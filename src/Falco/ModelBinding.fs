@@ -11,7 +11,7 @@ type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) =
     let coll = c |> Seq.map (fun (kvp) -> kvp.Key, kvp.Value) |> dict
 
     member _.TryGetValue (name : string) = 
-        match name |> tryParseWith coll.TryGetValue with
+        match name |> parseWith coll.TryGetValue with
         | Some v when v.Count > 0 -> Some v
         | _                       -> None
     
@@ -21,6 +21,7 @@ type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) =
         | None -> failwith (sprintf "Could not find %s" name)
 
     member this.TryGetString (name : string)           = name |> this.TryGetValue |> Option.bind (fun v -> Some v.[0])
+    member this.TryGet                                 = this.TryGetString
     member this.TryGetInt16 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt16 v.[0])
     member this.TryGetInt32 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt32 v.[0])
     member this.TryGetInt                              = this.TryGetInt32
@@ -33,17 +34,17 @@ type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) =
     member this.TryGetGuid (name : string)             = name |> this.TryGetValue |> Option.bind (fun v -> parseGuid v.[0])
     member this.TryGetTimeSpan (name : string)         = name |> this.TryGetValue |> Option.bind (fun v -> parseTimeSpan v.[0])       
     member this.TryArrayString (name : string)         = name |> this.TryGetValue |> Option.map  (fun v -> v.ToArray())
-    member this.TryArrayInt16 (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt16)
-    member this.TryArrayInt32 (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt32)
+    member this.TryArrayInt16 (name : string)          = name |> this.TryGetValue |> Option.bind (parseArray parseInt16)
+    member this.TryArrayInt32 (name : string)          = name |> this.TryGetValue |> Option.bind (parseArray parseInt32)
     member this.TryArrayInt                            = this.TryArrayInt32
-    member this.TryArrayInt64 (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt64)
-    member this.TryArrayBoolean (name : string)        = name |> this.TryGetValue |> Option.bind (tryParseArray parseBoolean)
-    member this.TryArrayFloat (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseFloat)
-    member this.TryArrayDecimal (name : string)        = name |> this.TryGetValue |> Option.bind (tryParseArray parseDecimal)
-    member this.TryArrayDateTime (name : string)       = name |> this.TryGetValue |> Option.bind (tryParseArray parseDateTime)
-    member this.TryArrayDateTimeOffset (name : string) = name |> this.TryGetValue |> Option.bind (tryParseArray parseDateTimeOffset)
-    member this.TryArrayGuid (name : string)           = name |> this.TryGetValue |> Option.bind (tryParseArray parseGuid)
-    member this.TryArrayTimeSpan (name : string)       = name |> this.TryGetValue |> Option.bind (tryParseArray parseTimeSpan)
+    member this.TryArrayInt64 (name : string)          = name |> this.TryGetValue |> Option.bind (parseArray parseInt64)
+    member this.TryArrayBoolean (name : string)        = name |> this.TryGetValue |> Option.bind (parseArray parseBoolean)
+    member this.TryArrayFloat (name : string)          = name |> this.TryGetValue |> Option.bind (parseArray parseFloat)
+    member this.TryArrayDecimal (name : string)        = name |> this.TryGetValue |> Option.bind (parseArray parseDecimal)
+    member this.TryArrayDateTime (name : string)       = name |> this.TryGetValue |> Option.bind (parseArray parseDateTime)
+    member this.TryArrayDateTimeOffset (name : string) = name |> this.TryGetValue |> Option.bind (parseArray parseDateTimeOffset)
+    member this.TryArrayGuid (name : string)           = name |> this.TryGetValue |> Option.bind (parseArray parseGuid)
+    member this.TryArrayTimeSpan (name : string)       = name |> this.TryGetValue |> Option.bind (parseArray parseTimeSpan)
         
 let (?) (q : StringCollectionReader) = q.GetValue
 
@@ -65,29 +66,36 @@ type StringValues with
     member this.AsGuid ()                = this.AsString() |> parseOrFail parseGuid "Not a valid Guid"
     member this.AsTimeSpan ()            = this.AsString() |> parseOrFail parseTimeSpan "Not a valid TimeSpan"
     member this.AsArrayString ()         = this.ToArray()
-    member this.AsArrayInt16 ()          = this.AsArrayString() |> tryParseArray parseInt16 |> Option.defaultValue [||]
-    member this.AsArrayInt32 ()          = this.AsArrayString() |> tryParseArray parseInt32 |> Option.defaultValue [||]
+    member this.AsArrayInt16 ()          = this.AsArrayString() |> parseArray parseInt16 |> Option.defaultValue [||]
+    member this.AsArrayInt32 ()          = this.AsArrayString() |> parseArray parseInt32 |> Option.defaultValue [||]
     member this.AsArrayInt               = this.AsArrayInt32
-    member this.AsArrayInt64 ()          = this.AsArrayString() |> tryParseArray parseInt64 |> Option.defaultValue [||]
-    member this.AsArrayBoolean ()        = this.AsArrayString() |> tryParseArray parseBoolean |> Option.defaultValue [||]
-    member this.AsArrayFloat ()          = this.AsArrayString() |> tryParseArray parseFloat |> Option.defaultValue [||]
-    member this.AsArrayDecimal ()        = this.AsArrayString() |> tryParseArray parseDecimal |> Option.defaultValue [||]
-    member this.AsArrayDateTime ()       = this.AsArrayString() |> tryParseArray parseDateTime |> Option.defaultValue [||]
-    member this.AsArrayDateTimeOffset () = this.AsArrayString() |> tryParseArray parseDateTimeOffset |> Option.defaultValue [||]
-    member this.AsArrayGuid ()           = this.AsArrayString() |> tryParseArray parseGuid |> Option.defaultValue [||]
-    member this.AsArrayTimeSpan ()       = this.AsArrayString() |> tryParseArray parseTimeSpan |> Option.defaultValue [||]
+    member this.AsArrayInt64 ()          = this.AsArrayString() |> parseArray parseInt64 |> Option.defaultValue [||]
+    member this.AsArrayBoolean ()        = this.AsArrayString() |> parseArray parseBoolean |> Option.defaultValue [||]
+    member this.AsArrayFloat ()          = this.AsArrayString() |> parseArray parseFloat |> Option.defaultValue [||]
+    member this.AsArrayDecimal ()        = this.AsArrayString() |> parseArray parseDecimal |> Option.defaultValue [||]
+    member this.AsArrayDateTime ()       = this.AsArrayString() |> parseArray parseDateTime |> Option.defaultValue [||]
+    member this.AsArrayDateTimeOffset () = this.AsArrayString() |> parseArray parseDateTimeOffset |> Option.defaultValue [||]
+    member this.AsArrayGuid ()           = this.AsArrayString() |> parseArray parseGuid |> Option.defaultValue [||]
+    member this.AsArrayTimeSpan ()       = this.AsArrayString() |> parseArray parseTimeSpan |> Option.defaultValue [||]
 
 type HttpContext with  
-    member this.GetForm () = 
-        StringCollectionReader(this.Request.Form)
-
     member this.GetFormAsync () = 
         task {
-            let! form = this.Request.ReadFormAsync()
+            return! this.Request.ReadFormAsync ()            
+        }
+
+    member this.GetFormReaderAsync () = 
+        task {
+            let! form = this.GetFormAsync ()
             return StringCollectionReader(form)
         }
 
-    member this.GetQuery () = 
+    member this.GetFormReader () =
+        this.GetFormReaderAsync() 
+        |> Async.AwaitTask 
+        |> Async.RunSynchronously
+
+    member this.GetQueryReader () = 
         StringCollectionReader(this.Request.Query)
 
 let tryBindForm 
@@ -96,8 +104,7 @@ let tryBindForm
     (success : 'a -> HttpHandler) : HttpHandler =    
     fun (next : HttpFunc) (ctx : HttpContext) ->  
         task {
-            let! form = ctx.GetFormAsync()
-
+            let! form = ctx.GetFormReaderAsync ()            
             return! 
                 (match form |> bind with
                 | Ok m      -> success m
@@ -109,6 +116,6 @@ let tryBindQuery
     (err : string -> HttpHandler) 
     (success : 'a -> HttpHandler) : HttpHandler =    
     fun (next : HttpFunc) (ctx : HttpContext) ->  
-        (match ctx.GetQuery() |> bind with
+        (match ctx.GetQueryReader() |> bind with
         | Ok m      -> success m 
         | Error msg -> err msg) next ctx

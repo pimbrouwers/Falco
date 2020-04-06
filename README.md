@@ -8,8 +8,8 @@ Key features:
 - Simple and powerful routing API.
 - Composable request handling.
 - A native F# view engine.
+- Succinct API for model binding.
 - Authentication and security utilities. 
-- Super-simple API for model binding.
 - Streaming `multipart/form-data` reader for [large uploads][15].
 
 ## Why?
@@ -347,7 +347,72 @@ let bars =
 
 ## Model Binding
 
-Docs coming soon.
+Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. 
+
+We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection` and `IQueryCollection`. 
+
+> Methods are available for all primitive types, and perform **case-insenstivie** lookups against the collection.
+
+```f#
+/// An example handler, safely obtaining values from IFormCollection
+let parseFormHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContexnt) ->
+        let form = ctx.GetFormReader() // GetFormReaderAsync() also available
+
+        let firstName = form.TryGetString "FirstName" // string -> string option        
+        let lastName  = form.TryGet "LastName"        // alias for TryGetString
+        let age       = form.TryGetInt "Age"          // string -> int option
+
+/// An example handler, safely obtaining values from IQueryCollection
+let parseQueryHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContexnt) ->
+        let form = ctx.GetQueryReader()
+
+        let firstName = form.TryGetString "FirstName" // string -> string option        
+        let lastName  = form.TryGet "LastName"        // alias for TryGetString
+        let age       = form.TryGetInt "Age"          // string -> int option
+```
+
+In this case where you don't care about gracefully handling non-existence. Or, you are certain values will be present, the dynamic operator `?` can be useful:
+
+```f#
+let parseQueryHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContexnt) ->
+        let form = ctx.GetQueryReader()
+
+        // dynamic operator also case-insensitive
+        let firstName = form?FirstName.AsString() // string -> string
+        let lastName  = form?LastName.AsString()  // string -> string
+        let age       = form?Age.AsInt16()        // string -> int16
+```
+
+Further to this, generic `HttpHandler`'s are available to allow for the typical case of *try-or-fail* that asks for a: binding function and HttpHandler's for error and success cases.
+
+```f#
+// An example handler which attempts to bind a form
+let exampleTryBindFormHandler : HttpHandler =
+    tryBindForm 
+        (fun r ->
+            Ok {
+              FirstName = form?FirstName.AsString()
+              LastName  = form?LastName.AsString()
+              Age       = form?Age.AsInt16()      
+            })
+        errorHandler 
+        successHandler
+
+// An example handler which attempts to bind a query
+let exampleTryBindQueryHandler : HttpHandler =
+    tryBindQuery 
+        (fun r ->
+            Ok {
+              FirstName = form?FirstName.AsString()
+              LastName  = form?LastName.AsString()
+              Age       = form?Age.AsInt16()      
+            })
+        errorHandler 
+        successHandler
+```
 
 ## Streaming `multipart/form-data` Reader
 
