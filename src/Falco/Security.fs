@@ -6,35 +6,50 @@ module Crypto =
     open Microsoft.AspNetCore.Cryptography.KeyDerivation
 
     // Make byte[] from Base64 string
-    let fromBase64String str = 
+    let fromBase64String (str : string) = 
         Convert.FromBase64String(str)
 
     // Make Base64 string from byte[]
-    let toBase64 bytes = 
+    let toBase64 (bytes : byte[]) = 
         Convert.ToBase64String(bytes)
     
     // Generate cryptographically-sound random salt
-    let createSalt len =
+    let createSalt (len : int) =
         let salt = Array.zeroCreate<byte> len
         use rng = RandomNumberGenerator.Create()
         rng.GetBytes(salt)
         toBase64 salt
 
     // Perform key derivation using the provided algorithm
-    let pbkdf2 prf iterations len salt strToHash =    
+    let pbkdf2 
+        (prf : KeyDerivationPrf) 
+        (iterations : int) 
+        (numBytesRequested : int)
+        (salt : string)
+        (strToHash : string) =    
         KeyDerivation.Pbkdf2(
             strToHash,
             (fromBase64String salt),
             prf,
             iterations, 
-            len)
+            numBytesRequested)
         |> toBase64
 
     // Perform key derivation using HMACSHA256
-    let sha256 = pbkdf2 KeyDerivationPrf.HMACSHA256
+    let sha256 
+        (iterations : int) 
+        (numBytesRequested : int)
+        (salt : string)
+        (strToHash : string) = 
+        pbkdf2 KeyDerivationPrf.HMACSHA256 iterations numBytesRequested salt strToHash
     
     // Perform key derivation using HMACSHA512
-    let sha512 = pbkdf2 KeyDerivationPrf.HMACSHA512
+    let sha512 
+        (iterations : int) 
+        (numBytesRequested : int)
+        (salt : string)
+        (strToHash : string) = 
+        pbkdf2 KeyDerivationPrf.HMACSHA512 iterations numBytesRequested salt strToHash
 
 module Xss =
     open FSharp.Control.Tasks.V2.ContextInsensitive
