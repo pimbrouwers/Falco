@@ -21,10 +21,10 @@ type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) =
         | None -> failwith (sprintf "Could not find %s" name)
 
     member this.TryGetString (name : string)           = name |> this.TryGetValue |> Option.bind (fun v -> Some v.[0])
-    member this.TryGet                                 = this.TryGetString
+    member this.TryGet (name : string)                 = this.TryGetString name
     member this.TryGetInt16 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt16 v.[0])
     member this.TryGetInt32 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt32 v.[0])
-    member this.TryGetInt                              = this.TryGetInt32
+    member this.TryGetInt (name : string)              = this.TryGetInt32 name
     member this.TryGetInt64 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt64 v.[0])
     member this.TryGetBoolean (name : string)          = name |> this.TryGetValue |> Option.bind (fun v -> parseBoolean v.[0])
     member this.TryGetFloat (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseFloat v.[0])
@@ -36,7 +36,7 @@ type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) =
     member this.TryArrayString (name : string)         = name |> this.TryGetValue |> Option.map  (fun v -> v.ToArray())
     member this.TryArrayInt16 (name : string)          = name |> this.TryGetValue |> Option.bind (parseArray parseInt16)
     member this.TryArrayInt32 (name : string)          = name |> this.TryGetValue |> Option.bind (parseArray parseInt32)
-    member this.TryArrayInt                            = this.TryArrayInt32
+    member this.TryArrayInt (name : string)            = this.TryArrayInt32 name
     member this.TryArrayInt64 (name : string)          = name |> this.TryGetValue |> Option.bind (parseArray parseInt64)
     member this.TryArrayBoolean (name : string)        = name |> this.TryGetValue |> Option.bind (parseArray parseBoolean)
     member this.TryArrayFloat (name : string)          = name |> this.TryGetValue |> Option.bind (parseArray parseFloat)
@@ -56,7 +56,7 @@ type StringValues with
     
     member this.AsInt16 ()               = this.AsString() |> parseOrFail parseInt16 "Not a valid Int16"
     member this.AsInt32 ()               = this.AsString() |> parseOrFail parseInt32 "Not a valid Int32"
-    member this.AsInt                    = this.AsInt32
+    member this.AsInt ()                 = this.AsInt32 ()
     member this.AsInt64 ()               = this.AsString() |> parseOrFail parseInt64 "Not a valid Int64"
     member this.AsBoolean ()             = this.AsString() |> parseOrFail parseBoolean "Not a valid Boolean"
     member this.AsFloat ()               = this.AsString() |> parseOrFail parseFloat "Not a valid Float"
@@ -68,7 +68,7 @@ type StringValues with
     member this.AsArrayString ()         = this.ToArray()
     member this.AsArrayInt16 ()          = this.AsArrayString() |> parseArray parseInt16 |> Option.defaultValue [||]
     member this.AsArrayInt32 ()          = this.AsArrayString() |> parseArray parseInt32 |> Option.defaultValue [||]
-    member this.AsArrayInt               = this.AsArrayInt32
+    member this.AsArrayInt ()            = this.AsArrayInt32 ()
     member this.AsArrayInt64 ()          = this.AsArrayString() |> parseArray parseInt64 |> Option.defaultValue [||]
     member this.AsArrayBoolean ()        = this.AsArrayString() |> parseArray parseBoolean |> Option.defaultValue [||]
     member this.AsArrayFloat ()          = this.AsArrayString() |> parseArray parseFloat |> Option.defaultValue [||]
