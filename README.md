@@ -444,9 +444,12 @@ let searchResultsHandler : HttpHandler =
 
 Validating data input is crucial before allowing it to enter the domian. This operation is likely performed after [model binding](#model-binding) has occurred. So this is an area where F#'s flexible type system shines, allowing us to create type members to determine validation state.
 
-Falco exposes an interface `type IModelValidator<'a> = abstract member Validate : unit -> Result<'a, string * 'a>` which specifies a type that has a `Validate` member which either succeeds and returns the **valid model**, or fails and returns a tuple containing an error message and the **invalid model**.
+Falco exposes an `HttpHandler` receives a validation funcition, error handler, success handler and the model itself. 
 
-> Two infix operators (`=~` for *does match*, and `!=~` for *does not match*) are exposed to make string matching against regular expressions a little more terse. These will look familiar to anyone with a background in Perl.
+- If validation succeeds, it returns the **valid model**. 
+- If validation fails and returns a tuple containing an error message and the **invalid model**.
+
+Two infix operators (`=~` for *does match*, and `!=~` for *does not match*) are exposed to make string matching against regular expressions a little more terse. These will look familiar to anyone with a background in Perl.
 
 ```f#
 type UserLoginModel =
