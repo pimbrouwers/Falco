@@ -11,15 +11,13 @@ let (=~) input pattern =
 let (!=~) input pattern =
     not(input =~ pattern)
 
-// Defines a type with a Validate function
-type IModelValidator<'a> = abstract member Validate : unit -> Result<'a, string * 'a>    
-
 // Attempt to validate model
-let tryValidate<'a when 'a :> IModelValidator<'a>> 
+let tryValidateModel
+    (validate : 'a -> Result<'a, string * 'a> ) 
     (error : string -> 'a -> HttpHandler) 
     (success : 'a -> HttpHandler) 
-    (model : 'a) : HttpHandler =
-    match model.Validate() with
+    (model : 'a ) : HttpHandler =    
+    match validate model with
     | Ok _      -> success model
     | Error (err, _) -> error err model
 
