@@ -8,11 +8,11 @@ open Microsoft.Extensions.Primitives
 
 type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) = 
 
-    let coll = c |> Seq.map (fun (kvp) -> kvp.Key, kvp.Value) |> dict
+    let coll : KeyValuePair<string,StringValues> array = c |> Seq.toArray
 
-    member _.TryGetValue (name : string) = 
-        match name |> parseWith coll.TryGetValue with
-        | Some v when v.Count > 0 -> Some v
+    member _.TryGetValue (name : string) =                 
+        match coll |> Array.tryFind (fun kvp -> strEquals kvp.Key name) with
+        | Some v when v.Value.Count > 0 -> Some v.Value
         | _                       -> None
     
     member this.GetValue (name : string) = 

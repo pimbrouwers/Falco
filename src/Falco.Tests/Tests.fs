@@ -106,6 +106,33 @@ module ModelBinding =
         StringCollectionReader(FormCollection(Dictionary()))        
         |> should not' throw
 
+    [<Fact>]
+    let ``StringCollectionReader value lookups are case-insensitive`` () =
+        let values = 
+            [ 
+                "FString", [|"John Doe"; "Jane Doe"|] |> StringValues                
+            ]
+            |> Map.ofList
+            |> fun m -> Dictionary(m)
+
+        let scr = StringCollectionReader(values)
+
+        // single values
+        scr.TryGet "FSTRING"   |> Option.iter (should equal "John Doe")
+        scr.TryGet "FString"   |> Option.iter (should equal "John Doe")
+        scr.TryGet "fstriNG"   |> Option.iter (should equal "John Doe")
+        scr?FSTRING.AsString() |> should equal "John Doe"
+        scr?FString.AsString() |> should equal "John Doe"
+        scr?fstrINg.AsString() |> should equal "John Doe"
+
+        // arrays
+        scr.TryArrayString "FSTRING" |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
+        scr.TryArrayString "fString" |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
+        scr.TryArrayString "fstriNG" |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
+        scr?FSTRING.AsArrayString()  |> should equal [|"John Doe";"Jane Doe"|]
+        scr?fString.AsArrayString()  |> should equal [|"John Doe";"Jane Doe"|]
+        scr?fstriNG.AsArrayString()  |> should equal [|"John Doe";"Jane Doe"|]
+
     [<Fact>] 
     let ``Inline StringCollectionReader from query collection should resolve primitives`` () =
         let now = DateTime.Now.ToString()
@@ -158,7 +185,7 @@ module ModelBinding =
         scr?fdatetimeoffset.AsDateTimeOffset()       |> should equal (DateTimeOffset.Parse(offsetNow))
         scr?ftimespan.AsTimeSpan()                   |> should equal (TimeSpan.Parse(timespan))
         scr?fguid.AsGuid()                           |> should equal (Guid.Parse(guid))
-
+        
         // array values
         scr.TryArrayString "fstring"                 |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
         scr.TryArrayInt16 "fint16"                   |> Option.iter (should equal [|16s;17s|])
@@ -185,7 +212,7 @@ module ModelBinding =
         scr?fdatetimeoffset.AsArrayDateTimeOffset()  |> should equal [|DateTimeOffset.Parse(offsetNow)|]
         scr?ftimespan.AsArrayTimeSpan()              |> should equal [|TimeSpan.Parse(timespan)|]
         scr?fguid.AsArrayGuid()                      |> should equal [|Guid.Parse(guid)|]
-            
+                    
 module Html =
     open Falco.ViewEngine
         
