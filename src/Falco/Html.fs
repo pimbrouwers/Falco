@@ -5,7 +5,7 @@ open System.Net
 // Specifies an XML-style attribute
 type XmlAttribute =
     | KeyValue of string * string
-    | NonValue  of string
+    | BooleanValue of string
 
 // Represents an XML-style element containing attributes
 type XmlElement = 
@@ -19,10 +19,8 @@ type XmlNode =
 
 
 // XmlAttribute constructor
-let attr key value = 
-    match value with 
-    | Some v -> KeyValue (key, v)
-    | None   -> NonValue key
+let attr key value = KeyValue (key, value)
+let attrBool key = BooleanValue key 
 
 // Text XmlNode constructor
 let raw content = Text content
@@ -48,7 +46,7 @@ let renderNode tag =
             |> Array.map (fun attr ->
                 match attr with 
                 | KeyValue (k, v) -> (sprintf " %s=\"%s\"" k v)
-                | NonValue k      -> k)
+                | BooleanValue k  -> k)
             |> strJoin ""
 
            
@@ -156,36 +154,36 @@ let summary = tag "summary"
 // ------------
 // HTML Attributes
 // ------------
-let _httpEquiv v   = attr "http-equip" (Some v)
-let _lang v        = attr "lang" (Some v)
-let _charset v     = attr "charset" (Some v)
-let _content v     = attr "content" (Some v)
-let _id v          = attr "id" (Some v)
-let _class v       = attr "class" (Some v)
-let _name v        = attr "name" (Some v)
-let _alt v         = attr "alt" (Some v)
-let _title v       = attr "title" (Some v)
-let _rel v         = attr "rel" (Some v)
-let _href v        = attr "href" (Some v)
-let _target v      = attr "target" (Some v)
-let _src v         = attr "src" (Some v)
-let _width v       = attr "width" (Some v)
-let _height v      = attr "height" (Some v)
-let _style v       = attr "style" (Some v)
-let _novalidate v  = attr "novalidate" None
-let _action v      = attr "action" (Some v)
-let _method v      = attr "method" (Some v)
-let _enctype v     = attr "enctype" (Some v)
-let _for v         = attr "for" (Some v)
-let _type v        = attr "type" (Some v)
-let _value v       = attr "value" (Some v)
-let _placeholder v = attr "placeholder" (Some v)
-let _multiple v    = attr "multiple" None
-let _accept v      = attr "accept" (Some v)
-let _min v         = attr "min" (Some v)
-let _max v         = attr "max" (Some v)
-let _maxlength v   = attr "maxlength" (Some v)
-let _checked       = attr "checked" None
-let _selected      = attr "selected" None
-let _disabled v    = attr "disabled" None
-let _readonly v    = attr "readonly" None
+let _httpEquiv v   = attr "http-equip" v
+let _lang v        = attr "lang" v
+let _charset v     = attr "charset" v
+let _content v     = attr "content" v
+let _id v          = attr "id" v
+let _class v       = attr "class" v
+let _name v        = attr "name" v
+let _alt v         = attr "alt" v
+let _title v       = attr "title" v
+let _rel v         = attr "rel" v
+let _href v        = attr "href" v
+let _target v      = attr "target" v
+let _src v         = attr "src" v
+let _width v       = attr "width" v
+let _height v      = attr "height" v
+let _style v       = attr "style" v
+let _novalidate v  = attrBool "novalidate" 
+let _action v      = attr "action" v
+let _method v      = attr "method" v
+let _enctype v     = attr "enctype" v
+let _for v         = attr "for" v
+let _type v        = attr "type" v
+let _value v       = attr "value" v
+let _placeholder v = attr "placeholder" v
+let _multiple v    = attrBool "multiple"
+let _accept v      = attr "accept" v
+let _min v         = attr "min" v
+let _max v         = attr "max" v
+let _maxlength v   = attr "maxlength" v
+let _checked       = attrBool "checked" 
+let _selected      = attrBool "selected"
+let _disabled v    = attrBool "disabled"
+let _readonly v    = attrBool "readonly"

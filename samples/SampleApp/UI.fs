@@ -2,6 +2,20 @@
 
 open Falco.ViewEngine
 
+let svg (width : float) (height : float) =
+    tag "svg" [
+            attr "version" "1.0"
+            attr "xmlns" "http://www.w3.org/2000/svg"
+            attr "viewBox" (sprintf "0 0 %f %f" width height)
+        ]
+
+let path d = tag "path" [ attr "d" d ] []
+
+let bars =
+    svg 384.0 384.0 [
+            path "M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0"
+        ]
+
 let master pageTitle content = 
     html [ _lang "en" ] [
     head [] [
