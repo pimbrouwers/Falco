@@ -10,6 +10,32 @@ open Microsoft.Extensions.Logging
 open SampleApp.Handlers
 
 // ------------
+// Routes
+// ------------
+let routes = [
+    get  "/search"             searchViewHandler
+    get  "/search-results"     searchResultsHandler
+    get  "/new-user"           newUserViewHandler
+    post "/new-user"           newUserHandler
+    get  "/json"               myJsonOutHandler
+    get  "/html"               myHtmlOutHandler
+    get  "/secure"             (ifAuthenticated (redirect "/forbidden" false) >=> textOut "hello authenticated person")
+    get  "/forbidden"          (setStatusCode 403 >=> textOut "Forbidden")
+    get  "/hello/{name:alpha}" helloHandler
+    any  "/"                   (textOut "index")
+]
+
+// ------------
+// Web App
+// ------------
+let configureApp (app : IApplicationBuilder) =          
+    app.UseDeveloperExceptionPage()
+       .UseStaticFiles()
+       .UseHttpEndPoints(routes)
+       .UseNotFoundHandler(notFoundHandler)
+       |> ignore
+
+// ------------
 // Logging
 // ------------
 let configureLogging (loggerBuilder : ILoggingBuilder) =
@@ -27,29 +53,6 @@ let configureServices (services : IServiceCollection) =
         .AddResponseCompression()            
         .AddRouting()
         |> ignore
-
-// ------------
-// Web App
-// ------------
-let configureApp (app : IApplicationBuilder) =      
-    let routes = [
-        get  "/search"             searchViewHandler
-        get  "/search-results"     searchResultsHandler
-        get  "/new-user"           newUserViewHandler
-        post "/new-user"           newUserHandler
-        get  "/json"               myJsonOutHandler
-        get  "/html"               myHtmlOutHandler
-        get  "/secure"             (ifAuthenticated (redirect "/forbidden" false) >=> textOut "hello authenticated person")
-        get  "/forbidden"          (setStatusCode 403 >=> textOut "Forbidden")
-        get  "/hello/{name:alpha}" helloHandler
-        any  "/"                   (textOut "index")
-    ]
-
-    app.UseDeveloperExceptionPage()
-       .UseStaticFiles()
-       .UseHttpEndPoints(routes)
-       .UseNotFoundHandler(notFoundHandler)
-       |> ignore
 
 [<EntryPoint>]
 let main _ =

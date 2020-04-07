@@ -2,45 +2,45 @@
 
 open System.Net
     
-/// Specifies an XML-style attribute
+// Specifies an XML-style attribute
 type XmlAttribute =
     | KeyValue of string * string
     | NonValue  of string
 
-/// Represents an XML-style element containing attributes
+// Represents an XML-style element containing attributes
 type XmlElement = 
     string * XmlAttribute[]
 
-/// Describes the different XML-style node patterns
+// Describes the different XML-style node patterns
 type XmlNode =
     | ParentNode      of XmlElement * XmlNode list 
     | SelfClosingNode of XmlElement                
     | Text            of string   
 
 
-/// XmlAttribute constructor
+// XmlAttribute constructor
 let attr key value = 
     match value with 
     | Some v -> KeyValue (key, v)
     | None   -> NonValue key
 
-/// Text XmlNode constructor
+// Text XmlNode constructor
 let raw content = Text content
 
-/// Encoded-text XmlNode constructor
+// Encoded-text XmlNode constructor
 let enc content = Text (WebUtility.HtmlEncode content)
 
-/// Standard XmlNode constructor
+// Standard XmlNode constructor
 let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
     ((tag, List.toArray attr), children)
     |> ParentNode 
 
-/// Self-closing XmlNode constructor
+// Self-closing XmlNode constructor
 let selfClosingTag (tag : string) (attr : XmlAttribute list) =
     (tag, List.toArray attr)
     |> SelfClosingNode
 
-/// Render XmlNode recursively to string representation
+// Render XmlNode recursively to string representation
 let renderNode tag =   
     let rec buildXml doc tag =
         let createAttrs attrs =
@@ -71,7 +71,7 @@ let renderNode tag =
     |> List.toArray
     |> strJoin ""
 
-/// Render XmlNode as HTML string
+// Render XmlNode as HTML string
 let renderHtml tag =
     [|
         "<!DOCTYPE html>"

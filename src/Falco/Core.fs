@@ -9,19 +9,19 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
 
-/// Represents a missing dependency, thrown on request
+// Represents a missing dependency, thrown on request
 exception InvalidDependencyException of string
 
-/// The optional result of work performed against the HttpContext
+// The optional result of work performed against the HttpContext
 type HttpFuncResult = Task<HttpContext option>
 
-/// Specifies work to be performed against the HttpContext
+// Specifies work to be performed against the HttpContext
 type HttpFunc = HttpContext -> HttpFuncResult
 
-/// Represents in-and-out processing of the HttpContext
+// Represents in-and-out processing of the HttpContext
 type HttpHandler = HttpFunc -> HttpFunc    
 
-/// Compose ("glue") HttpHandler's together
+// Compose ("glue") HttpHandler's together
 let compose (handler1 : HttpHandler) (handler2 : HttpHandler) : HttpHandler =
     fun (final : HttpFunc) ->
         let next = final |> handler2 |> handler1
@@ -32,27 +32,27 @@ let compose (handler1 : HttpHandler) (handler2 : HttpHandler) : HttpHandler =
         
 let (>=>) = compose
 
-/// Call obj's ToString()
+// Call obj's ToString()
 let toStr x = 
     x.ToString()
 
-/// Check if string is null or whitespace
+// Check if string is null or whitespace
 let strEmpty str =
     String.IsNullOrWhiteSpace(str)
 
-/// Check if string is not null or whitespace
+// Check if string is not null or whitespace
 let strNotEmpty str =
     not(strEmpty str)
 
-/// Case & culture insensistive string equality
+// Case & culture insensistive string equality
 let strEquals s1 s2 = 
     String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)
 
-/// Join strings with a separator
+// Join strings with a separator
 let strJoin (sep : string) (lst : string array) = 
     String.Join(sep, lst)
    
-/// Helper to wrap .NET tryParser's
+// Helper to wrap .NET tryParser's
 let parseWith (tryParseFunc: string -> bool * _) = 
     tryParseFunc >> function
     | true, v    -> Some v
@@ -70,13 +70,13 @@ let parseDateTimeOffset = parseWith DateTimeOffset.TryParse
 let parseTimeSpan       = parseWith TimeSpan.TryParse
 let parseGuid           = parseWith Guid.TryParse
 
-/// Attempt to parse, or failwith message
+// Attempt to parse, or failwith message
 let parseOrFail parser msg v =
     match parser v with 
     | Some v -> v
     | None   -> failwith msg
 
-/// Attempt to parse array, returns none for failure
+// Attempt to parse array, returns none for failure
 let parseArray parser ary =
     ary
     |> Seq.map parser
@@ -87,28 +87,28 @@ let parseArray parser ary =
 
 
 type HttpContext with   
-    /// Attempt to obtain depedency from IServiceCollection
-    /// Throws InvalidDependencyException on null
+    // Attempt to obtain depedency from IServiceCollection
+    // Throws InvalidDependencyException on null
     member this.GetService<'a> () =
         let t = typeof<'a>
         match this.RequestServices.GetService t with
         | null    -> raise (InvalidDependencyException t.Name)
         | service -> service :?> 'a
 
-    /// Set HttpResponse status code
+    // Set HttpResponse status code
     member this.SetStatusCode (statusCode : int) =            
         this.Response.StatusCode <- statusCode
 
-    /// Set HttpResponse header
+    // Set HttpResponse header
     member this.SetHeader name (content : string) =            
         if not(this.Response.Headers.ContainsKey(name)) then
             this.Response.Headers.Add(name, StringValues(content))
 
-    /// Set HttpResponse ContentType header
+    // Set HttpResponse ContentType header
     member this.SetContentType contentType =
         this.SetHeader HeaderNames.ContentType contentType
 
-    /// Write bytes to HttpResponse body
+    // Write bytes to HttpResponse body
     member this.WriteBytes (bytes : byte[]) =        
         task {            
             let len = bytes.Length
@@ -119,6 +119,6 @@ type HttpContext with
             return Some this
         }
 
-    /// Write string to HttpResponse body
+    // Write string to HttpResponse body
     member this.WriteString (str : string) =
         this.WriteBytes (Encoding.UTF8.GetBytes str)

@@ -7,11 +7,30 @@ open Microsoft.Extensions.Logging
 open Falco
 
 // ------------
+// Handlers & Routes
+// ------------
+let helloHandler : HttpHandler =
+    textOut "hello world"
+
+let routes = [        
+    get "/" helloHandler
+]
+
+// ------------
+// Web App
+// ------------
+let configureApp (app : IApplicationBuilder) =     
+    app.UseDeveloperExceptionPage()       
+       .UseHttpEndPoints(routes)
+       .UseNotFoundHandler(setStatusCode 404 >=> textOut "Not found")
+       |> ignore
+
+// ------------
 // Logging
 // ------------
 let configureLogging (loggerBuilder : ILoggingBuilder) =
     loggerBuilder
-        .AddFilter(fun l -> l.Equals LogLevel.Error)
+        .AddFilter(fun l -> l.Equals LogLevel.Information)
         .AddConsole()
         .AddDebug() |> ignore
 
@@ -23,24 +42,6 @@ let configureServices (services : IServiceCollection) =
         .AddRouting()        
         |> ignore
 
-// ------------
-// Web App
-// ------------
-let notFoundHandler : HttpHandler =
-    setStatusCode 404 >=> textOut "Not found"
-
-let helloHandler : HttpHandler =
-    textOut "hello world"
-
-let configureApp (app : IApplicationBuilder) =      
-    let routes = [        
-        get "/" helloHandler
-    ]
-
-    app.UseDeveloperExceptionPage()       
-       .UseHttpEndPoints(routes)
-       .UseNotFoundHandler(notFoundHandler)
-       |> ignore
 
 [<EntryPoint>]
 let main _ =
