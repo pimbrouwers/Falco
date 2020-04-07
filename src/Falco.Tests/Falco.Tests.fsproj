@@ -8,7 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Tests.fs" />
+    <Compile Include="Common.fs" />
+    <Compile Include="CoreTests.fs" />
+    <Compile Include="HandlersTests.fs" />
+    <Compile Include="RoutingTests.fs" />
+    <Compile Include="ModelBindingTests.fs" />
+    <Compile Include="HtmlTests.fs" />
+    <Compile Include="AuthTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

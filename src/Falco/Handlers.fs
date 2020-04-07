@@ -26,7 +26,7 @@ let textOut (str : string) : HttpHandler =
     fun (_ : HttpFunc) (ctx : HttpContext) ->
         ctx.SetContentType "text/plain; charset=utf-8"
         ctx.WriteString str
-
+    
 // An HttpHandler to output JSON
 let jsonOut (obj : 'a) : HttpHandler =
     fun (_ : HttpFunc) (ctx : HttpContext) ->   
