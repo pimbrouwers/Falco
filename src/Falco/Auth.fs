@@ -22,19 +22,19 @@ type HttpContext with
 
 // An HttpHandler to determine if user is authenticated.
 // Receives handler for case of not authenticated.
-let ifAuthenticated notAuthenticated : HttpHandler =
+let ifAuthenticated (notAuthenticatedHandler : HttpHandler) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         match ctx.IsAuthenticated () with
-        | false -> notAuthenticated next ctx
+        | false -> notAuthenticatedHandler next ctx
         | true  -> next ctx
 
 // An HttpHandler to determine if user is authenticated.
 // Receives handler for case of being authenticated.
-let ifNotAuthenticated authenticated : HttpHandler =
+let ifNotAuthenticated (authenticatedHandler : HttpHandler) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         match ctx.IsAuthenticated () with
         | false -> next ctx
-        | true  -> authenticated next ctx
+        | true  -> authenticatedHandler next ctx
 
 // An HttpHandler to output HTML dependent on ClaimsPrincipal
 let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
