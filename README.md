@@ -350,7 +350,7 @@ let bars =
 
 ## Model Binding
 
-Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. 
+Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
 
 We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection` and `IQueryCollection`. 
 
@@ -419,7 +419,6 @@ let exampleTryBindQueryHandler : HttpHandler =
         successHandler
 
 // An example using a type and static binder, which can make things simpler
-[<CLIMutable>]
 type SearchQuery =
     {
         Frag : string
@@ -450,7 +449,6 @@ Falco exposes an interface `type IModelValidator<'a> = abstract member Validate 
 > Two infix operators (`=~` for *does match*, and `!=~` for *does not match*) are exposed to make string matching against regular expressions a little more terse. These will look familiar to anyone with a background in Perl.
 
 ```f#
-[<CLIMutable>]
 type UserLoginModel =
     {
         Email    : string
