@@ -455,23 +455,23 @@ type UserLoginModel =
         Password : string
     }
 
-    member this.HasErrors() =
-        if      strEmpty this.Email 
-                || strEmpty this.Password             then Some "Email & password are required"                
-        else if this.Email !=~ "{EMAIL_REGEX}"                      
-                || this.Password !=~ {PASSWORD_REGEX} then Some "Invalid email/password"
-        else None
-
-    interface IModelValidator<UserLoginModel> with
-        member this.Validate() =
-            match this.HasErrors() with
-            | Some msg -> Error (msg, this)
-            | None     -> Ok this
-
+module UserLoginModule = 
+    let validate (model : LogInModel) =
+        let result = 
+            if strEmpty model.Email 
+               || strEmpty model.Password then 
+               Some "All fields required"
+            else 
+                None
+          
+        match result with 
+        | Some e -> Error (e, { model with Password = "" })
+        | None   -> Ok model
 
 // An example handler, processing the user login attempt
 let exampleValidationHandler : HttpHandler =
-    tryValidate 
+    tryValidateModel
+        UserLoginModule.validate
         modelErrorView 
         userLogInWorkflow
 ```
