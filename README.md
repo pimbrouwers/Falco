@@ -1,6 +1,6 @@
 # Falco
 
-![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)
+[![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
 Falco is a micro-library for building simple, fault-tolerant and blazing fast functional web applications using F#. Built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3].
