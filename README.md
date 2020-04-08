@@ -426,7 +426,8 @@ type SearchQuery =
         Take : int
     }
 
-    static member FromReader (r : StringCollectionReader) =
+module SearchQuery =
+    let fromReader (r : StringCollectionReader) =
         Ok {
             Frag = r?frag.AsString()
             Page = r.TryGetInt "page" |> Option.defaultValue 1
@@ -435,7 +436,7 @@ type SearchQuery =
 
 let searchResultsHandler : HttpHandler =
     tryBindQuery 
-        SearchQuery.FromReader 
+        SearchQuery.fromReader 
         errorHandler 
         successHandler
 ```
