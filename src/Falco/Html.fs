@@ -170,20 +170,28 @@ let _src v         = attr "src" v
 let _width v       = attr "width" v
 let _height v      = attr "height" v
 let _style v       = attr "style" v
-let _novalidate v  = attrBool "novalidate" 
+
+// Forms
+let _novalidate    = attrBool "novalidate" 
 let _action v      = attr "action" v
 let _method v      = attr "method" v
 let _enctype v     = attr "enctype" v
-let _for v         = attr "for" v
-let _type v        = attr "type" v
-let _value v       = attr "value" v
-let _placeholder v = attr "placeholder" v
-let _multiple v    = attrBool "multiple"
-let _accept v      = attr "accept" v
-let _min v         = attr "min" v
-let _max v         = attr "max" v
-let _maxlength v   = attr "maxlength" v
-let _checked       = attrBool "checked" 
-let _selected      = attrBool "selected"
-let _disabled v    = attrBool "disabled"
-let _readonly v    = attrBool "readonly"
+
+// Inputs
+let _accept v       = attr "accept" v
+let _autocomplete v = attr "autocomplete" v
+let _checked        = attrBool "checked" 
+let _disabled       = attrBool "disabled"
+let _for v          = attr "for" v
+let _max v          = attr "max" v
+let _maxlength v    = attr "maxlength" v
+let _min v          = attr "min" v
+let _multiple       = attrBool "multiple"
+let _pattern v      = attr "pattern" v
+let _placeholder v  = attr "placeholder" v
+let _readonly       = attrBool "readonly"
+let _required       = attrBool "required"
+let _selected       = attrBool "selected"
+let _step v         = attr "step" v
+let _type v         = attr "type" v
+let _value v        = attr "value" v
