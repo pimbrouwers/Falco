@@ -45,7 +45,20 @@ let ifNotAuthenticated (authenticatedHandler : HttpHandler) : HttpHandler =
         | false -> next ctx
         | true  -> authenticatedHandler next ctx
 
-// Sign principal out of specific auth scheme
+// An HttpHandler to determine if user is authenticated,
+// and belongs to one of the specified roles
+// Receives handler for case of being not possessing role.
+let ifInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHandler =    
+    let inRole : HttpHandler =
+        fun (next : HttpFunc) (ctx : HttpContext) ->
+            match List.exists ctx.User.IsInRole roles with
+            | false -> notAllowedHandler next ctx
+            | true  -> next ctx
+        
+    ifAuthenticated notAllowedHandler 
+    >=> inRole
+
+// An HttpHandler to sign principal out of specific auth scheme
 let signOut (authScheme : string) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         task {
