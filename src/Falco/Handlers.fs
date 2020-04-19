@@ -9,6 +9,12 @@ open Falco.ViewEngine
 // An HttpHandler to stop processing
 let shortCircuit : HttpFunc = Some >> Task.FromResult
 
+// Clear current reponse content
+let purgeResponse : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        ctx.Response.Clear() 
+        next ctx
+
 // An HttpHandler to set status code
 let setStatusCode (statusCode : int) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
