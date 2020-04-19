@@ -425,9 +425,7 @@ type SearchQuery =
         Page : int option
         Take : int
     }
-
-module SearchQuery =
-    let fromReader (r : StringCollectionReader) =
+    static member FromReader (r : StringCollectionReader) =
         Ok {
             Frag = r?frag.AsString()
             Page = r.TryGetInt "page" |> Option.defaultValue 1
@@ -436,7 +434,7 @@ module SearchQuery =
 
 let searchResultsHandler : HttpHandler =
     tryBindQuery 
-        SearchQuery.fromReader 
+        SearchQuery.FromReader 
         errorHandler 
         successHandler
 ```
@@ -458,9 +456,7 @@ type UserLoginModel =
         Email    : string
         Password : string
     }
-
-module UserLoginModule = 
-    let validate (model : LogInModel) =
+    static member Validate (model : LogInModel) =
         let result = 
             if strEmpty model.Email 
                || strEmpty model.Password then 
@@ -475,7 +471,7 @@ module UserLoginModule =
 // An example handler, processing the user login attempt
 let exampleValidationHandler : HttpHandler =
     tryValidateModel
-        UserLoginModule.validate
+        UserLoginModel.Validate
         modelErrorView 
         userLogInWorkflow
 ```
