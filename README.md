@@ -23,7 +23,7 @@ The goal of this project was to design the thinnest possible API on top of the n
 - Composable request handling. 
 - Isomorphic web development.
 
-> This project was inspired by [Giraffe][4]. Those looking for a more mature & comprehensive web framework should definitely go check it out. 
+> This project was inspired by [Giraffe][4]. Those looking for a more mature web framework should definitely go check it out. It is a fantastic project by [@dustinmoris](https://github.com/dustinmorris).
 
 ## Quick Start
 
