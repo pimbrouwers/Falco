@@ -187,6 +187,9 @@ let htmlHandler : HttpHandler =
 ```
 
 `jsonOut` - JSON responses (uses the default `System.Text.Json.JsonSerializer`)
+
+> IMPORTANT: This handler will not work with F# options or unions. See [JSON](#json) section below for further information.
+
 ```f#
 type Person =
     {
@@ -607,6 +610,16 @@ let imageUploadHandler : HttpHandler =
                 | Ok form   -> ... ) next ctx
         }
 ```
+
+## JSON
+
+I included the `jsonOut` handler as a convenience function for those times you need "quick and dirty" JSON output.
+
+I explicitly chose not to include any meaningful JSON handlers or functionality beyond this because there isn't really a commonly accepted way of doing it in F#. Thus, I figured it would be easiest to let people roll their own. 
+
+That said, if people were open to a dependency and could agree on a package. I would be more than happy to add full JSON support. Feel free to open an [issue](https://github.com/pimbrouwers/Falco/issues) to discuss.
+
+> Looking for a package to work with JSON? Checkout [Jay](https://github.com/pimbrouwers/Jay). 
 
 ## Why "Falco"?
 
