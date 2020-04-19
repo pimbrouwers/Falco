@@ -2,7 +2,9 @@
 
 open System.Security.Claims
 open System.Security.Principal
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Authentication
 open Falco.ViewEngine
 
 type IPrincipal with
@@ -20,6 +22,13 @@ type HttpContext with
         | null -> false 
         | _    -> this.User.IsAuthenticated()
 
+// An HttpHandler to output HTML dependent on ClaimsPrincipal
+let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        match ctx.User with
+        | null -> htmlOut (view None) next ctx
+        | _    -> htmlOut (view (Some ctx.User)) next ctx
+
 // An HttpHandler to determine if user is authenticated.
 // Receives handler for case of not authenticated.
 let ifAuthenticated (notAuthenticatedHandler : HttpHandler) : HttpHandler =
@@ -36,9 +45,10 @@ let ifNotAuthenticated (authenticatedHandler : HttpHandler) : HttpHandler =
         | false -> next ctx
         | true  -> authenticatedHandler next ctx
 
-// An HttpHandler to output HTML dependent on ClaimsPrincipal
-let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
+// Sign principal out of specific auth scheme
+let signOut (authScheme : string) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
-        match ctx.User with
-        | null -> htmlOut (view None) next ctx
-        | _    -> htmlOut (view (Some ctx.User)) next ctx
+        task {
+            do! ctx.SignOutAsync authScheme
+            return! next ctx
+        }
