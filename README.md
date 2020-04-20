@@ -622,7 +622,7 @@ That said, if people were open to a dependency and could agree on a package. I w
 > Looking for a package to work with JSON? Checkout [Jay](https://github.com/pimbrouwers/Jay). 
 
 ## Benchmarks
-Below are some basic benchmarks comparing Falco to [Giraffe](https://github.com/giraffe-fsharp/Giraffe/). Which demonstate that under a load of 2000 concurrent connection for a duration of 10s, Falco performs on par with Giraffe.
+Below are some basic benchmarks comparing Falco to [Giraffe](https://github.com/giraffe-fsharp/Giraffe/). Which demonstates that under a load of 2000 concurrent connection for a duration of 10s, Falco performs on par with Giraffe.
 
 ### Specs
 ![image](https://user-images.githubusercontent.com/4595453/79797914-23275e80-8326-11ea-9c51-552bfa6d6d9f.png)
