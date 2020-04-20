@@ -3,7 +3,7 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-Falco is a micro-library for building simple, fault-tolerant and blazing fast functional web applications using F#. Built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3].
+Falco is a micro-library for building simple, fault-tolerant and [blazing fast](#benchmarks) functional web applications using F#. Built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3].
 
 Key features:
 - Simple and powerful [routing](#routing) API.
@@ -620,6 +620,27 @@ I explicitly chose not to include any meaningful JSON handlers or functionality 
 That said, if people were open to a dependency and could agree on a package. I would be more than happy to add full JSON support. Feel free to open an [issue](https://github.com/pimbrouwers/Falco/issues) to discuss.
 
 > Looking for a package to work with JSON? Checkout [Jay](https://github.com/pimbrouwers/Jay). 
+
+## Benchmarks
+Below are some basic benchmarks comparing Falco to [Giraffe](https://github.com/giraffe-fsharp/Giraffe/). Which demonstate that under a load of 2000 concurrent connection for a duration of 10s, Falco performs on par with Giraffe.
+
+### Specs
+![image](https://user-images.githubusercontent.com/4595453/79797914-23275e80-8326-11ea-9c51-552bfa6d6d9f.png)
+
+### Hello world plain-text
+Falco:
+![image](https://user-images.githubusercontent.com/4595453/79797825-f5dab080-8325-11ea-97f5-1ba3e7f70747.png)
+
+Giraffe:
+![image](https://user-images.githubusercontent.com/4595453/79797860-0723bd00-8326-11ea-8b91-cc58f7065bcd.png)
+
+### Hello someone plain-text (`hello/{name:string}`)
+
+Falco:
+![image](https://user-images.githubusercontent.com/4595453/79798267-bf516580-8326-11ea-8968-ad1ad9303988.png)
+
+Giraffe:
+![image](https://user-images.githubusercontent.com/4595453/79798416-f58ee500-8326-11ea-9a8b-fe6d006dcbfc.png)
 
 ## Why "Falco"?
 
