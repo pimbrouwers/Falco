@@ -37,7 +37,7 @@ Install the nuget package:
 dotnet add HelloWorldApp package Falco
 ```
 
-Remove the `Startup.cs` file and save the following in `Program.cs`:
+Remove the `Startup.fs` file and save the following in `Program.fs`:
 ```f#
 module HelloWorldApp 
 
