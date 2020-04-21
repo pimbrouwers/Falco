@@ -114,6 +114,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | ------ | ----------- |
 | [HelloWorld][7] | A basic hello world app |
 | [SampleApp][8] | Demonstrates more complex topics: view engine, authentication and json |
+| [Blog][17] | A basic markdown (with YAML frontmatter) blog |
 
 ## Routing
 
@@ -670,3 +671,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [14]: https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1 "Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core"
 [15]: https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming "Large file uploads"
 [16]: https://github.com/mgravell/fast-member/
+[17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
