@@ -622,6 +622,19 @@ That said, if people were open to a dependency and could agree on a package. I w
 
 > Looking for a package to work with JSON? Checkout [Jay](https://github.com/pimbrouwers/Jay). 
 
+## Comparison to other Frameworks
+
+### Giraffe
+|                    | Falco                                                                  | Giraffe                          |
+|--------------------|------------------------------------------------------------------------|----------------------------------|
+| Routing            | ASP.NET Endpoint routing                                               | Tail recursive F# implementation |
+| Model Binding      | Manual, with utilities for reading values via `StringCollectionReader` | Custom reflection-based function |
+| View Engine        | Native F#                                                              | Native F#                        |
+| JSON               | "Bring your own"                                                       | Custom reflection-based function |
+| XSS                | Built-in XSS protection support using Microsoft.AspNetCore.Antiforgery | N/A                              |
+| Cryptography       | Built-in SHA256/SHA512 hashing support & secure salt generation        | N/A
+| Large-file uploads | Built-in multipart streaming                                           | N/A                              |
+
 ## Benchmarks
 Below are some basic benchmarks comparing Falco to [Giraffe](https://github.com/giraffe-fsharp/Giraffe/). Which demonstates that under a load of 2000 concurrent connection for a duration of 10s, Falco performs on par with Giraffe.
 
