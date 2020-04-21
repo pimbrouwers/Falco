@@ -16,8 +16,8 @@ type MultipartFormData =
     }
 
 type MultipartSection with
-    member this.GetEncoding() =
-        // Default to UTF8
+    /// Attempt to obtain encoding, default to UTF8
+    member this.GetEncoding() =        
         match MediaTypeHeaderValue.TryParse(StringSegment(this.ContentType)) with
         | false, _     -> System.Text.Encoding.UTF8
         | true, parsed -> 
@@ -95,6 +95,8 @@ type HttpContext with
                 return Ok (FormCollection(form.FormData.GetResults(), form.FormFiles))
         }
 
+
+/// Safely stream multipart form date into IFormCollection
 let tryStreamForm (error: string -> HttpHandler) (success: FormCollection -> HttpHandler) =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         task {

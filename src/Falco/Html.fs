@@ -2,43 +2,43 @@
 
 open System.Net
     
-// Specifies an XML-style attribute
+/// Specifies an XML-style attribute
 type XmlAttribute =
     | KeyValue of string * string
     | BooleanValue of string
 
-// Represents an XML-style element containing attributes
+/// Represents an XML-style element containing attributes
 type XmlElement = 
     string * XmlAttribute[]
 
-// Describes the different XML-style node patterns
+/// Describes the different XML-style node patterns
 type XmlNode =
     | ParentNode      of XmlElement * XmlNode list 
     | SelfClosingNode of XmlElement                
     | Text            of string   
 
 
-// XmlAttribute constructor
+/// XmlAttribute constructor
 let attr key value = KeyValue (key, value)
 let attrBool key = BooleanValue key 
 
-// Text XmlNode constructor
+/// Text XmlNode constructor
 let raw content = Text content
 
-// Encoded-text XmlNode constructor
+/// Encoded-text XmlNode constructor
 let enc content = Text (WebUtility.HtmlEncode content)
 
-// Standard XmlNode constructor
+/// Standard XmlNode constructor
 let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
     ((tag, List.toArray attr), children)
     |> ParentNode 
 
-// Self-closing XmlNode constructor
+/// Self-closing XmlNode constructor
 let selfClosingTag (tag : string) (attr : XmlAttribute list) =
     (tag, List.toArray attr)
     |> SelfClosingNode
 
-// Render XmlNode recursively to string representation
+/// Render XmlNode recursively to string representation
 let renderNode tag =   
     let rec buildXml doc tag =
         let createAttrs attrs =
@@ -69,7 +69,7 @@ let renderNode tag =
     |> List.toArray
     |> strJoin ""
 
-// Render XmlNode as HTML string
+/// Render XmlNode as HTML string
 let renderHtml tag =
     [|
         "<!DOCTYPE html>"
@@ -77,9 +77,9 @@ let renderHtml tag =
     |]
     |> strJoin ""
 
-// ------------
-// HTML Tags
-// ------------
+/// ------------
+/// HTML Tags
+/// ------------
 let html     = tag "html"
 let head     = tag "head"
 let title    = tag "title"
@@ -138,7 +138,7 @@ let iframe     = tag "iframe"
 let figure     = tag "figure"
 let figcaption = tag "figcaption"
 
-// HTML 5
+/// HTML 5
 let article = tag "article"
 let aside   = tag "aside"
 let canvas  = tag "canvas"
@@ -151,9 +151,9 @@ let nav     = tag "nav"
 let section = tag "section"
 let summary = tag "summary"
 
-// ------------
-// HTML Attributes
-// ------------
+/// ------------
+/// HTML Attributes
+/// ------------
 let _httpEquiv v   = attr "http-equip" v
 let _lang v        = attr "lang" v
 let _charset v     = attr "charset" v
@@ -171,13 +171,13 @@ let _width v       = attr "width" v
 let _height v      = attr "height" v
 let _style v       = attr "style" v
 
-// Forms
+/// Forms
 let _novalidate    = attrBool "novalidate" 
 let _action v      = attr "action" v
 let _method v      = attr "method" v
 let _enctype v     = attr "enctype" v
 
-// Inputs
+/// Inputs
 let _accept v       = attr "accept" v
 let _autocomplete v = attr "autocomplete" v
 let _checked        = attrBool "checked" 

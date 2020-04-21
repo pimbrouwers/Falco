@@ -5,16 +5,19 @@ open System.Collections.Generic
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
+open Falco.StringParser
 
 type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) = 
 
     let coll : KeyValuePair<string,StringValues> array = c |> Seq.toArray
 
+    /// Safely retrieve value from StringCollectionReader
     member _.TryGetValue (name : string) =                 
         match coll |> Array.tryFind (fun kvp -> strEquals kvp.Key name) with
         | Some v when v.Value.Count > 0 -> Some v.Value
-        | _                       -> None
+        | _                             -> None
     
+    /// Retrieve value from StringCollectionReader
     member this.GetValue (name : string) = 
         match this.TryGetValue name with
         | Some v -> v 
@@ -79,28 +82,33 @@ type StringValues with
     member this.AsArrayTimeSpan ()       = this.AsArrayString() |> parseArray parseTimeSpan |> Option.defaultValue [||]
 
 type HttpContext with  
+    /// Retrieve IFormCollection from HttpRequest
     member this.GetFormAsync () = 
         task {
             return! this.Request.ReadFormAsync ()            
         }
 
+    /// Retrieve StringCollectionReader for IFormCollection from HttpRequest
     member this.GetFormReaderAsync () = 
         task {
             let! form = this.GetFormAsync ()
             return StringCollectionReader(form)
         }
 
+    /// Synchronously Retrieve StringCollectionReader for IFormCollection from HttpRequest
     member this.GetFormReader () =
         this.GetFormReaderAsync() 
         |> Async.AwaitTask 
         |> Async.RunSynchronously
 
+    /// Retrieve StringCollectionReader for IQueryCollection from HttpRequest
     member this.GetQueryReader () = 
         StringCollectionReader(this.Request.Query)
 
+/// Attempt to map IFormCollection to record using provided `bind` function
 let tryBindForm 
     (bind : StringCollectionReader -> Result<'a, string> ) 
-    (err : string -> HttpHandler) 
+    (error : string -> HttpHandler) 
     (success : 'a -> HttpHandler) : HttpHandler =    
     fun (next : HttpFunc) (ctx : HttpContext) ->  
         task {
@@ -108,14 +116,15 @@ let tryBindForm
             return! 
                 (match form |> bind with
                 | Ok m      -> success m
-                | Error msg -> err msg) next ctx
+                | Error msg -> error msg) next ctx
         }
 
+/// Attempt to map IQueryCollection to record using provided `bind` function
 let tryBindQuery
     (bind : StringCollectionReader -> Result<'a, string> ) 
-    (err : string -> HttpHandler) 
+    (error : string -> HttpHandler) 
     (success : 'a -> HttpHandler) : HttpHandler =    
     fun (next : HttpFunc) (ctx : HttpContext) ->  
         (match ctx.GetQueryReader() |> bind with
         | Ok m      -> success m 
-        | Error msg -> err msg) next ctx
+        | Error msg -> error msg) next ctx
