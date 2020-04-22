@@ -13,12 +13,17 @@ module Crypto =
     let toBase64 (bytes : byte[]) = 
         Convert.ToBase64String(bytes)
     
+    /// Generate a random int32 between range
+    let randomInt min max = 
+        Random().Next(min,max)
+
     /// Generate cryptographically-sound random salt
-    let createSalt (len : int) =
-        let salt = Array.zeroCreate<byte> len
+    /// Example: createSalt 16 (generates a 128-bit (i.e. 128 / 8) salt)
+    let createSalt len =        
+        let rndAry = Array.zeroCreate<byte> len
         use rng = RandomNumberGenerator.Create()
-        rng.GetBytes(salt)
-        toBase64 salt
+        rng.GetBytes(rndAry)        
+        rndAry |> toBase64 
 
     /// Perform key derivation using the provided algorithm
     let pbkdf2 
