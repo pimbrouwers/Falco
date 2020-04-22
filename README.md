@@ -16,12 +16,15 @@ Key features:
 
 ## Why?
 
-The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core library. Aimed at supporting:
+The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core libraries, rooted in an ethos of *low-friction web programming*. 
+
+Key features:
 - A low barrier to entry for those new to functional programming.
 - Simple integration into the native ASP.NET pipeline.
 - High-performance routing.
 - Composable request handling. 
 - Isomorphic web development.
+- Security utilities.
 
 > This project was inspired by [Giraffe][4]. Those looking for a more mature web framework should definitely go check it out. It is a fantastic project by [@dustinmoris](https://github.com/dustinmorris).
 
