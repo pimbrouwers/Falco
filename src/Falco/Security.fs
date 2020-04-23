@@ -19,7 +19,7 @@ module Crypto =
 
     /// Generate cryptographically-sound random salt
     /// Example: createSalt 16 (generates a 128-bit (i.e. 128 / 8) salt)
-    let createSalt len =        
+    let createSalt len =            
         let rndAry = Array.zeroCreate<byte> len
         use rng = RandomNumberGenerator.Create()
         rng.GetBytes(rndAry)        
@@ -45,7 +45,7 @@ module Crypto =
         (iterations : int) 
         (numBytesRequested : int)
         (salt : string)
-        (strToHash : string) = 
+        (strToHash : string) =         
         pbkdf2 KeyDerivationPrf.HMACSHA256 iterations numBytesRequested salt strToHash
     
     /// Perform key derivation using HMACSHA512

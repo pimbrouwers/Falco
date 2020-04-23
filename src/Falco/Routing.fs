@@ -18,7 +18,7 @@ type HttpVerb = GET | POST | PUT | DELETE | ANY
 type HttpEndpoint = 
     {
         Pattern : string   
-        Verb  : HttpVerb
+        Verb  : HttpVerb list
         Handler : HttpHandler
     }
        
@@ -29,41 +29,42 @@ type IApplicationBuilder with
             .UseEndpoints(fun r -> 
                 for e in endPoints do            
                     let rd = createRequestDelete e.Handler
-
-                    match e.Verb with
-                    | GET    -> r.MapGet(e.Pattern, rd)
-                    | POST   -> r.MapPost(e.Pattern, rd)
-                    | PUT    -> r.MapPut(e.Pattern, rd)
-                    | DELETE -> r.MapDelete(e.Pattern, rd)
-                    | _      -> r.Map(e.Pattern, rd)
-                    |> ignore)
+                    
+                    for v in e.Verb do
+                        match v with
+                        | GET    -> r.MapGet(e.Pattern, rd)
+                        | POST   -> r.MapPost(e.Pattern, rd)
+                        | PUT    -> r.MapPut(e.Pattern, rd)
+                        | DELETE -> r.MapDelete(e.Pattern, rd)
+                        | _      -> r.Map(e.Pattern, rd)
+                        |> ignore)
             
     /// Enable Falco not found handler (this handler is terminal)
     member this.UseNotFoundHandler (notFoundHandler : HttpHandler) =
         this.Run(createRequestDelete notFoundHandler)
 
 /// Constructor for HttpEndpoint
-let route method pattern handler = 
+let route verb pattern handler = 
     { 
         Pattern = pattern
-        Verb  = method
+        Verb  = verb
         Handler = handler
     }
 
 /// GET HttpEndpoint constructor
-let get pattern handler    = route GET pattern handler
+let get pattern handler    = route [ GET ] pattern handler
 
 /// POST HttpEndpoint constructor
-let post pattern handler   = route POST pattern handler
+let post pattern handler   = route [ POST ] pattern handler
 
 /// PUT HttpEndpoint constructor
-let put pattern handler    = route PUT pattern handler
+let put pattern handler    = route [ PUT ] pattern handler
 
 /// DELETE HttpEndpoint constructor
-let delete pattern handler = route DELETE pattern handler
+let delete pattern handler = route [ DELETE ] pattern handler
 
 /// HttpEndpoint constructor that matches any HttpVerb
-let any pattern handler    = route ANY pattern handler
+let any pattern handler    = route [ ANY ] pattern handler
     
 type HttpContext with        
     /// Obtain Map<string,string> of current route values
