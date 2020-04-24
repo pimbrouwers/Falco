@@ -189,6 +189,7 @@ let _enctype v     = attr "enctype" v
 /// Inputs
 let _accept v       = attr "accept" v
 let _autocomplete v = attr "autocomplete" v
+let _autofocus      = attrBool "autofocus"
 let _checked        = attrBool "checked" 
 let _disabled       = attrBool "disabled"
 let _for v          = attr "for" v
