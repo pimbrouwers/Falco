@@ -34,8 +34,7 @@ let createRequestDelete (handler : HttpHandler) =
 type IApplicationBuilder with
     /// Activate Falco integration with IEndpointRouteBuilder
     member this.UseHttpEndPoints (endPoints : HttpEndpoint list) =
-        this.UseRouting()
-            .UseEndpoints(fun r -> 
+        this.UseEndpoints(fun r -> 
                 for e in endPoints do            
                     let rd = createRequestDelete e.Handler
                     
