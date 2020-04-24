@@ -31,6 +31,7 @@ let routes = [
 let configureApp (app : IApplicationBuilder) =          
     app.UseDeveloperExceptionPage()
        .UseStaticFiles()
+       .UseRouting()
        .UseHttpEndPoints(routes)
        .UseNotFoundHandler(notFoundHandler)
        |> ignore

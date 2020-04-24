@@ -17,6 +17,7 @@ let configureApp (app : IApplicationBuilder) =
     ]
     
     app.UseDeveloperExceptionPage()       
+       .UseRouting()
        .UseHttpEndPoints(routes)
        .UseNotFoundHandler(notFoundHandler)
        |> ignore

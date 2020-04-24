@@ -20,7 +20,8 @@ let routes = [
 // Web App
 // ------------
 let configureApp (app : IApplicationBuilder) =     
-    app.UseDeveloperExceptionPage()       
+    app.UseDeveloperExceptionPage()     
+       .UseRouting()
        .UseHttpEndPoints(routes)
        .UseNotFoundHandler(setStatusCode 404 >=> textOut "Not found")
        |> ignore
