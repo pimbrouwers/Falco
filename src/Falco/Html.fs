@@ -45,16 +45,20 @@ let renderNode tag =
             attrs
             |> Array.map (fun attr ->
                 match attr with 
-                | KeyValue (k, v) -> (sprintf " %s=\"%s\"" k v)
-                | BooleanValue k  -> k)
-            |> strJoin ""
+                | KeyValue (k, v) -> strJoin "" [| k; "=\""; v; "\"" |]
+                | BooleanValue k  -> k)            
+            |> strJoin " "            
 
            
         match tag with 
         | Text text -> 
             text :: doc
         | SelfClosingNode (e, attrs) -> 
-            sprintf "<%s%s />" e (createAttrs attrs) :: doc
+            if attrs.Length > 0 then
+                strJoin "" [| "<"; e; " "; (createAttrs attrs); " />" |] 
+            else 
+                strJoin "" [| "<"; e; " />" |]
+            :: doc            
         | ParentNode ((e, attrs), children) ->        
             let c =             
                 [|
@@ -63,7 +67,12 @@ let renderNode tag =
                         |> List.toArray 
                         |> strJoin ""
                 |]
-            sprintf "<%s%s>%s</%s>" e (createAttrs attrs) (strJoin "" c) e :: doc
+            
+            if attrs.Length > 0 then
+                strJoin "" [| "<"; e; " "; (createAttrs attrs); ">"; (strJoin "" c); "</"; e; ">" |]
+            else 
+                strJoin "" [| "<"; e; ">"; (strJoin "" c); "</"; e; ">" |]
+            :: doc            
     
     buildXml [] tag
     |> List.toArray

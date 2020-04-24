@@ -21,8 +21,8 @@ let ``Self-closing tag should render with trailing slash`` () =
 
 [<Fact>]
 let ``Standard tag should render with attributes`` () =
-    let t = tag "div" [ attr "class" "my-class" ] []
-    renderNode t |> should equal "<div class=\"my-class\"></div>"
+    let t = tag "div" [ attr "class" "my-class"; attrBool "autofocus" ] []
+    renderNode t |> should equal "<div class=\"my-class\" autofocus></div>"
 
 [<Fact>]
 let ``Should produce valid html doc`` () =
