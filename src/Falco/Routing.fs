@@ -18,6 +18,12 @@ type HttpVerb =
     | TRACE
     | ANY
 
+/// Negation active recognizer for HttpVerb
+let (|NotMethod|_|) (accept : HttpVerb array) (verb : HttpVerb) =
+    match Array.contains verb accept with 
+    | true  -> Some verb
+    | false -> None
+
 /// Specifies an HttpEndpoint
 type HttpEndpoint = 
     {
