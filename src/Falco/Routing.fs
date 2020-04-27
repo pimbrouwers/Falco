@@ -18,17 +18,11 @@ type HttpVerb =
     | TRACE
     | ANY
 
-/// Negation active recognizer for HttpVerb
-let (|NotVerb|_|) (accept : HttpVerb array) (verb : HttpVerb) =
-    match Array.contains verb accept with 
-    | true  -> None
-    | false -> Some verb
-
 /// Specifies an HttpEndpoint
 type HttpEndpoint = 
     {
         Pattern : string   
-        Verbs  : HttpVerb list
+        Verb  : HttpVerb
         Handler : HttpHandler
     }
        
@@ -44,57 +38,56 @@ type IApplicationBuilder with
                 for e in endPoints do            
                     let rd = createRequestDelete e.Handler
                     
-                    for v in e.Verbs do
-                        match v with
-                        | GET     -> r.MapGet(e.Pattern, rd)
-                        | HEAD    -> r.MapMethods(e.Pattern, [ HttpMethods.Head ], rd)
-                        | POST    -> r.MapPost(e.Pattern, rd)
-                        | PUT     -> r.MapPut(e.Pattern, rd)
-                        | PATCH   -> r.MapMethods(e.Pattern, [ HttpMethods.Patch ], rd)
-                        | DELETE  -> r.MapDelete(e.Pattern, rd)
-                        | OPTIONS -> r.MapMethods(e.Pattern, [ HttpMethods.Options ], rd)
-                        | TRACE   -> r.MapMethods(e.Pattern, [ HttpMethods.Trace ], rd)
-                        | ANY     -> r.Map(e.Pattern, rd)
-                        |> ignore)
+                    match e.Verb with
+                    | GET     -> r.MapGet(e.Pattern, rd)
+                    | HEAD    -> r.MapMethods(e.Pattern, [ HttpMethods.Head ], rd)
+                    | POST    -> r.MapPost(e.Pattern, rd)
+                    | PUT     -> r.MapPut(e.Pattern, rd)
+                    | PATCH   -> r.MapMethods(e.Pattern, [ HttpMethods.Patch ], rd)
+                    | DELETE  -> r.MapDelete(e.Pattern, rd)
+                    | OPTIONS -> r.MapMethods(e.Pattern, [ HttpMethods.Options ], rd)
+                    | TRACE   -> r.MapMethods(e.Pattern, [ HttpMethods.Trace ], rd)
+                    | ANY     -> r.Map(e.Pattern, rd)
+                    |> ignore)
             
     /// Enable Falco not found handler (this handler is terminal)
     member this.UseNotFoundHandler (notFoundHandler : HttpHandler) =
         this.Run(createRequestDelete notFoundHandler)
 
 /// Constructor for HttpEndpoint
-let route (pattern : string) (handler : HttpHandler) (verbs : HttpVerb list) = 
+let route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) =
     { 
         Pattern = pattern
-        Verbs  = verbs
+        Verb  = verb
         Handler = handler
     }
 
 /// HttpEndpoint constructor that matches any HttpVerb
-let any (pattern : string) (handler : HttpHandler)     = route pattern handler [ ANY ]
+let any (pattern : string) (handler : HttpHandler)     = route ANY pattern handler
     
 /// GET HttpEndpoint constructor
-let get (pattern : string) (handler : HttpHandler)     = route pattern handler [ GET ]
+let get (pattern : string) (handler : HttpHandler)     = route GET pattern handler
 
 /// HEAD HttpEndpoint constructor
-let head (pattern : string) (handler : HttpHandler)    = route pattern handler [ HEAD ]
+let head (pattern : string) (handler : HttpHandler)    = route HEAD pattern handler
 
 /// POST HttpEndpoint constructor
-let post (pattern : string) (handler : HttpHandler)    = route pattern handler [ POST ] 
+let post (pattern : string) (handler : HttpHandler)    = route POST pattern handler
 
 /// PUT HttpEndpoint constructor
-let put (pattern : string) (handler : HttpHandler)     = route pattern handler [ PUT ] 
+let put (pattern : string) (handler : HttpHandler)     = route PUT pattern handler
 
 /// PATCH HttpEndpoint constructor
-let patch (pattern : string) (handler : HttpHandler)   = route pattern handler [ PATCH ] 
+let patch (pattern : string) (handler : HttpHandler)   = route PATCH pattern handler
 
 /// DELETE HttpEndpoint constructor
-let delete (pattern : string) (handler : HttpHandler)  = route pattern handler [ DELETE ] 
+let delete (pattern : string) (handler : HttpHandler)  = route DELETE pattern handler
 
 /// OPTIONS HttpEndpoint constructor
-let options (pattern : string) (handler : HttpHandler) = route pattern handler [ OPTIONS ]
+let options (pattern : string) (handler : HttpHandler) = route OPTIONS pattern handler
 
 /// TRACE HttpEndpoint construct
-let trace (pattern : string) (handler : HttpHandler)   = route pattern handler [ TRACE ]
+let trace (pattern : string) (handler : HttpHandler)   = route TRACE pattern handler
 
 type HttpContext with        
     /// Obtain Map<string,string> of current route values

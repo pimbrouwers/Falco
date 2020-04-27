@@ -129,8 +129,8 @@ Bearing this in mind, routing can practically be represented by a list of these 
 ```f#
 let routes = 
   [
-    route "POST" "/login"              loginHandler        
-    route "GET"  "/hello/{name:alpha}" helloHandler    
+    route POST "/login"              loginHandler        
+    route GET  "/hello/{name:alpha}" helloHandler    
   ]
 
 // or more simply 
