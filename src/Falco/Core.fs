@@ -24,11 +24,11 @@ module Core =
 
     /// Compose ("glue") HttpHandler's together
     let compose (handler1 : HttpHandler) (handler2 : HttpHandler) : HttpHandler =
-        fun (final : HttpFunc) ->
-            let next = final |> handler2 |> handler1
+        fun (fn : HttpFunc) ->
+            let next = fn |> handler2 |> handler1
             fun (ctx : HttpContext) ->
                 match ctx.Response.HasStarted with
-                | true  -> final ctx
+                | true  -> fn ctx
                 | false -> next ctx
         
     let (>=>) = compose
