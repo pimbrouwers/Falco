@@ -90,6 +90,8 @@ Aliases for all route functions are also available:
 | `route`                                                                    | `HttpVerb -> string -> HttpHandler` | ex: `route GET "/" (textOut "hello")` |
 | `get`, `post`, `put`, `patch`, `delete`, `head`, `trace`, `options`, `any` | `string -> HttpHandler`             | ex: `get "/" (textOut "hello")`       |
 
+### Example 
+
 ```f#
 webApp {     
     get "/hello" (textOut "hello")
