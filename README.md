@@ -92,8 +92,7 @@ Aliases for all route functions are also available:
 webApp {     
     get "/hello" (textOut "hello")
     any "/"      (textOut "index")
-
-    notFound                   (setStatusCode 404 >=> textOut "Not found")
+    notFound     (setStatusCode 404 >=> textOut "Not found")
 
     host       (fun hst -> hst.UseContentRoot(root))
 
