@@ -6,7 +6,7 @@
 Falco is a micro-library for building simple, fault-tolerant and [blazing fast](#benchmarks) functional web applications using F#. Built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3].
 
 Key features:
-- `WebHostBuilder` computation expression to simplify host construction.
+- `WebHostBuilder` [computation expression](#web-host) to simplify host construction.
 - Simple and powerful [routing](#routing) API.
 - Composable [request handling](#request-handling).
 - Native F# [view engine](#view-engine).
@@ -81,7 +81,7 @@ Falco provides a computation expression, `webApp { ... }` to help with construct
 | `logging`    | `ILoggingBuilder -> ILoggingBuilder`             | Configure logging                               |
 | `services`   | `IServiceCollection -> IServiceCollection`       | Configure services                              |
 | `middleware` | `IApplicationBuiler -> IApplicationBuilder`      | Configure application                           |
-| `errors      | `ErrorHandler`                                   | Specify custom exception handler                |
+| `errors`     | `ErrorHandler`                                   | Specify custom exception handler                |
 | `notFound`   | `HttpHandler`                                    | Specify a fall-through (i.e. not found) handler |
 
 Aliases for all route functions are also available:
