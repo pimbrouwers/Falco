@@ -87,8 +87,8 @@ Falco provides a computation expression, `webApp { ... }` to help with construct
 Aliases for all route functions are also available:
 | Operation | Signature ||
 |----------------------------------------------------------------------------|-------------------------------------|-------------------------------------|
-| `route`                                                                    | `HttpVerb -> string -> HttpHandler` | ex: route GET "/" (textOut "hello") |
-| `get`, `post`, `put`, `patch`, `delete`, `head`, `trace`, `options`, `any` | `string -> HttpHandler`             | ex: get "/" (textOut "hello")       |
+| `route`                                                                    | `HttpVerb -> string -> HttpHandler` | ex: `route GET "/" (textOut "hello")` |
+| `get`, `post`, `put`, `patch`, `delete`, `head`, `trace`, `options`, `any` | `string -> HttpHandler`             | ex: `get "/" (textOut "hello")`       |
 
 ```f#
 webApp {     
