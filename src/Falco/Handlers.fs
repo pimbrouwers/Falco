@@ -6,8 +6,8 @@ open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Falco.ViewEngine
 
-/// An HttpHandler to stop processing
-let shortCircuit : HttpFunc = Some >> Task.FromResult
+/// An alias for defaultHttpFunc intended to help to stop further processing
+let shortCircuit = defaultHttpFunc
 
 /// Clear current reponse content
 let purgeResponse : HttpHandler =

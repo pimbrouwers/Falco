@@ -7,6 +7,7 @@ module Core =
     open System.Threading.Tasks
     open FSharp.Control.Tasks.V2.ContextInsensitive
     open Microsoft.AspNetCore.Http
+    open Microsoft.Extensions.Logging
     open Microsoft.Extensions.Primitives
     open Microsoft.Net.Http.Headers
 
@@ -21,6 +22,13 @@ module Core =
 
     /// Represents in-and-out processing of the HttpContext
     type HttpHandler = HttpFunc -> HttpFunc    
+
+    /// Represents an HttpHandler intended for use as the global exception handler
+    /// Receives the thrown exception, and logger
+    type ExceptionHandler = Exception -> ILogger -> HttpHandler
+
+    /// The default HttpFunc
+    let defaultHttpFunc : HttpFunc = Some >> Task.FromResult
 
     /// Compose ("glue") HttpHandler's together
     let compose (handler1 : HttpHandler) (handler2 : HttpHandler) : HttpHandler =

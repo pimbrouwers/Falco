@@ -28,7 +28,7 @@ type HttpEndpoint =
        
 /// Create a RequestDelegate from HttpHandler
 let createRequestDelete (handler : HttpHandler) =
-    let fn = handler (Some >> Task.FromResult)
+    let fn = handler defaultHttpFunc
     RequestDelegate(fun ctx -> Task.Run(fun _ -> fn ctx |> ignore))
 
 type IApplicationBuilder with

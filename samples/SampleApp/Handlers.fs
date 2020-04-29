@@ -5,8 +5,9 @@ open Microsoft.AspNetCore.Http
 open SampleApp.Model
 open SampleApp.UI
 
-let notFoundHandler : HttpHandler =
-    setStatusCode 404 >=> textOut "Not found"
+let exceptionThrowingHandler : HttpHandler =
+    fun (_ : HttpFunc) (_ : HttpContext) ->        
+        failwith "Fake Exception"
 
 let helloHandler : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->        

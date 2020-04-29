@@ -1,6 +1,7 @@
 ﻿[<AutoOpen>]
 module Falco.Builder
 
+open System.IO
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
@@ -10,23 +11,27 @@ open Microsoft.Extensions.Logging
 type WebApp = 
     {
         Configurations : IApplicationBuilder -> IApplicationBuilder
-        ContentRoot    : string option
+        ContentRoot    : string
+        ErrorHandler   : ExceptionHandler option
         HostBuilder    : IWebHostBuilder
         Logging        : ILoggingBuilder -> ILoggingBuilder
         NotFound       : HttpHandler option
         Routes         : HttpEndpoint list
         Services       : IServiceCollection -> IServiceCollection
+        WebRoot        : string option
     }
 
     static member Empty () = 
         { 
             Configurations = id
-            ContentRoot    = None
+            ContentRoot    = Directory.GetCurrentDirectory()
+            ErrorHandler   = None
             HostBuilder    = WebHostBuilder().UseKestrel()
             Logging        = id
             NotFound       = None
             Routes         = []
             Services       = id
+            WebRoot        = None
         }
 
 /// Computation expression to allow for elegant IWebhost construction
@@ -34,33 +39,50 @@ type WebAppBuilder() =
     member __.Yield(_) = WebApp.Empty ()
 
     member __.Run(webApp : WebApp) =          
+        let defaultWebRootDir = "wwwroot"
         let host = webApp.HostBuilder
-        host.ConfigureLogging(fun logging -> 
+        
+        host.UseContentRoot(webApp.ContentRoot)
+            .UseWebRoot(webApp.WebRoot |> Option.defaultValue (Path.Join(webApp.ContentRoot, defaultWebRootDir)))
+            .ConfigureLogging(fun logging -> 
+                // Logging
                 logging
                 |> webApp.Logging
                 |> ignore)
+
             .ConfigureServices(fun services -> 
+                // Middleware
                 services.AddRouting() 
                 |> webApp.Services 
                 |> ignore)
+
             .Configure(fun app ->
-                app.UseRouting().UseHttpEndPoints(webApp.Routes)
+                // Error Handler
+                match webApp.ErrorHandler with
+                | Some e -> app.UseMiddleware<ExceptionHandlingMiddleware> e |> ignore
+                | None   -> ()
+                
+                // Routes & Activation
+                app.UseRouting()
+                   .UseHttpEndPoints(webApp.Routes)
                 |> webApp.Configurations
                 |> fun _ -> 
+                    // Not Found Handler
                     match webApp.NotFound with
                     | Some nf -> app.UseNotFoundHandler(nf)
-                    | None _ -> ())
+                    | None _  -> ())
         |> ignore
 
         host.Build().Run()
     
+    // Configuration Operations
     [<CustomOperation("configure")>]
     member __.Configure (app : WebApp, appConfig : IApplicationBuilder -> IApplicationBuilder) =
         { app with Configurations = app.Configurations >> appConfig }
         
     [<CustomOperation("contentRoot")>]
     member __.ContentRoot (app : WebApp, dir : string) =
-        { app with ContentRoot = Some dir }
+        { app with ContentRoot = dir }
 
     [<CustomOperation("logging")>]
     member __.Logging (app : WebApp, logConfig : ILoggingBuilder -> ILoggingBuilder) =
@@ -70,6 +92,16 @@ type WebAppBuilder() =
     member __.Services (app : WebApp, servicesConfig : IServiceCollection -> IServiceCollection) =
         { app with Services = app.Services >> servicesConfig }
 
+    // Error Operations
+    [<CustomOperation("errors")>]
+    member __.Errors (app : WebApp, handler : ExceptionHandler) =
+        { app with ErrorHandler = Some handler }
+
+    [<CustomOperation("notFound")>]
+    member __.NotFound (app : WebApp, handler : HttpHandler) =
+        { app with NotFound = Some handler }
+
+    // Routing Operations
     [<CustomOperation("route")>]
     member __.Route (app : WebApp, verb : HttpVerb, pattern : string, handler : HttpHandler) =
         { app with Routes = route verb pattern handler :: app.Routes }
@@ -110,9 +142,7 @@ type WebAppBuilder() =
     member __.Trace (app : WebApp, pattern : string, handler : HttpHandler) =
         { app with Routes = trace pattern handler :: app.Routes }
 
-    [<CustomOperation("notFound")>]
-    member __.NotFound (app : WebApp, handler : HttpHandler) =
-        { app with NotFound = Some handler }
+    
 
 let webApp = WebAppBuilder()
 
