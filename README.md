@@ -58,7 +58,7 @@ Run the application:
 dotnet run HelloWorldApp
 ```
 
-So in about 5 lines of code, you've got an industrial-strength "hello world" web app. Which we achieved using only base ASP.NET libraries. Pretty sweet!
+So in about 5 lines of code, you've got an industrial-strength "hello world" web app. Which we achieved using primarily base ASP.NET libraries. Pretty sweet!
 
 ## Sample Applications 
 
