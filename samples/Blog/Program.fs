@@ -1,55 +1,19 @@
 module Blog.Program
 
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Falco
 open Blog.Handlers
 
-// ------------
-// Web App
-// ------------
-let configureApp (app : IApplicationBuilder) =     
-    let routes = [        
-        get "/{slug:regex(^[a-z\-])}" blogPostHandler
-        any "/"                       blogIndexHandler
-    ]
+webApp {    
+    logging  (fun log -> log.AddConsole().AddDebug())
+    services (fun svc -> svc.AddResponseCompression().AddResponseCaching())
     
-    app.UseDeveloperExceptionPage()       
-       .UseRouting()
-       .UseHttpEndPoints(routes)
-       .UseNotFoundHandler(notFoundHandler)
-       |> ignore
+    get "/{slug:regex(^[a-z\-])}" blogPostHandler
+    any "/"                       blogIndexHandler
 
-// ------------
-// Logging
-// ------------
-let configureLogging (loggerBuilder : ILoggingBuilder) =
-    loggerBuilder
-        .AddFilter(fun l -> l.Equals LogLevel.Information)
-        .AddConsole()
-        .AddDebug() |> ignore
+    notFound (setStatusCode 404 >=> textOut "Not found")
 
-// ------------
-// Services
-// ------------
-let configureServices (services : IServiceCollection) =
-    services        
-        .AddRouting()        
-        |> ignore
-
-
-[<EntryPoint>]
-let main _ =
-    try
-        WebHostBuilder()
-            .UseKestrel()       
-            .ConfigureLogging(configureLogging)
-            .ConfigureServices(configureServices)
-            .Configure(configureApp)          
-            .Build()
-            .Run()
-        0
-    with 
-        | _ -> -1
+    errors (fun ex _ -> setStatusCode 500 >=> textOut (sprintf "Error: %s" ex.Message))
+}

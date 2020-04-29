@@ -80,10 +80,6 @@ type WebAppBuilder() =
     member __.Configure (app : WebApp, appConfig : IApplicationBuilder -> IApplicationBuilder) =
         { app with Configurations = app.Configurations >> appConfig }
         
-    [<CustomOperation("contentRoot")>]
-    member __.ContentRoot (app : WebApp, dir : string) =
-        { app with ContentRoot = dir }
-
     [<CustomOperation("logging")>]
     member __.Logging (app : WebApp, logConfig : ILoggingBuilder -> ILoggingBuilder) =
         { app with Logging = app.Logging >> logConfig }
@@ -142,7 +138,14 @@ type WebAppBuilder() =
     member __.Trace (app : WebApp, pattern : string, handler : HttpHandler) =
         { app with Routes = trace pattern handler :: app.Routes }
 
-    
+    // Directory Configuration   
+    [<CustomOperation("contentRoot")>]
+    member __.ContentRoot (app : WebApp, dir : string) =
+        { app with ContentRoot = dir }
+
+    [<CustomOperation("webRoot")>]
+    member __.WebRoot (app : WebApp, dir : string) =
+        { app with WebRoot = Some dir }
 
 let webApp = WebAppBuilder()
 
