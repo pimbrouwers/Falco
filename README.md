@@ -628,6 +628,7 @@ That said, if people were open to a dependency and could agree on a package. I w
 ### Giraffe
 |                    | Falco                                                                  | Giraffe                          |
 |--------------------|------------------------------------------------------------------------|----------------------------------|
+| Web Host Builder   | `webApp { ... }` computation expression                                | N/A                              |
 | Routing            | ASP.NET Endpoint routing                                               | Tail recursive F# implementation |
 | Model Binding      | Manual, with utilities for reading values via `StringCollectionReader` | Custom reflection-based function |
 | View Engine        | Native F#                                                              | Native F#                        |
