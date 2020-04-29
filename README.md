@@ -74,6 +74,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 Falco provides a computation expression, `webApp { ... }` to help with constructing & running a `WebHost`. Raw access is given to all configuration points to enable full-customization, but also to present a familiar feel, through several customer operations:
 
+| Operation | Signature ||
 |--------------|--------------------------------------------------|-------------------------------------------------|
 | `host`       | `IWebHostBuilder -> IWebHostBuilder`             | Configure web host                              |
 | `configure`  | `IConfigurationBuilder -> IConfigurationBuilder` | Configure app settings                          |
@@ -84,6 +85,7 @@ Falco provides a computation expression, `webApp { ... }` to help with construct
 | `notFound`   | `HttpHandler`                                    | Specify a fall-through (i.e. not found) handler |
 
 Aliases for all route functions are also available:
+| Operation | Signature ||
 |----------------------------------------------------------------------------|-------------------------------------|-------------------------------------|
 | `route`                                                                    | `HttpVerb -> string -> HttpHandler` | ex: route GET "/" (textOut "hello") |
 | `get`, `post`, `put`, `patch`, `delete`, `head`, `trace`, `options`, `any` | `string -> HttpHandler`             | ex: get "/" (textOut "hello")       |
