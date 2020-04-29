@@ -10,6 +10,7 @@ open Microsoft.Extensions.Logging
 type WebApp = 
     {
         Configurations : IApplicationBuilder -> IApplicationBuilder
+        ContentRoot    : string option
         HostBuilder    : IWebHostBuilder
         Logging        : ILoggingBuilder -> ILoggingBuilder
         NotFound       : HttpHandler option
@@ -20,6 +21,7 @@ type WebApp =
     static member Empty () = 
         { 
             Configurations = id
+            ContentRoot    = None
             HostBuilder    = WebHostBuilder().UseKestrel()
             Logging        = id
             NotFound       = None
@@ -56,6 +58,10 @@ type WebAppBuilder() =
     member __.Configure (app : WebApp, appConfig : IApplicationBuilder -> IApplicationBuilder) =
         { app with Configurations = app.Configurations >> appConfig }
         
+    [<CustomOperation("contentRoot")>]
+    member __.ContentRoot (app : WebApp, dir : string) =
+        { app with ContentRoot = Some dir }
+
     [<CustomOperation("logging")>]
     member __.Logging (app : WebApp, logConfig : ILoggingBuilder -> ILoggingBuilder) =
         { app with Logging = app.Logging >> logConfig }
