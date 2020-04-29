@@ -70,6 +70,50 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | [SampleApp][8] | Demonstrates more complex topics: view engine, authentication and json |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
 
+## Web Host
+
+Falco provides a computation expression, `webApp { ... }` to help with constructing & running a `WebHost`. Raw access is given to all configuration points to enable full-customization, but also to present a familiar feel, through several customer operations:
+
+| `host`       | `IWebHostBuilder -> IWebHostBuilder`             | Configure web host                              |
+|--------------|--------------------------------------------------|-------------------------------------------------|
+| `configure`  | `IConfigurationBuilder -> IConfigurationBuilder` | Configure app settings                          |
+| `logging`    | `ILoggingBuilder -> ILoggingBuilder`             | Configure logging                               |
+| `services`   | `IServiceCollection -> IServiceCollection`       | Configure services                              |
+| `middleware` | `IApplicationBuiler -> IApplicationBuilder`      | Configure application                           |
+| `errors      | `ErrorHandler`                                   | Specify custom exception handler                |
+| `notFound`   | `HttpHandler`                                    | Specify a fall-through (i.e. not found) handler |
+
+Aliases for all route functions are also available:
+| `route`                                                                    | `HttpVerb -> string -> HttpHandler` | ex: route GET "/" (textOut "hello") |
+|----------------------------------------------------------------------------|-------------------------------------|-------------------------------------|
+| `get`, `post`, `put`, `patch`, `delete`, `head`, `trace`, `options`, `any` | `string -> HttpHandler`             | ex: get "/" (textOut "hello")       |
+
+```f#
+webApp {     
+    get "/hello" (textOut "hello")
+    any "/"      (textOut "index")
+
+    notFound                   (setStatusCode 404 >=> textOut "Not found")
+
+    host       (fun hst -> hst.UseContentRoot(root))
+
+    configure  (fun cnf -> cnf.SetBasePath(root)
+                              .AddJsonFile("appsettings.json", false))
+
+    errors     (fun ex _ -> setStatusCode 500 >=> textOut (sprintf "Error: %s" ex.Message))
+
+    logging    (fun log -> log.AddConsole()
+                              .AddDebug())
+
+    services   (fun svc -> svc.AddResponseCompression()
+                              .AddResponseCaching())
+
+    middleware (fun app -> 
+                    if isDev then app.UseDeveloperExceptionPage() |> ignore
+                    app.UseStaticFiles())    
+}
+```
+
 ## Routing
 
 The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to a `RequestDelegate`, a promise to process a request. 
