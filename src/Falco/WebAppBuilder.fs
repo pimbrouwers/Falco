@@ -6,6 +6,7 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 
+/// Represents the eventual existence of a runnable IWebhost
 type WebApp = 
     {
         Configurations : IApplicationBuilder -> IApplicationBuilder
@@ -26,6 +27,7 @@ type WebApp =
             Services       = id
         }
 
+/// Computation expression to allow for elegant IWebhost construction
 type WebAppBuilder() =    
     member __.Yield(_) = WebApp.Empty ()
 
@@ -53,8 +55,7 @@ type WebAppBuilder() =
     [<CustomOperation("configure")>]
     member __.Configure (app : WebApp, appConfig : IApplicationBuilder -> IApplicationBuilder) =
         { app with Configurations = app.Configurations >> appConfig }
-
-
+        
     [<CustomOperation("logging")>]
     member __.Logging (app : WebApp, logConfig : ILoggingBuilder -> ILoggingBuilder) =
         { app with Logging = app.Logging >> logConfig }
@@ -68,8 +69,7 @@ type WebAppBuilder() =
         { app with Routes = route verb pattern handler :: app.Routes }
 
     [<CustomOperation("any")>]
-    member __.Any (app : WebApp, pattern : string, handler : HttpHandler) =
-        
+    member __.Any (app : WebApp, pattern : string, handler : HttpHandler) =        
         { app with Routes = any pattern handler :: app.Routes }
     
     [<CustomOperation("get")>]
