@@ -2,7 +2,6 @@
 module Falco.Handlers
 
 open System.Text.Json
-open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Falco.ViewEngine
 

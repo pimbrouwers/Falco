@@ -49,9 +49,9 @@
     <Compile Include="WebAppBuilder.fs" />
     <Compile Include="ModelBinding.fs" />
     <Compile Include="Validation.fs" />
-    <Compile Include="Multipart.fs" />
     <Compile Include="Html.fs" />
     <Compile Include="Handlers.fs" />
+    <Compile Include="Multipart.fs" />
     <Compile Include="Auth.fs" />
     <Compile Include="Security.fs" />
   </ItemGroup>

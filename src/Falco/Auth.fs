@@ -29,7 +29,7 @@ let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
         | null -> htmlOut (view None) next ctx
         | _    -> htmlOut (view (Some ctx.User)) next ctx
 
-/// An HttpHandler to determine if user is authenticated.
+/// An HttpHandler which allows further processing if user is authenticated.
 /// Receives handler for case of not authenticated.
 let ifAuthenticated (notAuthenticatedHandler : HttpHandler) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
@@ -37,7 +37,7 @@ let ifAuthenticated (notAuthenticatedHandler : HttpHandler) : HttpHandler =
         | false -> notAuthenticatedHandler next ctx
         | true  -> next ctx
 
-/// An HttpHandler to determine if user is authenticated.
+/// An HttpHandler which blocks further processing if user is authenticated.
 /// Receives handler for case of being authenticated.
 let ifNotAuthenticated (authenticatedHandler : HttpHandler) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->

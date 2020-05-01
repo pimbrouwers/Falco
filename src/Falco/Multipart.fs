@@ -9,6 +9,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.WebUtilities
 open Microsoft.Extensions.Primitives
 
+/// Represents the accumulation of form fields and binary data
 type MultipartFormData = 
     {
         FormData : KeyValueAccumulator

@@ -20,9 +20,9 @@ let ``Self-closing tag should render with trailing slash`` () =
     renderNode t |> should equal "<hr class=\"my-class\" />"
 
 [<Fact>]
-let ``Standard tag should render with attributes`` () =
-    let t = tag "div" [ attr "class" "my-class"; attrBool "autofocus" ] []
-    renderNode t |> should equal "<div class=\"my-class\" autofocus></div>"
+let ``Standard tag should render with multiple attributes`` () =
+    let t = tag "div" [ attr "class" "my-class"; _autofocus; attr "data-bind" "slider" ] []
+    renderNode t |> should equal "<div class=\"my-class\" autofocus data-bind=\"slider\"></div>"
 
 [<Fact>]
 let ``Should produce valid html doc`` () =
