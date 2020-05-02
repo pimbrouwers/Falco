@@ -17,35 +17,38 @@ type MultipartFormData =
     }
 
 type MultipartSection with
-    /// Attempt to obtain encoding, default to UTF8
-    member this.GetEncoding() =        
-        match MediaTypeHeaderValue.TryParse(StringSegment(this.ContentType)) with
+    /// Attempt to obtain encoding from content type, default to UTF8
+    static member GetEncondingFromContentType (section : MultipartSection) =
+        match MediaTypeHeaderValue.TryParse(StringSegment(section.ContentType)) with
         | false, _     -> System.Text.Encoding.UTF8
         | true, parsed -> 
             match System.Text.Encoding.UTF7.Equals(parsed.Encoding) with
             | true -> System.Text.Encoding.UTF8
             | false -> parsed.Encoding
 
-    member this.TryGetContentDisposition() =                        
-        match ContentDispositionHeaderValue.TryParse(StringSegment(this.ContentDisposition)) with
+    /// Safely obtain the content disposition header value
+    static member TryGetContentDisposition(section : MultipartSection) =                        
+        match ContentDispositionHeaderValue.TryParse(StringSegment(section.ContentDisposition)) with
         | false, _     -> None
         | true, parsed -> Some parsed
 
-type HttpContext with
-    member this.GetBoundary() =
+type HttpRequest with
+    static member GetBoundary(request : HttpRequest) =
         // Content-Type: multipart/form-data; boundary="----WebKitFormBoundarymx2fSWqWSd0OxQqq"
         // The spec at https://tools.ietf.org/html/rfc2046#section-5.1 states that 70 characters is a reasonable limit.
         let lengthLimit = 70 
-        let contentType = MediaTypeHeaderValue.Parse(StringSegment(this.Request.ContentType))
+        let contentType = MediaTypeHeaderValue.Parse(StringSegment(request.ContentType))
         let boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary).Value; 
         match boundary with
         | b when isNull b                -> None
         | b when b.Length > lengthLimit  -> None
         | b                              -> Some b
+    
+    /// Determines if the content type contains multipart
+    static member IsMultipart (request : HttpRequest) =
+        request.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
 
-    member this.IsMultipart() =
-        this.Request.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
-
+type HttpContext with
     member this.TryStreamFormAsync() =                
         let rec streamForm (form : MultipartFormData) (rd : MultipartReader) =
             task {  
@@ -53,7 +56,7 @@ type HttpContext with
                 match section with
                 | null    -> return form                            
                 | section -> 
-                    match section.TryGetContentDisposition() with
+                    match MultipartSection.TryGetContentDisposition(section) with
                     | None -> 
                         // Drain any remaining section body that hasn't been consumed and
                         // read the headers for the next section.
@@ -73,7 +76,7 @@ type HttpContext with
                             return! streamForm form rd
                     | Some cd when cd.IsFormDisposition() ->                        
                             let key = HeaderUtilities.RemoveQuotes(cd.Name).Value
-                            let encoding = section.GetEncoding()
+                            let encoding = MultipartSection.GetEncondingFromContentType(section)
                             use str = new StreamReader(section.Body, encoding, true, 1024, true)
                             let formValue = str.ReadToEndAsync() |> Async.AwaitTask |> Async.RunSynchronously
                     
@@ -84,9 +87,15 @@ type HttpContext with
             }
     
         task {
-            match this.IsMultipart(), this.GetBoundary() with 
-            | false, _            -> return Error "Not a multipart request"
-            | true, None          -> return Error "No boundary found"
+            let isMultipart =
+                this.Request
+                |> HttpRequest.IsMultipart
+
+            let boundary = 
+                this.Request
+                |> HttpRequest.GetBoundary
+
+            match isMultipart, boundary with 
             | true, Some boundary ->                    
                 let! form = 
                     streamForm 
@@ -94,6 +103,10 @@ type HttpContext with
                         (new MultipartReader(boundary, this.Request.Body))
         
                 return Ok (FormCollection(form.FormData.GetResults(), form.FormFiles))
+
+            | _, None  -> return Error "No boundary found"
+
+            | false, _ -> return Error "Not a multipart request"
         }
 
 
