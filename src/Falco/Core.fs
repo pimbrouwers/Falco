@@ -70,6 +70,11 @@ module Core =
             | null    -> raise (InvalidDependencyException t.Name)
             | service -> service :?> 'a
 
+        /// Obtain a named instance of ILogger
+        member this.GetLogger (name : string) =
+            let loggerFactory = this.GetService<ILoggerFactory>()
+            loggerFactory.CreateLogger name
+
         /// Set HttpResponse status code
         member this.SetStatusCode (statusCode : int) =            
             this.Response.StatusCode <- statusCode
