@@ -105,26 +105,46 @@ type HttpContext with
     member this.GetQueryReader () = 
         StringCollectionReader(this.Request.Query)
 
+
+/// Map IFormCollection to record using provided `bind` function
+let bindForm 
+    (bind : StringCollectionReader -> 'a )     
+    (success : 'a -> HttpHandler) : HttpHandler =    
+    fun (next : HttpFunc) (ctx : HttpContext) ->  
+        task {
+            let! form = ctx.GetFormReaderAsync ()            
+            return! (form |> bind |> success) next ctx
+        }
+
 /// Attempt to map IFormCollection to record using provided `bind` function
 let tryBindForm 
-    (bind : StringCollectionReader -> Result<'a, string> ) 
+    (tryBind : StringCollectionReader -> Result<'a, string> ) 
     (error : string -> HttpHandler) 
     (success : 'a -> HttpHandler) : HttpHandler =    
     fun (next : HttpFunc) (ctx : HttpContext) ->  
         task {
             let! form = ctx.GetFormReaderAsync ()            
             return! 
-                (match form |> bind with
+                (match form |> tryBind with
                 | Ok m      -> success m
                 | Error msg -> error msg) next ctx
         }
 
 /// Attempt to map IQueryCollection to record using provided `bind` function
+let bindQuery
+    (bind : StringCollectionReader -> 'a)     
+    (success : 'a -> HttpHandler) : HttpHandler =    
+    fun (next : HttpFunc) (ctx : HttpContext) ->  
+        (ctx.GetQueryReader() 
+        |> bind
+        |> success) next ctx
+               
+/// Attempt to map IQueryCollection to record using provided `bind` function
 let tryBindQuery
-    (bind : StringCollectionReader -> Result<'a, string> ) 
+    (tryBind : StringCollectionReader -> Result<'a, string> ) 
     (error : string -> HttpHandler) 
     (success : 'a -> HttpHandler) : HttpHandler =    
     fun (next : HttpFunc) (ctx : HttpContext) ->  
-        (match ctx.GetQueryReader() |> bind with
+        (match ctx.GetQueryReader() |> tryBind with
         | Ok m      -> success m 
         | Error msg -> error msg) next ctx
