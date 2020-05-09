@@ -15,20 +15,6 @@ Key features:
 - [Authentication](#authentication) and [security](#security) utilities. 
 - Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
 
-## Why?
-
-The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core libraries, rooted in an ethos of *low-friction web programming*. 
-
-Key features:
-- A low barrier to entry for those new to functional programming.
-- Simple integration into the native ASP.NET pipeline.
-- High-performance routing.
-- Composable request handling. 
-- Isomorphic web development.
-- Security utilities.
-
-> This project was inspired by [Giraffe][4] and [Saturn][18].
-
 ## Quick Start
 
 Create a new F# web project:
@@ -58,6 +44,20 @@ dotnet run HelloWorldApp
 ```
 
 There you have it, an industrial-strength "hello world" web app, achieved using primarily base ASP.NET libraries. Pretty sweet!
+
+## Why?
+
+The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core libraries, rooted in an ethos of *low-friction web programming*. 
+
+Key features:
+- A low barrier to entry for those new to functional programming.
+- Simple integration into the native ASP.NET pipeline.
+- High-performance routing.
+- Composable request handling. 
+- Isomorphic web development.
+- Security utilities.
+
+> This project was inspired by [Giraffe][4] and [Saturn][18].
 
 ## Sample Applications 
 
