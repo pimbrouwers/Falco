@@ -15,20 +15,6 @@ Key features:
 - [Authentication](#authentication) and [security](#security) utilities. 
 - Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
 
-## Why?
-
-The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core libraries, rooted in an ethos of *low-friction web programming*. 
-
-Key features:
-- A low barrier to entry for those new to functional programming.
-- Simple integration into the native ASP.NET pipeline.
-- High-performance routing.
-- Composable request handling. 
-- Isomorphic web development.
-- Security utilities.
-
-> This project was inspired by [Giraffe][4] and [Saturn][18].
-
 ## Quick Start
 
 Create a new F# web project:
@@ -59,6 +45,20 @@ dotnet run HelloWorldApp
 
 There you have it, an industrial-strength "hello world" web app, achieved using primarily base ASP.NET libraries. Pretty sweet!
 
+## Why?
+
+The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core libraries, rooted in an ethos of *low-friction web programming*. 
+
+Key features:
+- A low barrier to entry for those new to functional programming.
+- Simple integration into the native ASP.NET pipeline.
+- High-performance routing.
+- Composable request handling. 
+- Isomorphic web development.
+- Security utilities.
+
+> This project was inspired by [Giraffe][4] and [Saturn][18].
+
 ## Sample Applications 
 
 Code is always worth a thousand words, so for the most up-to-date usage, the [/samples][6] directory contains a few sample applications.
@@ -71,7 +71,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 ## Web Host
 
-Falco provides a computation expression, `webApp { ... }` to help with constructing & running a `WebHost`. Raw access is given to all configuration points to enable full-customization, but also to present a familiar feel, through several customer operations:
+Falco provides a computation expression, `webApp { ... }` to help with constructing & running a `WebHost`. Raw access is given to all configuration points to enable full customization, but also to present a familiar feel, through several customer operations:
 
 | Operation | Signature ||
 |--------------|--------------------------------------------------|-------------------------------------------------|
@@ -139,9 +139,9 @@ let routes =
 
 ## Request Handling
 
-A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of an HTTP Request. It is the core unit of work in [ASP.NET Core Middleware][10]. Middleware added to the pipeline can be expected to sequentially processes incoming requests. 
+A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of an HTTP Request. It is the core unit of work in [ASP.NET Core Middleware][10]. Middleware added to the pipeline can be expected to sequentially process incoming requests. 
 
-In functional programming, it is VERY common to [compose][9] many functions into larger ones, which process input sequentially and produce output. The beauty of this approach is that it leads to software built of many small, easily tested, functions. 
+In functional programming, it is VERY common to [compose][9] many functions into larger ones, which process input sequentially and produce output. The beauty of this approach is that it leads to software built of many small, easily-tested functions. 
 
 If we apply this thought pattern to individual HTTP request processing, we can compose our web applications by "gluing" together many little (often) reusable functions.
 
@@ -153,9 +153,9 @@ type HttpFunc = HttpContext -> HttpFuncResult
 type HttpHandler = HttpFunc -> HttpFunc    
 ```
 
-At the lowest level is the `HttpFuncResult`, which not unlike a `RequestDelegate`, represents the eventuality of work against the `HttpContext` being performed. In this case, the type [optionally][11] returns the context to enabling short-circuiting future processing.
+At the lowest level is the `HttpFuncResult`, which not unlike a `RequestDelegate`, represents the eventuality of work against the `HttpContext` being performed. In this case, the type [optionally][11] returns the context to enable short-circuiting future processing.
 
-Performing this work is the `HttpFunc` which upon reception of an `HttpContext` will (eventully) return the optional `HttpContext`.
+Performing this work is the `HttpFunc` which upon reception of an `HttpContext` will (eventually) return the optional `HttpContext`.
 
 To enable gluing these operations together, we use a [combinator][12] to combine two `HttpHandler`'s into one using Kleisli composition (i.e. the output of the left function produces monadic input for the right). 
 
@@ -218,7 +218,7 @@ let oldUrlHandler : HttpHandler =
 
 ### Creating new `HttpHandler`'s
 
-The built-in `HttpHandler`'s will likely only take you so far. Luckily creating new `HttpHandler`'s is very easy.
+The built-in `HttpHandler`'s will likely only take you so far. Luckily, creating new `HttpHandler`'s is very easy.
 
 The following handlers reuse the built-in `textOut` handler:
 
@@ -231,7 +231,7 @@ let helloYouHandler (name : string) : HttpHandler =
   textOut msg
 ```
 
-The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client. The 
+The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
 
 ```f#
 let helloHandler : HttpHandler =
@@ -246,9 +246,9 @@ let helloHandler : HttpHandler =
 A core feature of Falco is the functional view engine. Using it means:
 
 - Writing your views in plain F#, directly in your assembly.
-- Markup is compiled along-side the rest of your code. Leading to improved performance and ultimately simpler deployments.
+- Markup is compiled alongside the rest of your code, leading to improved performance and ultimately simpler deployments.
 
-Most of the standard HTML tags & attributes have been mapped to F# functions, which produce objects to represent the HTML node. Node's are either:
+Most of the standard HTML tags & attributes have been mapped to F# functions, which produce objects to represent the HTML node. Nodes are either:
 - `Text` which represents `string` values.
 - `SelfClosingNode` which represent self-closing tags (i.e. `<br />`).
 - `ParentNode` which represent typical tags with, optionally, other tags within it (i.e. `<div>...</div>`).
@@ -321,7 +321,7 @@ let homeView =
             p  [] [ raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
         ]
 
-let aboutViw =
+let aboutView =
     master "About Us" [
             h1 [] [ raw "About Us" ]
             divider
@@ -332,7 +332,7 @@ let aboutViw =
 
 ### Extending the view engine
 
-The view engine is extremely extensible since creating new tag's is simple. 
+The view engine is extremely extensible since creating new tags is simple. 
 
 An example to render `<svg>`'s:
 
@@ -447,7 +447,7 @@ let searchResultsHandler : HttpHandler =
 
 Validating data input is crucial before allowing it to enter the domian. This operation is likely performed after [model binding](#model-binding) has occurred. So this is an area where F#'s flexible type system shines, allowing us to create type members to determine validation state.
 
-Falco exposes an `HttpHandler` receives a validation funcition, error handler, success handler and the model itself. 
+Falco exposes an `HttpHandler` which receives a validation funcition, error handler, success handler and the model itself. 
 
 - If validation succeeds, it returns the **valid model**. 
 - If validation fails and returns a tuple containing an error message and the **invalid model**.
@@ -618,7 +618,7 @@ I included the `jsonOut` handler as a convenience function for those times you n
 
 I explicitly chose not to include any meaningful JSON handlers or functionality beyond this because there isn't really a commonly accepted way of doing it in F#. Thus, I figured it would be easiest to let people roll their own. 
 
-That said, if people were open to a dependency and could agree on a package. I would be more than happy to add full JSON support. Feel free to open an [issue](https://github.com/pimbrouwers/Falco/issues) to discuss.
+That said, if people were open to a dependency and could agree on a package, I would be more than happy to add full JSON support. Feel free to open an [issue](https://github.com/pimbrouwers/Falco/issues) to discuss.
 
 > Looking for a package to work with JSON? Checkout [Jay](https://github.com/pimbrouwers/Jay). 
 
@@ -637,7 +637,7 @@ That said, if people were open to a dependency and could agree on a package. I w
 | Large-file uploads | Built-in multipart streaming                                           | N/A                              |
 
 ## Benchmarks
-Below are some basic benchmarks comparing Falco to [Giraffe](https://github.com/giraffe-fsharp/Giraffe/). Which demonstates that under a load of 2000 concurrent connection for a duration of 10s, Falco performs on par with Giraffe.
+Below are some basic benchmarks comparing Falco to [Giraffe](https://github.com/giraffe-fsharp/Giraffe/), which demonstate that under a load of 2000 concurrent connection for a duration of 10s, Falco performs on par with Giraffe.
 
 ### Specs
 ![image](https://user-images.githubusercontent.com/4595453/79797914-23275e80-8326-11ea-9c51-552bfa6d6d9f.png)
