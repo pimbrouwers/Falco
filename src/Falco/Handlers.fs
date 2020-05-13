@@ -1,7 +1,10 @@
 ﻿[<AutoOpen>]
 module Falco.Handlers
 
+open System.IO
+open System.Text
 open System.Text.Json
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Falco.ViewEngine
 
@@ -35,8 +38,14 @@ let textOut (str : string) : HttpHandler =
 /// An HttpHandler to output JSON
 let jsonOut (obj : 'a) : HttpHandler =
     fun (_ : HttpFunc) (ctx : HttpContext) ->   
-        ctx.SetContentType "application/json; charset=utf-8"
-        ctx.WriteString (JsonSerializer.Serialize(obj))
+        task {
+            ctx.SetContentType "application/json; charset=utf-8"
+            use s = new MemoryStream()
+            do! JsonSerializer.SerializeAsync(s, obj)
+            let json = Encoding.UTF8.GetString(s.ToArray())
+            ctx.WriteString (json) |> ignore
+            return Some ctx
+        }
 
 /// An HttpHandler to output HTML
 let htmlOut (html : XmlNode) : HttpHandler =

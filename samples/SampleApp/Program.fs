@@ -24,6 +24,7 @@ webApp {
     get  "/search-results"     searchResultsHandler
     get  "/new-user"           newUserViewHandler
     post "/new-user"           newUserHandler
+    post "/json-in"            myJsonInHandler
     get  "/json"               myJsonOutHandler
     get  "/html"               myHtmlOutHandler
     get  "/secure"             (ifAuthenticated (redirect "/forbidden" false) >=> textOut "hello authenticated person")

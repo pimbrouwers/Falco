@@ -3,6 +3,7 @@
 [<AutoOpen>]
 module Core =
     open System
+    open System.IO
     open System.Text
     open System.Threading.Tasks
     open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -61,7 +62,7 @@ module Core =
     let strJoin (sep : string) (lst : string seq) = 
         String.Join(sep, lst)
    
-    type HttpContext with   
+    type HttpContext with         
         /// Attempt to obtain depedency from IServiceCollection
         /// Throws InvalidDependencyException on null
         member this.GetService<'a> () =

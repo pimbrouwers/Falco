@@ -2,6 +2,8 @@
 module Falco.ModelBinding
 
 open System.Collections.Generic
+open System.IO
+open System.Text.Json
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
@@ -82,6 +84,13 @@ type StringValues with
     member this.AsArrayTimeSpan ()       = this.AsArrayString() |> parseArray parseTimeSpan |> Option.defaultValue [||]
 
 type HttpContext with  
+    /// Retrieve the HttpRequest body as string
+    member this.GetBodyAsync () =
+        task {
+            use rd = new StreamReader(this.Request.Body)
+            return! rd.ReadToEndAsync()
+        }
+
     /// Retrieve IFormCollection from HttpRequest
     member this.GetFormAsync () = 
         task {
@@ -115,6 +124,19 @@ let bindForm
             let! form = ctx.GetFormReaderAsync ()            
             return! (form |> bind |> success) next ctx
         }
+
+let bindJson<'a>
+    (success : 'a -> HttpHandler) : HttpHandler =    
+        fun (next : HttpFunc) (ctx : HttpContext) ->  
+            task {                                
+                let opt = JsonSerializerOptions()
+                opt.AllowTrailingCommas <- true
+                opt.PropertyNameCaseInsensitive <- true
+                
+                let! model = JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, opt).AsTask()
+                
+                return! (model |> success) next ctx
+            }
 
 /// Attempt to map IFormCollection to record using provided `bind` function
 let tryBindForm 

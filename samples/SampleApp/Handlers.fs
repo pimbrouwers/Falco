@@ -17,6 +17,10 @@ let helloHandler : HttpHandler =
 let myHtmlOutHandler : HttpHandler =
     htmlOut homeView
 
+let myJsonInHandler : HttpHandler = 
+    bindJson<Person>
+        jsonOut
+
 let myJsonOutHandler : HttpHandler =
     jsonOut { First = "Pim"; Last = "Brouwers" }
    
