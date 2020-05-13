@@ -24,7 +24,7 @@ dotnet new web -lang F# -o HelloWorldApp
 
 Install the nuget package:
 ```
-dotnet add package Falco --version 1.0.9-alpha
+dotnet add package Falco --version 1.0.10-alpha
 ```
 
 Remove the `Startup.fs` file and save the following in `Program.fs`:
@@ -614,9 +614,7 @@ let imageUploadHandler : HttpHandler =
 
 ## JSON
 
-I included the `jsonOut` handler as a convenience function for those times you need "quick and dirty" JSON output.
-
-I explicitly chose not to include any meaningful JSON handlers or functionality beyond this because there isn't really a commonly accepted way of doing it in F#. Thus, I figured it would be easiest to let people roll their own. 
+Included in Falco are basic JSON in/out handlers, `bindJson<'a>` and `jsonOut` respectively. Both handlers rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
 
 That said, if people were open to a dependency and could agree on a package, I would be more than happy to add full JSON support. Feel free to open an [issue](https://github.com/pimbrouwers/Falco/issues) to discuss.
 
