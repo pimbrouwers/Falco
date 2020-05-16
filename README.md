@@ -54,7 +54,6 @@ Key features:
 - Simple integration into the native ASP.NET pipeline.
 - High-performance routing.
 - Composable request handling. 
-- Isomorphic web development.
 - Security utilities.
 
 > This project was inspired by [Giraffe][4] and [Saturn][18].
