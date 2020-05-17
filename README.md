@@ -577,7 +577,7 @@ That said, if people were open to a dependency and could agree on a package, I w
 | Routing            | ASP.NET Endpoint routing                                               | Tail recursive F# implementation |
 | Model Binding      | Manual, with utilities for reading values via `StringCollectionReader` | Custom reflection-based function |
 | View Engine        | Native F#                                                              | Native F#                        |
-| JSON               | "Bring your own"                                                       | Custom reflection-based function |
+| JSON               | Support for primitive types using `System.Text.Json`                   | Custom reflection-based function |
 | XSS                | Built-in XSS protection support using Microsoft.AspNetCore.Antiforgery | N/A                              |
 | Cryptography       | Built-in SHA256/SHA512 hashing support & secure salt generation        | N/A
 | Large-file uploads | Built-in multipart streaming                                           | N/A                              |
