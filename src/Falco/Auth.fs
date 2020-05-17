@@ -31,19 +31,19 @@ let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
 
 /// An HttpHandler which allows further processing if user is authenticated.
 /// Receives handler for case of not authenticated.
-let ifAuthenticated (notAuthenticatedHandler : HttpHandler) : HttpHandler =
+let ifAuthenticated (notAllowedHandler : HttpHandler) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         match ctx.IsAuthenticated () with
-        | false -> notAuthenticatedHandler next ctx
+        | false -> notAllowedHandler next ctx
         | true  -> next ctx
 
 /// An HttpHandler which blocks further processing if user is authenticated.
 /// Receives handler for case of being authenticated.
-let ifNotAuthenticated (authenticatedHandler : HttpHandler) : HttpHandler =
+let ifNotAuthenticated (nowAllowedHandler : HttpHandler) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         match ctx.IsAuthenticated () with
         | false -> next ctx
-        | true  -> authenticatedHandler next ctx
+        | true  -> nowAllowedHandler next ctx
 
 /// An HttpHandler to determine if user is authenticated,
 /// and belongs to one of the specified roles
@@ -57,6 +57,19 @@ let ifInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHandl
         
     ifAuthenticated notAllowedHandler 
     >=> inRole
+
+/// An HttpHandler to determine if user is authenticated,
+/// and belongs to one of the specified roles
+/// Receives handler for case of being not possessing role.
+let ifNotInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHandler =    
+    let notInRole : HttpHandler =
+        fun (next : HttpFunc) (ctx : HttpContext) ->
+            match List.exists ctx.User.IsInRole roles with
+            | true  -> notAllowedHandler next ctx
+            | false -> next ctx
+        
+    ifAuthenticated notAllowedHandler 
+    >=> notInRole
 
 /// An HttpHandler to sign principal out of specific auth scheme
 let signOut (authScheme : string) : HttpHandler =

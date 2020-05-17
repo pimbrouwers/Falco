@@ -6,12 +6,11 @@
 Falco is a micro-library for building simple, fault-tolerant and [blazing fast](#benchmarks) functional web applications using F#. Built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3].
 
 Key features:
-- `WebHostBuilder` [computation expression](#web-host) to simplify host construction.
 - Simple and powerful [routing](#routing) API.
-- Composable [request handling](#request-handling).
 - Native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
-- Support for [model validation](#model-validation)
+- `WebHostBuilder` [computation expression](#web-host) to simplify host construction.
+- Composable [request handling](#request-handling).
 - [Authentication](#authentication) and [security](#security) utilities. 
 - Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
 
@@ -441,43 +440,6 @@ let searchResultsHandler : HttpHandler =
         SearchQuery.FromReader 
         errorHandler 
         successHandler
-```
-
-## Model Validation
-
-Validating data input is crucial before allowing it to enter the domian. This operation is likely performed after [model binding](#model-binding) has occurred. So this is an area where F#'s flexible type system shines, allowing us to create type members to determine validation state.
-
-Falco exposes an `HttpHandler` which receives a validation funcition, error handler, success handler and the model itself. 
-
-- If validation succeeds, it returns the **valid model**. 
-- If validation fails and returns a tuple containing an error message and the **invalid model**.
-
-Two infix operators (`=~` for *does match*, and `!=~` for *does not match*) are exposed to make string matching against regular expressions a little more terse. These will look familiar to anyone with a background in Perl.
-
-```f#
-type UserLoginModel =
-    {
-        Email    : string
-        Password : string
-    }
-    static member Validate (model : LogInModel) =
-        let result = 
-            if strEmpty model.Email 
-               || strEmpty model.Password then 
-               Some "All fields required"
-            else 
-                None
-          
-        match result with 
-        | Some e -> Error (e, { model with Password = "" })
-        | None   -> Ok model
-
-// An example handler, processing the user login attempt
-let exampleValidationHandler : HttpHandler =
-    tryValidateModel
-        UserLoginModel.Validate
-        modelErrorView 
-        userLogInWorkflow
 ```
 
 ## Authentication

@@ -111,7 +111,7 @@ type HttpContext with
     
     /// Attempt to safely-acquire route value
     member this.TryGetRouteValue (key : string) =
-        let parseRoute = parseWith this.Request.RouteValues.TryGetValue             
+        let parseRoute = tryParseWith this.Request.RouteValues.TryGetValue             
         match parseRoute key with
         | Some v -> Some (toStr v)
         | None   -> None
