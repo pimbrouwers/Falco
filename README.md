@@ -3,7 +3,7 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-Falco is a micro-library for building simple, fault-tolerant and [blazing fast](#benchmarks) functional web applications using F#. Built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3].
+Falco is a micro-library for building simple, fault-tolerant and [blazing fast](#benchmarks) functional web applications using F#. Built upon the high-performance components of ASP.NET Core: [Kestrel][1], [Pipelines][2] & [Endpoint Routing][3], rooted in an ethos of *low-friction web programming*. 
 
 Key features:
 - Simple and powerful [routing](#routing) API.
@@ -43,19 +43,6 @@ dotnet run HelloWorldApp
 ```
 
 There you have it, an industrial-strength "hello world" web app, achieved using primarily base ASP.NET libraries. Pretty sweet!
-
-## Why?
-
-The goal of this project was to design the thinnest possible API on top of the native ASP.NET Core libraries, rooted in an ethos of *low-friction web programming*. 
-
-Key features:
-- A low barrier to entry for those new to functional programming.
-- Simple integration into the native ASP.NET pipeline.
-- High-performance routing.
-- Composable request handling. 
-- Security utilities.
-
-> This project was inspired by [Giraffe][4] and [Saturn][18].
 
 ## Sample Applications 
 
