@@ -6,10 +6,15 @@ open Microsoft.Extensions.Logging
 open Falco
 open Blog.Handlers
 
-webApp {        
-    get "/{slug:regex(^[a-z\-])}" blogPostHandler
-    any "/"                       blogIndexHandler
-    notFound                      (setStatusCode 404 >=> textOut "Not found")
+let routes = [
+    get      "/{slug:regex(^[a-z\-])}" blogPostHandler
+    get      "/"                       blogIndexHandler
+]
+
+webApp {    
+    falco    routes
+
+    notFound (setStatusCode 404 >=> textOut "Not found")
 
     logging  (fun log -> log.AddConsole()
                             .AddDebug())

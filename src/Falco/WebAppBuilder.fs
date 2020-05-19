@@ -120,6 +120,10 @@ type WebAppBuilder() =
         { app with NotFound = Some handler }
 
     // Routing Operations
+    [<CustomOperation("falco")>]
+    member __.Routes (app : WebApp, routes : HttpEndpoint list) =
+        { app with Routes = routes }
+
     [<CustomOperation("route")>]
     member __.Route (app : WebApp, verb : HttpVerb, pattern : string, handler : HttpHandler) =
         { app with Routes = route verb pattern handler :: app.Routes }
