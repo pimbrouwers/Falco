@@ -99,7 +99,7 @@ webApp {
                     if isDev then app.UseDeveloperExceptionPage() |> ignore
                     app.UseStaticFiles()
                        .UseResponseCaching()
-			           .UseResponseCompression())    
+                       .UseResponseCompression())    
 }
 ```
 
