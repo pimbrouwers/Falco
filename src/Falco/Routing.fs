@@ -5,6 +5,7 @@ open System.Threading.Tasks
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Falco.StringParser
+open Falco.StringUtils
 
 /// Specifies an association of an HttpHandler to an HttpVerb and route pattern
 type HttpVerb = 
@@ -22,7 +23,7 @@ type HttpVerb =
 type HttpEndpoint = 
     {
         Pattern : string   
-        Verb  : HttpVerb
+        Verb    : HttpVerb
         Handler : HttpHandler
     }
        
@@ -93,7 +94,7 @@ type HttpContext with
     /// Obtain Map<string,string> of current route values
     member this.GetRouteValues () =
         this.Request.RouteValues
-        |> Seq.map (fun kvp -> kvp.Key, toStr kvp.Value)
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToString())
         |> Map.ofSeq
 
     /// The HttpVerb of the current request
@@ -113,6 +114,6 @@ type HttpContext with
     member this.TryGetRouteValue (key : string) =
         let parseRoute = tryParseWith this.Request.RouteValues.TryGetValue             
         match parseRoute key with
-        | Some v -> Some (toStr v)
+        | Some v -> Some (v.ToString())
         | None   -> None
         

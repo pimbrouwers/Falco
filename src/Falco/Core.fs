@@ -2,8 +2,7 @@
 
 [<AutoOpen>]
 module Core =
-    open System
-    open System.IO
+    open System    
     open System.Text
     open System.Threading.Tasks
     open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -29,7 +28,8 @@ module Core =
     type ExceptionHandler = Exception -> ILogger -> HttpHandler
 
     /// The default HttpFunc
-    let defaultHttpFunc : HttpFunc = Some >> Task.FromResult
+    let defaultHttpFunc : HttpFunc = 
+        Some >> Task.FromResult
 
     /// Compose ("glue") HttpHandler's together
     let compose (handler1 : HttpHandler) (handler2 : HttpHandler) : HttpHandler =
@@ -42,26 +42,6 @@ module Core =
         
     let (>=>) = compose
 
-    /// Call obj's ToString()
-    let toStr x = 
-        x.ToString()
-
-    /// Check if string is null or whitespace
-    let strEmpty str =
-        String.IsNullOrWhiteSpace(str)
-
-    /// Check if string is not null or whitespace
-    let strNotEmpty str =
-        not(strEmpty str)
-
-    /// Case & culture insensistive string equality
-    let strEquals s1 s2 = 
-        String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)
-
-    /// Join strings with a separator
-    let strJoin (sep : string) (lst : string seq) = 
-        String.Join(sep, lst)
-   
     type HttpContext with         
         /// Attempt to obtain depedency from IServiceCollection
         /// Throws InvalidDependencyException on null
@@ -100,10 +80,29 @@ module Core =
                 return Some this
             }
 
-        /// Write string to HttpResponse body
+        /// Write UTF8 string to HttpResponse body
         member this.WriteString (str : string) =
             this.WriteBytes (Encoding.UTF8.GetBytes str)
 
+module StringUtils = 
+    open System 
+
+    /// Check if string is null or whitespace
+    let strEmpty str =
+        String.IsNullOrWhiteSpace(str)
+
+    /// Check if string is not null or whitespace
+    let strNotEmpty str =
+        not(strEmpty str)
+
+    /// Case & culture insensistive string equality
+    let strEquals s1 s2 = 
+        String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)
+
+    /// Join strings with a separator
+    let strJoin (sep : string) (lst : string seq) = 
+        String.Join(sep, lst)
+   
 module StringParser =
     open System
 

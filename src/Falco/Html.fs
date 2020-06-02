@@ -1,7 +1,8 @@
 ﻿module Falco.ViewEngine
 
 open System.Net
-    
+open Falco.StringUtils
+
 /// Specifies an XML-style attribute
 type XmlAttribute =
     | KeyValue of string * string

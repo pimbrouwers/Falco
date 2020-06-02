@@ -8,6 +8,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
 open Falco.StringParser
+open Falco.StringUtils
 
 type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) = 
 

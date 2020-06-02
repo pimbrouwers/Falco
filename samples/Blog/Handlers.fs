@@ -2,6 +2,7 @@
 
 open Microsoft.AspNetCore.Http
 open Falco
+open Falco.StringUtils
 open Blog.Model
 open Blog.UI
 

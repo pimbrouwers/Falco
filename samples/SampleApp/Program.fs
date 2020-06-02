@@ -3,6 +3,7 @@ module SampleApp.Program
 open System
 open System.IO
 open Falco
+open Falco.StringUtils
 open Falco.Auth
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting

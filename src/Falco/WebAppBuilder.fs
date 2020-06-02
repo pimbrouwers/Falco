@@ -21,7 +21,8 @@ type WebApp =
         NotFound      : HttpHandler option
     }
 
-    static member Empty () = 
+module WebApp =
+    let empty () = 
         { 
             Host           = id
             HostBuilder    = WebHostBuilder()            
@@ -36,7 +37,7 @@ type WebApp =
 
 /// Computation expression to allow for elegant IWebhost construction
 type WebAppBuilder() =    
-    member __.Yield(_) = WebApp.Empty ()
+    member __.Yield(_) = WebApp.empty ()
 
     member __.Run(webApp : WebApp) =                  
         let host = webApp.HostBuilder

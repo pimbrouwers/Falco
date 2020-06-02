@@ -3,7 +3,7 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-Falco is a micro-library for building simple, fault-tolerant and [blazing fast](#benchmarks) functional web applications using F#. Built upon the high-performance components of ASP.NET Core ([Kestrel][1], [Pipelines][2] & [Endpoint Routing][3]) and rooted in an ethos of *low-friction web programming*. 
+Falco is a micro-library for building simple, fault-tolerant and [blazing fast](#benchmarks) functional web applications using F#. Built upon the high-performance components of ASP.NET Core, rooted in an ethos of *low-friction web programming*. 
 
 Key features:
 - Simple and powerful [routing](#routing) API.
@@ -33,7 +33,7 @@ module HelloWorldApp
 open Falco
 
 webApp {        
-    get "/"  (textOut "hello")
+    get "/"  (textOut "hello world")
 }
 ```
 
