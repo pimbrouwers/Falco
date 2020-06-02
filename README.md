@@ -97,7 +97,9 @@ webApp {
 
     middleware (fun app -> 
                     if isDev then app.UseDeveloperExceptionPage() |> ignore
-                    app.UseStaticFiles())    
+                    app.UseStaticFiles()
+                       .UseResponseCaching()
+                       .UseResponseCompression())    
 }
 ```
 
