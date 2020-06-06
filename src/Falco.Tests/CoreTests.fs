@@ -116,10 +116,10 @@ module StringParser =
         |> parseDecimal
         |> should equal None
 
-    let dateStr = "2020-06-06 10:13:40 AM"
 
     [<Fact>]
     let ``parseDateTime should be some`` () =
+        let dateStr = "2020-06-06 10:13:40 AM"
         dateStr
         |> parseDateTime
         |> should equal (Some (DateTime(2020, 6, 6, 10, 13, 40, 0)))
@@ -134,6 +134,7 @@ module StringParser =
 
     [<Fact>]
     let ``parseDatetimeOffset should be some`` () =
+        let dateStr = "2020-06-06 10:13:40 AM -04:00"
         dateStr
         |> parseDateTimeOffset
         |> should equal (Some (DateTimeOffset(2020, 6, 6, 10, 13, 40, 0, TimeSpan(-4, 0, 0))))
