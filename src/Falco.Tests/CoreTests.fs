@@ -116,7 +116,65 @@ module StringParser =
         |> parseDecimal
         |> should equal None
 
-    // TODO complete value type tests: 
+    let dateStr = "2020-06-06 10:13:40 AM"
+
+    [<Fact>]
+    let ``parseDateTime should be some`` () =
+        dateStr
+        |> parseDateTime
+        |> should equal (Some (DateTime(2020, 6, 6, 10, 13, 40, 0)))
+
+    [<Theory>]
+    [<InlineData("falco")>]
+    [<InlineData("")>]
+    let ``parseDateTime should be none`` toParse = 
+        toParse
+        |> parseDateTime
+        |> should equal None
+
+    [<Fact>]
+    let ``parseDatetimeOffset should be some`` () =
+        dateStr
+        |> parseDateTimeOffset
+        |> should equal (Some (DateTimeOffset(2020, 6, 6, 10, 13, 40, 0, TimeSpan(-4, 0, 0))))
+
+    [<Theory>]
+    [<InlineData("falco")>]
+    [<InlineData("")>]
+    let ``parseDateTimeOffset should be none`` toParse = 
+        toParse
+        |> parseDateTimeOffset
+        |> should equal None
+
+    [<Fact>]
+    let ``parseTimeSpan should be some`` () =
+        "00:00:01"
+        |> parseTimeSpan
+        |> should equal (Some (TimeSpan.FromSeconds(1.0)))
+
+    [<Theory>]
+    [<InlineData("falco")>]
+    [<InlineData("")>]
+    let ``parseTimeSpan should be none`` toParse = 
+        toParse
+        |> parseTimeSpan
+        |> should equal None
+
+    [<Fact>]
+    let ``parseGuid should be some`` () =
+        let guidStr = "8e0e2583-62cb-4812-9861-5759a1fb3eeb"
+        let expected = Guid.Parse(guidStr);
+        guidStr
+        |> parseGuid
+        |> should equal (Some expected)
+
+    [<Theory>]
+    [<InlineData("falco")>]
+    [<InlineData("")>]
+    let ``parseGuid should be none`` toParse = 
+        toParse
+        |> parseGuid
+        |> should equal None
 
 module StringUtils =
     open Falco.StringUtils
