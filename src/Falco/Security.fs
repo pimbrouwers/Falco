@@ -62,6 +62,12 @@ module Xss =
     open Microsoft.AspNetCore.Http
     open Falco.ViewEngine
     
+    type HttpContext with 
+        /// Returns (and optional creates) csrf tokens for the current session
+        member this.GetCsrfToken () =
+            let antiFrg = this.GetService<IAntiforgery>()
+            antiFrg.GetAndStoreTokens this
+            
     /// Output an antiforgery <input type="hidden" />
     let antiforgeryInput (token : AntiforgeryTokenSet) =
         input [ 
@@ -86,9 +92,8 @@ module Xss =
     /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package,
     /// which is fed into the provided handler
     let csrfTokenizer (handler : AntiforgeryTokenSet -> HttpHandler) : HttpHandler =
-        fun (next: HttpFunc) (ctx : HttpContext) ->                
-            let antiFrg = ctx.GetService<IAntiforgery>()
-            (antiFrg.GetAndStoreTokens ctx |> handler) next ctx
+        fun (next: HttpFunc) (ctx : HttpContext) ->                            
+            (ctx.GetCsrfToken () |> handler) next ctx
     
     /// Injects a newly generated CSRF token into a Falco.XmlNode
     let csrfHtmlOut (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =            

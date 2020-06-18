@@ -6,11 +6,11 @@ open SampleApp.Model
 open SampleApp.UI
 
 let exceptionThrowingHandler : HttpHandler =
-    fun (_ : HttpFunc) (_ : HttpContext) ->        
+    fun _ _ ->        
         failwith "Fake Exception"
 
 let helloHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->        
+    fun next ctx ->        
         let name = ctx.TryGetRouteValue "name" |> Option.defaultValue "someone"
         textOut (sprintf "hi %s" name) next ctx
 
@@ -18,8 +18,7 @@ let myHtmlOutHandler : HttpHandler =
     htmlOut homeView
 
 let myJsonInHandler : HttpHandler = 
-    bindJson<Person>
-        jsonOut
+    bindJson<Person> jsonOut
 
 let myJsonOutHandler : HttpHandler =
     jsonOut { First = "Pim"; Last = "Brouwers" }

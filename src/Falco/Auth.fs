@@ -16,6 +16,12 @@ type IPrincipal with
             this.Identity.IsAuthenticated
 
 type HttpContext with 
+    /// Returns the current user (IPrincipal) or None
+    member this.GetUser () =
+        match this.User with
+        | null -> None
+        | _    -> Some this.User
+
     /// Returns authentication status of IPrincipal, false on null
     member this.IsAuthenticated () =
         match this.User with
@@ -25,9 +31,7 @@ type HttpContext with
 /// An HttpHandler to output HTML dependent on ClaimsPrincipal
 let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
-        match ctx.User with
-        | null -> htmlOut (view None) next ctx
-        | _    -> htmlOut (view (Some ctx.User)) next ctx
+        htmlOut (ctx.GetUser () |> view) next ctx
 
 /// An HttpHandler which allows further processing if user is authenticated.
 /// Receives handler for case of not authenticated.
