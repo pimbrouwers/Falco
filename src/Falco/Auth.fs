@@ -3,9 +3,11 @@
 open System.Security.Claims
 open System.Security.Principal
 open FSharp.Control.Tasks.V2.ContextInsensitive
-open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication
+open Microsoft.AspNetCore.Http
 open Falco.ViewEngine
+open Falco.Security.Xss
 
 type IPrincipal with
     /// Returns authentication status of IIdentity, false on null
@@ -32,6 +34,12 @@ type HttpContext with
 let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         htmlOut (ctx.GetUser () |> view) next ctx
+
+/// An HttpHandler to output HTML dependent on ClaimsPrincipal & CSRF Token
+let authCsrfHtmlOut (view : AntiforgeryTokenSet -> ClaimsPrincipal option -> XmlNode) : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        let csrfToken = ctx.GetCsrfToken ()
+        authHtmlOut (view csrfToken) next ctx
 
 /// An HttpHandler which allows further processing if user is authenticated.
 /// Receives handler for case of not authenticated.
