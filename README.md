@@ -9,7 +9,6 @@ Key features:
 - Simple and powerful [routing](#routing) API.
 - Native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
-- `WebHostBuilder` [computation expression](#web-host) to simplify host construction.
 - Composable [request handling](#request-handling).
 - [Authentication](#authentication) and [security](#security) utilities. 
 - Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
@@ -23,7 +22,7 @@ dotnet new web -lang F# -o HelloWorldApp
 
 Install the nuget package:
 ```
-dotnet add package Falco --version 1.0.10-alpha
+dotnet add package Falco --version 1.2.0
 ```
 
 Remove the `Startup.fs` file and save the following in `Program.fs`:
@@ -31,10 +30,42 @@ Remove the `Startup.fs` file and save the following in `Program.fs`:
 module HelloWorldApp 
 
 open Falco
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
 
-webApp {        
-    get "/"  (textOut "hello world")
-}
+// Define our routes
+let routes = 
+    [
+        get "/"  (textOut "hello world")
+    ]
+
+// Enable services (routing required for Falco)
+let configureServices (services : IServiceCollection) =
+    services.AddRouting() 
+    |> ignore
+
+// Activate middleware
+let configureApp (app : IApplicationBuilder) = 
+    app.UseRouting()
+       .UseHttpEndPoints(routes)
+       .UseNotFoundHandler(setStatusCode 404 >=> textOut "Not found")
+       |> ignore 
+
+// Build and startup web host
+[<EntryPoint>]
+let main _ =
+    try
+        WebHostBuilder()
+            .UseKestrel()
+            .ConfigureServices(configureServices)
+            .Configure(configureApp)
+            .Build()
+            .Run()
+
+        0
+    with 
+        | _ -> -1
 ```
 
 Run the application:
@@ -51,57 +82,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | Sample | Description |
 | ------ | ----------- |
 | [HelloWorld][7] | A basic hello world app |
-| [SampleApp][8] | Demonstrates more complex topics: view engine, authentication and json |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
-
-## Web Host
-
-Falco provides a computation expression, `webApp { ... }` to help with constructing & running a `WebHost`. Raw access is given to all configuration points to enable full customization, but also to present a familiar feel, through several customer operations:
-
-| Operation | Signature ||
-|--------------|--------------------------------------------------|-------------------------------------------------|
-| `host`       | `IWebHostBuilder -> IWebHostBuilder`             | Configure web host                              |
-| `configure`  | `IConfigurationBuilder -> IConfigurationBuilder` | Configure app settings                          |
-| `logging`    | `ILoggingBuilder -> ILoggingBuilder`             | Configure logging                               |
-| `services`   | `IServiceCollection -> IServiceCollection`       | Configure services                              |
-| `middleware` | `IApplicationBuiler -> IApplicationBuilder`      | Configure application                           |
-| `errors`     | `ErrorHandler`                                   | Specify custom exception handler                |
-| `notFound`   | `HttpHandler`                                    | Specify a fall-through (i.e. not found) handler |
-
-Aliases for all route functions are also available:
-| Operation | Signature ||
-|----------------------------------------------------------------------------|-------------------------------------|-------------------------------------|
-| `route`                                                                    | `HttpVerb -> string -> HttpHandler` | ex: `route GET "/" (textOut "hello")` |
-| `get`, `post`, `put`, `patch`, `delete`, `head`, `trace`, `options`, `any` | `string -> HttpHandler`             | ex: `get "/" (textOut "hello")`       |
-
-### Example 
-
-```f#
-webApp {     
-    get "/hello" (textOut "hello")
-    any "/"      (textOut "index")
-    notFound     (setStatusCode 404 >=> textOut "Not found")
-
-    host       (fun hst -> hst.UseContentRoot(root))
-
-    configure  (fun cnf -> cnf.SetBasePath(root)
-                              .AddJsonFile("appsettings.json", false))
-
-    errors     (fun ex _ -> setStatusCode 500 >=> textOut (sprintf "Error: %s" ex.Message))
-
-    logging    (fun log -> log.AddConsole()
-                              .AddDebug())
-
-    services   (fun svc -> svc.AddResponseCompression()
-                              .AddResponseCaching())
-
-    middleware (fun app -> 
-                    if isDev then app.UseDeveloperExceptionPage() |> ignore
-                    app.UseStaticFiles()
-                       .UseResponseCaching()
-                       .UseResponseCompression())    
-}
-```
 
 ## Routing
 
@@ -575,7 +556,6 @@ That said, if people were open to a dependency and could agree on a package, I w
 ### Giraffe
 |                    | Falco                                                                  | Giraffe                          |
 |--------------------|------------------------------------------------------------------------|----------------------------------|
-| Web Host Builder   | `webApp { ... }` computation expression                                | N/A                              |
 | Routing            | ASP.NET Endpoint routing                                               | Tail recursive F# implementation |
 | Model Binding      | Manual, with utilities for reading values via `StringCollectionReader` | Custom reflection-based function |
 | View Engine        | Native F#                                                              | Native F#                        |
