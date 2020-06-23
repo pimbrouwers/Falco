@@ -5,22 +5,51 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Falco
 open Blog.Handlers
+open Microsoft.AspNetCore.Hosting
 
 let routes = [
     get      "/{slug:regex(^[a-z\-])}" blogPostHandler
     get      "/"                       blogIndexHandler
 ]
 
-webApp {    
-    falco    routes
+let configureLogging (log : ILoggingBuilder) =
+    log.AddConsole()
+       .AddDebug()
+       |> ignore
 
-    notFound (setStatusCode 404 >=> textOut "Not found")
+let configureServices (svc : IServiceCollection) =
+    svc.AddResponseCompression()
+       .AddResponseCaching()
+       .AddRouting()            
+    |> ignore
 
-    logging  (fun log -> log.AddConsole()
-                            .AddDebug())
+let configureApp (app : IApplicationBuilder) = 
+    let notFoundHandler : HttpHandler =
+        setStatusCode 404 
+        >=> textOut "NotFound"
 
-    services (fun svc -> svc.AddResponseCompression()
-                            .AddResponseCaching())
+    let exceptionHandler : ExceptionHandler =
+        fun ex _ -> 
+            setStatusCode 500 
+            >=> textOut (sprintf "Error: %s" ex.Message)
 
-    errors   (fun ex _ -> setStatusCode 500 >=> textOut (sprintf "Error: %s" ex.Message))
-}
+    app.UseRouting()
+       .UseExceptionMiddleware(exceptionHandler)
+       .UseHttpEndPoints(routes)
+       .UseNotFoundHandler(notFoundHandler)
+       |> ignore 
+
+[<EntryPoint>]
+let main _ =
+    try
+        WebHostBuilder()
+            .UseKestrel()
+            .ConfigureLogging(configureLogging)
+            .ConfigureServices(configureServices)
+            .Configure(configureApp)
+            .Build()
+            .Run()
+
+        0
+    with 
+        | _ -> -1

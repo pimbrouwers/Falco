@@ -47,7 +47,6 @@
     <Compile Include="ErrorHandling.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Middleware.fs" />
-    <Compile Include="WebAppBuilder.fs" />
     <Compile Include="ModelBinding.fs" />
     <Compile Include="Html.fs" />
     <Compile Include="Handlers.fs" />
