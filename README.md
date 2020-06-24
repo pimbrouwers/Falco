@@ -22,7 +22,7 @@ dotnet new web -lang F# -o HelloWorldApp
 
 Install the nuget package:
 ```
-dotnet add package Falco --version 1.2.0
+dotnet add package Falco
 ```
 
 Remove the `Startup.fs` file and save the following in `Program.fs`:
