@@ -4,7 +4,8 @@
 module Core =
     open System    
     open System.Text
-    open System.Threading.Tasks    
+    open System.Threading.Tasks
+    open FSharp.Control.Tasks.V2.ContextInsensitive
     open Microsoft.AspNetCore.Http
     open Microsoft.Extensions.Logging
     open Microsoft.Extensions.Primitives
@@ -21,6 +22,10 @@ module Core =
 
     /// Represents in-and-out processing of the HttpContext
     type HttpHandler = HttpFunc -> HttpFunc    
+
+    /// Represents an HttpHandler intended for use as the global exception handler
+    /// Receives the thrown exception, and logger
+    type ExceptionHandler = Exception -> ILogger -> HttpHandler
 
     /// The default HttpFunc
     let defaultHttpFunc : HttpFunc = 
@@ -66,10 +71,14 @@ module Core =
 
         /// Write bytes to HttpResponse body
         member this.WriteBytes (bytes : byte[]) =        
-            let len = bytes.Length
-            this.Response.ContentLength <- Nullable<int64>(len |> int64)
-            this.Response.Body.WriteAsync(bytes, 0, len).ContinueWith(fun _ -> Some this)
-            
+            task {            
+                let len = bytes.Length
+                bytes.CopyTo(this.Response.BodyWriter.GetMemory(len).Span)
+                this.Response.BodyWriter.Advance(len)
+                this.Response.BodyWriter.FlushAsync(this.RequestAborted) |> ignore
+                this.Response.ContentLength <- Nullable<int64>(len |> int64)
+                return Some this
+            }
 
         /// Write UTF8 string to HttpResponse body
         member this.WriteString (str : string) =
