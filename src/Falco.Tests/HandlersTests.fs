@@ -3,7 +3,7 @@
 open System.Text
 open Falco
 open Falco.ViewEngine
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks
 open FsUnit.Xunit
 open Microsoft.Net.Http.Headers
 open NSubstitute

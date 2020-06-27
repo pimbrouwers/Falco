@@ -2,7 +2,6 @@
 
 open System.Security.Claims
 open System.Security.Principal
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
@@ -86,7 +85,8 @@ let ifNotInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHa
 /// An HttpHandler to sign principal out of specific auth scheme
 let signOut (authScheme : string) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
-        task {
+        async {
             do! ctx.SignOutAsync authScheme
             return! next ctx
         }
+        |> Async.StartAsTask

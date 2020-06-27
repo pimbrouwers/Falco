@@ -18,7 +18,6 @@ type XmlNode =
     | SelfClosingNode of XmlElement                
     | Text            of string   
 
-
 /// XmlAttribute constructor
 let attr key value = KeyValue (key, value)
 let attrBool key = BooleanValue key 

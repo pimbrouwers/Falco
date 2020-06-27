@@ -4,7 +4,7 @@ module Falco.Tests.Common
 open System.IO
 open System.IO.Pipelines
 open System.Security.Claims
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
 open NSubstitute
 

@@ -2,9 +2,12 @@
 module Falco.ErrorHandling
 
 open System
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
+
+/// Represents an HttpHandler intended for use as the global exception handler
+/// Receives the thrown exception, and logger
+type ExceptionHandler = Exception -> ILogger -> HttpHandler
 
 type ExceptionHandlingMiddleware (next : RequestDelegate, 
                                   handler: ExceptionHandler, 
@@ -14,16 +17,17 @@ type ExceptionHandlingMiddleware (next : RequestDelegate,
         else if isNull log then failwith "handler cannot be null"
 
     member __.Invoke(ctx : HttpContext) =
-        task {
+        async {
             try return! next.Invoke ctx
             with 
-            | ex -> 
-                let logger = log.CreateLogger<ExceptionHandlingMiddleware>()
-                logger.LogError(ex, "Unhandled exception throw, attempting to handle")
+            | :? AggregateException as requestDelegateException -> 
+                let logger = log.CreateLogger<ExceptionHandlingMiddleware>()                
+                logger.LogError(requestDelegateException, "Unhandled exception throw, attempting to handle")
                 try
-                    let! _ = handler ex logger defaultHttpFunc ctx
+                    let! _ = handler requestDelegateException logger defaultHttpFunc ctx
                     return ()
                 with
-                | ex ->
-                    logger.LogError(ex, "Exception thrown while handling exception")
+                | :? AggregateException as handlerException ->                               
+                    logger.LogError(handlerException, "Exception thrown while handling exception")
         }
+        |> Async.StartAsTask
