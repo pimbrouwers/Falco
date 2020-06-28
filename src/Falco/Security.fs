@@ -57,9 +57,10 @@ module Crypto =
         pbkdf2 KeyDerivationPrf.HMACSHA512 iterations numBytesRequested salt strToHash
 
 module Xss =    
+    open Falco.ViewEngine
+    open FSharp.Control.Tasks
     open Microsoft.AspNetCore.Antiforgery    
     open Microsoft.AspNetCore.Http
-    open Falco.ViewEngine
     
     type HttpContext with 
         /// Returns (and optional creates) csrf tokens for the current session
@@ -79,7 +80,7 @@ module Xss =
     /// GET, HEAD, OPTIONS & TRACE always validate as true
     let ifTokenValid (invalidTokenHandler : HttpHandler) : HttpHandler =
         fun (next: HttpFunc) (ctx : HttpContext) ->                                
-            async {
+            task {
                 let antiFrg = ctx.GetService<IAntiforgery>()        
                 let! isValid = antiFrg.IsRequestValidAsync(ctx)
                 return! 
@@ -87,7 +88,6 @@ module Xss =
                     | true  -> next ctx
                     | false -> (invalidTokenHandler shortCircuit) ctx
             }
-            |> Async.StartAsTask
 
     /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package,
     /// which is fed into the provided handler

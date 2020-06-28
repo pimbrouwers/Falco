@@ -2,11 +2,12 @@
 
 open System.Security.Claims
 open System.Security.Principal
+open Falco.ViewEngine
+open Falco.Security.Xss
+open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
-open Falco.ViewEngine
-open Falco.Security.Xss
 
 type IPrincipal with
     /// Returns authentication status of IIdentity, false on null
@@ -85,8 +86,7 @@ let ifNotInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHa
 /// An HttpHandler to sign principal out of specific auth scheme
 let signOut (authScheme : string) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
-        async {
+        task {
             do! ctx.SignOutAsync authScheme
             return! next ctx
         }
-        |> Async.StartAsTask

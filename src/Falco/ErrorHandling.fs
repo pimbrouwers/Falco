@@ -2,6 +2,7 @@
 module Falco.ErrorHandling
 
 open System
+open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
 
@@ -17,7 +18,7 @@ type ExceptionHandlingMiddleware (next : RequestDelegate,
         else if isNull log then failwith "handler cannot be null"
 
     member __.Invoke(ctx : HttpContext) =
-        async {
+        task {
             try return! next.Invoke ctx
             with 
             | :? AggregateException as requestDelegateException -> 
@@ -30,4 +31,3 @@ type ExceptionHandlingMiddleware (next : RequestDelegate,
                 | :? AggregateException as handlerException ->                               
                     logger.LogError(handlerException, "Exception thrown while handling exception")
         }
-        |> Async.StartAsTask

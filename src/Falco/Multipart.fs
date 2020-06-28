@@ -3,6 +3,7 @@
 open System
 open System.IO        
 open System.Net
+open FSharp.Control.Tasks
 open Microsoft.Net.Http.Headers                
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.WebUtilities
@@ -50,7 +51,7 @@ type HttpRequest with
 type HttpContext with
     member this.TryStreamFormAsync() =                
         let rec streamForm (form : MultipartFormData) (rd : MultipartReader) =
-            async {  
+            task {  
                 let! section = rd.ReadNextSectionAsync()
                 match section with
                 | null    -> return form                            
@@ -85,7 +86,7 @@ type HttpContext with
                     | _ -> return form
             }
             
-        async {
+        task {
             let isMultipart =
                 this.Request
                 |> HttpRequest.IsMultipart
@@ -107,13 +108,12 @@ type HttpContext with
 
             | false, _ -> return Error "Not a multipart request"
         }
-        |> Async.StartAsTask
 
 
 /// Safely stream multipart form date into IFormCollection
 let tryStreamForm (error: string -> HttpHandler) (success: FormCollection -> HttpHandler) =
     fun (next : HttpFunc) (ctx : HttpContext) ->
-        async {
+        task {
             let! result = ctx.TryStreamFormAsync()
 
             return! 
@@ -121,4 +121,3 @@ let tryStreamForm (error: string -> HttpHandler) (success: FormCollection -> Htt
                 | Error msg -> error msg
                 | Ok form   -> success form) next ctx
         }
-        |> Async.StartAsTask

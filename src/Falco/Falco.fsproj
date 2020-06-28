@@ -20,14 +20,14 @@
 
     <!-- NuGet config -->
     <PackageId>Falco</PackageId>
-    <PackageVersion>1.2.1</PackageVersion>
+    <PackageVersion>1.2.2</PackageVersion>
     <PackageTags>fsharp;functional;falco;asp.net core;asp.net;.net core;routing;view engine;web</PackageTags>        
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/pimbrouwers/Falco</RepositoryUrl>
-
+    
     <!-- SourceLink settings -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -42,6 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="TaskBuilder.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="StringUtils.fs" />
     <Compile Include="StringParser.fs" />

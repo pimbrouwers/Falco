@@ -4,8 +4,9 @@ module Falco.Handlers
 open System.IO
 open System.Text
 open System.Text.Json
-open Microsoft.AspNetCore.Http
 open Falco.ViewEngine
+open FSharp.Control.Tasks
+open Microsoft.AspNetCore.Http
 
 /// An alias for defaultHttpFunc intended to help to stop further processing
 let shortCircuit = defaultHttpFunc
@@ -37,7 +38,7 @@ let textOut (str : string) : HttpHandler =
 /// An HttpHandler to output JSON
 let jsonOut (obj : 'a) : HttpHandler =
     fun (_ : HttpFunc) (ctx : HttpContext) ->   
-        async {
+        task {
             ctx.SetContentType "application/json; charset=utf-8"
             use s = new MemoryStream()
             do! JsonSerializer.SerializeAsync(s, obj) |> Async.AwaitTask
@@ -45,7 +46,6 @@ let jsonOut (obj : 'a) : HttpHandler =
             ctx.WriteString (json) |> ignore
             return Some ctx
         }
-        |> Async.StartAsTask
 
 /// An HttpHandler to output HTML
 let htmlOut (html : XmlNode) : HttpHandler =
