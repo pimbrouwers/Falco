@@ -2,6 +2,7 @@ module HelloWorldApp
 
 open Falco
 open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 
@@ -24,11 +25,15 @@ let configureLogging (log : ILoggingBuilder) =
 
 let configureServices (services : IServiceCollection) =
     services.AddRouting() 
+            .AddResponseCompression()
+            .AddResponseCaching()
     |> ignore
 
 let configure (app : IApplicationBuilder) = 
     app.UseExceptionMiddleware(exceptionHandler)
        .UseRouting()
+       .UseResponseCompression()
+       .UseResponseCaching()
        .UseHttpEndPoints(routes)
        .UseNotFoundHandler(setStatusCode 404 >=> textOut "Not found")
        |> ignore 
@@ -36,11 +41,13 @@ let configure (app : IApplicationBuilder) =
 [<EntryPoint>]
 let main _ =
     try
-        startWebApp
-            configure
-            configureServices
-            (Some configureLogging)
-            None
+        WebHostBuilder()
+            .UseKestrel()
+            .ConfigureLogging(configureLogging)
+            .ConfigureServices(configureServices)
+            .Configure(configure)
+            .Build()
+            .Run()
         0
     with 
         | _ -> -1
