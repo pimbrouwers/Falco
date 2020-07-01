@@ -23,11 +23,13 @@ type IApplicationBuilder with
                     | ANY     -> r.Map(e.Pattern, rd)
                     |> ignore)
         
-    /// Enable Falco exception handling middleware
+    /// Enable Falco exception handling middleware. It is recommended
+    /// to specify this before any other middleware.
     member this.UseExceptionMiddleware (exceptionHandler : ExceptionHandler) =
         this.UseMiddleware<ExceptionHandlingMiddleware> exceptionHandler
         
-    /// Enable Falco not found handler (this handler is terminal)
+    /// Enable Falco not found handler (this handler is terminal). It 
+    /// is necessary to specifiy this after all other middleware.
     member this.UseNotFoundHandler (notFoundHandler : HttpHandler) =
         this.Run(createRequestDelete notFoundHandler)
 

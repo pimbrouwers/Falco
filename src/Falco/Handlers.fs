@@ -8,34 +8,31 @@ open Falco.ViewEngine
 open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
 
-/// An alias for defaultHttpFunc intended to help to stop further processing
-let shortCircuit = defaultHttpFunc
-
-/// Clear current reponse content
-let purgeResponse : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->
-        ctx.Response.Clear() 
-        next ctx
-
 /// An HttpHandler to set status code
 let setStatusCode (statusCode : int) : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         ctx.SetStatusCode statusCode
         next ctx
 
-/// An HttpHandler to redirect (301, 302)
+/// An HttpHandler to redirect (301, 302). 
+/// This is terminal middleware.
 let redirect url perm : HttpHandler =
     fun (_ : HttpFunc) (ctx : HttpContext) ->
         ctx.Response.Redirect(url, perm)
-        shortCircuit ctx
+        earlyReturn ctx
   
- /// An HttpHandler to output plain-text
+ /// An HttpHandler to output plain-text.
+ /// This is terminal middleware.
 let textOut (str : string) : HttpHandler =    
     fun (_ : HttpFunc) (ctx : HttpContext) ->
-        ctx.SetContentType "text/plain; charset=utf-8"
-        ctx.WriteString str
+        task {  
+            ctx.SetContentType "text/plain; charset=utf-8"
+            do! ctx.WriteString Encoding.UTF8 str
+            return! earlyReturn ctx
+        }
     
-/// An HttpHandler to output JSON
+/// An HttpHandler to output JSON.
+/// This is terminal middleware.
 let jsonOut (obj : 'a) : HttpHandler =
     fun (_ : HttpFunc) (ctx : HttpContext) ->   
         task {
@@ -43,13 +40,16 @@ let jsonOut (obj : 'a) : HttpHandler =
             use s = new MemoryStream()
             do! JsonSerializer.SerializeAsync(s, obj) |> Async.AwaitTask
             let json = Encoding.UTF8.GetString(s.ToArray())
-            ctx.WriteString (json) |> ignore
-            return Some ctx
+            do! ctx.WriteString Encoding.UTF8 json
+            return! earlyReturn ctx
         }
 
 /// An HttpHandler to output HTML
+/// This is terminal middleware.
 let htmlOut (html : XmlNode) : HttpHandler =
     fun (_ : HttpFunc) (ctx : HttpContext) ->
-        ctx.SetContentType "text/html; charset=utf-8"            
-        renderHtml html
-        |> ctx.WriteString 
+        task {
+            ctx.SetContentType "text/html; charset=utf-8"            
+            do! renderHtml html |> ctx.WriteString Encoding.UTF8
+            return! earlyReturn ctx
+        }

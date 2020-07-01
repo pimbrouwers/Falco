@@ -18,7 +18,7 @@ let ``setStatusCode should modify HttpResponse StatusCode`` () =
     let expected = 204
 
     task {
-        let! result = setStatusCode 204 shortCircuit ctx
+        let! result = setStatusCode 204 earlyReturn ctx
         result.IsSome |> should equal true
 
         result.Value.Response.StatusCode |> should equal expected
@@ -29,7 +29,7 @@ let ``redirect temporary should invoke HttpResponse Redirect with false`` () =
     let ctx = getHttpContextWriteable false
 
     task {
-        let! result = redirect "/" false shortCircuit ctx
+        let! result = redirect "/" false earlyReturn ctx
         result.IsSome |> should equal true
         result.Value.Response.Received().Redirect("/", false)
     }
@@ -39,7 +39,7 @@ let ``redirect permanent should invoke HttpResponse Redirect with true`` () =
     let ctx = getHttpContextWriteable false
 
     task {
-        let! result = redirect "/" true shortCircuit ctx
+        let! result = redirect "/" true earlyReturn ctx
         result.IsSome |> should equal true
         result.Value.Response.Received().Redirect("/", true)
     }
@@ -51,7 +51,7 @@ let ``textOut produces text/plain result`` () =
     let expected = "hello"
 
     task {
-        let! result = textOut "hello" shortCircuit ctx
+        let! result = textOut "hello" earlyReturn ctx
         
         result.IsSome |> should equal true
 
@@ -71,7 +71,7 @@ let ``jsonOut produces applicaiton/json result`` () =
     let expected = "{\"Name\":\"John Doe\"}"
 
     task {
-        let! result = jsonOut { Name = "John Doe"} shortCircuit ctx
+        let! result = jsonOut { Name = "John Doe"} earlyReturn ctx
 
         result.IsSome |> should equal true
 
@@ -97,7 +97,7 @@ let ``htmlOut produces text/html result`` () =
         ]
 
     task {
-        let! result = htmlOut doc shortCircuit ctx
+        let! result = htmlOut doc earlyReturn ctx
 
         result.IsSome |> should equal true
 

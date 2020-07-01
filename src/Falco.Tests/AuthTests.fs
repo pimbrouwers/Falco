@@ -19,7 +19,7 @@ let ``ifNotAuthenticated calls authenticatedHandler if principal is authenticate
             (ifNotAuthenticated
                 (textOut "hello")
                 >=> textOut "world")
-                shortCircuit ctx
+                earlyReturn ctx
         
         result.IsSome |> should equal true
 
@@ -39,7 +39,7 @@ let ``ifAuthenticated calls notAuthenticatedHandler if principal is not authenti
             (ifAuthenticated
                 (textOut "hello")
                 >=> textOut "world")
-                shortCircuit ctx
+                earlyReturn ctx
         
         result.IsSome |> should equal true
 
@@ -62,7 +62,7 @@ let ``authHtmlOut properly threads through ClaimsPrincipal`` () =
         ]
 
     task {
-        let! result = authHtmlOut doc shortCircuit ctx
+        let! result = authHtmlOut doc earlyReturn ctx
 
         result.IsSome |> should equal true
 

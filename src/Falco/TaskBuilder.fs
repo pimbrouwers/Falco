@@ -253,7 +253,7 @@ module TaskBuilder =
         static member        ($) (  Priority1, a   : 'a Async      ) = bindTaskConfigureFalse (Async.StartAsTask a) ret
 
     // New style task builder.
-    type TaskBuilderV2() =
+    type TaskBuilder() =
         // These methods are consistent between all builders.
         member __.Delay(f : unit -> Step<_>) = f
         member __.Run(f : unit -> Step<'m>) = run f
@@ -278,8 +278,8 @@ module PublicTaskBuilder =
     /// all awaited tasks automatically configured *not* to resume on the captured context.
     /// This is often preferable when writing library code that is not context-aware, but undesirable when writing
     /// e.g. code that must interact with user interface controls on the same thread as its caller.
-    let task = TaskBuilderV2()
+    let task = TaskBuilder()
 
-    type TaskBuilderV2 with
+    type TaskBuilder with
         member inline __.Bind (task, continuation : 'a -> 'b Step) : 'b Step = (BindI.Priority1 >>= task) continuation
         member inline __.ReturnFrom a                              : 'b Step = ReturnFromI.Priority1 $ a

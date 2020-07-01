@@ -6,9 +6,14 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 
+let empty : HttpHandler =
+    fun next ctx ->
+        next ctx
+
 let routes = 
     [
-        get "/"    (textOut "hello world")
+        get "/"    (empty >=> setStatusCode 200 >=> textOut "hello world")
+        get "/r"   (empty >=> redirect "/" false >=> textOut "redirect")
         get "/exn" (fun _ _ -> failwith "Fake exception")
     ]
 

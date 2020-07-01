@@ -53,9 +53,9 @@
     <Compile Include="ModelBinding.fs" />
     <Compile Include="Html.fs" />
     <Compile Include="Handlers.fs" />
-    <Compile Include="Multipart.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="Auth.fs" />
+    <Compile Include="Multipart.fs" />
   </ItemGroup>
 
 </Project>

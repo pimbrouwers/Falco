@@ -28,15 +28,12 @@ type HttpContext with
         }        
 
     /// Synchronously Retrieve StringCollectionReader for IFormCollection from HttpRequest
-    member this.GetFormReader () =
-        task {
-            return! this.GetFormReaderAsync() 
-        }        
+    member this.GetFormReader () = 
+        this.GetFormReaderAsync().Result
 
     /// Retrieve StringCollectionReader for IQueryCollection from HttpRequest
     member this.GetQueryReader () = 
         StringCollectionReader(this.Request.Query)
-
 
 /// Map IFormCollection to record using provided `bind` function
 let bindForm 

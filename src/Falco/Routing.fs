@@ -29,8 +29,9 @@ type HttpEndpoint =
        
 /// Create a RequestDelegate from HttpHandler
 let createRequestDelete (handler : HttpHandler) =
-    let fn = handler defaultHttpFunc
-    RequestDelegate(fun ctx -> Task.Run(fun _ -> fn ctx |> ignore))
+    let fn = handler earlyReturn    
+    let action (ctx : HttpContext) = Task.Run(fun _ -> fn ctx :> Task)
+    RequestDelegate(action)
 
 type IApplicationBuilder with
     /// Activate Falco integration with IEndpointRouteBuilder

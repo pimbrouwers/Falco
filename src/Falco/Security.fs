@@ -86,7 +86,7 @@ module Xss =
                 return! 
                     match isValid with
                     | true  -> next ctx
-                    | false -> (invalidTokenHandler shortCircuit) ctx
+                    | false -> (invalidTokenHandler earlyReturn) ctx
             }
 
     /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package,

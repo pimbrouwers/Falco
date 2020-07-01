@@ -39,40 +39,47 @@ let selfClosingTag (tag : string) (attr : XmlAttribute list) =
     |> SelfClosingNode
 
 /// Render XmlNode recursively to string representation
-let renderNode tag =   
-    let rec buildXml doc tag =
-        let createAttrs attrs =
-            attrs
-            |> Array.map (fun attr ->
-                match attr with 
-                | KeyValue (k, v) -> strJoin "" [| k; "=\""; v; "\"" |]
-                | BooleanValue k  -> k)            
-            |> strJoin " "            
+let renderNode (tag : XmlNode) =  
+    let createKeyValue key value =
+        strJoin "" [| key; "=\""; value ; "\"" |]
 
-           
+    let createAttr (attr : XmlAttribute) = 
+        match attr with 
+        | KeyValue (key, value) -> createKeyValue key value
+        | BooleanValue key      -> key
+
+    let createAttrs (attrs : XmlAttribute[]) =
+        attrs
+        |> Array.map createAttr
+        |> strJoin " "   
+
+    let createSelfClosingTag (tag : string) (attrs : XmlAttribute[]) =
+        if attrs.Length > 0 then
+            strJoin "" [| "<"; tag; " "; (createAttrs attrs); " />" |] 
+        else 
+            strJoin "" [| "<"; tag; " />" |]
+
+    let createTag (children : string) (tag : string) (attrs : XmlAttribute[]) =
+        if attrs.Length > 0 then
+            strJoin "" [| "<"; tag; " "; (createAttrs attrs); ">"; children; "</"; tag; ">" |]
+        else 
+            strJoin "" [| "<"; tag; ">"; children; "</"; tag; ">" |]
+
+    let rec buildXml doc tag =   
+        let buildChildXml (children : XmlNode list) =
+            [|
+                for c in children do 
+                    buildXml [] c 
+                    |> List.toArray 
+                    |> strJoin ""
+            |]
+            |> strJoin ""
+
         match tag with 
-        | Text text -> 
-            text :: doc
-        | SelfClosingNode (e, attrs) -> 
-            if attrs.Length > 0 then
-                strJoin "" [| "<"; e; " "; (createAttrs attrs); " />" |] 
-            else 
-                strJoin "" [| "<"; e; " />" |]
-            :: doc            
-        | ParentNode ((e, attrs), children) ->        
-            let c =             
-                [|
-                    for c in children do 
-                        buildXml [] c 
-                        |> List.toArray 
-                        |> strJoin ""
-                |]
-            
-            if attrs.Length > 0 then
-                strJoin "" [| "<"; e; " "; (createAttrs attrs); ">"; (strJoin "" c); "</"; e; ">" |]
-            else 
-                strJoin "" [| "<"; e; ">"; (strJoin "" c); "</"; e; ">" |]
-            :: doc            
+        | Text text                           -> text
+        | SelfClosingNode (tag, attrs)        -> createSelfClosingTag tag attrs
+        | ParentNode ((tag, attrs), children) -> createTag (buildChildXml children) tag attrs 
+        :: doc            
     
     buildXml [] tag
     |> List.toArray

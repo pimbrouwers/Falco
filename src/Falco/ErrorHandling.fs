@@ -25,7 +25,7 @@ type ExceptionHandlingMiddleware (next : RequestDelegate,
                 let logger = log.CreateLogger<ExceptionHandlingMiddleware>()                
                 logger.LogError(requestDelegateException, "Unhandled exception throw, attempting to handle")
                 try
-                    let! _ = handler requestDelegateException logger defaultHttpFunc ctx
+                    let! _ = handler requestDelegateException logger earlyReturn ctx
                     return ()
                 with
                 | :? AggregateException as handlerException ->                               
