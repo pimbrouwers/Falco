@@ -18,11 +18,7 @@ type PostsDirectory = PostsDirectory of string
 
 /// BuildServer defines a function with dependencies
 /// which returns an IWebHost instance.
-type BuildServer = DeveloperMode -> PostsDirectory -> IWebHost
-
-/// StartServer defines a function which starts the provided
-/// instance of IWebHost.
-type StartServer = IWebHost -> unit
+type BuildServer = DeveloperMode -> PostsDirectory -> unit
 
 module Handlers =
     let handleException (developerMode : bool) : ExceptionHandler =
@@ -52,7 +48,7 @@ module Config =
             .UseNotFoundHandler(Handlers.handleNotFound)
             |> ignore 
 
-let buildServer : BuildServer =            
+let buildServer (webHost : IWebHostBuilder) : BuildServer =            
     fun (developerMode : DeveloperMode) (postsDirectory : PostsDirectory) ->
         // unwrap our constrained types
         let (DeveloperMode developerMode) = developerMode
@@ -67,11 +63,11 @@ let buildServer : BuildServer =
                 get      "/"                       (Post.Controller.index posts)
             ]
 
-        WebHostBuilder()
+        webHost
             .UseKestrel()
             .ConfigureServices(Config.configureServices)
             .Configure(Config.configure developerMode routes)
-            .Build()
+            |> ignore
 
 let startServer : StartServer =
     fun (server : IWebHost) ->

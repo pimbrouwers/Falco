@@ -1,5 +1,6 @@
 module Blog.Program
 
+open Microsoft.Extensions.Hosting
 
 module Env =
     open System
@@ -26,10 +27,12 @@ module Env =
         |> DeveloperMode
 
 [<EntryPoint>]
-let main _ =
-    try        
-        Server.buildServer Env.developerMode Env.postsDirectory
-        |> Server.startServer
+let main args =
+    try
+        Host.CreateDefaultBuilder(args)
+            .ConfigureWebHost(fun webHost -> Server.buildServer webHost Env.developerMode Env.postsDirectory)
+            .Build()
+            .Run()
         0
     with
     | _ -> -1

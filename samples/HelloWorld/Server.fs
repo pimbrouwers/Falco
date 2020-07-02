@@ -4,6 +4,7 @@ open Falco
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
 
 /// DeveloperMode is a wrapped boolean primitive to
 /// define the status of "developer mode".
@@ -12,11 +13,7 @@ type DeveloperMode = DeveloperMode of bool
 
 /// BuildServer defines a function with a dependency
 /// which returns an IWebHost instance.
-type BuildServer = DeveloperMode -> IWebHost
-
-/// StartServer defines a function which starts the provided
-/// instance of IWebHost.
-type StartServer = IWebHost -> unit
+type BuildServer = DeveloperMode -> unit
 
 module Handlers = 
     let handleException (developerMode : bool) : ExceptionHandler =
@@ -45,7 +42,7 @@ module Config =
             .UseNotFoundHandler(Handlers.handleNotFound)
             |> ignore 
     
-let buildServer : BuildServer =            
+let buildServer (webHost : IWebHostBuilder) : BuildServer =            
     fun (developerMode : DeveloperMode) ->
         // unwrap our constrained type
         let (DeveloperMode developerMode) = developerMode
@@ -55,13 +52,9 @@ let buildServer : BuildServer =
                 get "/"    (textOut "hello world")                
             ]
 
-        WebHostBuilder()
-            .UseKestrel()
+        webHost
+            .UseKestrel()            
             .ConfigureServices(Config.configureServices)
             .Configure(Config.configure developerMode routes)
-            .Build()
-
-let startServer : StartServer =
-    fun (server : IWebHost) ->
-        server.Run()        
+            |> ignore
     

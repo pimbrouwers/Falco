@@ -1,5 +1,6 @@
 module HelloWorld.Program
 
+open Microsoft.Extensions.Hosting
 
 module Env =    
     open System    
@@ -19,10 +20,12 @@ module Env =
         |> DeveloperMode
 
 [<EntryPoint>]
-let main _ =        
+let main args =        
     try
-        Server.buildServer Env.developerMode
-        |> Server.startServer
+        Host.CreateDefaultBuilder(args)
+            .ConfigureWebHost(fun webHost -> Server.buildServer webHost Env.developerMode)
+            .Build()
+            .Run()
         0
     with
     | _ -> -1
