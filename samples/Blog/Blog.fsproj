@@ -5,12 +5,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Model.fs" />
+    <Compile Include="Markdown.fs" />
     <Compile Include="UI.fs" />
-    <Compile Include="Handlers.fs" />
+    <Compile Include="Post.fs" />
+    <Compile Include="Server.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.2" />
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.20.0" />
     <PackageReference Include="YamlDotNet" Version="8.1.0" />
@@ -18,10 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.7.1" />
   </ItemGroup>
 
   <ItemGroup>

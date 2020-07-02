@@ -1,58 +1,14 @@
-module HelloWorldApp 
+module HelloWorld.Program
 
-open Falco
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Logging
+module Env =    
+    open System    
+    open Falco.StringUtils
 
-let empty : HttpHandler =
-    fun next ctx ->
-        next ctx
+    let tryGetEnv = Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
 
-let routes = 
-    [
-        get "/"    (empty >=> setStatusCode 200 >=> textOut "hello world")
-        get "/r"   (empty >=> redirect "/" false >=> textOut "redirect")
-        get "/exn" (fun _ _ -> failwith "Fake exception")
-    ]
-
-let exceptionHandler : ExceptionHandler =
-    fun ex _ -> 
-        setStatusCode 500 
-        >=> textOut (sprintf "Error: %s" ex.Message)
-
-let configureLogging (log : ILoggingBuilder) =
-    log.AddConsole()
-       .AddDebug()
-       .SetMinimumLevel(LogLevel.Warning)
-       |> ignore
-
-let configureServices (services : IServiceCollection) =
-    services.AddRouting() 
-            .AddResponseCompression()
-            .AddResponseCaching()
-    |> ignore
-
-let configure (app : IApplicationBuilder) = 
-    app.UseExceptionMiddleware(exceptionHandler)
-       .UseRouting()
-       .UseResponseCompression()
-       .UseResponseCaching()
-       .UseHttpEndPoints(routes)
-       .UseNotFoundHandler(setStatusCode 404 >=> textOut "Not found")
-       |> ignore 
+    let developerMode = match tryGetEnv "ASPNETCORE_ENVIRONMENT" with None -> true | Some env -> strEquals env "development"
 
 [<EntryPoint>]
-let main _ =
-    try
-        WebHostBuilder()
-            .UseKestrel()
-            .ConfigureLogging(configureLogging)
-            .ConfigureServices(configureServices)
-            .Configure(configure)
-            .Build()
-            .Run()
-        0
-    with 
-        | _ -> -1
+let main _ =        
+    Server.startServer 
+        Env.developerMode       

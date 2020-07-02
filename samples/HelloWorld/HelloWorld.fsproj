@@ -5,15 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Server.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.7.1" />
-  </ItemGroup>
-
 </Project>
