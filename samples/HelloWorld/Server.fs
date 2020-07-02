@@ -5,6 +5,18 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 
+/// DeveloperMode is a wrapped boolean primitive to
+/// define the status of "developer mode".
+type DeveloperMode = DeveloperMode of bool
+
+/// BuildServer defines a function with a dependency
+/// which returns an IWebHost instance.
+type BuildServer = DeveloperMode -> IWebHost
+
+/// StartServer defines a function which starts the provided
+/// instance of IWebHost.
+type StartServer = IWebHost -> unit
+
 module Handlers = 
     let handleException (developerMode : bool) : ExceptionHandler =
         fun ex _ -> 
@@ -32,19 +44,23 @@ module Config =
             .UseNotFoundHandler(Handlers.handleNotFound)
             |> ignore 
     
-let startServer (developerMode : bool) =            
-    let routes = 
-        [
-            get "/"    (textOut "hello world")                
-        ]
+let buildServer : BuildServer =            
+    fun (developerMode : DeveloperMode) ->
+        // unwrap our constrained type
+        let (DeveloperMode developerMode) = developerMode
 
-    try
+        let routes = 
+            [
+                get "/"    (textOut "hello world")                
+            ]
+
         WebHostBuilder()
             .UseKestrel()
             .ConfigureServices(Config.configureServices)
             .Configure(Config.configure developerMode routes)
             .Build()
-            .Run()
-        0
-    with 
-        | _ -> -1
+
+let startServer : StartServer =
+    fun (server : IWebHost) ->
+        server.Run()        
+    

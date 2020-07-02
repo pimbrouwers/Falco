@@ -1,5 +1,7 @@
 module HelloWorld.Program
 
+open HelloWorld.Server
+
 module Env =    
     open System    
     open Falco.StringUtils
@@ -10,5 +12,11 @@ module Env =
 
 [<EntryPoint>]
 let main _ =        
-    Server.startServer 
-        Env.developerMode       
+    try
+        let developerMode = DeveloperMode Env.developerMode
+
+        Server.buildServer developerMode
+        |> Server.startServer
+        0
+    with
+    | _ -> -1

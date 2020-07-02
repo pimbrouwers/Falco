@@ -1,5 +1,7 @@
 module Blog.Program
 
+open Blog.Server
+
 module Env =
     open System
     open System.IO
@@ -15,6 +17,12 @@ module Env =
 
 [<EntryPoint>]
 let main _ =
-    Server.startServer 
-        Env.developerMode
-        Env.postsDirectory
+    try
+        let developerMode = DeveloperMode Env.developerMode
+        let postsDirectory = PostsDirectory Env.postsDirectory
+
+        Server.buildServer developerMode postsDirectory
+        |> Server.startServer
+        0
+    with
+    | _ -> -1

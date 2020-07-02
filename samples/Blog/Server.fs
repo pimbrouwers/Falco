@@ -5,7 +5,22 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Blog.Post.Middleware
-open Blog.Post.Model
+
+/// DeveloperMode is a wrapped boolean primitive to
+/// isolate the status of "developer mode".
+type DeveloperMode = DeveloperMode of bool
+
+/// PostsDirectory is a wrapped string literal to
+/// isolate the posts directory.
+type PostsDirectory = PostsDirectory of string
+
+/// BuildServer defines a function with dependencies
+/// which returns an IWebHost instance.
+type BuildServer = DeveloperMode -> PostsDirectory -> IWebHost
+
+/// StartServer defines a function which starts the provided
+/// instance of IWebHost.
+type StartServer = IWebHost -> unit
 
 module Handlers =
     let handleException (developerMode : bool) : ExceptionHandler =
@@ -35,11 +50,12 @@ module Config =
             .UseNotFoundHandler(Handlers.handleNotFound)
             |> ignore 
 
-
-let startServer 
-    (developerMode : bool) 
-    (postsDirectory : string) =            
-    try
+let buildServer : BuildServer =            
+    fun (developerMode : DeveloperMode) (postsDirectory : PostsDirectory) ->
+        // unwrap our constrained types
+        let (DeveloperMode developerMode) = developerMode
+        let (PostsDirectory postsDirectory) = postsDirectory
+        
         // Load all posts from disk once when server starts
         let posts = Post.IO.all postsDirectory
 
@@ -54,8 +70,7 @@ let startServer
             .ConfigureServices(Config.configureServices)
             .Configure(Config.configure developerMode routes)
             .Build()
-            .Run()
-        0
-    with           
-        | _ -> -1
 
+let startServer : StartServer =
+    fun (server : IWebHost) ->
+        server.Run()
