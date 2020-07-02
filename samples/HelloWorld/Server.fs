@@ -7,6 +7,7 @@ open Microsoft.Extensions.DependencyInjection
 
 /// DeveloperMode is a wrapped boolean primitive to
 /// define the status of "developer mode".
+[<Struct>]
 type DeveloperMode = DeveloperMode of bool
 
 /// BuildServer defines a function with a dependency

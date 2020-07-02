@@ -8,10 +8,12 @@ open Blog.Post.Middleware
 
 /// DeveloperMode is a wrapped boolean primitive to
 /// isolate the status of "developer mode".
+[<Struct>]
 type DeveloperMode = DeveloperMode of bool
 
 /// PostsDirectory is a wrapped string literal to
 /// isolate the posts directory.
+[<Struct>]
 type PostsDirectory = PostsDirectory of string
 
 /// BuildServer defines a function with dependencies
