@@ -156,6 +156,10 @@ module Controller =
         
     
     let index (posts : PostModel[]) : HttpHandler =       
-        posts 
-        |> View.index 
-        |> htmlOut
+        let handlePosts posts =           
+            posts 
+            |> View.index 
+            |> htmlOut
+
+        posts
+        |> withSortedPosts handlePosts
