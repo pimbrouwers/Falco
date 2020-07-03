@@ -10,7 +10,7 @@ This directory contains projects which demonstrate "idiomatic" usage of Falco an
 		- Usage of Falco Exception & Not Found handler's.
 
 - [Blog][2]
-	- A basic markdown blog, with YAML front-matter. Demonstratoes:
+	- A basic markdown blog, with YAML front-matter. Demonstrates:
 		- Encapsulation of host configuration and startup.
 		- Interaction with environment variables.
 		- "Constrained" primitives.
