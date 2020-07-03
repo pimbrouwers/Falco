@@ -40,8 +40,8 @@ module Host =
     module Config =
         let configureServices (services : IServiceCollection) =
             services.AddRouting()     
-                    .AddResponseCompression()
                     .AddResponseCaching()
+                    .AddResponseCompression()
             |> ignore
                         
         let configure             
@@ -50,8 +50,8 @@ module Host =
             (app : IApplicationBuilder) = 
             
             app.UseExceptionMiddleware(Handlers.handleException developerMode)
-               .UseResponseCompression()
                .UseResponseCaching()
+               .UseResponseCompression()
                .UseStaticFiles()
                .UseRouting()
                .UseHttpEndPoints(routes)
