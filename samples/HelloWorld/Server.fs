@@ -5,19 +5,21 @@ module Router =
 
     let endpoints = 
         [
-            get      "/" (textOut "Hello, world!")                    
+            get "/" (textOut "Hello, world!")                    
         ]
 
 module Handlers =   
     open Falco
 
-    let handleException (developerMode : bool) : ExceptionHandler =
-        fun ex _ -> 
-            setStatusCode 500 >=>
-            (match developerMode with
-            | true  -> textOut (sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace)
-            | false -> textOut "Server Error") 
+    let handleException (developerMode : DeveloperMode) : ExceptionHandler =
+        let (DeveloperMode developerMode) = developerMode
 
+        fun ex _ -> 
+            setStatusCode 500 
+            >=> textOut (match developerMode with
+                        | true  -> sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace
+                        | false -> "Server Error")
+            
     let handleNotFound = 
         setStatusCode 404 
         >=> textOut "Not found"
@@ -40,7 +42,7 @@ module Host =
             |> ignore
                         
         let configure             
-            (developerMode : bool)
+            (developerMode : DeveloperMode)
             (routes : HttpEndpoint list)
             (app : IApplicationBuilder) =             
             app.UseExceptionMiddleware(Handlers.handleException developerMode)               
@@ -52,8 +54,6 @@ module Host =
     let buildHost : BuildHost =            
         fun (developerMode : DeveloperMode)             
             (webHost : IWebHostBuilder) ->        
-            let (DeveloperMode developerMode) = developerMode        
-            
             webHost
                 .UseKestrel()
                 .ConfigureServices(Config.configureServices)

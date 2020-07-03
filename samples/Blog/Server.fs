@@ -12,12 +12,14 @@ module Router =
 module Handlers =   
     open Falco
 
-    let handleException (developerMode : bool) : ExceptionHandler =
+    let handleException (developerMode : DeveloperMode) : ExceptionHandler =
+        let (DeveloperMode developerMode) = developerMode
+
         fun ex _ -> 
-            setStatusCode 500 >=>
-            (match developerMode with
-            | true  -> textOut (sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace)
-            | false -> textOut "Server Error") 
+            setStatusCode 500 
+            >=> textOut (match developerMode with
+                        | true  -> sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace
+                        | false -> "Server Error")
 
     let handleNotFound = 
         setStatusCode 404 
@@ -43,7 +45,7 @@ module Host =
             |> ignore
                         
         let configure             
-            (developerMode : bool)
+            (developerMode : DeveloperMode)
             (routes : HttpEndpoint list)
             (app : IApplicationBuilder) = 
             
@@ -59,11 +61,8 @@ module Host =
     let buildHost : BuildHost =            
         fun (developerMode : DeveloperMode) 
             (postsDirectory : PostsDirectory) 
-            (webHost : IWebHostBuilder) ->        
-            let (DeveloperMode developerMode) = developerMode        
-            let (PostsDirectory postsDirectory) = postsDirectory
-
-            // Load all posts from disk once when server starts
+            (webHost : IWebHostBuilder) ->                       
+            // Load all posts from disk only once when server starts
             let posts = Post.Data.loadAll postsDirectory
         
             webHost

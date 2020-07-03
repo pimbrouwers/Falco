@@ -26,6 +26,8 @@ module Data =
         }
 
     let loadAll postsDirectory =  
+        let (PostsDirectory postsDirectory) = postsDirectory
+
         let readPost (postPath : string) = 
             let relativePath = Path.GetFileNameWithoutExtension postPath
 
