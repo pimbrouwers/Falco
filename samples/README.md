@@ -20,7 +20,6 @@ This directory contains projects which demonstrate "idiomatic" usage of Falco an
 		- Incorporating static files.
 		- Usage of ASP.NET response caching and compression.
 		- Partial application as an alternative to dependency injection.
-		- Custom middleware, implemented as `HttpHandler`'s
 		- Atomic (i.e. functional CSS).
 
 

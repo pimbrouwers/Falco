@@ -103,63 +103,44 @@ module View =
         ]
         |> layout "Not Found"
     
-module Middleware =
-    open Falco 
-    open Falco.StringUtils
-    open Model
-
-    let withSortedPosts         
-        (handlePosts : PostModel[] -> HttpHandler)
-        (posts : PostModel[]) : HttpHandler =
-         posts
-        |> Array.sortBy (fun p -> p.Date)
-        |> handlePosts
-
-    let withPostFromSlug      
-        (handleNotFound : string option -> HttpHandler)
-        (handlePost : PostModel -> HttpHandler) 
-        (posts : PostModel[]) : HttpHandler =    
-        fun next ctx ->                        
-            let getSlugFromQuery () = 
-                ctx.TryGetRouteValue "slug"
-
-            let findPost slug = 
-                posts |> Array.tryFind (fun p -> strEquals p.Slug slug)
-
-            match getSlugFromQuery () with
-            | None      -> handleNotFound None
-            | Some slug ->
-                match findPost slug with
-                | None      -> handleNotFound (Some slug)
-                | Some post -> handlePost post
-            |> fun handler -> handler next ctx
-
 [<RequireQualifiedAccess>]
 module Controller =
     open Falco 
-    open Middleware
+    open Falco.StringUtils
     open Model
+    
+    let details (posts : PostModel[]) : HttpHandler =                 
+        let handleNotFound slug =
+            slug
+            |> View.notFound
+            |> htmlOut
 
-    let notFound (slug : string option) : HttpHandler =
-        slug
-        |> View.notFound
-        |> htmlOut
-        
-    let details (posts : PostModel[]) : HttpHandler =         
         let handlePost post =
             post 
             |> View.details 
             |> htmlOut
 
-        posts
-        |> withPostFromSlug notFound handlePost
-        
-    
-    let index (posts : PostModel[]) : HttpHandler =       
-        let handlePosts posts =           
-            posts 
-            |> View.index 
-            |> htmlOut
+        fun next ctx ->                        
+            let getSlugFromQuery () = 
+                ctx.TryGetRouteValue "slug"
 
-        posts
-        |> withSortedPosts handlePosts
+            let findPost slug = 
+                posts 
+                |> Array.tryFind (fun post -> strEquals post.Slug slug)
+
+            let handler =
+                match getSlugFromQuery () with            
+                | None      -> handleNotFound None            
+                | Some slug ->
+
+                    match findPost slug with
+                    | None      -> handleNotFound (Some slug)
+                    | Some post -> handlePost post
+            
+            handler next ctx
+            
+    let index (posts : PostModel[]) : HttpHandler =       
+        posts 
+        |> Array.sortBy (fun p -> p.Date)
+        |> View.index 
+        |> htmlOut
