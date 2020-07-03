@@ -24,7 +24,7 @@ let parseTitleFromYaml (yaml : string) =
             WithNamingConvention(CamelCaseNamingConvention.Instance).
             Build()
     use rd = new StringReader(yaml)
-    let parser = new Parser(rd)
+    let parser = Parser(rd)
 
     parser.Consume<StreamStart>() |> ignore
     parser.Consume<DocumentStart>() |> ignore

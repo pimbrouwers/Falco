@@ -1,60 +1,72 @@
 ﻿module HelloWorld.Server
 
-open Falco
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Hosting
+module Router = 
+    open Falco 
 
-/// DeveloperMode is a wrapped boolean primitive to
-/// define the status of "developer mode".
-[<Struct>]
-type DeveloperMode = DeveloperMode of bool
+    let endpoints = 
+        [
+            get      "/" (textOut "Hello, world!")                    
+        ]
 
-/// BuildServer defines a function with a dependency
-/// which returns an IWebHost instance.
-type BuildServer = DeveloperMode -> unit
+module Handlers =   
+    open Falco
 
-module Handlers = 
     let handleException (developerMode : bool) : ExceptionHandler =
         fun ex _ -> 
             setStatusCode 500 >=>
             (match developerMode with
             | true  -> textOut (sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace)
             | false -> textOut "Server Error") 
-        
-    let handleNotFound : HttpHandler =
-        setStatusCode 404
+
+    let handleNotFound = 
+        setStatusCode 404 
         >=> textOut "Not found"
 
-module Config = 
-    let configureServices (services : IServiceCollection) =
-        services.AddRouting() 
-        |> ignore
-
-    let configure 
-        (developerMode : bool)
-        (routes : HttpEndpoint list)
-        (app : IApplicationBuilder) = 
-        app.UseExceptionMiddleware(Handlers.handleException developerMode)
-            .UseRouting()
-            .UseHttpEndPoints(routes)
-            .UseNotFoundHandler(Handlers.handleNotFound)
-            |> ignore 
+module Host =
+    open System
+    open Falco    
+    open Microsoft.AspNetCore.Builder
+    open Microsoft.AspNetCore.Hosting    
+    open Microsoft.Extensions.DependencyInjection    
+    open Microsoft.Extensions.Hosting
     
-let buildServer (webHost : IWebHostBuilder) : BuildServer =            
-    fun (developerMode : DeveloperMode) ->
-        // unwrap our constrained type
-        let (DeveloperMode developerMode) = developerMode
+    type BuildHost = DeveloperMode -> IWebHostBuilder -> unit
 
-        let routes = 
-            [
-                get "/"    (textOut "hello world")                
-            ]
+    type StartHost = DeveloperMode -> string[] -> unit
 
-        webHost
-            .UseKestrel()            
-            .ConfigureServices(Config.configureServices)
-            .Configure(Config.configure developerMode routes)
+    module Config =
+        let configureServices (services : IServiceCollection) =
+            services.AddRouting()                 
             |> ignore
+                        
+        let configure             
+            (developerMode : bool)
+            (routes : HttpEndpoint list)
+            (app : IApplicationBuilder) =             
+            app.UseExceptionMiddleware(Handlers.handleException developerMode)               
+               .UseRouting()
+               .UseHttpEndPoints(routes)
+               .UseNotFoundHandler(Handlers.handleNotFound)
+               |> ignore 
     
+    let buildHost : BuildHost =            
+        fun (developerMode : DeveloperMode)             
+            (webHost : IWebHostBuilder) ->        
+            let (DeveloperMode developerMode) = developerMode        
+            
+            webHost
+                .UseKestrel()
+                .ConfigureServices(Config.configureServices)
+                .Configure(Config.configure developerMode Router.endpoints)
+                |> ignore
+
+    let startHost : StartHost =
+        fun (developerMode : DeveloperMode)             
+            (args : string[]) ->
+            let configureWebHost (webHost : IWebHostBuilder) =
+                buildHost developerMode webHost
+            
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHost(Action<IWebHostBuilder> configureWebHost)
+                .Build()
+                .Run()

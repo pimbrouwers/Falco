@@ -2,13 +2,6 @@
 
 module Model =
     open System
-    
-    type UnprocessedPost =
-        {
-            Slug  : string            
-            Date  : DateTime
-            Body  : string
-        }
         
     type PostModel =
         {
@@ -18,27 +11,22 @@ module Model =
             Body  : string
         }
 
-    module PostModel =
-        open Blog.Markdown
-
-        let parseBlogPost (unprocessedPost : UnprocessedPost)=                                 
-            let markdownDoc = renderMarkdown unprocessedPost.Body            
-            {
-                Slug = unprocessedPost.Slug
-                Title = markdownDoc.Title
-                Date = unprocessedPost.Date
-                Body = markdownDoc.Body
-            }
-
 [<RequireQualifiedAccess>]
-module IO =            
+module Data =            
     open System
     open System.Globalization
     open System.IO
     open Model
 
-    let all postsDirectory =  
-        let readPostContet (postPath : string) = 
+    type UnprocessedPost =
+        {
+            Slug : string            
+            Date : DateTime
+            Body : string
+        }
+
+    let loadAll postsDirectory =  
+        let readPost (postPath : string) = 
             let relativePath = Path.GetFileNameWithoutExtension postPath
 
             let extractDateFromPath =
@@ -58,69 +46,116 @@ module IO =
                 Body = markdown
             }
 
+        let processPost (unprocessedPost : UnprocessedPost) =
+            let markdownDoc = Markdown.renderMarkdown unprocessedPost.Body            
+            {
+                Slug = unprocessedPost.Slug
+                Title = markdownDoc.Title
+                Date = unprocessedPost.Date
+                Body = markdownDoc.Body
+            }
+
         postsDirectory
         |> Directory.GetFiles        
-        |> Array.map readPostContet
-        |> Array.map PostModel.parseBlogPost
-        |> Array.toList
-
+        |> Array.map (readPost >> processPost)
+     
 [<RequireQualifiedAccess>]
 module View =
     open Falco.ViewEngine
     open Blog.UI
     open Model 
-
-    let index (blogPosts : PostModel list) =    
-        blogPosts         
-        |> List.map (fun p -> 
-            div [] [ 
-                    span [] [ raw (p.Date.ToShortDateString()) ]
-                    span [] [ raw "&nbsp;&mdash;&nbsp;"]
-                    a [ _href p.Slug ] [ raw p.Title ]
-                ])        
-        |> fun p -> 
-            master "Falco Blog" ([ 
-                    h1 [] [ raw "Falco Blog "]
-                    h2 [] [ raw "Posts"]                
-                ] @ p)
         
     let details (blogPost : PostModel) =
-        master blogPost.Title [ raw blogPost.Body ]
+        [ 
+            a   [ _href "/"; ] [ raw "<< Back home" ]
+            raw blogPost.Body 
+        ]
+        |> layout blogPost.Title 
 
+    let index (blogPosts : PostModel[]) =    
+        let postElement p =
+            div [] [ 
+                    span [] [ raw (p.Date.ToShortDateString()) ]
+                    span [] [ raw " &mdash; "]
+                    a [ _href p.Slug ] [ raw p.Title ]
+                ]
+
+        let postElements = 
+            blogPosts         
+            |> Array.map postElement        
+            |> List.ofArray
+
+        [ 
+            h1 [] [ raw "Falco Blog "]
+            h2 [] [ raw "Posts"]                
+        ] @ postElements
+        |> layout "Falco Blog"
+
+    let notFound slug =
+        let msg = 
+            match slug with
+            | None -> "Invalid post URL"
+            | Some slug -> (sprintf "Post with URL %s was not found" slug)
+
+        [
+            h1 [] [ raw "Not Found"]
+            p  [] [ raw msg ]
+        ]
+        |> layout "Not Found"
+    
 module Middleware =
     open Falco 
     open Falco.StringUtils
     open Model
 
-    let withPost (posts : PostModel list) (handler : PostModel -> HttpHandler) : HttpHandler =    
-        fun next ctx ->
-            let slug = ctx.TryGetRouteValue "slug" |> Option.defaultValue ""
-            let handleNotFound = setStatusCode 404 >=> textOut "Not found"
-            
-            let handlerResult =
-                posts
-                |> List.tryFind (fun p -> strEquals p.Slug slug)
-                |> function
-                   | None      -> handleNotFound
-                   | Some post -> handler post
-                   
-            handlerResult next ctx 
-    
+    let withSortedPosts         
+        (handlePosts : PostModel[] -> HttpHandler)
+        (posts : PostModel[]) : HttpHandler =
+         posts
+        |> Array.sortBy (fun p -> p.Date)
+        |> handlePosts
+
+    let withPostFromSlug      
+        (handleNotFound : string option -> HttpHandler)
+        (handlePost : PostModel -> HttpHandler) 
+        (posts : PostModel[]) : HttpHandler =    
+        fun next ctx ->                        
+            let getSlugFromQuery () = 
+                ctx.TryGetRouteValue "slug"
+
+            let findPost slug = 
+                posts |> Array.tryFind (fun p -> strEquals p.Slug slug)
+
+            match getSlugFromQuery () with
+            | None      -> handleNotFound None
+            | Some slug ->
+                match findPost slug with
+                | None      -> handleNotFound (Some slug)
+                | Some post -> handlePost post
+            |> fun handler -> handler next ctx
+
 [<RequireQualifiedAccess>]
 module Controller =
     open Falco 
+    open Middleware
     open Model
 
-    let index (posts : PostModel list) : HttpHandler =
+    let notFound (slug : string option) : HttpHandler =
+        slug
+        |> View.notFound
+        |> htmlOut
+        
+    let details (posts : PostModel[]) : HttpHandler =         
+        let handlePost post =
+            post 
+            |> View.details 
+            |> htmlOut
+
         posts
-        |> List.sortByDescending (fun p -> p.Date)
+        |> withPostFromSlug notFound handlePost
+        
+    
+    let index (posts : PostModel[]) : HttpHandler =       
+        posts 
         |> View.index 
         |> htmlOut
-
-    let details (post : PostModel) : HttpHandler = 
-        post 
-        |> View.details 
-        |> htmlOut
-
-    
-

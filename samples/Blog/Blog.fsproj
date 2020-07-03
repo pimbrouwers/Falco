@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Common.fs" />
     <Compile Include="Markdown.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Post.fs" />

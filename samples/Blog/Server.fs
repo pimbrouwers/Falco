@@ -1,26 +1,17 @@
 ﻿module Blog.Server
 
-open Falco
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
-open Blog.Post.Middleware
+module Router =
+    open Falco 
+    
+    let endpoints posts = 
+        [
+            get      "/{slug:regex(^[a-z\-])}" (posts |> Post.Controller.details)
+            get      "/"                       (posts |> Post.Controller.index)
+        ]
 
-/// DeveloperMode is a wrapped boolean primitive to
-/// isolate the status of "developer mode".
-[<Struct>]
-type DeveloperMode = DeveloperMode of bool
+module Handlers =   
+    open Falco
 
-/// PostsDirectory is a wrapped string literal to
-/// isolate the posts directory.
-[<Struct>]
-type PostsDirectory = PostsDirectory of string
-
-/// BuildServer defines a function with dependencies
-/// which returns an IWebHost instance.
-type BuildServer = DeveloperMode -> PostsDirectory -> unit
-
-module Handlers =
     let handleException (developerMode : bool) : ExceptionHandler =
         fun ex _ -> 
             setStatusCode 500 >=>
@@ -32,43 +23,63 @@ module Handlers =
         setStatusCode 404 
         >=> textOut "Not found"
 
-module Config =
-    let configureServices (services : IServiceCollection) =
-        services.AddRouting() 
-        |> ignore
-                    
-    let configure             
-        (developerMode : bool)
-        (routes : HttpEndpoint list)
-        (app : IApplicationBuilder) = 
-        
-        app.UseExceptionMiddleware(Handlers.handleException developerMode)
-            .UseRouting()
-            .UseHttpEndPoints(routes)
-            .UseNotFoundHandler(Handlers.handleNotFound)
-            |> ignore 
+module Host =
+    open System    
+    open Falco    
+    open Microsoft.AspNetCore.Builder
+    open Microsoft.AspNetCore.Hosting    
+    open Microsoft.Extensions.DependencyInjection    
+    open Microsoft.Extensions.Hosting
+    
+    type BuildHost = DeveloperMode -> PostsDirectory -> IWebHostBuilder -> unit
 
-let buildServer (webHost : IWebHostBuilder) : BuildServer =            
-    fun (developerMode : DeveloperMode) (postsDirectory : PostsDirectory) ->
-        // unwrap our constrained types
-        let (DeveloperMode developerMode) = developerMode
-        let (PostsDirectory postsDirectory) = postsDirectory
-        
-        // Load all posts from disk once when server starts
-        let posts = Post.IO.all postsDirectory
+    type StartHost = DeveloperMode -> PostsDirectory -> string[] -> unit
 
-        let routes = 
-            [
-                get      "/{slug:regex(^[a-z\-])}" (withPost posts Post.Controller.details)
-                get      "/"                       (Post.Controller.index posts)
-            ]
-
-        webHost
-            .UseKestrel()
-            .ConfigureServices(Config.configureServices)
-            .Configure(Config.configure developerMode routes)
+    module Config =
+        let configureServices (services : IServiceCollection) =
+            services.AddRouting()     
+                    .AddResponseCompression()
+                    .AddResponseCaching()
             |> ignore
+                        
+        let configure             
+            (developerMode : bool)
+            (routes : HttpEndpoint list)
+            (app : IApplicationBuilder) = 
+            
+            app.UseExceptionMiddleware(Handlers.handleException developerMode)
+               .UseResponseCompression()
+               .UseResponseCaching()
+               .UseStaticFiles()
+               .UseRouting()
+               .UseHttpEndPoints(routes)
+               .UseNotFoundHandler(Handlers.handleNotFound)
+               |> ignore 
+    
+    let buildHost : BuildHost =            
+        fun (developerMode : DeveloperMode) 
+            (postsDirectory : PostsDirectory) 
+            (webHost : IWebHostBuilder) ->        
+            let (DeveloperMode developerMode) = developerMode        
+            let (PostsDirectory postsDirectory) = postsDirectory
 
-let startServer : StartServer =
-    fun (server : IWebHost) ->
-        server.Run()
+            // Load all posts from disk once when server starts
+            let posts = Post.Data.loadAll postsDirectory
+        
+            webHost
+                .UseKestrel()
+                .ConfigureServices(Config.configureServices)
+                .Configure(Config.configure developerMode (Router.endpoints posts))
+                |> ignore
+
+    let startHost : StartHost =
+        fun (developerMode : DeveloperMode) 
+            (postsDirectory : PostsDirectory) 
+            (args : string[]) ->
+            let configureWebHost (webHost : IWebHostBuilder) =
+                buildHost developerMode postsDirectory webHost
+            
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHost(Action<IWebHostBuilder> configureWebHost)
+                .Build()
+                .Run()
