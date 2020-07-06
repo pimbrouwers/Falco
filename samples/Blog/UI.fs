@@ -1,17 +1,17 @@
 ﻿module Blog.UI
 
-open Falco.ViewEngine
+open Falco.Markup
 
 let layout pageTitle content = 
-    html [ _lang "en"; _class "border-box mw60-rem center" ] [
-            head [] [
-                meta  [ _charset "UTF-8" ]
-                meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                title [] [ raw pageTitle ]           
-                link  [ _rel "stylesheet"; _href "style.css" ]                             
+    Elem.html [ Attr.lang "en"; Attr.class' "border-box mw60-rem center" ] [
+            Elem.head [] [
+                Elem.meta  [ Attr.charset "UTF-8" ]
+                Elem.meta  [ Attr.httpEquiv "X-UA-Compatible"; Attr.content "IE=edge,chrome=1" ]
+                Elem.meta  [ Attr.name "viewport"; Attr.content "width=device-width,initial-scale=1" ]
+                Elem.title [] [ raw pageTitle ]           
+                Elem.link  [ Attr.rel "stylesheet"; Attr.href "style.css" ]                             
             ]
-            body [ _class "pa4 ff-georgia" ] [                     
-                    main [] content
+            Elem.body [ Attr.class' "pa4 ff-georgia" ] [                     
+                    Elem.main [] content
                 ]
         ] 

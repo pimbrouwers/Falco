@@ -1,84 +1,66 @@
 ﻿module Blog.Server
 
-module Router =
-    open Falco 
-    
-    let endpoints posts = 
-        [
-            get      "/{slug:regex(^[a-z\-])}" (posts |> Post.Controller.details)
-            get      "/"                       (posts |> Post.Controller.index)
-        ]
+open System
+open Falco    
+open Falco.Host
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting    
+open Microsoft.Extensions.DependencyInjection  
+open Microsoft.Extensions.Logging
 
-module Handlers =   
-    open Falco
+let handleException 
+    (developerMode : DeveloperMode) : ExceptionHandler =
+    let (DeveloperMode developerMode) = developerMode
 
-    let handleException (developerMode : DeveloperMode) : ExceptionHandler =
-        let (DeveloperMode developerMode) = developerMode
-
-        fun ex _ -> 
-            setStatusCode 500 
-            >=> textOut (match developerMode with
-                        | true  -> sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace
-                        | false -> "Server Error")
-
-    let handleNotFound = 
-        setStatusCode 404 
-        >=> textOut "Not found"
-
-module Host =
-    open System    
-    open Falco    
-    open Microsoft.AspNetCore.Builder
-    open Microsoft.AspNetCore.Hosting    
-    open Microsoft.Extensions.DependencyInjection    
-    open Microsoft.Extensions.Hosting
-    
-    type BuildHost = DeveloperMode -> PostsDirectory -> IWebHostBuilder -> unit
-
-    type StartHost = DeveloperMode -> PostsDirectory -> string[] -> unit
-
-    module Config =
-        let configureServices (services : IServiceCollection) =
-            services.AddRouting()     
-                    .AddResponseCaching()
-                    .AddResponseCompression()
-            |> ignore
-                        
-        let configure             
-            (developerMode : DeveloperMode)
-            (routes : HttpEndpoint list)
-            (app : IApplicationBuilder) = 
-            
-            app.UseExceptionMiddleware(Handlers.handleException developerMode)
-               .UseResponseCaching()
-               .UseResponseCompression()
-               .UseStaticFiles()
-               .UseRouting()
-               .UseHttpEndPoints(routes)
-               .UseNotFoundHandler(Handlers.handleNotFound)
-               |> ignore 
-    
-    let buildHost : BuildHost =            
-        fun (developerMode : DeveloperMode) 
-            (postsDirectory : PostsDirectory) 
-            (webHost : IWebHostBuilder) ->                       
-            // Load all posts from disk only once when server starts
-            let posts = Post.Data.loadAll postsDirectory
+    fun (ex : Exception)
+        (log : ILogger) ->
+        let logMessage = 
+            match developerMode with
+            | true  -> sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace
+            | false -> "Server Error"
         
-            webHost
-                .UseKestrel()
-                .ConfigureServices(Config.configureServices)
-                .Configure(Config.configure developerMode (Router.endpoints posts))
-                |> ignore
+        log.Log(LogLevel.Error, logMessage)        
+        
+        Response.withStatusCode 500
+        >> Response.ofPlainText logMessage
+    
+let handleNotFound : HttpHandler = 
+    Response.withStatusCode 404
+    >> Response.ofPlainText "Not found"
+    
+let configureWebHost 
+    (developerMode : DeveloperMode) : ConfigureWebHost =            
+    let configureLogging 
+        (log : ILoggingBuilder) =
+        log.SetMinimumLevel(LogLevel.Error)
+        |> ignore
 
-    let startHost : StartHost =
-        fun (developerMode : DeveloperMode) 
-            (postsDirectory : PostsDirectory) 
-            (args : string[]) ->
-            let configureWebHost (webHost : IWebHostBuilder) =
-                buildHost developerMode postsDirectory webHost
+    let configureServices 
+        (services : IServiceCollection) =
+        services.AddRouting()     
+                .AddResponseCaching()
+                .AddResponseCompression()
+        |> ignore
+                        
+    let configure             
+        (developerMode : DeveloperMode)
+        (routes : HttpEndpoint list)
+        (app : IApplicationBuilder) = 
             
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHost(Action<IWebHostBuilder> configureWebHost)
-                .Build()
-                .Run()
+        app.UseExceptionMiddleware(handleException developerMode)
+            .UseResponseCaching()
+            .UseResponseCompression()
+            .UseStaticFiles()
+            .UseRouting()
+            .UseHttpEndPoints(routes)
+            .UseNotFoundHandler(handleNotFound)
+            |> ignore 
+
+    fun (endpoints : HttpEndpoint list)
+        (webHost : IWebHostBuilder) ->                              
+        webHost
+            .UseKestrel()
+            .ConfigureLogging(configureLogging)
+            .ConfigureServices(configureServices)
+            .Configure(configure developerMode endpoints)
+            |> ignore

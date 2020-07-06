@@ -11,15 +11,20 @@ let getVerb
     (ctx : HttpContext) : HttpVerb =
     ctx.Request.HttpVerb
 
+let tryGetRouteValue 
+    (key : string) 
+    (ctx : HttpContext) =
+    ctx.TryGetRouteValue key
+
 let tryBindForm    
-    (ctx : HttpContext)
-    (bind : BindStringCollection<'a>) : Task<Result<'a, string>> = task {
+    (bind : BindStringCollection<'a>)
+    (ctx : HttpContext) : Task<Result<'a, string>> = task {
         let! form = ctx.Request.GetFormReaderAsync ()            
         return form |> bind
     }
 
 let tryBindQuery    
-    (ctx : HttpContext)
-    (bind : BindStringCollection<'a>) : Result<'a, string> = 
+    (bind : BindStringCollection<'a>) 
+    (ctx : HttpContext) : Result<'a, string> = 
     ctx.Request.GetQueryReader () 
     |> bind

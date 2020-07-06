@@ -7,20 +7,41 @@ open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Routing
 open NSubstitute
 
-[<Fact>]
-let ``can create RequestDelegate from HttpHandler`` () =
-    let handler = textOut "hello"
-    handler
-    |> createRequestDelete
-    |> should be ofExactType<RequestDelegate>
+let emptyHandler : HttpHandler = Response.ofPlainText ""
 
 [<Fact>]
-let ``can create RequestDelegate from composed HttpHandler's`` () =
-    let handler = setStatusCode 403 >=> textOut "forbidden"
-    handler
-    |> createRequestDelete
-    |> should be ofExactType<RequestDelegate>
- 
+let ``route function should return valid HttpEndpoint`` () =    
+    let routeVerb = GET
+    let routePattern = "/"
+    let endpoint = route routeVerb routePattern emptyHandler
+    
+    endpoint.Verb    |> should equal routeVerb
+    endpoint.Pattern |> should equal routePattern
+    endpoint.Handler |> should be instanceOfType<HttpHandler>
+
+let testEndpointFunction 
+    (fn : MapHttpEndpoint)
+    (verb : HttpVerb) =
+    let pattern = "/"
+    let endpoint = fn pattern emptyHandler
+    endpoint.Pattern |> should equal pattern
+    endpoint.Verb    |> should equal verb
+
+[<Fact>]
+let ``any function returns HttpEndpoint matching ANY HttpVerb`` () = 
+    [
+        any, ANY
+        get, GET
+        head, HEAD
+        post, POST
+        put, PUT
+        patch, PATCH
+        delete, DELETE
+        options, OPTIONS
+        trace, TRACE
+    ]
+    |> List.iter (fun (fn, verb) -> testEndpointFunction fn verb)
+
 [<Fact>]
 let ``RouteValue returns None for missing`` () =
     let ctx = Substitute.For<HttpContext>()

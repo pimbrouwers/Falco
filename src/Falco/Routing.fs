@@ -13,7 +13,9 @@ type HttpEndpoint =
         Verb    : HttpVerb
         Handler : HttpHandler
     }
-    
+
+type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
+
 type IApplicationBuilder with
     /// Activate Falco integration with IEndpointRouteBuilder
     member this.UseHttpEndPoints (endPoints : HttpEndpoint list) =
@@ -38,7 +40,10 @@ type IApplicationBuilder with
         this.Run(HttpHandler.toRequestDelegate notFoundHandler)
 
 /// Constructor for HttpEndpoint
-let route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) =
+let route 
+    (verb : HttpVerb) 
+    (pattern : string) 
+    (handler : HttpHandler) : HttpEndpoint =
     { 
         Pattern = pattern
         Verb  = verb
@@ -46,40 +51,58 @@ let route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) =
     }
 
 /// HttpEndpoint constructor that matches any HttpVerb
-let any (pattern : string) (handler : HttpHandler) = 
-    route ANY pattern handler
+let any : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route ANY pattern handler
     
 /// GET HttpEndpoint constructor
-let get (pattern : string) (handler : HttpHandler) = 
-    route GET pattern handler
+let get : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route GET pattern handler
 
 /// HEAD HttpEndpoint constructor
-let head (pattern : string) (handler : HttpHandler) = 
-    route HEAD pattern handler
+let head : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route HEAD pattern handler
 
 /// POST HttpEndpoint constructor
-let post (pattern : string) (handler : HttpHandler) = 
-    route POST pattern handler
+let post : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route POST pattern handler
 
 /// PUT HttpEndpoint constructor
-let put (pattern : string) (handler : HttpHandler) = 
-    route PUT pattern handler
+let put : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route PUT pattern handler
 
 /// PATCH HttpEndpoint constructor
-let patch (pattern : string) (handler : HttpHandler) = 
-    route PATCH pattern handler
+let patch : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route PATCH pattern handler
 
 /// DELETE HttpEndpoint constructor
-let delete (pattern : string) (handler : HttpHandler) = 
-    route DELETE pattern handler
+let delete : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route DELETE pattern handler
 
 /// OPTIONS HttpEndpoint constructor
-let options (pattern : string) (handler : HttpHandler) = 
-    route OPTIONS pattern handler
+let options : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route OPTIONS pattern handler
 
 /// TRACE HttpEndpoint construct
-let trace (pattern : string) (handler : HttpHandler) = 
-    route TRACE pattern handler
+let trace : MapHttpEndpoint = 
+    fun (pattern : string) 
+        (handler : HttpHandler) ->
+        route TRACE pattern handler
 
 type HttpContext with        
     /// Obtain Map<string,string> of current route values

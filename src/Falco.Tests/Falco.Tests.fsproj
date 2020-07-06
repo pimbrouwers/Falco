@@ -9,12 +9,13 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="CoreTests.fs" />
     <Compile Include="StringParserTests.fs" />
     <Compile Include="StringUtilsTests.fs" />
+    <Compile Include="StringCollectionReaderTests.fs" />
+    <Compile Include="CoreTests.fs" />
     <Compile Include="RoutingTests.fs" />
-    <Compile Include="ModelBindingTests.fs" />
-    <Compile Include="HtmlTests.fs" />
+    <Compile Include="MarkupTests.fs" />
+    <Compile Include="SecurityTests.fs" />
     <Compile Include="HandlersTests.fs" />
     <Compile Include="AuthTests.fs" />
     <Compile Include="Program.fs" />

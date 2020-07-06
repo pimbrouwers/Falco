@@ -34,7 +34,7 @@ let ``WriteString writes to body and sets content length`` () =
     let expected = "hello world"
         
     task {
-        let! _ = ctx.WriteString Encoding.UTF8 expected
+        let! _ = ctx.Response.WriteString Encoding.UTF8 expected
         let! body = getBody ctx
         let contentLength = ctx.Response.ContentLength            
 

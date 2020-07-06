@@ -33,8 +33,6 @@ let startWebHost =
         .Run()
 
 let defaultConfigureWebHost = 
-    fun (endpoints : HttpEndpoint list)
-        (webHost : IWebHostBuilder) ->  
     let configureLogging
             (log : ILoggingBuilder) =
             log.SetMinimumLevel(LogLevel.Error)
@@ -59,12 +57,14 @@ let defaultConfigureWebHost =
             .UseNotFoundHandler(defaultNotFoundHandler)
             |> ignore 
                      
-    webHost
-        .UseKestrel()
-        .ConfigureLogging(configureLogging)
-        .ConfigureServices(configureServices)
-        .Configure(configure endpoints)
-        |> ignore
+    fun (endpoints : HttpEndpoint list)
+        (webHost : IWebHostBuilder) ->  
+        webHost
+            .UseKestrel()
+            .ConfigureLogging(configureLogging)
+            .ConfigureServices(configureServices)
+            .Configure(configure endpoints)
+            |> ignore
 
 let startWebHostDefault =
     fun (args : string[]) 

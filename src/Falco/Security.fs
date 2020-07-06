@@ -3,14 +3,13 @@
 module Crypto =    
     open System
     open System.Security.Cryptography
-    open Microsoft.AspNetCore.Cryptography.KeyDerivation
-
+        
     /// Make byte[] from Base64 string
-    let fromBase64String (str : string) = 
+    let bytesFromBase64 (str : string) = 
         Convert.FromBase64String(str)
-
+    
     /// Make Base64 string from byte[]
-    let toBase64 (bytes : byte[]) = 
+    let bytesToBase64 (bytes : byte[]) = 
         Convert.ToBase64String(bytes)
     
     /// Generate a random int32 between range
@@ -23,30 +22,32 @@ module Crypto =
         let rndAry = Array.zeroCreate<byte> len
         use rng = RandomNumberGenerator.Create()
         rng.GetBytes(rndAry)        
-        rndAry |> toBase64 
+        rndAry |> bytesToBase64 
 
     /// Perform key derivation using the provided algorithm
     let pbkdf2 
-        (prf : KeyDerivationPrf) 
+        (algo : HashAlgorithmName) 
         (iterations : int) 
         (numBytesRequested : int)
-        (salt : string)
-        (strToHash : string) =    
-        KeyDerivation.Pbkdf2(
-            strToHash,
-            (fromBase64String salt),
-            prf,
-            iterations, 
-            numBytesRequested)
-        |> toBase64
+        (salt : byte[])
+        (input : byte[]) =    
+        let pbkdf2 = new Rfc2898DeriveBytes(input, salt, iterations, algo)
+            
+        pbkdf2.GetBytes(numBytesRequested)
+        |> bytesToBase64
 
-    /// Perform key derivation using HMACSHA256
+    /// Perform PBKDF2 key derivation using HMACSHA256
     let sha256 
         (iterations : int) 
         (numBytesRequested : int)
         (salt : string)
-        (strToHash : string) =         
-        pbkdf2 KeyDerivationPrf.HMACSHA256 iterations numBytesRequested salt strToHash
+        (strToHash : string) =                
+        pbkdf2 
+            HashAlgorithmName.SHA256
+            iterations 
+            numBytesRequested 
+            (Text.Encoding.UTF8.GetBytes salt)
+            (Text.Encoding.UTF8.GetBytes strToHash)
     
     /// Perform key derivation using HMACSHA512
     let sha512 
@@ -54,11 +55,16 @@ module Crypto =
         (numBytesRequested : int)
         (salt : string)
         (strToHash : string) = 
-        pbkdf2 KeyDerivationPrf.HMACSHA512 iterations numBytesRequested salt strToHash
+        pbkdf2 
+            HashAlgorithmName.SHA512
+            iterations 
+            numBytesRequested 
+            (Text.Encoding.UTF8.GetBytes salt)
+            (Text.Encoding.UTF8.GetBytes strToHash)
 
 module Xss =    
+    open System.Threading.Tasks
     open Falco.Markup
-    open FSharp.Control.Tasks
     open Microsoft.AspNetCore.Antiforgery    
     open Microsoft.AspNetCore.Http
     
@@ -67,27 +73,25 @@ module Xss =
         member this.GetCsrfToken () =
             let antiFrg = this.GetService<IAntiforgery>()
             antiFrg.GetAndStoreTokens this
+
+         /// Checks the presence and validity of CSRF token 
+         member this.ValidateCsrfToken () =
+            let antiFrg = this.GetService<IAntiforgery>()        
+            antiFrg.IsRequestValidAsync this
     
     /// Output an antiforgery <input type="hidden" />
-    let antiforgeryInput (token : AntiforgeryTokenSet) =
+    let antiforgeryInput 
+        (token : AntiforgeryTokenSet) =
         Elem.input [ 
                 Attr.type' "hidden"
                 Attr.name token.FormFieldName
                 Attr.value token.RequestToken 
             ]
-
-    ///// Checks the presence and validity of CSRF token and calls invalidTokenHandler on failure
-    ///// GET, HEAD, OPTIONS & TRACE always validate as true
-    //let ifTokenValid (invalidTokenHandler : HttpHandler) : HttpHandler =
-    //    fun (next: HttpFunc) (ctx : HttpContext) ->                                
-    //        task {
-    //            let antiFrg = ctx.GetService<IAntiforgery>()        
-    //            let! isValid = antiFrg.IsRequestValidAsync(ctx)
-    //            return! 
-    //                match isValid with
-    //                | true  -> next ctx
-    //                | false -> (invalidTokenHandler earlyReturn) ctx
-    //        }
+                
+    /// GET, HEAD, OPTIONS & TRACE always validate as true
+    let isTokenValid 
+        (ctx : HttpContext) : Task<bool> =        
+            ctx.ValidateCsrfToken()
 
     ///// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package,
     ///// which is fed into the provided handler

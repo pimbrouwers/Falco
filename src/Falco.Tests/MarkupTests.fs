@@ -1,4 +1,4 @@
-﻿module Falco.Tests.Html
+﻿module Falco.Tests.Markup
 
 open Falco.Markup
 open FsUnit.Xunit
@@ -16,21 +16,22 @@ let ``Text should be encoded`` () =
 
 [<Fact>]
 let ``Self-closing tag should render with trailing slash`` () =
-    let t = selfClosingTag "hr" [ _class "my-class" ]
+    let t = Elem.selfClosingTag "hr" [ Attr.class' "my-class" ]
     renderNode t |> should equal "<hr class=\"my-class\" />"
 
 [<Fact>]
 let ``Standard tag should render with multiple attributes`` () =
-    let t = tag "div" [ attr "class" "my-class"; _autofocus; attr "data-bind" "slider" ] []
+    let t = Elem.tag "div" [ Attr.create "class" "my-class"; Attr.autofocus; Attr.create "data-bind" "slider" ] []
     renderNode t |> should equal "<div class=\"my-class\" autofocus data-bind=\"slider\"></div>"
 
 [<Fact>]
 let ``Should produce valid html doc`` () =
-    let doc = html [] [
-            body [] [
-                    div [ _class "my-class" ] [
-                            h1 [] [ raw "hello" ]
-                        ]
-                ]
-        ]
+    let doc = 
+        Elem.html [] [
+                Elem.body [] [
+                        Elem.div [ Attr.class' "my-class" ] [
+                                Elem.h1 [] [ raw "hello" ]
+                            ]
+                    ]
+            ]
     renderHtml doc |> should equal "<!DOCTYPE html><html><body><div class=\"my-class\"><h1>hello</h1></div></body></html>"
