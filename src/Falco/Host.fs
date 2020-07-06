@@ -8,62 +8,69 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
-type BuildHost = IWebHostBuilder -> unit
+type ConfigureWebHost = HttpEndpoint list -> IWebHostBuilder -> unit
 
 let defaultExceptionHandler 
     (ex : Exception)
     (log : ILogger) : HttpHandler =
-    fun ctx ->   
-        ctx.Response.SetStatusCode 500
-
-        let logMessage =
-            sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace
-        log.Log(LogLevel.Error, logMessage)
-        Response.ofPlainText ctx logMessage 
+    let logMessage = sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace
+    log.Log(LogLevel.Error, logMessage)        
+    
+    Response.withStatusCode 500
+    >> Response.ofPlainText logMessage
         
-let defaultNotFoundHandler : HttpHandler =
-    fun ctx ->
-        ctx.Response.SetStatusCode 404        
-        Response.ofPlainText ctx "Not found" 
+let defaultNotFoundHandler : HttpHandler =    
+    Response.withStatusCode 404
+    >> Response.ofPlainText "Not found"
 
-let startDefaultHost =
+let startWebHost =
     fun (args : string[]) 
-        (endpoints : HttpEndpoint list) ->
+        (webHostBuilder : ConfigureWebHost)
+        (endpoints : HttpEndpoint list) ->    
+    Host.CreateDefaultBuilder(args)
+        .ConfigureWebHost(Action<IWebHostBuilder> (webHostBuilder endpoints))
+        .Build()
+        .Run()
 
-    let configureWebHost : BuildHost =
-        let configureLogging
+let defaultConfigureWebHost = 
+    fun (endpoints : HttpEndpoint list)
+        (webHost : IWebHostBuilder) ->  
+    let configureLogging
             (log : ILoggingBuilder) =
             log.SetMinimumLevel(LogLevel.Error)
             |> ignore
 
-        let configureServices 
-            (services : IServiceCollection) =
-            services.AddRouting()     
-                    .AddResponseCaching()
-                    .AddResponseCompression()
-            |> ignore
+    let configureServices 
+        (services : IServiceCollection) =
+        services.AddRouting()     
+                .AddResponseCaching()
+                .AddResponseCompression()
+        |> ignore
                     
-        let configure             
-            (routes : HttpEndpoint list)
-            (app : IApplicationBuilder) =         
-            app.UseExceptionMiddleware(defaultExceptionHandler)
-                .UseResponseCaching()
-                .UseResponseCompression()
-                .UseStaticFiles()
-                .UseRouting()
-                .UseHttpEndPoints(routes)
-                .UseNotFoundHandler(defaultNotFoundHandler)
-                |> ignore 
+    let configure             
+        (routes : HttpEndpoint list)
+        (app : IApplicationBuilder) =         
+        app.UseExceptionMiddleware(defaultExceptionHandler)
+            .UseResponseCaching()
+            .UseResponseCompression()
+            .UseStaticFiles()
+            .UseRouting()
+            .UseHttpEndPoints(routes)
+            .UseNotFoundHandler(defaultNotFoundHandler)
+            |> ignore 
+                     
+    webHost
+        .UseKestrel()
+        .ConfigureLogging(configureLogging)
+        .ConfigureServices(configureServices)
+        .Configure(configure endpoints)
+        |> ignore
 
-        fun (webHost : IWebHostBuilder) ->                       
-            webHost
-                .UseKestrel()
-                .ConfigureLogging(configureLogging)
-                .ConfigureServices(configureServices)
-                .Configure(configure endpoints)
-                |> ignore
-
+let startWebHostDefault =
+    fun (args : string[]) 
+        (endpoints : HttpEndpoint list) ->
+            
     Host.CreateDefaultBuilder(args)
-        .ConfigureWebHost(Action<IWebHostBuilder> configureWebHost)
+        .ConfigureWebHost(Action<IWebHostBuilder> (defaultConfigureWebHost endpoints))
         .Build()
         .Run()

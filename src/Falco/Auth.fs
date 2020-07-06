@@ -2,7 +2,7 @@
 
 open System.Security.Claims
 open System.Security.Principal
-open Falco.ViewEngine
+open Falco.Markup
 open Falco.Security.Xss
 open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Antiforgery

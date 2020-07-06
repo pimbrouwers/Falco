@@ -3,30 +3,56 @@
 open System.Text
 open System.Text.Json
 open System.Threading.Tasks
-open Falco.ViewEngine
+open Falco.Markup
 open Microsoft.AspNetCore.Http
+open Microsoft.Net.Http.Headers
 
-let ofPlainText
-    (ctx : HttpContext)
-    (str : string) : Task =    
-    ctx.Response.SetContentType "text/plain; charset=utf-8"
-    ctx.Response.WriteString Encoding.UTF8 str
+type HttpResponseModifier = HttpContext -> HttpContext
 
-let ofHtml 
-    (ctx : HttpContext)
-    (html : XmlNode) : Task = 
-    ctx.Response.SetContentType "text/html; charset=utf-8"
-    let html = renderHtml html 
-    ctx.Response.WriteString Encoding.UTF8 html
+let setHeader 
+    (header : string)
+    (content : string) : HttpResponseModifier =
+    fun ctx ->
+        ctx.Response.SetHeader header content
+        ctx
 
-let ofJson
-    (ctx : HttpContext)
-    (obj : 'a) : Task =
-    ctx.Response.SetContentType "application/json; charset=utf-8"            
-    JsonSerializer.SerializeAsync(ctx.Response.Body, obj)
-      
-let redirect 
-    (ctx : HttpContext)
+let setContentType
+    (contentType : string) : HttpResponseModifier =
+    setHeader HeaderNames.ContentType contentType         
+
+let redirect     
     (url : string) 
-    (permanent : bool) : unit =
-    ctx.Response.Redirect(url, permanent)
+    (permanent : bool) : HttpResponseModifier =
+    fun ctx ->
+        ctx.Response.Redirect(url, permanent)
+        ctx
+
+let withStatusCode
+    (statusCode : int) : HttpResponseModifier =
+    fun ctx ->
+        ctx.Response.SetStatusCode statusCode
+        ctx
+
+type HttpResponder = HttpContext -> Task
+
+let ofString
+    (encoding : Encoding)
+    (str : string) : HttpResponder =
+    fun ctx ->
+        ctx.Response.WriteString encoding str
+
+let ofPlainText    
+    (str : string) : HttpResponder =
+    setContentType "text/plain; charset=utf-8" 
+    >> ofString Encoding.UTF8 str
+                
+let ofHtml     
+    (html : XmlNode) : HttpResponder =    
+    let html = renderHtml html
+    setContentType "text/html; charset=utf-8"
+    >> ofString Encoding.UTF8 html
+
+let ofJson    
+    (obj : 'a) : HttpResponder =    
+    setContentType "application/json; charset=utf-8"
+    >> fun ctx -> JsonSerializer.SerializeAsync(ctx.Response.Body, obj)     

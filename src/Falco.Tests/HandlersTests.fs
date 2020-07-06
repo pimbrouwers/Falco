@@ -2,7 +2,7 @@
 
 open System.Text
 open Falco
-open Falco.ViewEngine
+open Falco.Markup
 open FSharp.Control.Tasks
 open FsUnit.Xunit
 open Microsoft.Net.Http.Headers

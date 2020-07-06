@@ -57,7 +57,7 @@ module Crypto =
         pbkdf2 KeyDerivationPrf.HMACSHA512 iterations numBytesRequested salt strToHash
 
 module Xss =    
-    open Falco.ViewEngine
+    open Falco.Markup
     open FSharp.Control.Tasks
     open Microsoft.AspNetCore.Antiforgery    
     open Microsoft.AspNetCore.Http
@@ -67,13 +67,13 @@ module Xss =
         member this.GetCsrfToken () =
             let antiFrg = this.GetService<IAntiforgery>()
             antiFrg.GetAndStoreTokens this
-            
+    
     /// Output an antiforgery <input type="hidden" />
     let antiforgeryInput (token : AntiforgeryTokenSet) =
-        input [ 
-                _type "hidden"
-                _name token.FormFieldName
-                _value token.RequestToken 
+        Elem.input [ 
+                Attr.type' "hidden"
+                Attr.name token.FormFieldName
+                Attr.value token.RequestToken 
             ]
 
     ///// Checks the presence and validity of CSRF token and calls invalidTokenHandler on failure

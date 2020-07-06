@@ -49,7 +49,7 @@
     <Compile Include="Core.fs" />
     <Compile Include="ErrorHandling.fs" />
     <Compile Include="Routing.fs" />
-    <Compile Include="Html.fs" />
+    <Compile Include="Markup.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="Auth.fs" />
     <Compile Include="Request.fs" />

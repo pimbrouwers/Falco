@@ -1,6 +1,6 @@
 ﻿module Falco.Tests.Html
 
-open Falco.ViewEngine
+open Falco.Markup
 open FsUnit.Xunit
 open Xunit
         
