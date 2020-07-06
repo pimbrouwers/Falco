@@ -11,15 +11,15 @@ let getVerb
     (ctx : HttpContext) : HttpVerb =
     ctx.Request.HttpVerb
 
-let tryBindForm
-    (bind : BindStringCollection<'a>)
-    (ctx : HttpContext) : Task<Result<'a, string>> = task {
+let tryBindForm    
+    (ctx : HttpContext)
+    (bind : BindStringCollection<'a>) : Task<Result<'a, string>> = task {
         let! form = ctx.Request.GetFormReaderAsync ()            
         return form |> bind
     }
 
-let tryBindQuery
-    (bind : BindStringCollection<'a>)
-    (ctx : HttpContext) : Result<'a, string> = 
+let tryBindQuery    
+    (ctx : HttpContext)
+    (bind : BindStringCollection<'a>) : Result<'a, string> = 
     ctx.Request.GetQueryReader () 
     |> bind

@@ -19,40 +19,46 @@ let defaultExceptionHandler
         let logMessage =
             sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace
         log.Log(LogLevel.Error, logMessage)
-        Response.ofPlainText logMessage ctx
+        Response.ofPlainText ctx logMessage 
         
 let defaultNotFoundHandler : HttpHandler =
     fun ctx ->
-        ctx.Response.SetStatusCode 404
-        Response.ofPlainText "Not found" ctx
+        ctx.Response.SetStatusCode 404        
+        Response.ofPlainText ctx "Not found" 
 
 let startDefaultHost =
     fun (args : string[]) 
         (endpoints : HttpEndpoint list) ->
 
-    let configureServices 
-        (services : IServiceCollection) =
-        services.AddRouting()     
-                .AddResponseCaching()
-                .AddResponseCompression()
-        |> ignore
-                    
-    let configure             
-        (routes : HttpEndpoint list)
-        (app : IApplicationBuilder) =         
-        app.UseExceptionMiddleware(defaultExceptionHandler)
-            .UseResponseCaching()
-            .UseResponseCompression()
-            .UseStaticFiles()
-            .UseRouting()
-            .UseHttpEndPoints(routes)
-            .UseNotFoundHandler(defaultNotFoundHandler)
-            |> ignore 
+    let configureWebHost : BuildHost =
+        let configureLogging
+            (log : ILoggingBuilder) =
+            log.SetMinimumLevel(LogLevel.Error)
+            |> ignore
 
-    let configureWebHost : BuildHost =            
+        let configureServices 
+            (services : IServiceCollection) =
+            services.AddRouting()     
+                    .AddResponseCaching()
+                    .AddResponseCompression()
+            |> ignore
+                    
+        let configure             
+            (routes : HttpEndpoint list)
+            (app : IApplicationBuilder) =         
+            app.UseExceptionMiddleware(defaultExceptionHandler)
+                .UseResponseCaching()
+                .UseResponseCompression()
+                .UseStaticFiles()
+                .UseRouting()
+                .UseHttpEndPoints(routes)
+                .UseNotFoundHandler(defaultNotFoundHandler)
+                |> ignore 
+
         fun (webHost : IWebHostBuilder) ->                       
             webHost
                 .UseKestrel()
+                .ConfigureLogging(configureLogging)
                 .ConfigureServices(configureServices)
                 .Configure(configure endpoints)
                 |> ignore
