@@ -6,39 +6,6 @@ open Microsoft.AspNetCore.Http
 open Falco.StringParser
 open Falco.StringUtils
 
-/// Specifies an HttpEndpoint
-type HttpEndpoint = 
-    {
-        Pattern : string   
-        Verb    : HttpVerb
-        Handler : HttpHandler
-    }
-
-type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
-
-type IApplicationBuilder with
-    /// Activate Falco integration with IEndpointRouteBuilder
-    member this.UseHttpEndPoints (endPoints : HttpEndpoint list) =
-        this.UseEndpoints(fun r -> 
-                for e in endPoints do            
-                    let rd = HttpHandler.toRequestDelegate e.Handler
-                    
-                    match e.Verb with
-                    | GET     -> r.MapGet(e.Pattern, rd)
-                    | HEAD    -> r.MapMethods(e.Pattern, [ HttpMethods.Head ], rd)
-                    | POST    -> r.MapPost(e.Pattern, rd)
-                    | PUT     -> r.MapPut(e.Pattern, rd)
-                    | PATCH   -> r.MapMethods(e.Pattern, [ HttpMethods.Patch ], rd)
-                    | DELETE  -> r.MapDelete(e.Pattern, rd)
-                    | OPTIONS -> r.MapMethods(e.Pattern, [ HttpMethods.Options ], rd)
-                    | TRACE   -> r.MapMethods(e.Pattern, [ HttpMethods.Trace ], rd)
-                    | ANY     -> r.Map(e.Pattern, rd)
-                    |> ignore)
-            
-    /// Enable Falco not found handler (this handler is terminal)
-    member this.UseNotFoundHandler (notFoundHandler : HttpHandler) =
-        this.Run(HttpHandler.toRequestDelegate notFoundHandler)
-
 /// Constructor for HttpEndpoint
 let route 
     (verb : HttpVerb) 
@@ -103,31 +70,3 @@ let trace : MapHttpEndpoint =
     fun (pattern : string) 
         (handler : HttpHandler) ->
         route TRACE pattern handler
-
-type HttpContext with        
-    /// Obtain Map<string,string> of current route values
-    member this.GetRouteValues () =
-        this.Request.RouteValues
-        |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToString())
-        |> Map.ofSeq
-
-    /// The HttpVerb of the current request
-    member this.HttpVerb = 
-        match this.Request.Method with 
-        | m when strEquals m HttpMethods.Get     -> GET
-        | m when strEquals m HttpMethods.Head    -> HEAD
-        | m when strEquals m HttpMethods.Post    -> POST
-        | m when strEquals m HttpMethods.Put     -> PUT
-        | m when strEquals m HttpMethods.Patch   -> PATCH
-        | m when strEquals m HttpMethods.Delete  -> DELETE
-        | m when strEquals m HttpMethods.Options -> OPTIONS
-        | m when strEquals m HttpMethods.Trace   -> TRACE
-        | _ -> ANY
-    
-    /// Attempt to safely-acquire route value
-    member this.TryGetRouteValue (key : string) =
-        let parseRoute = tryParseWith this.Request.RouteValues.TryGetValue             
-        match parseRoute key with
-        | Some v -> Some (v.ToString())
-        | None   -> None
-        

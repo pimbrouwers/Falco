@@ -1,4 +1,5 @@
-﻿module Falco.Request
+﻿[<RequireQualifiedAccess>]
+module Falco.Request
 
 open System.Threading.Tasks
 open FSharp.Control.Tasks
@@ -13,8 +14,8 @@ let getVerb
 
 let tryGetRouteValue 
     (key : string) 
-    (ctx : HttpContext) =
-    ctx.TryGetRouteValue key
+    (ctx : HttpContext) : string option =
+    ctx.Request.TryGetRouteValue key
 
 let tryBindForm    
     (bind : BindStringCollection<'a>)

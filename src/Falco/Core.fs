@@ -3,9 +3,12 @@ module Falco.Core
 
 open System
 open System.IO
+open System.Security.Claims
 open System.Text
 open System.Threading.Tasks
 open FSharp.Control.Tasks
+open Microsoft.AspNetCore.Antiforgery    
+open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
@@ -16,7 +19,7 @@ open Falco.StringParser
 /// Represents a missing dependency, thrown on request
 exception InvalidDependencyException of string
 
-/// Specifies an association of an HttpHandler to an HttpVerb and route pattern
+/// Http verb
 type HttpVerb = 
     | GET 
     | HEAD
@@ -28,14 +31,57 @@ type HttpVerb =
     | TRACE
     | ANY
 
+/// The eventual return of asynchronous HttpContext processing
 type HttpHandler = 
     HttpContext -> Task
 
 module HttpHandler =
+    /// Convert HttpHandler to a RequestDelegate
     let toRequestDelegate (handler : HttpHandler) =        
         new RequestDelegate(handler)
 
-type HttpContext with         
+/// Specifies an association of an HttpHandler to an HttpVerb and route pattern
+type HttpEndpoint = 
+    {
+        Pattern : string   
+        Verb    : HttpVerb
+        Handler : HttpHandler
+    }
+
+/// The process of associating a route and handler
+type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
+
+/// Represents an HttpHandler intended for use as the global exception handler
+/// Receives the thrown exception, and logger
+type ExceptionHandler = Exception -> ILogger -> HttpHandler
+
+type ExceptionHandlingMiddleware (next : RequestDelegate, 
+                                  handler: ExceptionHandler, 
+                                  log : ILoggerFactory) =
+    do
+        if isNull next     then failwith "next cannot be null"
+        else if isNull log then failwith "handler cannot be null"
+
+    member __.Invoke(ctx : HttpContext) =
+        task {
+            try return! next.Invoke ctx
+            with 
+            | :? AggregateException as requestDelegateException -> 
+                let logger = log.CreateLogger<ExceptionHandlingMiddleware>()                
+                logger.LogError(requestDelegateException, "Unhandled exception throw, attempting to handle")
+                try
+                    let! _ = handler requestDelegateException logger ctx
+                    return ()
+                with
+                | :? AggregateException as handlerException ->                               
+                    logger.LogError(handlerException, "Exception thrown while handling exception")
+        }
+
+type HttpContext with       
+    // ------------
+    // IoC & Logging
+    // ------------
+
     /// Attempt to obtain depedency from IServiceCollection
     /// Throws InvalidDependencyException on null
     member this.GetService<'a> () =
@@ -48,6 +94,41 @@ type HttpContext with
     member this.GetLogger (name : string) =
         let loggerFactory = this.GetService<ILoggerFactory>()
         loggerFactory.CreateLogger name
+
+    // ------------
+    // XSS
+    // ------------
+
+    /// Returns (and optional creates) csrf tokens for the current session
+    member this.GetCsrfToken () =
+        let antiFrg = this.GetService<IAntiforgery>()
+        antiFrg.GetAndStoreTokens this
+
+    /// Checks the presence and validity of CSRF token 
+    member this.ValidateCsrfToken () =
+        let antiFrg = this.GetService<IAntiforgery>()        
+        antiFrg.IsRequestValidAsync this
+
+    // ------------
+    // Auth
+    // ------------
+    /// Returns the current user (IPrincipal) or None
+    member this.GetUser () =
+        match this.User with
+        | null -> None
+        | _    -> Some this.User
+
+    /// Returns authentication status of IPrincipal, false on null
+    member this.IsAuthenticated () =
+        let isAuthenciated (user : ClaimsPrincipal) = 
+            let identity = user.Identity
+            match identity with 
+            | null -> false
+            | _    -> identity.IsAuthenticated
+
+        match this.GetUser () with
+        | None      -> false 
+        | Some user -> isAuthenciated user
 
 type HttpRequest with   
     /// The HttpVerb of the current request
@@ -82,16 +163,12 @@ type HttpRequest with
         return! rd.ReadToEndAsync()
     }
 
-    /// Retrieve IFormCollection from HttpRequest
-    member this.GetFormAsync () = 
-        this.ReadFormAsync ()            
-    
     /// Retrieve StringCollectionReader for IFormCollection from HttpRequest
     member this.GetFormReaderAsync () = task {
-        let! form = this.GetFormAsync ()
+        let! form = this.ReadFormAsync()
         return StringCollectionReader(form)
     }        
- 
+
     /// Retrieve StringCollectionReader for IQueryCollection from HttpRequest
     member this.GetQueryReader () = 
         StringCollectionReader(this.Query)
@@ -121,3 +198,35 @@ type HttpResponse with
     member this.WriteString (encoding : Encoding) (httpBodyStr : string) =
         let httpBodyBytes = encoding.GetBytes httpBodyStr
         this.WriteBytes httpBodyBytes
+
+type IApplicationBuilder with
+    /// Enable Falco exception handling middleware. 
+    ///
+    /// It is recommended to specify this BEFORE any other middleware.
+    member this.UseExceptionMiddleware (exceptionHandler : ExceptionHandler) =
+        this.UseMiddleware<ExceptionHandlingMiddleware> exceptionHandler
+
+    /// Activate Falco integration with IEndpointRouteBuilder
+    member this.UseHttpEndPoints (endPoints : HttpEndpoint list) =
+        this.UseEndpoints(fun r -> 
+                for e in endPoints do            
+                    let rd = HttpHandler.toRequestDelegate e.Handler
+                    
+                    match e.Verb with
+                    | GET     -> r.MapGet(e.Pattern, rd)
+                    | HEAD    -> r.MapMethods(e.Pattern, [ HttpMethods.Head ], rd)
+                    | POST    -> r.MapPost(e.Pattern, rd)
+                    | PUT     -> r.MapPut(e.Pattern, rd)
+                    | PATCH   -> r.MapMethods(e.Pattern, [ HttpMethods.Patch ], rd)
+                    | DELETE  -> r.MapDelete(e.Pattern, rd)
+                    | OPTIONS -> r.MapMethods(e.Pattern, [ HttpMethods.Options ], rd)
+                    | TRACE   -> r.MapMethods(e.Pattern, [ HttpMethods.Trace ], rd)
+                    | ANY     -> r.Map(e.Pattern, rd)
+                    |> ignore)
+            
+    /// Enable Falco not found handler.
+    ///
+    /// This handler is terminal and must be specified 
+    /// AFTER all other middlewar.
+    member this.UseNotFoundHandler (notFoundHandler : HttpHandler) =
+        this.Run(HttpHandler.toRequestDelegate notFoundHandler)

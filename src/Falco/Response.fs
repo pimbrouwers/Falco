@@ -1,4 +1,5 @@
-﻿module Falco.Response
+﻿[<RequireQualifiedAccess>]
+module Falco.Response
 
 open System.Text
 open System.Text.Json

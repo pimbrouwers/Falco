@@ -12,7 +12,7 @@ let handleJson =
     get "/json" (Response.ofJson {| Message = message |})
 
 let handleHtml =
-    let html =
+    let view =
         Elem.html [] [
                 Elem.head [] [
                         Elem.title [] [ raw message ]
@@ -22,7 +22,7 @@ let handleHtml =
                     ]
             ]
 
-    get "/html" (Response.ofHtml html)
+    get "/html" (Response.ofHtml view)
 
 [<EntryPoint>]
 let main args =        

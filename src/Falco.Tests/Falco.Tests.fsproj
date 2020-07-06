@@ -15,7 +15,8 @@
     <Compile Include="CoreTests.fs" />
     <Compile Include="RoutingTests.fs" />
     <Compile Include="MarkupTests.fs" />
-    <Compile Include="SecurityTests.fs" />
+    <Compile Include="CryptoTests.fs" />
+    <Compile Include="XssTests.fs" />
     <Compile Include="HandlersTests.fs" />
     <Compile Include="AuthTests.fs" />
     <Compile Include="Program.fs" />
