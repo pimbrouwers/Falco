@@ -30,63 +30,63 @@ type HttpContext with
         | null -> false 
         | _    -> this.User.IsAuthenticated()
 
-/// An HttpHandler to output HTML dependent on ClaimsPrincipal
-let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->
-        htmlOut (ctx.GetUser () |> view) next ctx
+///// An HttpHandler to output HTML dependent on ClaimsPrincipal
+//let authHtmlOut (view : ClaimsPrincipal option -> XmlNode) : HttpHandler =
+//    fun (next : HttpFunc) (ctx : HttpContext) ->
+//        htmlOut (ctx.GetUser () |> view) next ctx
 
-/// An HttpHandler to output HTML dependent on ClaimsPrincipal & CSRF Token
-let authCsrfHtmlOut (view : AntiforgeryTokenSet -> ClaimsPrincipal option -> XmlNode) : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->
-        let csrfToken = ctx.GetCsrfToken ()
-        authHtmlOut (view csrfToken) next ctx
+///// An HttpHandler to output HTML dependent on ClaimsPrincipal & CSRF Token
+//let authCsrfHtmlOut (view : AntiforgeryTokenSet -> ClaimsPrincipal option -> XmlNode) : HttpHandler =
+//    fun (next : HttpFunc) (ctx : HttpContext) ->
+//        let csrfToken = ctx.GetCsrfToken ()
+//        authHtmlOut (view csrfToken) next ctx
 
-/// An HttpHandler which allows further processing if user is authenticated.
-/// Receives handler for case of not authenticated.
-let ifAuthenticated (notAllowedHandler : HttpHandler) : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->
-        match ctx.IsAuthenticated () with
-        | false -> notAllowedHandler next ctx
-        | true  -> next ctx
+///// An HttpHandler which allows further processing if user is authenticated.
+///// Receives handler for case of not authenticated.
+//let ifAuthenticated (notAllowedHandler : HttpHandler) : HttpHandler =
+//    fun (next : HttpFunc) (ctx : HttpContext) ->
+//        match ctx.IsAuthenticated () with
+//        | false -> notAllowedHandler next ctx
+//        | true  -> next ctx
 
-/// An HttpHandler which blocks further processing if user is authenticated.
-/// Receives handler for case of being authenticated.
-let ifNotAuthenticated (nowAllowedHandler : HttpHandler) : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->
-        match ctx.IsAuthenticated () with
-        | false -> next ctx
-        | true  -> nowAllowedHandler next ctx
+///// An HttpHandler which blocks further processing if user is authenticated.
+///// Receives handler for case of being authenticated.
+//let ifNotAuthenticated (nowAllowedHandler : HttpHandler) : HttpHandler =
+//    fun (next : HttpFunc) (ctx : HttpContext) ->
+//        match ctx.IsAuthenticated () with
+//        | false -> next ctx
+//        | true  -> nowAllowedHandler next ctx
 
-/// An HttpHandler to determine if user is authenticated,
-/// and belongs to one of the specified roles
-/// Receives handler for case of being not possessing role.
-let ifInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHandler =    
-    let inRole : HttpHandler =
-        fun (next : HttpFunc) (ctx : HttpContext) ->
-            match List.exists ctx.User.IsInRole roles with
-            | false -> notAllowedHandler next ctx
-            | true  -> next ctx
+///// An HttpHandler to determine if user is authenticated,
+///// and belongs to one of the specified roles
+///// Receives handler for case of being not possessing role.
+//let ifInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHandler =    
+//    let inRole : HttpHandler =
+//        fun (next : HttpFunc) (ctx : HttpContext) ->
+//            match List.exists ctx.User.IsInRole roles with
+//            | false -> notAllowedHandler next ctx
+//            | true  -> next ctx
         
-    ifAuthenticated notAllowedHandler 
-    >=> inRole
+//    ifAuthenticated notAllowedHandler 
+//    >=> inRole
 
-/// An HttpHandler to determine if user is authenticated,
-/// and belongs to one of the specified roles
-/// Receives handler for case of being not possessing role.
-let ifNotInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHandler =    
-    let notInRole : HttpHandler =
-        fun (next : HttpFunc) (ctx : HttpContext) ->
-            match List.exists ctx.User.IsInRole roles with
-            | true  -> notAllowedHandler next ctx
-            | false -> next ctx
+///// An HttpHandler to determine if user is authenticated,
+///// and belongs to one of the specified roles
+///// Receives handler for case of being not possessing role.
+//let ifNotInRole (roles : string list) (notAllowedHandler : HttpHandler) : HttpHandler =    
+//    let notInRole : HttpHandler =
+//        fun (next : HttpFunc) (ctx : HttpContext) ->
+//            match List.exists ctx.User.IsInRole roles with
+//            | true  -> notAllowedHandler next ctx
+//            | false -> next ctx
         
-    ifAuthenticated notAllowedHandler 
-    >=> notInRole
+//    ifAuthenticated notAllowedHandler 
+//    >=> notInRole
 
-/// An HttpHandler to sign principal out of specific auth scheme
-let signOut (authScheme : string) : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->
-        task {
-            do! ctx.SignOutAsync authScheme
-            return! next ctx
-        }
+///// An HttpHandler to sign principal out of specific auth scheme
+//let signOut (authScheme : string) : HttpHandler =
+//    fun (next : HttpFunc) (ctx : HttpContext) ->
+//        task {
+//            do! ctx.SignOutAsync authScheme
+//            return! next ctx
+//        }

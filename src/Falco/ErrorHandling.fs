@@ -3,6 +3,7 @@ module Falco.ErrorHandling
 
 open System
 open FSharp.Control.Tasks
+open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
 
@@ -25,9 +26,17 @@ type ExceptionHandlingMiddleware (next : RequestDelegate,
                 let logger = log.CreateLogger<ExceptionHandlingMiddleware>()                
                 logger.LogError(requestDelegateException, "Unhandled exception throw, attempting to handle")
                 try
-                    let! _ = handler requestDelegateException logger earlyReturn ctx
+                    let! _ = handler requestDelegateException logger ctx
                     return ()
                 with
                 | :? AggregateException as handlerException ->                               
                     logger.LogError(handlerException, "Exception thrown while handling exception")
         }
+
+type IApplicationBuilder with
+    /// Enable Falco exception handling middleware. 
+    ///
+    /// It is recommended to specify this BEFORE any other middleware.
+    member this.UseExceptionMiddleware (exceptionHandler : ExceptionHandler) =
+        this.UseMiddleware<ExceptionHandlingMiddleware> exceptionHandler
+

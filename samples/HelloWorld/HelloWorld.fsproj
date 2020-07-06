@@ -5,8 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Common.fs" />
-    <Compile Include="Server.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

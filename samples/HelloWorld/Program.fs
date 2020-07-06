@@ -1,13 +1,16 @@
 module HelloWorld.Program
 
-open HelloWorld.Server
+open Falco
+
+let handleHello =
+    get "/" (fun ctx ->
+        Response.ofPlainText "Hello world" ctx)
 
 [<EntryPoint>]
 let main args =        
-    try
-        Host.startHost
-            Env.developerMode            
-            args
-        0
-    with
-    | _ -> -1
+    Host.startDefaultHost 
+        args 
+        [
+            handleHello
+        ]
+    0

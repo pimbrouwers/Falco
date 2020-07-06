@@ -43,19 +43,18 @@
 
   <ItemGroup>
     <Compile Include="TaskBuilder.fs" />
-    <Compile Include="Core.fs" />
     <Compile Include="StringUtils.fs" />
     <Compile Include="StringParser.fs" />
+    <Compile Include="StringCollectionReader.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="ErrorHandling.fs" />
     <Compile Include="Routing.fs" />
-    <Compile Include="Middleware.fs" />
-    <Compile Include="StringCollectionReader.fs" />
-    <Compile Include="ModelBinding.fs" />
     <Compile Include="Html.fs" />
-    <Compile Include="Handlers.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="Auth.fs" />
-    <Compile Include="Multipart.fs" />
+    <Compile Include="Request.fs" />
+    <Compile Include="Response.fs" />
+    <Compile Include="Host.fs" />
   </ItemGroup>
 
 </Project>

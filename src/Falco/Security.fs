@@ -76,29 +76,29 @@ module Xss =
                 _value token.RequestToken 
             ]
 
-    /// Checks the presence and validity of CSRF token and calls invalidTokenHandler on failure
-    /// GET, HEAD, OPTIONS & TRACE always validate as true
-    let ifTokenValid (invalidTokenHandler : HttpHandler) : HttpHandler =
-        fun (next: HttpFunc) (ctx : HttpContext) ->                                
-            task {
-                let antiFrg = ctx.GetService<IAntiforgery>()        
-                let! isValid = antiFrg.IsRequestValidAsync(ctx)
-                return! 
-                    match isValid with
-                    | true  -> next ctx
-                    | false -> (invalidTokenHandler earlyReturn) ctx
-            }
+    ///// Checks the presence and validity of CSRF token and calls invalidTokenHandler on failure
+    ///// GET, HEAD, OPTIONS & TRACE always validate as true
+    //let ifTokenValid (invalidTokenHandler : HttpHandler) : HttpHandler =
+    //    fun (next: HttpFunc) (ctx : HttpContext) ->                                
+    //        task {
+    //            let antiFrg = ctx.GetService<IAntiforgery>()        
+    //            let! isValid = antiFrg.IsRequestValidAsync(ctx)
+    //            return! 
+    //                match isValid with
+    //                | true  -> next ctx
+    //                | false -> (invalidTokenHandler earlyReturn) ctx
+    //        }
 
-    /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package,
-    /// which is fed into the provided handler
-    let csrfTokenizer (handler : AntiforgeryTokenSet -> HttpHandler) : HttpHandler =
-        fun (next: HttpFunc) (ctx : HttpContext) ->                            
-            (ctx.GetCsrfToken () |> handler) next ctx
+    ///// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package,
+    ///// which is fed into the provided handler
+    //let csrfTokenizer (handler : AntiforgeryTokenSet -> HttpHandler) : HttpHandler =
+    //    fun (next: HttpFunc) (ctx : HttpContext) ->                            
+    //        (ctx.GetCsrfToken () |> handler) next ctx
     
-    /// Injects a newly generated CSRF token into a Falco.XmlNode
-    let csrfHtmlOut (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =            
-        let handler token : HttpHandler =
-            fun (next: HttpFunc) (ctx : HttpContext) ->              
-                htmlOut (view token) next ctx
+    ///// Injects a newly generated CSRF token into a Falco.XmlNode
+    //let csrfHtmlOut (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =            
+    //    let handler token : HttpHandler =
+    //        fun (next: HttpFunc) (ctx : HttpContext) ->              
+    //            htmlOut (view token) next ctx
     
-        csrfTokenizer handler  
+    //    csrfTokenizer handler  
