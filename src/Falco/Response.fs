@@ -21,13 +21,6 @@ let setContentType
     (contentType : string) : HttpResponseModifier =
     setHeader HeaderNames.ContentType contentType         
 
-let redirect     
-    (url : string) 
-    (permanent : bool) : HttpResponseModifier =
-    fun ctx ->
-        ctx.Response.Redirect(url, permanent)
-        ctx
-
 let withStatusCode
     (statusCode : int) : HttpResponseModifier =
     fun ctx ->
@@ -35,6 +28,13 @@ let withStatusCode
         ctx
 
 type HttpResponder = HttpContext -> Task
+
+let redirect     
+    (url : string) 
+    (permanent : bool) : HttpResponder =
+    fun ctx ->
+        ctx.Response.Redirect(url, permanent)        
+        Task.CompletedTask
 
 let ofString
     (encoding : Encoding)

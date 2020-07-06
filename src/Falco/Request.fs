@@ -8,6 +8,10 @@ open Microsoft.AspNetCore.Http
 type BindStringCollection<'a> = 
     StringCollectionReader -> Result<'a, string>
 
+let getRouteValues
+    (ctx : HttpContext) =
+    ctx.Request.GetRouteValues()
+
 let getVerb 
     (ctx : HttpContext) : HttpVerb =
     ctx.Request.HttpVerb

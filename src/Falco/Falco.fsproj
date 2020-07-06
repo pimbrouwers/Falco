@@ -38,22 +38,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" Version="4.5.2" />    
+    <PackageReference Include="FSharp.Core" Version="4.6.2" />
+    <PackageReference Include="Ply" Version="0.1.8" />    
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="TaskBuilder.fs" />
     <Compile Include="StringUtils.fs" />
     <Compile Include="StringParser.fs" />
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Markup.fs" />
-    <Compile Include="Request.fs" />
-    <Compile Include="Response.fs" />
     <Compile Include="Crypto.fs" />
     <Compile Include="Xss.fs" />
     <Compile Include="Auth.fs" />
+    <Compile Include="Request.fs" />
+    <Compile Include="Response.fs" />
     <Compile Include="Host.fs" />
   </ItemGroup>
 
