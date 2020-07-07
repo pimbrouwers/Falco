@@ -2,7 +2,7 @@
 module Falco.Security.Xss
 
 open System.Threading.Tasks
-open Falco.Core
+open Falco.Extensions
 open Falco.Markup
 open Microsoft.AspNetCore.Antiforgery    
 open Microsoft.AspNetCore.Http

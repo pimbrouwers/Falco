@@ -5,14 +5,15 @@ open System.Collections.Generic
 open Microsoft.Extensions.Primitives
 open Falco.StringParser
 open Falco.StringUtils
+open Microsoft.AspNetCore.Http
 
-type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) = 
+type StringCollectionReader (values : seq<KeyValuePair<string,StringValues>>) = 
 
-    let coll : KeyValuePair<string,StringValues> array = c |> Seq.toArray
-
+    let values : KeyValuePair<string,StringValues> array = values |> Seq.toArray
+    
     /// Safely retrieve value from StringCollectionReader
     member _.TryGetValue (name : string) =                 
-        match coll |> Array.tryFind (fun kvp -> strEquals kvp.Key name) with
+        match values |> Array.tryFind (fun kvp -> strEquals kvp.Key name) with
         | Some v when v.Value.Count > 0 -> Some v.Value
         | _                             -> None
     
@@ -49,6 +50,11 @@ type StringCollectionReader (c : seq<KeyValuePair<string,StringValues>>) =
     member this.TryArrayTimeSpan (name : string)       = name |> this.TryGetValue |> Option.bind (tryParseArray parseTimeSpan)
         
 let (?) (q : StringCollectionReader) = q.GetValue
+
+type FormCollectionReader (form: IFormCollection, files : IFormFileCollection option) =
+    inherit StringCollectionReader(form)
+
+    member _.Files = files
 
 type StringValues with 
     member this.AsString () =

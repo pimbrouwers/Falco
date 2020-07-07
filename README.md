@@ -6,12 +6,12 @@
 Falco is a sinatra-like toolkit for building functional-first, [fast](#benchmarks) and fault-tolerant web applications using F#. Rooted in an ethos of low-friction web programming that is ~~free~~ of 🌟magic🌟, and built upon the high-performance components of ASP.NET Core, [Kestrel][1] & [Endpoint Routing][3].
 
 Key features:
+- Asynchronous [request handling](#request-handling).
 - Simple and powerful [routing](#routing) API.
 - Native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
-- Composable [request handling](#request-handling).
 - [Authentication](#authentication) and [security](#security) utilities. 
-- Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
+- Built-in support for [large uploads](#handling-large-uploads).
 
 Design Goals:
 - Aim to be very small and easily learnable.

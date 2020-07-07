@@ -47,6 +47,7 @@
     <Compile Include="StringParser.fs" />
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Core.fs" />
+    <Compile Include="Extensions.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Markup.fs" />
     <Compile Include="Crypto.fs" />

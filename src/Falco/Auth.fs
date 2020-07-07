@@ -5,7 +5,7 @@ open System.Security.Claims
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
-open Falco.Core
+open Falco.Extensions
 
 let isAuthenticated 
     (ctx : HttpContext) : bool =

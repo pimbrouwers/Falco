@@ -24,7 +24,6 @@ let handleJson =
 let handleHtml =
     get "/html" (Response.ofHtml (layout message))
 
-
 [<EntryPoint>]
 let main args =        
     Host.startWebHostDefault 

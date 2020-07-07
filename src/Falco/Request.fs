@@ -6,9 +6,6 @@ open System.Threading.Tasks
 open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
 
-type BindStringCollection<'a> = 
-    StringCollectionReader -> Result<'a, string>
-
 let getRouteValues
     (ctx : HttpContext) =
     ctx.Request.GetRouteValues()
@@ -23,10 +20,17 @@ let tryGetRouteValue
     ctx.Request.TryGetRouteValue key
 
 let tryBindForm    
-    (bind : BindStringCollection<'a>)
+    (bind : FormCollectionReader -> Result<'a, string>)
     (ctx : HttpContext) : Task<Result<'a, string>> = task {
         let! form = ctx.Request.GetFormReaderAsync ()            
         return form |> bind
+    }
+
+let tryBindFormStream
+    (bind : FormCollectionReader -> Result<'a, string>)
+    (ctx : HttpContext) : Task<Result<'a, string>> = task {
+        let! form = ctx.Request.TryStreamFormAsync ()                    
+        return form |> Result.bind bind
     }
 
 let tryBindJson<'a>
@@ -37,7 +41,7 @@ let tryBindJson<'a>
     JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, opt).AsTask()
 
 let tryBindQuery    
-    (bind : BindStringCollection<'a>) 
+    (bind : StringCollectionReader -> Result<'a, string>) 
     (ctx : HttpContext) : Result<'a, string> = 
     ctx.Request.GetQueryReader () 
     |> bind
