@@ -13,7 +13,8 @@ Key features:
 - [Authentication](#authentication) and [security](#security) utilities. 
 - Built-in support for [large uploads](#handling-large-uploads).
 
-Design Goals:
+## Design Goals
+
 - Aim to be very small and easily learnable.
 - Should be extensible.
 - Should provide a toolset to build a working end-to-end web application.
