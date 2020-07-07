@@ -6,12 +6,12 @@ open Xunit
         
 [<Fact>]
 let ``Text should not be encoded`` () =
-    let rawText = raw "<div>"
+    let rawText = Text.raw "<div>"
     renderNode rawText |> should equal "<div>"
 
 [<Fact>]
 let ``Text should be encoded`` () =
-    let encodedText = enc "<div>"
+    let encodedText = Text.enc "<div>"
     renderNode encodedText |> should equal "&lt;div&gt;"
 
 [<Fact>]
@@ -30,7 +30,7 @@ let ``Should produce valid html doc`` () =
         Elem.html [] [
                 Elem.body [] [
                         Elem.div [ Attr.class' "my-class" ] [
-                                Elem.h1 [] [ raw "hello" ]
+                                Elem.h1 [] [ Text.raw "hello" ]
                             ]
                     ]
             ]

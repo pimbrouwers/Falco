@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module Falco.Request
 
+open System.Text.Json
 open System.Threading.Tasks
 open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
@@ -27,6 +28,13 @@ let tryBindForm
         let! form = ctx.Request.GetFormReaderAsync ()            
         return form |> bind
     }
+
+let tryBindJson<'a>
+    (ctx : HttpContext) : Task<'a> = 
+    let opt = JsonSerializerOptions()
+    opt.AllowTrailingCommas <- true
+    opt.PropertyNameCaseInsensitive <- true    
+    JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, opt).AsTask()
 
 let tryBindQuery    
     (bind : BindStringCollection<'a>) 

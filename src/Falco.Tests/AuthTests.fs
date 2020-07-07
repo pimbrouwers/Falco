@@ -57,7 +57,7 @@
 //    let doc (user : ClaimsPrincipal option) = 
 //        html [] [                        
 //                body [] [
-//                        if user.IsSome then yield h1 [] [ raw "hello" ]                
+//                        if user.IsSome then yield h1 [] [ Text.raw "hello" ]                
 //                    ]
 //        ]
 

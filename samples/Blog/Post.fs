@@ -69,17 +69,17 @@ module View =
         
     let details (blogPost : PostModel) =
         [ 
-            Elem.a [ Attr.href "/"; ] [ raw "<< Back home" ]
-            raw blogPost.Body 
+            Elem.a [ Attr.href "/"; ] [ Text.raw "<< Back home" ]
+            Text.raw blogPost.Body 
         ]
         |> layout blogPost.Title 
 
     let index (blogPosts : PostModel[]) =    
         let postElement p =
             Elem.div [] [ 
-                    Elem.span [] [ raw (p.Date.ToShortDateString()) ]
-                    Elem.span [] [ raw " &mdash; "]
-                    Elem.a [ Attr.href p.Slug ] [ raw p.Title ]
+                    Elem.span [] [ Text.raw (p.Date.ToShortDateString()) ]
+                    Elem.span [] [ Text.raw " &mdash; "]
+                    Elem.a [ Attr.href p.Slug ] [ Text.raw p.Title ]
                 ]
 
         let postElements = 
@@ -88,8 +88,8 @@ module View =
             |> List.ofArray
 
         [ 
-            Elem.h1 [] [ raw "Falco Blog "]
-            Elem.h2 [] [ raw "Posts"]                
+            Elem.h1 [] [ Text.raw "Falco Blog "]
+            Elem.h2 [] [ Text.raw "Posts"]                
         ] @ postElements
         |> layout "Falco Blog"
 
@@ -100,8 +100,8 @@ module View =
             | Some slug -> (sprintf "Post with URL %s was not found" slug)
 
         [
-            Elem.h1 [] [ raw "Not Found"]
-            Elem.p  [] [ raw msg ]
+            Elem.h1 [] [ Text.raw "Not Found"]
+            Elem.p  [] [ Text.raw msg ]
         ]
         |> layout "Not Found"
     
@@ -111,8 +111,8 @@ module Controller =
     open Falco.StringUtils
     open Model
     
-    let details (posts : PostModel[]) : HttpEndpoint =   
-        get "/{slug:regex(^[a-z\-])}" (fun ctx ->
+    let details (posts : PostModel[]) : HttpHandler =   
+        fun ctx ->
             let findPost slug = 
                 posts 
                 |> Array.tryFind (fun post -> strEquals post.Slug slug)
@@ -136,8 +136,11 @@ module Controller =
                     | None      -> handleNotFound (Some slug)
                     | Some post -> handlePost post
 
-            respondWith ctx)
+            respondWith ctx
                         
             
-    let index (posts : PostModel[]) : HttpEndpoint =       
-        get "/" (posts |> Array.sortBy (fun p -> p.Date) |> View.index |> Response.ofHtml)
+    let index (posts : PostModel[]) : HttpHandler =       
+        posts 
+        |> Array.sortBy (fun p -> p.Date) 
+        |> View.index 
+        |> Response.ofHtml

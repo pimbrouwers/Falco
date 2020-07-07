@@ -27,33 +27,31 @@ let withStatusCode
         ctx.Response.SetStatusCode statusCode
         ctx
 
-type HttpResponder = HttpContext -> Task
-
 let redirect     
     (url : string) 
-    (permanent : bool) : HttpResponder =
+    (permanent : bool) : HttpHandler =
     fun ctx ->
         ctx.Response.Redirect(url, permanent)        
         Task.CompletedTask
 
 let ofString
     (encoding : Encoding)
-    (str : string) : HttpResponder =
+    (str : string) : HttpHandler =
     fun ctx ->
         ctx.Response.WriteString encoding str
 
 let ofPlainText    
-    (str : string) : HttpResponder =
+    (str : string) : HttpHandler =
     setContentType "text/plain; charset=utf-8" 
     >> ofString Encoding.UTF8 str
                 
 let ofHtml     
-    (html : XmlNode) : HttpResponder =    
+    (html : XmlNode) : HttpHandler =    
     let html = renderHtml html
     setContentType "text/html; charset=utf-8"
     >> ofString Encoding.UTF8 html
 
 let ofJson    
-    (obj : 'a) : HttpResponder =    
+    (obj : 'a) : HttpHandler =    
     setContentType "application/json; charset=utf-8"
     >> fun ctx -> JsonSerializer.SerializeAsync(ctx.Response.Body, obj)     

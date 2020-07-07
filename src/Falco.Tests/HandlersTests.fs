@@ -92,7 +92,7 @@
 
 //    let doc = html [] [
 //            div [ _class "my-class" ] [
-//                    h1 [] [ raw "hello" ]
+//                    h1 [] [ Text.raw "hello" ]
 //                ]
 //        ]
 

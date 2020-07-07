@@ -12,8 +12,8 @@ let main args =
             args
             (Server.configureWebHost Env.developerMode)
             [
-                Post.Controller.details posts
-                Post.Controller.index posts
+                get "/{slug:regex(^[a-z\-])}" (Post.Controller.details posts)
+                get "/" (Post.Controller.index posts)
             ]
         0
     with

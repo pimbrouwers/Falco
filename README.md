@@ -3,7 +3,7 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-Falco is a toolkit for building functional-first, [fast](#benchmarks) and fault-tolerant web applications using F#. Rooted in an ethos of low-friction web programming ~~free~~ of 🌟magic🌟, and built upon the high-performance components of ASP.NET Core, [Kestrel][1] & [Endpoint Routing][3].
+Falco is a toolkit for building functional-first, [fast](#benchmarks) and fault-tolerant web applications using F#. Rooted in an ethos of low-friction web programming, ~~free~~ of 🌟magic🌟, and built upon the high-performance components of ASP.NET Core, [Kestrel][1] & [Endpoint Routing][3].
 
 Key features:
 - Simple and powerful [routing](#routing) API.
@@ -22,50 +22,23 @@ dotnet new web -lang F# -o HelloWorldApp
 
 Install the nuget package:
 ```
-dotnet add package Falco --version 1.2.0
+dotnet add package Falco --version 2.0.0
 ```
 
 Remove the `Startup.fs` file and save the following in `Program.fs`:
 ```f#
-module HelloWorldApp 
+module HelloWorld.Program
 
 open Falco
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
 
-// Define our routes
-let routes = 
-    [
-        get "/"  (textOut "hello world")
-    ]
-
-// Enable services (routing required for Falco)
-let configureServices (services : IServiceCollection) =
-    services.AddRouting() 
-    |> ignore
-
-// Activate middleware
-let configureApp (app : IApplicationBuilder) = 
-    app.UseRouting()
-       .UseHttpEndPoints(routes)
-       .UseNotFoundHandler(setStatusCode 404 >=> textOut "Not found")
-       |> ignore 
-
-// Build and startup web host
 [<EntryPoint>]
-let main _ =
-    try
-        WebHostBuilder()
-            .UseKestrel()
-            .ConfigureServices(configureServices)
-            .Configure(configureApp)
-            .Build()
-            .Run()
-
-        0
-    with 
-        | _ -> -1
+let main args =        
+    Host.startWebHostDefault 
+        args 
+        [            
+            get "/" (Response.ofPlainText "Hello, world!")
+        ]
+    0
 ```
 
 Run the application:
@@ -86,19 +59,20 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 ## Routing
 
-The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to a `RequestDelegate`, a promise to process a request. 
+The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to an `HttpHandler` which represents the ongoing processing (and eventual return) of a request. 
 
-Bearing this in mind, routing can practically be represented by a list of these "mappings".
+Bearing this in mind, routing can practically be represented by a list of these "mappings" known in Falco as an `HttpEndpoint` which bind together: a route, verb and handler.
 
 ```f#
-let routes = 
-  [
-    route POST "/login"              loginHandler        
-    route GET  "/hello/{name:alpha}" helloHandler    
-  ]
+let loginHandler : HttpHandler =
+  fun ctx -> 
+    // ...
 
-// or more simply 
-let routes = 
+let helloHandler : HttpHandler =
+  fun ctx -> 
+    // ...
+
+let routes : HttpEndpoint list = 
   [
     post "/login"              loginHandler        
     get  "/hello/{name:alpha}" helloHandler    
@@ -107,55 +81,35 @@ let routes =
 
 ## Request Handling
 
-A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of an HTTP Request. It is the core unit of work in [ASP.NET Core Middleware][10]. Middleware added to the pipeline can be expected to sequentially process incoming requests. 
+An `HttpHandler` can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing. Defined in F# as: `HttpContext -> Task`.
 
-In functional programming, it is VERY common to [compose][9] many functions into larger ones, which process input sequentially and produce output. The beauty of this approach is that it leads to software built of many small, easily-tested functions. 
+Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing. 
 
-If we apply this thought pattern to individual HTTP request processing, we can compose our web applications by "gluing" together many little (often) reusable functions.
+### [Response Module][16]
 
-To support this approrach we need only a few simple types:
-
+Plain Text responses 
 ```f#
-type HttpFuncResult = Task<HttpContext option>
-type HttpFunc = HttpContext -> HttpFuncResult
-type HttpHandler = HttpFunc -> HttpFunc    
+let textHandler : HttpHandler =
+    Response.ofPlainText "Hello World"
 ```
 
-At the lowest level is the `HttpFuncResult`, which not unlike a `RequestDelegate`, represents the eventuality of work against the `HttpContext` being performed. In this case, the type [optionally][11] returns the context to enable short-circuiting future processing.
-
-Performing this work is the `HttpFunc` which upon reception of an `HttpContext` will (eventually) return the optional `HttpContext`.
-
-To enable gluing these operations together, we use a [combinator][12] to combine two `HttpHandler`'s into one using Kleisli composition (i.e. the output of the left function produces monadic input for the right). 
-
-The composition of two `HttpHandler`'s can be accomplished using the `compose` function, or the "fish" operator `>=>`.
-
-> `>=>` is really just a function composition. But `>>` wouldn't work here since the return type of the left function isn't the argument of the right, rather it is a monad that needs to be unwrapped. Which is exactly what `>=>` does.
-
-### Built-in `HttpHandler`'s
-
-`textOut` - Plain Text responses
+HTML responses
 ```f#
-let textHandler =
-    textOut "Hello World"
-```
-
-`htmlOut` - HTML responses
-```f#
-let doc = 
-    html [] [
-            head [] [            
-                    title [] [ raw "Sample App" ]                                                    
-                ]
-            body [] [                     
-                    h1 [] [ raw "Sample App" ]
-                ]
-        ] 
-
 let htmlHandler : HttpHandler =
-    htmlOut doc
+    let doc = 
+        html [] [
+                head [] [            
+                        title [] [ raw "Sample App" ]                                                    
+                    ]
+                body [] [                     
+                        h1 [] [ raw "Sample App" ]
+                    ]
+            ] 
+
+    Response.ofHtml doc
 ```
 
-`jsonOut` - JSON responses (uses the default `System.Text.Json.JsonSerializer`)
+JSON responses (uses the default `System.Text.Json.JsonSerializer`)
 
 > IMPORTANT: This handler will not work with F# options or unions. See [JSON](#json) section below for further information.
 
@@ -168,45 +122,39 @@ type Person =
 
 let jsonHandler : HttpHandler =
     { First = "John"; Last = "Doe" }
-    |> jsonOut
+    |> Response.ofJson
 ```
 
-`setStatusCode` - Set the status code of the response
+Set the status code of the response
 ```f#
 let notFoundHandler : HttpHandler =
-    // here we compose (>=>) two built-in handlers
-    setStatusCode 404 >=> textOut "Not Found"
+    Response.withStatusCode 404
+    >> Response.ofPlainText "Not found"
 ```
 
 `redirect` - 301/302 Redirect Response (boolean param to indicate permanency)
 ```f#
 let oldUrlHandler : HttpHandler =
-    redirect "/new-url" true
+    Response.redirect "/new-url" true
 ```
 
-### Creating new `HttpHandler`'s
+### 
+
+### Writing custom `HttpHandler`'s
 
 The built-in `HttpHandler`'s will likely only take you so far. Luckily, creating new `HttpHandler`'s is very easy.
-
-The following handlers reuse the built-in `textOut` handler:
-
-```f#
-let helloHandler : HttpHandler = 
-  textOut "hello"
-
-let helloYouHandler (name : string) : HttpHandler = 
-  let msg = sprintf "Hello %s" name
-  textOut msg
-```
 
 The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
 
 ```f#
 let helloHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->        
-        let name = ctx.TryGetRouteValue "name" |> Option.defaultValue "someone"
-        let msg = sprintf "hi %s" name 
-        textOut msg next ctx
+    fun (ctx : HttpContext) ->        
+        let greeting =
+            Request.tryGetRouteValue "name" ctx 
+            |> Option.defaultValue "someone"
+            |> sprintf "hi %s" 
+
+        Response.ofPlainText greeting ctx
 ```
 
 ## View Engine
@@ -223,7 +171,7 @@ Most of the standard HTML tags & attributes have been mapped to F# functions, wh
 
 ```f#
 let doc = 
-    html [ _lang "en" ] [
+    Elem.html [ _lang "en" ] [
             head [] [
                     meta  [ _charset "UTF-8" ]
                     meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
@@ -593,6 +541,6 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [13]: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1 "Overview of ASP.NET Core authentication"
 [14]: https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1 "Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core"
 [15]: https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming "Large file uploads"
-[16]: https://github.com/mgravell/fast-member/
+[16]: https://github.com/pimbrouwers/Falco/tree/master/src/Response.fs
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
-[18]: https://github.com/SaturnFramework/Saturn
+

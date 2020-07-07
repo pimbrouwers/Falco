@@ -18,12 +18,6 @@ type XmlNode =
     | SelfClosingNode of XmlElement                
     | Text            of string   
 
-/// Text XmlNode constructor
-let raw content = Text content
-
-/// Encoded-text XmlNode constructor
-let enc content = Text (WebUtility.HtmlEncode content)
-
 /// Render XmlNode recursively to string representation
 let renderNode (tag : XmlNode) =  
     let createKeyValue key value =
@@ -79,6 +73,13 @@ let renderHtml tag =
     |]
     |> strJoin ""
 
+module Text =       
+    /// Text XmlNode constructor
+    let raw content = Text content
+    
+    /// Encoded-text XmlNode constructor
+    let enc content = Text (WebUtility.HtmlEncode content)
+    
 module Elem =
     /// Standard XmlNode constructor
     let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
@@ -160,10 +161,6 @@ module Elem =
     let nav     = tag "nav"
     let section = tag "section"
     let summary = tag "summary"
-
-/// ------------
-/// HTML Attributes
-/// ------------
 
 module Attr = 
     /// XmlAttribute constructor
