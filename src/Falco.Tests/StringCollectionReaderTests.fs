@@ -1,4 +1,4 @@
-﻿module Falco.Tests.ModelBinding
+﻿module Falco.Tests.StringCollectionReader
 
 open System
 open System.Collections.Generic

@@ -3,17 +3,24 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-Falco is a toolkit for building functional-first, [fast](#benchmarks) and fault-tolerant web applications using F#. Rooted in an ethos of low-friction web programming ~~free~~ of 🌟magic🌟, and built upon the high-performance components of ASP.NET Core, [Kestrel][1] & [Endpoint Routing][3].
+Falco is a sinatra-like toolkit for building functional-first, [fast](#benchmarks) and fault-tolerant web applications using F#. Rooted in an ethos of low-friction web programming that is **free** of 🌟magic🌟, and built upon the high-performance components of ASP.NET Core, [Kestrel][1] & [Endpoint Routing][3].
 
-Key features:
+## Key features
+
+- Asynchronous [request handling](#request-handling).
 - Simple and powerful [routing](#routing) API.
 - Native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
-- Composable [request handling](#request-handling).
 - [Authentication](#authentication) and [security](#security) utilities. 
-- Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
+- Built-in support for [large uploads](#handling-large-uploads).
 
-## Quick Start
+## Design Goals
+
+- Aim to be very small and easily learnable.
+- Should be extensible.
+- Should provide a toolset to build a working end-to-end web application.
+
+## Quick Start - Hello World 3 ways
 
 Create a new F# web project:
 ```
@@ -22,50 +29,47 @@ dotnet new web -lang F# -o HelloWorldApp
 
 Install the nuget package:
 ```
-dotnet add package Falco --version 1.2.0
+dotnet add package Falco --version 2.0.0
 ```
 
 Remove the `Startup.fs` file and save the following in `Program.fs`:
 ```f#
-module HelloWorldApp 
+module HelloWorld.Program
 
 open Falco
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
+open Falco.Markup
 
-// Define our routes
-let routes = 
-    [
-        get "/"  (textOut "hello world")
-    ]
+let message = "Hello, world!"
 
-// Enable services (routing required for Falco)
-let configureServices (services : IServiceCollection) =
-    services.AddRouting() 
-    |> ignore
+let layout message =
+    Elem.html [] [
+            Elem.head [] [
+                    Elem.title [] [ Text.raw message ]
+                ]
+            Elem.body [] [
+                    Elem.h1 [] [ Text.raw message ]
+                ]
+        ]
 
-// Activate middleware
-let configureApp (app : IApplicationBuilder) = 
-    app.UseRouting()
-       .UseHttpEndPoints(routes)
-       .UseNotFoundHandler(setStatusCode 404 >=> textOut "Not found")
-       |> ignore 
+let handleIndex =
+    get "/" (Response.ofPlainText message)
 
-// Build and startup web host
+let handleJson =
+    get "/json" (Response.ofJson {| Message = message |})
+
+let handleHtml =
+    get "/html" (Response.ofHtml (layout message))
+
 [<EntryPoint>]
-let main _ =
-    try
-        WebHostBuilder()
-            .UseKestrel()
-            .ConfigureServices(configureServices)
-            .Configure(configureApp)
-            .Build()
-            .Run()
-
-        0
-    with 
-        | _ -> -1
+let main args =        
+    Host.startWebHostDefault 
+        args 
+        [
+            handleHtml
+            handleJson
+            handleIndex
+        ]
+    0
 ```
 
 Run the application:
@@ -73,7 +77,7 @@ Run the application:
 dotnet run HelloWorldApp
 ```
 
-There you have it, an industrial-strength "hello world" web app, achieved using primarily base ASP.NET libraries. Pretty sweet!
+There you have it, an industrial-strength "hello world 3 ways" web app, achieved using primarily base ASP.NET Core libraries. Pretty sweet!
 
 ## Sample Applications 
 
@@ -84,80 +88,37 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | [HelloWorld][7] | A basic hello world app |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
 
-## Routing
-
-The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to a `RequestDelegate`, a promise to process a request. 
-
-Bearing this in mind, routing can practically be represented by a list of these "mappings".
-
-```f#
-let routes = 
-  [
-    route POST "/login"              loginHandler        
-    route GET  "/hello/{name:alpha}" helloHandler    
-  ]
-
-// or more simply 
-let routes = 
-  [
-    post "/login"              loginHandler        
-    get  "/hello/{name:alpha}" helloHandler    
-  ]
-```
-
 ## Request Handling
 
-A `RequestDelegate` can be thought of as the eventual (i.e. async) processing of an HTTP Request. It is the core unit of work in [ASP.NET Core Middleware][10]. Middleware added to the pipeline can be expected to sequentially process incoming requests. 
+The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose. 
 
-In functional programming, it is VERY common to [compose][9] many functions into larger ones, which process input sequentially and produce output. The beauty of this approach is that it leads to software built of many small, easily-tested functions. 
+Basic request/resposne handling is divided between the aptly named [`Request`][18] and [`Response`][16] modules.
 
-If we apply this thought pattern to individual HTTP request processing, we can compose our web applications by "gluing" together many little (often) reusable functions.
-
-To support this approrach we need only a few simple types:
-
+- Plain Text responses 
 ```f#
-type HttpFuncResult = Task<HttpContext option>
-type HttpFunc = HttpContext -> HttpFuncResult
-type HttpHandler = HttpFunc -> HttpFunc    
+let textHandler : HttpHandler =
+    Response.ofPlainText "Hello World"
 ```
 
-At the lowest level is the `HttpFuncResult`, which not unlike a `RequestDelegate`, represents the eventuality of work against the `HttpContext` being performed. In this case, the type [optionally][11] returns the context to enable short-circuiting future processing.
-
-Performing this work is the `HttpFunc` which upon reception of an `HttpContext` will (eventually) return the optional `HttpContext`.
-
-To enable gluing these operations together, we use a [combinator][12] to combine two `HttpHandler`'s into one using Kleisli composition (i.e. the output of the left function produces monadic input for the right). 
-
-The composition of two `HttpHandler`'s can be accomplished using the `compose` function, or the "fish" operator `>=>`.
-
-> `>=>` is really just a function composition. But `>>` wouldn't work here since the return type of the left function isn't the argument of the right, rather it is a monad that needs to be unwrapped. Which is exactly what `>=>` does.
-
-### Built-in `HttpHandler`'s
-
-`textOut` - Plain Text responses
+- HTML responses
 ```f#
-let textHandler =
-    textOut "Hello World"
-```
-
-`htmlOut` - HTML responses
-```f#
-let doc = 
-    html [] [
-            head [] [            
-                    title [] [ raw "Sample App" ]                                                    
-                ]
-            body [] [                     
-                    h1 [] [ raw "Sample App" ]
-                ]
-        ] 
-
 let htmlHandler : HttpHandler =
-    htmlOut doc
+    let doc = 
+        html [] [
+                head [] [            
+                        title [] [ raw "Sample App" ]                                                    
+                    ]
+                body [] [                     
+                        h1 [] [ raw "Sample App" ]
+                    ]
+            ] 
+
+    Response.ofHtml doc
 ```
 
-`jsonOut` - JSON responses (uses the default `System.Text.Json.JsonSerializer`)
+- JSON responses
 
-> IMPORTANT: This handler will not work with F# options or unions. See [JSON](#json) section below for further information.
+> IMPORTANT: This handler will not work with F# options or unions, since it uses the default `System.Text.Json.JsonSerializer`. See [JSON](#json) section below for further information.
 
 ```f#
 type Person =
@@ -168,45 +129,67 @@ type Person =
 
 let jsonHandler : HttpHandler =
     { First = "John"; Last = "Doe" }
-    |> jsonOut
+    |> Response.ofJson
 ```
 
-`setStatusCode` - Set the status code of the response
+- Set the status code of the response
 ```f#
 let notFoundHandler : HttpHandler =
-    // here we compose (>=>) two built-in handlers
-    setStatusCode 404 >=> textOut "Not Found"
+    Response.withStatusCode 404
+    >> Response.ofPlainText "Not found"
 ```
 
-`redirect` - 301/302 Redirect Response (boolean param to indicate permanency)
+- Redirect (301/302) Response (boolean param to indicate permanency)
 ```f#
 let oldUrlHandler : HttpHandler =
-    redirect "/new-url" true
+    Response.redirect "/new-url" true
 ```
 
-### Creating new `HttpHandler`'s
-
-The built-in `HttpHandler`'s will likely only take you so far. Luckily, creating new `HttpHandler`'s is very easy.
-
-The following handlers reuse the built-in `textOut` handler:
-
-```f#
-let helloHandler : HttpHandler = 
-  textOut "hello"
-
-let helloYouHandler (name : string) : HttpHandler = 
-  let msg = sprintf "Hello %s" name
-  textOut msg
-```
-
-The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
+- Accessing route parameters.
+    - The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
 
 ```f#
 let helloHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->        
-        let name = ctx.TryGetRouteValue "name" |> Option.defaultValue "someone"
-        let msg = sprintf "hi %s" name 
-        textOut msg next ctx
+    fun ctx ->        
+        let greeting =
+            Request.tryGetRouteValue "name" ctx 
+            |> Option.defaultValue "someone"
+            |> sprintf "hi %s" 
+
+        Response.ofPlainText greeting ctx
+```
+
+## Routing
+
+The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to an `HttpHandler` which represents the ongoing processing (and eventual return) of a request. 
+
+Bearing this in mind, routing can practically be represented by a list of these "mappings" known in Falco as an `HttpEndpoint` which bind together: a route, verb and handler.
+
+```f#
+let loginHandler : HttpHandler =
+  fun ctx -> // ...
+
+let helloHandler : HttpHandler =
+  fun ctx -> // ...
+
+let endpoints : HttpEndpoint list = 
+  [
+    post "/login"              loginHandler        
+    get  "/hello/{name:alpha}" helloHandler    
+  ]
+
+// OR alternatively
+let handleLogin : HttpEndpoint =
+    post "/login" (fun ctx -> // ...)
+
+let handleHello : HttpEndpoint =
+    get "/hello/{name:alpha}" (fun ctx -> // ...)
+
+let endpoints : HttpEndpoint list = 
+    [
+        handleLogin
+        handleHello
+    ]
 ```
 
 ## View Engine
@@ -223,17 +206,13 @@ Most of the standard HTML tags & attributes have been mapped to F# functions, wh
 
 ```f#
 let doc = 
-    html [ _lang "en" ] [
-            head [] [
-                    meta  [ _charset "UTF-8" ]
-                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                    title [] [ raw "Sample App" ]                                        
-                    link  [ _href "/style.css"; _rel "stylesheet"]
+    Elem.html [ Attr.lang "en" ] [
+            Elem.head [] [                    
+                    Elem.title [] [ Text.raw "Sample App" ]                                                            
                 ]
-            body [] [                     
-                    main [] [
-                            h1 [] [ raw "Sample App" ]
+            Elem.body [] [                     
+                    Elem.main [] [
+                            Elem.h1 [] [ Text.raw "Sample App" ]
                         ]
                 ]
         ] 
@@ -248,54 +227,47 @@ type Person =
     }
 
 let doc (person : Person) = 
-    html [ _lang "en" ] [
-            head [] [
-                    meta  [ _charset "UTF-8" ]
-                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                    title [] [ raw "Sample App" ]                                        
-                    link  [ _href "/style.css"; _rel "stylesheet"]
+    Elem.html [ Attr.lang "en" ] [
+            Elem.head [] [                    
+                    Elem.title [] [ Text.raw "Sample App" ]                                                            
                 ]
-            body [] [                     
-                    main [] [
-                            h1 [] [ raw "Sample App" ]
-                            p  [] [ raw (sprintf "%s %s" person.First person.Last)]
+            Elem.body [] [                     
+                    Elem.main [] [
+                            Elem.h1 [] [ Text.raw "Sample App" ]
+                            Elem.p  [] [ Text.raw (sprintf "%s %s" person.First person.Last)]
                         ]
                 ]
-        ] 
+        ]
 ```
 
 Views can also be combined to create more complex views and share output:
 ```f#
 let master (title : string) (content : XmlNode list) =
-    html [ _lang "en" ] [
-            head [] [
-                    meta  [ _charset "UTF-8" ]
-                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                    title [] [ raw title ]                                        
-                    link  [ _href "/style.css"; _rel "stylesheet"]
+    Elem.html [ Attr.lang "en" ] [
+            Elem.head [] [                    
+                    Elem.title [] [ Text.raw "Sample App" ]                                                            
                 ]
-            body [] content
-        ]  
+            Elem.body [] content
+        ]
 
 let divider = 
-    hr [ _class "divider" ]
+    Elem.hr [ Attr.class' "divider" ]
 
 let homeView =
-    master "Homepage" [
-            h1 [] [ raw "Homepage" ]
-            divider
-            p  [] [ raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
-        ]
+    [
+        Elem.h1 [] [ Text.raw "Homepage" ]
+        divider
+        Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+    ]
+    |> master "Homepage" 
 
 let aboutView =
-    master "About Us" [
-            h1 [] [ raw "About Us" ]
-            divider
-            p  [] [ raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
-        ]
-
+    [
+        Elem.h1 [] [ Text.raw "About" ]
+        divider
+        Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+    ]
+    |> master "About Us"
 ```
 
 ### Extending the view engine
@@ -306,13 +278,13 @@ An example to render `<svg>`'s:
 
 ```f#
 let svg (width : float) (height : float) =
-    tag "svg" [
-            attr "version" "1.0"
-            attr "xmlns" "http://www.w3.org/2000/svg"
-            attr "viewBox" (sprintf "0 0 %f %f" width height)
-        ]
+    Elem.tag "svg" [
+        Attr.create "version" "1.0"
+        Attr.create "xmlns" "http://www.w3.org/2000/svg"
+        Attr.create "viewBox" (sprintf "0 0 %f %f" width height)
+    ]
 
-let path d = tag "path" [ attr "d" d ] []
+let path d = Elem.tag "path" [ Attr.create "d" d ] []
 
 let bars =
     svg 384.0 384.0 [
@@ -331,8 +303,8 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 ```f#
 /// An example handler, safely obtaining values from IFormCollection
 let parseFormHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContexnt) ->
-        let form = ctx.GetFormReader() // GetFormReaderAsync() also available
+    fun (ctx : HttpContexnt) ->
+        let form = Request.getForm ctx // getFormAsync() also available
 
         let firstName = form.TryGetString "FirstName" // string -> string option        
         let lastName  = form.TryGet "LastName"        // alias for TryGetString
@@ -340,8 +312,8 @@ let parseFormHandler : HttpHandler =
 
 /// An example handler, safely obtaining values from IQueryCollection
 let parseQueryHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContexnt) ->
-        let form = ctx.GetQueryReader()
+    fun (ctx : HttpContexnt) ->
+        let form = Request.getQuery ctx
 
         let firstName = form.TryGetString "FirstName" // string -> string option        
         let lastName  = form.TryGet "LastName"        // alias for TryGetString
@@ -352,8 +324,8 @@ In this case where you don't care about gracefully handling non-existence. Or, y
 
 ```f#
 let parseQueryHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContexnt) ->
-        let form = ctx.GetQueryReader()
+    fun ctx ->
+        let form = Request.getQuery ctx
 
         // dynamic operator also case-insensitive
         let firstName = form?FirstName.AsString() // string -> string
@@ -363,32 +335,42 @@ let parseQueryHandler : HttpHandler =
 
 > Use of the `?` dynamic operator also performs **case-insenstive** lookups against the collection.
 
-Further to this, generic `HttpHandler`'s are available to allow for the typical case of *try-or-fail* that asks for a: binding function and HttpHandler's for error and success cases.
+Further to this, helper functions are available to allow for the typical case of *try-or-fail* applying the provided binding function.
 
 ```f#
 // An example handler which attempts to bind a form
 let exampleTryBindFormHandler : HttpHandler =
-    tryBindForm 
-        (fun r ->
-            Ok {
+    fun ctx ->
+        let bindForm form =     
+            {
               FirstName = form?FirstName.AsString()
               LastName  = form?LastName.AsString()
               Age       = form?Age.AsInt16()      
-            })
-        errorHandler 
-        successHandler
+            }
+
+        let respondWith =
+            match Request.tryBindForm (bindForm >> Result.Ok) ctx with
+            | Error error -> Response.ofPlainText error
+            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
+
+        respondWith ctx
 
 // An example handler which attempts to bind a query
 let exampleTryBindQueryHandler : HttpHandler =
-    tryBindQuery 
-        (fun r ->
-            Ok {
-              FirstName = form?FirstName.AsString()
-              LastName  = form?LastName.AsString()
-              Age       = form?Age.AsInt16()      
-            })
-        errorHandler 
-        successHandler
+    fun ctx ->
+        let bindQuery query =
+            {
+              FirstName = query?FirstName.AsString()
+              LastName  = query?LastName.AsString()
+              Age       = query?Age.AsInt16()      
+            }
+
+        let respondWith =
+            match Request.tryBindQuery (bindQuery >> Result.Ok) ctx with
+            | Error error -> Response.ofPlainText error
+            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
+
+        respondWith ctx
 
 // An example using a type and static binder, which can make things simpler
 type SearchQuery =
@@ -397,18 +379,21 @@ type SearchQuery =
         Page : int option
         Take : int
     }
-    static member FromReader (r : StringCollectionReader) =
-        Ok {
+    static member fromReader (r : StringCollectionReader) =
+        {
             Frag = r?frag.AsString()
             Page = r.TryGetInt "page" |> Option.defaultValue 1
             Take = r?take.AsInt()
         }
 
 let searchResultsHandler : HttpHandler =
-    tryBindQuery 
-        SearchQuery.FromReader 
-        errorHandler 
-        successHandler
+    fun ctx ->
+        let respondWith =
+            match Request.tryBindQuery (SearchQuery.fromReader >> Result.Ok) ctx with
+            | Error error -> Response.ofPlainText error
+            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
+
+        respondWith ctx
 ```
 
 ## Authentication
@@ -417,46 +402,62 @@ ASP.NET Core has amazing built-in support for authentication. Review the [docs][
 
 > To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`. 
 
-Authentication control flow:
+- Prevent user from accessing secure endpoint:
 
 ```f#
-// prevent user from accessing secure endpoint
 let secureResourceHandler : HttpHandler =
-    ifAuthenticated (redirect "/forbidden" false) 
-    >=> textOut "hello authenticated person"
+    fun ctx ->
+        let respondWith =
+            match Auth.isAuthenticated ctx with
+            | false -> Response.redirect "/forbidden" false
+            | true  -> Response.ofPlainText "hello authenticated user"
 
-// prevent authenticated user from accessing anonymous-only end-point
-let anonResourceOnlyHandler : HttpHandler =
-    ifNotAuthenticated (redirect "/" false) 
-    >=> textOut "hello anonymous"
+        respondWith ctx
 ```
 
-Secure views:
+- Prevent authenticated user from accessing anonymous-only end-point:
+
 ```f#
-let doc (principal : ClaimsPrincipal option) = 
-    let isAuthenticated = 
-        match user with 
-        | Some u -> u.Identity.IsAuthenticated 
-        | None   -> false
+// 
+let anonResourceOnlyHandler : HttpHandler =
+    fun ctx ->
+        let respondWith =
+            match Auth.isAuthenticated ctx with
+            | true  -> Response.redirect "/forbidden" false
+            | false -> Response.ofPlainText "hello anonymous"
 
-    html [ _lang "en" ] [
-            head [] [
-                    meta  [ _charset "UTF-8" ]
-                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                    title [] [ raw "Sample App" ]                                        
-                    link  [ _href "/style.css"; _rel "stylesheet"]
-                ]
-            body [] [                     
-                    main [] [
-                            yield h1 [] [ raw "Sample App" ]
-                            if isAuthenticated then yield p  [] [ raw "Hello logged in user" ]
-                        ]
-                ]
-        ]
+        respondWith ctx
+```
 
-let secureDocHandler : HttpHandler =
-    authHtmlOut doc
+- Allow only user's from a certain group to access endpoint"
+```f#
+let secureResourceHandler : HttpHandler =
+    fun ctx ->
+        let isAuthenticated = Auth.isAuthenticated ctx
+        let isAdmin = Auth.isInRole ["Admin"] ctx
+        
+        let respondWith =
+            match isAuthenticated, isAdmin with
+            | true, true -> Response.ofPlainText "hello admin"
+            | _          -> Response.redirect "/forbidden" false
+
+        respondWith ctx
+```
+
+- End user session (sign out):
+
+```f#
+let logOut : HttpHandler =         
+    fun ctx -> 
+        (Auth.signOutAsync Auth.authScheme ctx).Wait()
+        Response.redirect Urls.``/login`` false ctx
+
+// OR using task {}
+let logOut : HttpHandler =         
+    fun ctx -> task {
+        do! Auth.signOutAsync Auth.authScheme ctx
+        do! Response.redirect Urls.``/login`` false ctx
+    }
 ```
 
 ## Security
@@ -483,22 +484,30 @@ let formView (token : AntiforgeryTokenSet) =
                 ]
         ]
     
-// a custom handler that requires the CSRF token
-let csrfHandler (token : AntiforgeryTokenSet) : HttpHandler = 
-    fun (next: HttpFunc) (ctx : HttpContext) ->                                
-        htmlView (formView token) next ctx
+// A handler that demonstrates obtaining a
+// CSRF token and applying it to a view
+let csrfViewHandler : HttpHandler = 
+    fun ctx ->
+        let csrfToken = Xss.getToken ctx        
+        Response.ofHtml (formView token) ctx
+    
+// A handler that demonstrates validating
+// the requests CSRF token
+let isTokenValidHandler : HttpHander =
+    fun ctx -> task {
+        let! isTokenValid = Xss.validateToken ctx
 
-let routes =
-    [
-        // using CSRF html handler
-        get  "/token" (csrfHtmlOut formView)
+        let respondWith =
+            match isTokenValid with
+            | false -> 
+                Response.withStatusCode 400 
+                >> Response.ofPlainText "Bad request"
 
-        // using token control-flow handler
-        post "/token" (ifTokenValid (textOut "intruder!") >=> text "oh hi there ;)")
+            | true ->
+                Response.ofPlainText "Good request"                
 
-        // using the tokenizer with a cutom handler
-        get  "/manual-token" (csrfTokenizer csrfHandler)
-    ]
+        return! respondWith ctx
+    }
 ```
 
 ### Crytography
@@ -508,18 +517,19 @@ Many sites have the requirement of a secure log in and sign up (i.e. registering
 Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
 ```f#
-open Falco.Crypto 
+open Falco.Security
 
 // Generating salt,
 // using System.Security.Cryptography.RandomNumberGenerator,
 // create a random 16 byte salt and base 64 encode
-let salt = salt 16 
+let salt = Crypto.createSalt 16 
 
-// Hashing password
+// Generate random int for iterations
+let iterations = Crypto.randomInt 10000 50000
+
 // Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
-// 25,000 iterations and 32 bytes in length
 let password = "5upe45ecure"
-let hashedPassword = password |> sha256 25000 32
+let hashedPassword = password |> Crypto.sha256 iterations 32 salt
 ``` 
 
 ## Handling Large Uploads
@@ -532,39 +542,19 @@ To make this process **a lot** easier Falco exposes an `HttpContext` extension m
 open Falco.Multipart 
 
 let imageUploadHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->
-        task {
-            let! form = ctx.TryStreamFormAsync() // Returns a standard IFormCollection
+    fun ctx -> task {
+        let! form = Request.tryStreamFormAsync()
             
-            return!
-                (match form with 
-                | Error msg -> setStatusCode 400 >=> textOut msg
-                | Ok form   -> ... ) next ctx
-        }
+        // Rest of code using `FormCollectionReader`
+        // ...
+    }
 ```
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `bindJson<'a>` and `jsonOut` respectively. Both handlers rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
-
-That said, if people were open to a dependency and could agree on a package, I would be more than happy to add full JSON support. Feel free to open an [issue](https://github.com/pimbrouwers/Falco/issues) to discuss.
+Included in Falco are basic JSON in/out handlers, `Request.bindJsonAsync<'a>` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
 
 > Looking for a package to work with JSON? Checkout [Jay](https://github.com/pimbrouwers/Jay). 
-
-## Benchmarks
-Below are some basic benchmarks, which demonstate a load of 2000 concurrent connections for a duration of 10s.
-
-### Specs
-![image](https://user-images.githubusercontent.com/4595453/79797914-23275e80-8326-11ea-9c51-552bfa6d6d9f.png)
-
-### Hello world plain-text
-Falco:
-![image](https://user-images.githubusercontent.com/4595453/79797825-f5dab080-8325-11ea-97f5-1ba3e7f70747.png)
-
-### Hello someone plain-text (`hello/{name:string}`)
-
-Falco:
-![image](https://user-images.githubusercontent.com/4595453/79798267-bf516580-8326-11ea-8968-ad1ad9303988.png)
 
 ## Why "Falco"?
 
@@ -593,6 +583,6 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [13]: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1 "Overview of ASP.NET Core authentication"
 [14]: https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1 "Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core"
 [15]: https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming "Large file uploads"
-[16]: https://github.com/mgravell/fast-member/
+[16]: https://github.com/pimbrouwers/Falco/tree/master/src/Response.fs
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
-[18]: https://github.com/SaturnFramework/Saturn
+[18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs

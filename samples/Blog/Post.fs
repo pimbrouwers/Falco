@@ -63,23 +63,23 @@ module Data =
      
 [<RequireQualifiedAccess>]
 module View =
-    open Falco.ViewEngine
+    open Falco.Markup
     open Blog.UI
     open Model 
         
     let details (blogPost : PostModel) =
         [ 
-            a   [ _href "/"; ] [ raw "<< Back home" ]
-            raw blogPost.Body 
+            Elem.a [ Attr.href "/"; ] [ Text.raw "<< Back home" ]
+            Text.raw blogPost.Body 
         ]
         |> layout blogPost.Title 
 
     let index (blogPosts : PostModel[]) =    
         let postElement p =
-            div [] [ 
-                    span [] [ raw (p.Date.ToShortDateString()) ]
-                    span [] [ raw " &mdash; "]
-                    a [ _href p.Slug ] [ raw p.Title ]
+            Elem.div [] [ 
+                    Elem.span [] [ Text.raw (p.Date.ToShortDateString()) ]
+                    Elem.span [] [ Text.raw " &mdash; "]
+                    Elem.a [ Attr.href p.Slug ] [ Text.raw p.Title ]
                 ]
 
         let postElements = 
@@ -88,8 +88,8 @@ module View =
             |> List.ofArray
 
         [ 
-            h1 [] [ raw "Falco Blog "]
-            h2 [] [ raw "Posts"]                
+            Elem.h1 [] [ Text.raw "Falco Blog "]
+            Elem.h2 [] [ Text.raw "Posts"]                
         ] @ postElements
         |> layout "Falco Blog"
 
@@ -100,8 +100,8 @@ module View =
             | Some slug -> (sprintf "Post with URL %s was not found" slug)
 
         [
-            h1 [] [ raw "Not Found"]
-            p  [] [ raw msg ]
+            Elem.h1 [] [ Text.raw "Not Found"]
+            Elem.p  [] [ Text.raw msg ]
         ]
         |> layout "Not Found"
     
@@ -111,38 +111,36 @@ module Controller =
     open Falco.StringUtils
     open Model
     
-    let details (posts : PostModel[]) : HttpHandler =                 
-        let handleNotFound slug =
-            slug
-            |> View.notFound
-            |> htmlOut
-
-        let handlePost post =
-            post 
-            |> View.details 
-            |> htmlOut
-
-        fun next ctx ->                        
-            let getSlugFromQuery () = 
-                ctx.TryGetRouteValue "slug"
-
+    let details (posts : PostModel[]) : HttpHandler =   
+        fun ctx ->
             let findPost slug = 
                 posts 
                 |> Array.tryFind (fun post -> strEquals post.Slug slug)
 
-            let handler =
-                match getSlugFromQuery () with            
+            let handleNotFound slug =
+                slug
+                |> View.notFound 
+                |> Response.ofHtml
+
+            let handlePost post =
+                post
+                |> View.details
+                |> Response.ofHtml
+
+            let respondWith =
+                match Request.tryGetRouteValue "slug" ctx with
                 | None      -> handleNotFound None            
                 | Some slug ->
 
                     match findPost slug with
                     | None      -> handleNotFound (Some slug)
                     | Some post -> handlePost post
-            
-            handler next ctx
+
+            respondWith ctx
+                        
             
     let index (posts : PostModel[]) : HttpHandler =       
         posts 
-        |> Array.sortBy (fun p -> p.Date)
+        |> Array.sortBy (fun p -> p.Date) 
         |> View.index 
-        |> htmlOut
+        |> Response.ofHtml
