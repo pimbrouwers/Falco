@@ -38,11 +38,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" Version="4.6.2" />
-    <PackageReference Include="Ply" Version="0.1.8" />    
+    <PackageReference Include="FSharp.Core" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="TaskBuilder.fs" />
     <Compile Include="StringUtils.fs" />
     <Compile Include="StringParser.fs" />
     <Compile Include="StringCollectionReader.fs" />
