@@ -405,6 +405,8 @@ ASP.NET Core has amazing built-in support for authentication. Review the [docs][
 - Prevent user from accessing secure endpoint:
 
 ```f#
+open Falco.Security
+
 let secureResourceHandler : HttpHandler =
     fun ctx ->
         let respondWith =
@@ -418,7 +420,8 @@ let secureResourceHandler : HttpHandler =
 - Prevent authenticated user from accessing anonymous-only end-point:
 
 ```f#
-// 
+open Falco.Security
+ 
 let anonResourceOnlyHandler : HttpHandler =
     fun ctx ->
         let respondWith =
@@ -431,6 +434,8 @@ let anonResourceOnlyHandler : HttpHandler =
 
 - Allow only user's from a certain group to access endpoint"
 ```f#
+open Falco.Security
+
 let secureResourceHandler : HttpHandler =
     fun ctx ->
         let isAuthenticated = Auth.isAuthenticated ctx
@@ -447,6 +452,8 @@ let secureResourceHandler : HttpHandler =
 - End user session (sign out):
 
 ```f#
+open Falco.Security
+
 let logOut : HttpHandler =         
     fun ctx -> 
         (Auth.signOutAsync Auth.authScheme ctx).Wait()
@@ -471,14 +478,14 @@ Falco provides a few handlers via `Falco.Security.Xss`:
 > To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`. 
 
 ```f#
-open Falco.Xss 
+open Falco.Security 
 
 let formView (token : AntiforgeryTokenSet) = 
     html [] [
             body [] [
                     form [ _method "post" ] [
                             // using the CSRF HTML helper
-                            antiforgeryInput token
+                            Xss.antiforgeryInput token
                             input [ _type "submit"; _value "Submit" ]
                         ]                                
                 ]
@@ -539,8 +546,6 @@ Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is m
 To make this process **a lot** easier Falco exposes an `HttpContext` extension method `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
 
 ```f#
-open Falco.Multipart 
-
 let imageUploadHandler : HttpHandler =
     fun ctx -> task {
         let! form = Request.tryStreamFormAsync()
