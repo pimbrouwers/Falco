@@ -35,6 +35,9 @@ module HttpHandler =
     let toRequestDelegate (handler : HttpHandler) =        
         new RequestDelegate(handler)
 
+/// In-and-out processing of a HttpContext
+type HttpResponseModifier = HttpContext -> HttpContext
+
 /// Specifies an association of an HttpHandler to an HttpVerb and route pattern
 type HttpEndpoint = 
     {

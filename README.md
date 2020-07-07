@@ -402,46 +402,62 @@ ASP.NET Core has amazing built-in support for authentication. Review the [docs][
 
 > To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`. 
 
-Authentication control flow:
+- Prevent user from accessing secure endpoint:
 
 ```f#
-// prevent user from accessing secure endpoint
 let secureResourceHandler : HttpHandler =
-    ifAuthenticated (redirect "/forbidden" false) 
-    >=> textOut "hello authenticated person"
+    fun ctx ->
+        let respondWith =
+            match Auth.isAuthenticated ctx with
+            | false -> Response.redirect "/forbidden" false
+            | true  -> Response.ofPlainText "hello authenticated user"
 
-// prevent authenticated user from accessing anonymous-only end-point
-let anonResourceOnlyHandler : HttpHandler =
-    ifNotAuthenticated (redirect "/" false) 
-    >=> textOut "hello anonymous"
+        respondWith ctx
 ```
 
-Secure views:
+- Prevent authenticated user from accessing anonymous-only end-point:
+
 ```f#
-let doc (principal : ClaimsPrincipal option) = 
-    let isAuthenticated = 
-        match user with 
-        | Some u -> u.Identity.IsAuthenticated 
-        | None   -> false
+// 
+let anonResourceOnlyHandler : HttpHandler =
+    fun ctx ->
+        let respondWith =
+            match Auth.isAuthenticated ctx with
+            | true  -> Response.redirect "/forbidden" false
+            | false -> Response.ofPlainText "hello anonymous"
 
-    html [ _lang "en" ] [
-            head [] [
-                    meta  [ _charset "UTF-8" ]
-                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                    title [] [ raw "Sample App" ]                                        
-                    link  [ _href "/style.css"; _rel "stylesheet"]
-                ]
-            body [] [                     
-                    main [] [
-                            yield h1 [] [ raw "Sample App" ]
-                            if isAuthenticated then yield p  [] [ raw "Hello logged in user" ]
-                        ]
-                ]
-        ]
+        respondWith ctx
+```
 
-let secureDocHandler : HttpHandler =
-    authHtmlOut doc
+- Allow only user's from a certain group to access endpoint"
+```f#
+let secureResourceHandler : HttpHandler =
+    fun ctx ->
+        let isAuthenticated = Auth.isAuthenticated ctx
+        let isAdmin = Auth.isInRole ["Admin"] ctx
+        
+        let respondWith =
+            match isAuthenticated, isAdmin with
+            | true, true -> Response.ofPlainText "hello admin"
+            | _          -> Response.redirect "/forbidden" false
+
+        respondWith ctx
+```
+
+- End user session (sign out):
+
+```f#
+let logOut : HttpHandler =         
+    fun ctx -> 
+        (Auth.signOutAsync Auth.authScheme ctx).Wait()
+        Response.redirect Urls.``/login`` false ctx
+
+// OR using task {}
+let logOut : HttpHandler =         
+    fun ctx -> task {
+        do! Auth.signOutAsync Auth.authScheme ctx
+        do! Response.redirect Urls.``/login`` false ctx
+    }
 ```
 
 ## Security

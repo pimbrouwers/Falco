@@ -18,13 +18,13 @@ let isInRole
     | None      -> false
     | Some user -> List.exists user.IsInRole roles
     
-let signIn 
+let signInAsync
     (authScheme : string)
     (claimsPrincipal : ClaimsPrincipal)
     (ctx : HttpContext) : Task =
     ctx.SignInAsync(authScheme, claimsPrincipal)
 
-let signOut 
+let signOutAsync
     (authScheme : string)
     (ctx : HttpContext) : Task = 
     ctx.SignOutAsync(authScheme)

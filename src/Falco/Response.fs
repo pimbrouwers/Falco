@@ -8,8 +8,6 @@ open Falco.Markup
 open Microsoft.AspNetCore.Http
 open Microsoft.Net.Http.Headers
 
-type HttpResponseModifier = HttpContext -> HttpContext
-
 let setHeader 
     (header : string)
     (content : string) : HttpResponseModifier =
