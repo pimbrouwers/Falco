@@ -129,13 +129,13 @@ let notFoundHandler : HttpHandler =
     >> Response.ofPlainText "Not found"
 ```
 
-`redirect` - 301/302 Redirect Response (boolean param to indicate permanency)
+Redirect (301/302) Response (boolean param to indicate permanency)
 ```f#
 let oldUrlHandler : HttpHandler =
     Response.redirect "/new-url" true
 ```
 
-### 
+### [Request Module][18]
 
 ### Writing custom `HttpHandler`'s
 
@@ -540,4 +540,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [15]: https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming "Large file uploads"
 [16]: https://github.com/pimbrouwers/Falco/tree/master/src/Response.fs
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
-
+[18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs
