@@ -50,7 +50,7 @@ let tryBindFormAsync
         return form |> bind
     }
 
-let streamForm
+let tryStreamFormAsync
     (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> = task {
         return! ctx.Request.TryStreamFormAsync()
     }

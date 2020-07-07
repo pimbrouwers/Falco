@@ -150,7 +150,7 @@ let oldUrlHandler : HttpHandler =
 
 ```f#
 let helloHandler : HttpHandler =
-    fun (ctx : HttpContext) ->        
+    fun ctx ->        
         let greeting =
             Request.tryGetRouteValue "name" ctx 
             |> Option.defaultValue "someone"
@@ -324,7 +324,7 @@ In this case where you don't care about gracefully handling non-existence. Or, y
 
 ```f#
 let parseQueryHandler : HttpHandler =
-    fun (ctx : HttpContext) ->
+    fun ctx ->
         let form = Request.getQuery ctx
 
         // dynamic operator also case-insensitive
@@ -484,22 +484,30 @@ let formView (token : AntiforgeryTokenSet) =
                 ]
         ]
     
-// a custom handler that requires the CSRF token
-let csrfHandler (token : AntiforgeryTokenSet) : HttpHandler = 
-    fun (next: HttpFunc) (ctx : HttpContext) ->                                
-        htmlView (formView token) next ctx
+// A handler that demonstrates obtaining a
+// CSRF token and applying it to a view
+let csrfViewHandler : HttpHandler = 
+    fun ctx ->
+        let csrfToken = Xss.getToken ctx        
+        Response.ofHtml (formView token) ctx
+    
+// A handler that demonstrates validating
+// the requests CSRF token
+let isTokenValidHandler : HttpHander =
+    fun ctx -> task {
+        let! isTokenValid = Xss.validateToken ctx
 
-let routes =
-    [
-        // using CSRF html handler
-        get  "/token" (csrfHtmlOut formView)
+        let respondWith =
+            match isTokenValid with
+            | false -> 
+                Response.withStatusCode 400 
+                >> Response.ofPlainText "Bad request"
 
-        // using token control-flow handler
-        post "/token" (ifTokenValid (textOut "intruder!") >=> text "oh hi there ;)")
+            | true ->
+                Response.ofPlainText "Good request"                
 
-        // using the tokenizer with a cutom handler
-        get  "/manual-token" (csrfTokenizer csrfHandler)
-    ]
+        return! respondWith ctx
+    }
 ```
 
 ### Crytography
@@ -509,18 +517,19 @@ Many sites have the requirement of a secure log in and sign up (i.e. registering
 Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
 ```f#
-open Falco.Crypto 
+open Falco.Security
 
 // Generating salt,
 // using System.Security.Cryptography.RandomNumberGenerator,
 // create a random 16 byte salt and base 64 encode
-let salt = salt 16 
+let salt = Crypto.createSalt 16 
 
-// Hashing password
+// Generate random int for iterations
+let iterations = Crypto.randomInt 10000 50000
+
 // Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
-// 25,000 iterations and 32 bytes in length
 let password = "5upe45ecure"
-let hashedPassword = password |> sha256 25000 32
+let hashedPassword = password |> Crypto.sha256 iterations 32 salt
 ``` 
 
 ## Handling Large Uploads
@@ -533,39 +542,19 @@ To make this process **a lot** easier Falco exposes an `HttpContext` extension m
 open Falco.Multipart 
 
 let imageUploadHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContext) ->
-        task {
-            let! form = ctx.TryStreamFormAsync() // Returns a standard IFormCollection
+    fun ctx -> task {
+        let! form = Request.tryStreamFormAsync()
             
-            return!
-                (match form with 
-                | Error msg -> setStatusCode 400 >=> textOut msg
-                | Ok form   -> ... ) next ctx
-        }
+        // Rest of code using `FormCollectionReader`
+        // ...
+    }
 ```
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `bindJson<'a>` and `jsonOut` respectively. Both handlers rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
-
-That said, if people were open to a dependency and could agree on a package, I would be more than happy to add full JSON support. Feel free to open an [issue](https://github.com/pimbrouwers/Falco/issues) to discuss.
+Included in Falco are basic JSON in/out handlers, `Request.bindJsonAsync<'a>` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
 
 > Looking for a package to work with JSON? Checkout [Jay](https://github.com/pimbrouwers/Jay). 
-
-## Benchmarks
-Below are some basic benchmarks, which demonstate a load of 2000 concurrent connections for a duration of 10s.
-
-### Specs
-![image](https://user-images.githubusercontent.com/4595453/79797914-23275e80-8326-11ea-9c51-552bfa6d6d9f.png)
-
-### Hello world plain-text
-Falco:
-![image](https://user-images.githubusercontent.com/4595453/79797825-f5dab080-8325-11ea-97f5-1ba3e7f70747.png)
-
-### Hello someone plain-text (`hello/{name:string}`)
-
-Falco:
-![image](https://user-images.githubusercontent.com/4595453/79798267-bf516580-8326-11ea-8968-ad1ad9303988.png)
 
 ## Why "Falco"?
 
