@@ -342,14 +342,14 @@ Further to this, helper functions are available to allow for the typical case of
 let exampleTryBindFormHandler : HttpHandler =
     fun ctx ->
         let bindForm form =     
-            Ok {
+            {
               FirstName = form?FirstName.AsString()
               LastName  = form?LastName.AsString()
               Age       = form?Age.AsInt16()      
             }
 
         let respondWith =
-            match Request.tryBindForm bindForm ctx with
+            match Request.tryBindForm (bindForm >> Result.Ok) ctx with
             | Error error -> Response.ofPlainText error
             | Ok model    -> Response.ofPlainText (sprintf "%A" model)
 
@@ -359,14 +359,14 @@ let exampleTryBindFormHandler : HttpHandler =
 let exampleTryBindQueryHandler : HttpHandler =
     fun ctx ->
         let bindQuery query =
-            Ok {
+            {
               FirstName = query?FirstName.AsString()
               LastName  = query?LastName.AsString()
               Age       = query?Age.AsInt16()      
             }
 
         let respondWith =
-            match Request.tryBindQuery bindQuery ctx with
+            match Request.tryBindQuery (bindQuery >> Result.Ok) ctx with
             | Error error -> Response.ofPlainText error
             | Ok model    -> Response.ofPlainText (sprintf "%A" model)
 
@@ -380,7 +380,7 @@ type SearchQuery =
         Take : int
     }
     static member fromReader (r : StringCollectionReader) =
-        Ok {
+        {
             Frag = r?frag.AsString()
             Page = r.TryGetInt "page" |> Option.defaultValue 1
             Take = r?take.AsInt()
@@ -389,7 +389,7 @@ type SearchQuery =
 let searchResultsHandler : HttpHandler =
     fun ctx ->
         let respondWith =
-            match Request.tryBindQuery SearchQuery.fromReader ctx with
+            match Request.tryBindQuery (SearchQuery.fromReader >> Result.Ok) ctx with
             | Error error -> Response.ofPlainText error
             | Ok model    -> Response.ofPlainText (sprintf "%A" model)
 
