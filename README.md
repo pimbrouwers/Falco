@@ -303,8 +303,8 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 ```f#
 /// An example handler, safely obtaining values from IFormCollection
 let parseFormHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContexnt) ->
-        let form = ctx.GetFormReader() // GetFormReaderAsync() also available
+    fun (ctx : HttpContexnt) -> task {}
+        let form = Request.getForm ctx // getFormAsync() also available
 
         let firstName = form.TryGetString "FirstName" // string -> string option        
         let lastName  = form.TryGet "LastName"        // alias for TryGetString
@@ -312,8 +312,8 @@ let parseFormHandler : HttpHandler =
 
 /// An example handler, safely obtaining values from IQueryCollection
 let parseQueryHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContexnt) ->
-        let form = ctx.GetQueryReader()
+    fun (ctx : HttpContexnt) ->
+        let form = Request.getQuery ctx
 
         let firstName = form.TryGetString "FirstName" // string -> string option        
         let lastName  = form.TryGet "LastName"        // alias for TryGetString
@@ -324,8 +324,8 @@ In this case where you don't care about gracefully handling non-existence. Or, y
 
 ```f#
 let parseQueryHandler : HttpHandler =
-    fun (next : HttpFunc) (ctx : HttpContexnt) ->
-        let form = ctx.GetQueryReader()
+    fun (ctx : HttpContext) ->
+        let form = Request.getQuery ctx
 
         // dynamic operator also case-insensitive
         let firstName = form?FirstName.AsString() // string -> string
@@ -335,32 +335,42 @@ let parseQueryHandler : HttpHandler =
 
 > Use of the `?` dynamic operator also performs **case-insenstive** lookups against the collection.
 
-Further to this, generic `HttpHandler`'s are available to allow for the typical case of *try-or-fail* that asks for a: binding function and HttpHandler's for error and success cases.
+Further to this, helper functions are available to allow for the typical case of *try-or-fail* applying the provided binding function.
 
 ```f#
 // An example handler which attempts to bind a form
 let exampleTryBindFormHandler : HttpHandler =
-    tryBindForm 
-        (fun r ->
+    fun ctx ->
+        let bindForm form =     
             Ok {
               FirstName = form?FirstName.AsString()
               LastName  = form?LastName.AsString()
               Age       = form?Age.AsInt16()      
-            })
-        errorHandler 
-        successHandler
+            }
+
+        let respondWith =
+            match Request.tryBindForm bindForm ctx with
+            | Error error -> Response.ofPlainText error
+            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
+
+        respondWith ctx
 
 // An example handler which attempts to bind a query
 let exampleTryBindQueryHandler : HttpHandler =
-    tryBindQuery 
-        (fun r ->
+    fun ctx ->
+        let bindQuery query =
             Ok {
-              FirstName = form?FirstName.AsString()
-              LastName  = form?LastName.AsString()
-              Age       = form?Age.AsInt16()      
-            })
-        errorHandler 
-        successHandler
+              FirstName = query?FirstName.AsString()
+              LastName  = query?LastName.AsString()
+              Age       = query?Age.AsInt16()      
+            }
+
+        let respondWith =
+            match Request.tryBindQuery bindQuery ctx with
+            | Error error -> Response.ofPlainText error
+            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
+
+        respondWith ctx
 
 // An example using a type and static binder, which can make things simpler
 type SearchQuery =
@@ -369,7 +379,7 @@ type SearchQuery =
         Page : int option
         Take : int
     }
-    static member FromReader (r : StringCollectionReader) =
+    static member fromReader (r : StringCollectionReader) =
         Ok {
             Frag = r?frag.AsString()
             Page = r.TryGetInt "page" |> Option.defaultValue 1
@@ -377,10 +387,13 @@ type SearchQuery =
         }
 
 let searchResultsHandler : HttpHandler =
-    tryBindQuery 
-        SearchQuery.FromReader 
-        errorHandler 
-        successHandler
+    fun ctx ->
+        let respondWith =
+            match Request.tryBindQuery SearchQuery.fromReader ctx with
+            | Error error -> Response.ofPlainText error
+            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
+
+        respondWith ctx
 ```
 
 ## Authentication

@@ -56,6 +56,10 @@ type HttpRequest with
         return FormCollectionReader(form, None)
     }        
 
+    /// Synchronously retrieve StringCollectionReader for IFormCollection from HttpRequest
+    member this.GetFormReader() =
+        this.GetFormReaderAsync().Result
+
     /// Retrieve StringCollectionReader for IQueryCollection from HttpRequest
     member this.GetQueryReader () = 
         StringCollectionReader(this.Query)
