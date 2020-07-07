@@ -18,7 +18,7 @@ Design Goals:
 - Should be extensible.
 - Should provide a toolset to build a working end-to-end web application.
 
-## Quick Start - ~Hello World 3 ways~
+## Quick Start - Hello World 3 ways
 
 Create a new F# web project:
 ```
@@ -90,11 +90,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose. 
 
-Basic request/resposne handling is divided between the aptly named `Request` and `Response` modules.
-
-### [Request Module][18]
-
-### [Response Module][16]
+Basic request/resposne handling is divided between the aptly named [`Request`][18] and [`Response`][16] modules.
 
 - Plain Text responses 
 ```f#
@@ -147,11 +143,8 @@ let oldUrlHandler : HttpHandler =
     Response.redirect "/new-url" true
 ```
 
-### Writing custom `HttpHandler`'s
-
-The built-in `HttpHandler`'s will likely only take you so far. Luckily, creating new `HttpHandler`'s is very easy.
-
-The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
+- Accessing route parameters.
+    - The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
 
 ```f#
 let helloHandler : HttpHandler =
@@ -177,11 +170,24 @@ let loginHandler : HttpHandler =
 let helloHandler : HttpHandler =
   fun ctx -> // ...
 
-let routes : HttpEndpoint list = 
+let endpoints : HttpEndpoint list = 
   [
     post "/login"              loginHandler        
     get  "/hello/{name:alpha}" helloHandler    
   ]
+
+// OR alternatively
+let handleLogin : HttpEndpoint =
+    post "/login" (fun ctx -> // ...)
+
+let handleHello : HttpEndpoint =
+    get "/hello/{name:alpha}" (fun ctx -> // ...)
+
+let endpoints : HttpEndpoint list = 
+    [
+        handleLogin
+        handleHello
+    ]
 ```
 
 ## View Engine
@@ -198,17 +204,13 @@ Most of the standard HTML tags & attributes have been mapped to F# functions, wh
 
 ```f#
 let doc = 
-    Elem.html [ _lang "en" ] [
-            head [] [
-                    meta  [ _charset "UTF-8" ]
-                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                    title [] [ raw "Sample App" ]                                        
-                    link  [ _href "/style.css"; _rel "stylesheet"]
+    Elem.html [ Attr.lang "en" ] [
+            Elem.head [] [                    
+                    Elem.title [] [ Text.raw "Sample App" ]                                                            
                 ]
-            body [] [                     
-                    main [] [
-                            h1 [] [ raw "Sample App" ]
+            Elem.body [] [                     
+                    Elem.main [] [
+                            Elem.h1 [] [ Text.raw "Sample App" ]
                         ]
                 ]
         ] 
@@ -223,54 +225,47 @@ type Person =
     }
 
 let doc (person : Person) = 
-    html [ _lang "en" ] [
-            head [] [
-                    meta  [ _charset "UTF-8" ]
-                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                    title [] [ raw "Sample App" ]                                        
-                    link  [ _href "/style.css"; _rel "stylesheet"]
+    Elem.html [ Attr.lang "en" ] [
+            Elem.head [] [                    
+                    Elem.title [] [ Text.raw "Sample App" ]                                                            
                 ]
-            body [] [                     
-                    main [] [
-                            h1 [] [ raw "Sample App" ]
-                            p  [] [ raw (sprintf "%s %s" person.First person.Last)]
+            Elem.body [] [                     
+                    Elem.main [] [
+                            Elem.h1 [] [ Text.raw "Sample App" ]
+                            Elem.p  [] [ Text.raw (sprintf "%s %s" person.First person.Last)]
                         ]
                 ]
-        ] 
+        ]
 ```
 
 Views can also be combined to create more complex views and share output:
 ```f#
 let master (title : string) (content : XmlNode list) =
-    html [ _lang "en" ] [
-            head [] [
-                    meta  [ _charset "UTF-8" ]
-                    meta  [ _httpEquiv "X-UA-Compatible"; _content "IE=edge,chrome=1" ]
-                    meta  [ _name "viewport"; _content "width=device-width,initial-scale=1" ]
-                    title [] [ raw title ]                                        
-                    link  [ _href "/style.css"; _rel "stylesheet"]
+    Elem.html [ Attr.lang "en" ] [
+            Elem.head [] [                    
+                    Elem.title [] [ Text.raw "Sample App" ]                                                            
                 ]
-            body [] content
-        ]  
+            Elem.body [] content
+        ]
 
 let divider = 
-    hr [ _class "divider" ]
+    Elem.hr [ Attr.class' "divider" ]
 
 let homeView =
-    master "Homepage" [
-            h1 [] [ raw "Homepage" ]
-            divider
-            p  [] [ raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
-        ]
+    [
+        Elem.h1 [] [ Text.raw "Homepage" ]
+        divider
+        Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+    ]
+    |> master "Homepage" 
 
 let aboutView =
-    master "About Us" [
-            h1 [] [ raw "About Us" ]
-            divider
-            p  [] [ raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
-        ]
-
+    [
+        Elem.h1 [] [ Text.raw "About" ]
+        divider
+        Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+    ]
+    |> master "About Us"
 ```
 
 ### Extending the view engine
@@ -281,13 +276,13 @@ An example to render `<svg>`'s:
 
 ```f#
 let svg (width : float) (height : float) =
-    tag "svg" [
-            attr "version" "1.0"
-            attr "xmlns" "http://www.w3.org/2000/svg"
-            attr "viewBox" (sprintf "0 0 %f %f" width height)
-        ]
+    Elem.tag "svg" [
+        Attr.create "version" "1.0"
+        Attr.create "xmlns" "http://www.w3.org/2000/svg"
+        Attr.create "viewBox" (sprintf "0 0 %f %f" width height)
+    ]
 
-let path d = tag "path" [ attr "d" d ] []
+let path d = Elem.tag "path" [ Attr.create "d" d ] []
 
 let bars =
     svg 384.0 384.0 [
