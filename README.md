@@ -303,7 +303,7 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 ```f#
 /// An example handler, safely obtaining values from IFormCollection
 let parseFormHandler : HttpHandler =
-    fun (ctx : HttpContexnt) -> task {}
+    fun (ctx : HttpContexnt) ->
         let form = Request.getForm ctx // getFormAsync() also available
 
         let firstName = form.TryGetString "FirstName" // string -> string option        
