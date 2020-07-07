@@ -3,7 +3,7 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-Falco is a toolkit for building functional-first, [fast](#benchmarks) and fault-tolerant web applications using F#. Rooted in an ethos of low-friction web programming, ~~free~~ of 🌟magic🌟, and built upon the high-performance components of ASP.NET Core, [Kestrel][1] & [Endpoint Routing][3].
+Falco is a sinatra-like toolkit for building functional-first, [fast](#benchmarks) and fault-tolerant web applications using F#. Rooted in an ethos of low-friction web programming that is ~~free~~ of 🌟magic🌟, and built upon the high-performance components of ASP.NET Core, [Kestrel][1] & [Endpoint Routing][3].
 
 Key features:
 - Simple and powerful [routing](#routing) API.
@@ -13,7 +13,12 @@ Key features:
 - [Authentication](#authentication) and [security](#security) utilities. 
 - Streaming `multipart/form-data` reader for [large uploads](#handling-large-uploads).
 
-## Quick Start
+Design Goals:
+- Aim to be very small and easily learnable.
+- Should be extensible.
+- Should provide a toolset to build a working end-to-end web application.
+
+## Quick Start - ~Hello World 3 ways~
 
 Create a new F# web project:
 ```
@@ -30,13 +35,38 @@ Remove the `Startup.fs` file and save the following in `Program.fs`:
 module HelloWorld.Program
 
 open Falco
+open Falco.Markup
 
-let hello : HttpEndpoint =
-    get "/" (Response.ofPlainText "Hello, world!")
+let message = "Hello, world!"
+
+let layout message =
+    Elem.html [] [
+            Elem.head [] [
+                    Elem.title [] [ Text.raw message ]
+                ]
+            Elem.body [] [
+                    Elem.h1 [] [ Text.raw message ]
+                ]
+        ]
+
+let handleIndex =
+    get "/" (Response.ofPlainText message)
+
+let handleJson =
+    get "/json" (Response.ofJson {| Message = message |})
+
+let handleHtml =
+    get "/html" (Response.ofHtml (layout message))
 
 [<EntryPoint>]
 let main args =        
-    Host.startWebHostDefault args [ hello ]
+    Host.startWebHostDefault 
+        args 
+        [
+            handleHtml
+            handleJson
+            handleIndex
+        ]
     0
 ```
 
@@ -45,7 +75,7 @@ Run the application:
 dotnet run HelloWorldApp
 ```
 
-There you have it, an industrial-strength "hello world" web app, achieved using primarily base ASP.NET libraries. Pretty sweet!
+There you have it, an industrial-strength "hello world 3 ways" web app, achieved using primarily base ASP.NET Core libraries. Pretty sweet!
 
 ## Sample Applications 
 
@@ -55,6 +85,84 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | ------ | ----------- |
 | [HelloWorld][7] | A basic hello world app |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
+
+## Request Handling
+
+The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose. 
+
+Basic request/resposne handling is divided between the aptly named `Request` and `Response` modules.
+
+### [Request Module][18]
+
+### [Response Module][16]
+
+- Plain Text responses 
+```f#
+let textHandler : HttpHandler =
+    Response.ofPlainText "Hello World"
+```
+
+- HTML responses
+```f#
+let htmlHandler : HttpHandler =
+    let doc = 
+        html [] [
+                head [] [            
+                        title [] [ raw "Sample App" ]                                                    
+                    ]
+                body [] [                     
+                        h1 [] [ raw "Sample App" ]
+                    ]
+            ] 
+
+    Response.ofHtml doc
+```
+
+- JSON responses
+
+> IMPORTANT: This handler will not work with F# options or unions, since it uses the default `System.Text.Json.JsonSerializer`. See [JSON](#json) section below for further information.
+
+```f#
+type Person =
+    {
+        First : string
+        Last  : string
+    }
+
+let jsonHandler : HttpHandler =
+    { First = "John"; Last = "Doe" }
+    |> Response.ofJson
+```
+
+- Set the status code of the response
+```f#
+let notFoundHandler : HttpHandler =
+    Response.withStatusCode 404
+    >> Response.ofPlainText "Not found"
+```
+
+- Redirect (301/302) Response (boolean param to indicate permanency)
+```f#
+let oldUrlHandler : HttpHandler =
+    Response.redirect "/new-url" true
+```
+
+### Writing custom `HttpHandler`'s
+
+The built-in `HttpHandler`'s will likely only take you so far. Luckily, creating new `HttpHandler`'s is very easy.
+
+The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
+
+```f#
+let helloHandler : HttpHandler =
+    fun (ctx : HttpContext) ->        
+        let greeting =
+            Request.tryGetRouteValue "name" ctx 
+            |> Option.defaultValue "someone"
+            |> sprintf "hi %s" 
+
+        Response.ofPlainText greeting ctx
+```
 
 ## Routing
 
@@ -74,84 +182,6 @@ let routes : HttpEndpoint list =
     post "/login"              loginHandler        
     get  "/hello/{name:alpha}" helloHandler    
   ]
-```
-
-## Request Handling
-
-An `HttpHandler` can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing. Defined in F# as: `HttpContext -> Task`.
-
-Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing. 
-
-### [Response Module][16]
-
-Plain Text responses 
-```f#
-let textHandler : HttpHandler =
-    Response.ofPlainText "Hello World"
-```
-
-HTML responses
-```f#
-let htmlHandler : HttpHandler =
-    let doc = 
-        html [] [
-                head [] [            
-                        title [] [ raw "Sample App" ]                                                    
-                    ]
-                body [] [                     
-                        h1 [] [ raw "Sample App" ]
-                    ]
-            ] 
-
-    Response.ofHtml doc
-```
-
-JSON responses
-
-> IMPORTANT: This handler will not work with F# options or unions, since it uses the default `System.Text.Json.JsonSerializer`. See [JSON](#json) section below for further information.
-
-```f#
-type Person =
-    {
-        First : string
-        Last  : string
-    }
-
-let jsonHandler : HttpHandler =
-    { First = "John"; Last = "Doe" }
-    |> Response.ofJson
-```
-
-Set the status code of the response
-```f#
-let notFoundHandler : HttpHandler =
-    Response.withStatusCode 404
-    >> Response.ofPlainText "Not found"
-```
-
-Redirect (301/302) Response (boolean param to indicate permanency)
-```f#
-let oldUrlHandler : HttpHandler =
-    Response.redirect "/new-url" true
-```
-
-### [Request Module][18]
-
-### Writing custom `HttpHandler`'s
-
-The built-in `HttpHandler`'s will likely only take you so far. Luckily, creating new `HttpHandler`'s is very easy.
-
-The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
-
-```f#
-let helloHandler : HttpHandler =
-    fun (ctx : HttpContext) ->        
-        let greeting =
-            Request.tryGetRouteValue "name" ctx 
-            |> Option.defaultValue "someone"
-            |> sprintf "hi %s" 
-
-        Response.ofPlainText greeting ctx
 ```
 
 ## View Engine
