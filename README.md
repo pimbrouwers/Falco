@@ -64,12 +64,10 @@ Bearing this in mind, routing can practically be represented by a list of these 
 
 ```f#
 let loginHandler : HttpHandler =
-  fun ctx -> 
-    // ...
+  fun ctx -> // ...
 
 let helloHandler : HttpHandler =
-  fun ctx -> 
-    // ...
+  fun ctx -> // ...
 
 let routes : HttpEndpoint list = 
   [
@@ -108,9 +106,9 @@ let htmlHandler : HttpHandler =
     Response.ofHtml doc
 ```
 
-JSON responses (uses the default `System.Text.Json.JsonSerializer`)
+JSON responses
 
-> IMPORTANT: This handler will not work with F# options or unions. See [JSON](#json) section below for further information.
+> IMPORTANT: This handler will not work with F# options or unions, since it uses the default `System.Text.Json.JsonSerializer`. See [JSON](#json) section below for further information.
 
 ```f#
 type Person =
