@@ -31,13 +31,12 @@ module HelloWorld.Program
 
 open Falco
 
+let hello : HttpEndpoint =
+    get "/" (Response.ofPlainText "Hello, world!")
+
 [<EntryPoint>]
 let main args =        
-    Host.startWebHostDefault 
-        args 
-        [            
-            get "/" (Response.ofPlainText "Hello, world!")
-        ]
+    Host.startWebHostDefault args [ hello ]
     0
 ```
 
