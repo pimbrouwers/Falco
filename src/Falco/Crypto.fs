@@ -14,7 +14,7 @@ let bytesToBase64 (bytes : byte[]) =
     
 /// Generate a random int32 between range
 let randomInt min max = 
-    Random().Next(min,max)
+    RandomNumberGenerator.GetInt32(min,max)
 
 /// Generate cryptographically-sound random salt
 /// Example: createSalt 16 (generates a 128-bit (i.e. 128 / 8) salt)
