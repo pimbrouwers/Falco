@@ -2,15 +2,16 @@
 module Falco.Security.Crypto
 
 open System
+open System.Text
 open System.Security.Cryptography
         
 /// Make byte[] from Base64 string
 let bytesFromBase64 (str : string) = 
-    Convert.FromBase64String(str)
+    Convert.FromBase64String str
     
 /// Make Base64 string from byte[]
 let bytesToBase64 (bytes : byte[]) = 
-    Convert.ToBase64String(bytes)
+    Convert.ToBase64String bytes
     
 /// Generate a random int32 between range
 let randomInt min max = 
@@ -21,7 +22,7 @@ let randomInt min max =
 let createSalt len =            
     let rndAry = Array.zeroCreate<byte> len
     use rng = RandomNumberGenerator.Create()
-    rng.GetBytes(rndAry)        
+    rng.GetBytes rndAry
     rndAry |> bytesToBase64 
 
 /// Perform key derivation using the provided algorithm
@@ -32,7 +33,7 @@ let pbkdf2
     (salt : byte[])
     (input : byte[]) =    
     let pbkdf2 = new Rfc2898DeriveBytes(input, salt, iterations, algo)            
-    pbkdf2.GetBytes(numBytesRequested)
+    pbkdf2.GetBytes numBytesRequested
     |> bytesToBase64
 
 /// Perform PBKDF2 key derivation using HMACSHA256
@@ -45,8 +46,8 @@ let sha256
         HashAlgorithmName.SHA256
         iterations 
         numBytesRequested 
-        (Text.Encoding.UTF8.GetBytes salt)
-        (Text.Encoding.UTF8.GetBytes strToHash)
+        (Encoding.UTF8.GetBytes salt)
+        (Encoding.UTF8.GetBytes strToHash)
     
 /// Perform key derivation using HMACSHA512
 let sha512 
@@ -58,5 +59,5 @@ let sha512
         HashAlgorithmName.SHA512
         iterations 
         numBytesRequested 
-        (Text.Encoding.UTF8.GetBytes salt)
-        (Text.Encoding.UTF8.GetBytes strToHash)
+        (Encoding.UTF8.GetBytes salt)
+        (Encoding.UTF8.GetBytes strToHash)
