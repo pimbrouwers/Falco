@@ -52,4 +52,10 @@ let ofHtml
 let ofJson    
     (obj : 'a) : HttpHandler =    
     setContentType "application/json; charset=utf-8"
-    >> fun ctx -> JsonSerializer.SerializeAsync(ctx.Response.Body, obj)     
+    >> fun ctx -> JsonSerializer.SerializeAsync(ctx.Response.Body, obj)
+
+let ofJsonWithOptions
+    (obj : 'a) 
+    (options : JsonSerializerOptions) : HttpHandler =
+    setContentType "application/json; charset=utf-8"
+    >> fun ctx -> JsonSerializer.SerializeAsync(ctx.Response.Body, obj, options = options)
