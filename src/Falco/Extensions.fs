@@ -152,8 +152,8 @@ type HttpResponse with
     member this.WriteBytes (bytes : byte[]) =
         let byteLen = bytes.Length
         this.ContentLength <- Nullable<int64>(byteLen |> int64)
-        this.Body.WriteAsync(bytes, 0, byteLen)            
-
+        this.Body.WriteAsync(bytes, 0, byteLen)
+        
     /// Write UTF8 string to HttpResponse body
     member this.WriteString (encoding : Encoding) (httpBodyStr : string) =
         let httpBodyBytes = encoding.GetBytes httpBodyStr
