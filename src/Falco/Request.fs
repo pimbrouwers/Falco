@@ -6,13 +6,13 @@ open System.Threading.Tasks
 open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
 
-let getRouteValues
-    (ctx : HttpContext) =
-    ctx.Request.GetRouteValues()
-
 let getVerb 
     (ctx : HttpContext) : HttpVerb =
     ctx.Request.HttpVerb
+
+let getRouteValues
+    (ctx : HttpContext) =
+    ctx.Request.GetRouteValues()
 
 let tryGetRouteValue 
     (key : string) 
@@ -26,45 +26,43 @@ let getQuery
 let tryBindQuery    
     (bind : StringCollectionReader -> Result<'a, string>) 
     (ctx : HttpContext) : Result<'a, string> = 
-    ctx.Request.GetQueryReader () 
+    getQuery ctx 
     |> bind
 
 let getForm
-    (ctx : HttpContext) : FormCollectionReader = 
-    ctx.Request.GetFormReader()    
-
-let getFormAsync
     (ctx : HttpContext) : Task<FormCollectionReader> = 
     ctx.Request.GetFormReaderAsync()    
 
-let tryBindForm 
-    (bind : FormCollectionReader -> Result<'a, string>)
-    (ctx : HttpContext) : Result<'a, string> = 
-    getForm ctx
-    |> bind
-
-let tryBindFormAsync
+let tryBindForm
     (bind : FormCollectionReader -> Result<'a, string>)
     (ctx : HttpContext) : Task<Result<'a, string>> = task {
-        let! form = ctx.Request.GetFormReaderAsync ()            
+        let! form = getForm ctx
         return form |> bind
     }
 
-let tryStreamFormAsync
+let tryStreamForm
     (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> = task {
         return! ctx.Request.TryStreamFormAsync()
     }
 
-let tryBindFormStreamAsync
-    (bind : FormCollectionReader -> Result<'a, string>)
-    (ctx : HttpContext) : Task<Result<'a, string>> = task {
-        let! form = ctx.Request.TryStreamFormAsync ()                    
-        return form |> Result.bind bind
-    }
-
 let tryBindJson<'a>
-    (ctx : HttpContext) : Task<'a> = 
-    let opt = JsonSerializerOptions()
-    opt.AllowTrailingCommas <- true
-    opt.PropertyNameCaseInsensitive <- true    
-    JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, opt).AsTask()
+    (ctx : HttpContext) : Task<Result<'a, string>> = task {
+    let options = JsonSerializerOptions()
+    options.AllowTrailingCommas <- true
+    options.PropertyNameCaseInsensitive <- true  
+    try
+        let! result = JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
+        return Ok result        
+    with
+    :? JsonException as ex -> return Error ex.Message
+}
+
+let tryBindJsonOptions<'a>
+    (options : JsonSerializerOptions)
+    (ctx : HttpContext) : Task<Result<'a, string>> = task { 
+    try
+        let! result = JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
+        return Ok result        
+    with
+    :? JsonException as ex -> return Error ex.Message
+}

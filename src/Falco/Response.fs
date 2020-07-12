@@ -5,7 +5,6 @@ open System
 open System.IO
 open System.Text
 open System.Text.Json
-open System.Threading.Tasks
 open Falco.Markup
 open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
@@ -41,6 +40,21 @@ let withStatusCode
         ctx.Response.SetStatusCode statusCode
         ctx
 
+let withCookie
+    (key : string)
+    (value : string) : HttpResponseModifier =
+    fun ctx ->
+        ctx.Response.AddCookie key value
+        ctx
+
+let withCookieOptions
+    (key : string)
+    (value : string)
+    (cookieOptions : CookieOptions) : HttpResponseModifier =
+    fun ctx ->
+        ctx.Response.AddCookieOptions key value cookieOptions
+        ctx
+
 let ofString
     (encoding : Encoding)
     (str : string) : HttpHandler =        
@@ -69,7 +83,7 @@ let ofJson
         return ()
     }
         
-let ofJsonWithOptions
+let ofJsonOptions
     (obj : 'a) 
     (options : JsonSerializerOptions) : HttpHandler =
     withContentType "application/json; charset=utf-8"

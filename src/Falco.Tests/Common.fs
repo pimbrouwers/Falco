@@ -5,10 +5,14 @@ open System.IO
 open System.IO.Pipelines
 open System.Security.Claims
 open FSharp.Control.Tasks
+open FsUnit.Xunit
 open Microsoft.AspNetCore.Http
 open NSubstitute
 
-let getBody (ctx : HttpContext) =
+[<CLIMutable>]
+type FakeRecord = { Name : string }
+
+let getResponseBody (ctx : HttpContext) =
     task {
         ctx.Response.Body.Position <- 0L
         use reader = new StreamReader(ctx.Response.Body)
@@ -16,13 +20,18 @@ let getBody (ctx : HttpContext) =
     }
 
 let getHttpContextWriteable (authenticated : bool) =
-    let headers = Substitute.For<HeaderDictionary>()
+    let req = Substitute.For<HttpRequest>()    
+    //let reqBody = new MemoryStream()        
+    //req.Body <- reqBody
+    //req.BodyReader.Returns(PipeReader.Create(reqBody)) |> ignore
+    //let reqBodyReader = PipeReader.Create(reqBody)
+    //req.BodyReader.Returns(reqBodyReader) |> ignore
     
-    let resp = Substitute.For<HttpResponse>()
-    let str = new MemoryStream()
-    resp.Headers.Returns(headers) |> ignore
-    resp.BodyWriter.Returns(PipeWriter.Create(str)) |> ignore
-    resp.Body <- str    
+    let resp = Substitute.For<HttpResponse>()    
+    let respBody = new MemoryStream()
+    resp.Headers.Returns(Substitute.For<HeaderDictionary>()) |> ignore
+    resp.BodyWriter.Returns(PipeWriter.Create(respBody)) |> ignore
+    resp.Body <- respBody    
     resp.StatusCode <- 200 
 
     
@@ -33,6 +42,7 @@ let getHttpContextWriteable (authenticated : bool) =
     user.Identity.Returns(identity) |> ignore
 
     let ctx = Substitute.For<HttpContext>()    
+    ctx.Request.Returns(req) |> ignore
     ctx.Response.Returns(resp) |> ignore
     ctx.User.Returns(user) |> ignore
 

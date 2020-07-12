@@ -56,10 +56,6 @@ type HttpRequest with
         return FormCollectionReader(form, None)
     }        
 
-    /// Synchronously retrieve StringCollectionReader for IFormCollection from HttpRequest
-    member this.GetFormReader() =
-        this.GetFormReaderAsync().Result
-
     /// Retrieve StringCollectionReader for IQueryCollection from HttpRequest
     member this.GetQueryReader () = 
         StringCollectionReader(this.Query)
@@ -158,6 +154,14 @@ type HttpResponse with
     member this.WriteString (encoding : Encoding) (httpBodyStr : string) =
         let httpBodyBytes = encoding.GetBytes httpBodyStr
         this.WriteBytes httpBodyBytes
+
+    /// Append a new cookie with value
+    member this.AddCookie (key : string) (value : string) =        
+        this.Cookies.Append(key, value)
+
+    /// Append a new cookie with value and options
+    member this.AddCookieOptions (key : string) (value : string) (cookieOptions : CookieOptions) =
+        this.Cookies.Append(key, value, cookieOptions)
 
 type HttpContext with       
     // ------------

@@ -1,11 +1,6 @@
 ﻿[<AutoOpen>]
 module Falco.Routing
 
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Http
-open Falco.StringParser
-open Falco.StringUtils
-
 /// Constructor for HttpEndpoint
 let route 
     (verb : HttpVerb) 

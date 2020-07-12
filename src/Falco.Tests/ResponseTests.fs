@@ -2,7 +2,6 @@
 
 open System.Text
 open System.Text.Json
-open System.Threading.Tasks
 open Falco
 open Falco.Markup
 open FSharp.Control.Tasks
@@ -10,11 +9,6 @@ open FsUnit.Xunit
 open Microsoft.Net.Http.Headers
 open NSubstitute
 open Xunit
-
-let blankResponse : HttpHandler =
-    fun ctx -> ctx.Response.CompleteAsync ()
-
-type JsonOutTest = { Name : string }
 
 [<Fact>]
 let ``setStatusCode should modify HttpResponse StatusCode`` () =
@@ -25,7 +19,7 @@ let ``setStatusCode should modify HttpResponse StatusCode`` () =
     task {
         do! ctx 
             |> Response.withStatusCode expected 
-            |> blankResponse
+            |> fun ctx -> ctx.Response.CompleteAsync ()
         
         ctx.Response.StatusCode 
         |> should equal expected
@@ -54,7 +48,7 @@ let ``textOut produces text/plain result`` () =
         do! ctx
             |> Response.ofPlainText expected
         
-        let! body = getBody ctx
+        let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength        
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
@@ -73,7 +67,7 @@ let ``jsonOut produces applicaiton/json result`` () =
         do! ctx
             |> Response.ofJson { Name = "John Doe"}
 
-        let! body = getBody ctx
+        let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength        
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
@@ -93,9 +87,9 @@ let ``jsonOutWithOptions produces applicaiton/json result ignoring nulls`` () =
         jsonOptions.IgnoreNullValues <- true
 
         do! ctx
-            |> Response.ofJsonWithOptions { Name = null } jsonOptions
+            |> Response.ofJsonOptions { Name = null } jsonOptions
 
-        let! body = getBody ctx
+        let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength        
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
@@ -121,7 +115,7 @@ let ``htmlOut produces text/html result`` () =
         do! ctx
             |> Response.ofHtml doc
 
-        let! body = getBody ctx
+        let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength        
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
