@@ -48,9 +48,9 @@ let withCookie
         ctx
 
 let withCookieOptions
+    (cookieOptions : CookieOptions)
     (key : string)
-    (value : string)
-    (cookieOptions : CookieOptions) : HttpResponseModifier =
+    (value : string) : HttpResponseModifier =
     fun ctx ->
         ctx.Response.AddCookieOptions key value cookieOptions
         ctx
@@ -84,8 +84,8 @@ let ofJson
     }
         
 let ofJsonOptions
-    (obj : 'a) 
-    (options : JsonSerializerOptions) : HttpHandler =
+    (options : JsonSerializerOptions) 
+    (obj : 'a) : HttpHandler =
     withContentType "application/json; charset=utf-8"
     >> fun ctx -> task {
         use str = new MemoryStream()
