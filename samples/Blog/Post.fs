@@ -66,7 +66,7 @@ module View =
     open Falco.Markup
     open Blog.UI
     open Model 
-        
+    
     let details (blogPost : PostModel) =
         [ 
             Elem.a [ Attr.href "/"; ] [ Text.raw "<< Back home" ]
@@ -92,7 +92,7 @@ module View =
             Elem.h2 [] [ Text.raw "Posts"]                
         ] @ postElements
         |> layout "Falco Blog"
-
+        
     let notFound slug =
         let msg = 
             match slug with
@@ -144,3 +144,8 @@ module Controller =
         |> Array.sortBy (fun p -> p.Date) 
         |> View.index 
         |> Response.ofHtml
+
+    let json (posts : PostModel[]) : HttpHandler =
+        posts 
+        |> Array.sortBy (fun p -> p.Date) 
+        |> Response.ofJson

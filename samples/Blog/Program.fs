@@ -13,6 +13,7 @@ let main args =
             (Server.configureWebHost Env.developerMode)
             [
                 get "/{slug:regex(^[a-z\-])}" (Post.Controller.details posts)
+                get "/json" (Post.Controller.json posts)
                 get "/" (Post.Controller.index posts)
             ]
         0

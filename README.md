@@ -104,12 +104,14 @@ let textHandler : HttpHandler =
 ```f#
 let htmlHandler : HttpHandler =
     let doc = 
-        html [] [
-                head [] [            
-                        title [] [ raw "Sample App" ]                                                    
+        Elem.html [ Attr.lang "en" ] [
+                Elem.head [] [                    
+                        Elem.title [] [ Text.raw "Sample App" ]                                                            
                     ]
-                body [] [                     
-                        h1 [] [ raw "Sample App" ]
+                Elem.body [] [                     
+                        Elem.main [] [
+                                Elem.h1 [] [ Text.raw "Sample App" ]
+                            ]
                     ]
             ] 
 
@@ -303,21 +305,26 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 ```f#
 /// An example handler, safely obtaining values from IFormCollection
 let parseFormHandler : HttpHandler =
-    fun ctx ->
-        let form = Request.getForm ctx // getFormAsync() also available
+    fun ctx -> task {
+        let! form = Request.getFormAsync() ctx
 
         let firstName = form.TryGetString "FirstName" // string -> string option        
         let lastName  = form.TryGet "LastName"        // alias for TryGetString
         let age       = form.TryGetInt "Age"          // string -> int option
+
+        // Rest of handler ...
+    }
 
 /// An example handler, safely obtaining values from IQueryCollection
 let parseQueryHandler : HttpHandler =
     fun ctx ->
-        let form = Request.getQuery ctx
+        let query = Request.getQuery ctx
 
-        let firstName = form.TryGetString "FirstName" // string -> string option        
-        let lastName  = form.TryGet "LastName"        // alias for TryGetString
-        let age       = form.TryGetInt "Age"          // string -> int option
+        let firstName = query.TryGetString "FirstName" // string -> string option        
+        let lastName  = query.TryGet "LastName"        // alias for TryGetString
+        let age       = query.TryGetInt "Age"          // string -> int option
+
+        // Rest of handler ...
 ```
 
 In this case where you don't care about gracefully handling non-existence. Or, you are certain values will be present, the dynamic operator `?` can be useful:
@@ -325,12 +332,14 @@ In this case where you don't care about gracefully handling non-existence. Or, y
 ```f#
 let parseQueryHandler : HttpHandler =
     fun ctx ->
-        let form = Request.getQuery ctx
+        let query = Request.getQuery ctx
 
         // dynamic operator also case-insensitive
-        let firstName = form?FirstName.AsString() // string -> string
-        let lastName  = form?LastName.AsString()  // string -> string
-        let age       = form?Age.AsInt16()        // string -> int16
+        let firstName = query?FirstName.AsString() // string -> string
+        let lastName  = query?LastName.AsString()  // string -> string
+        let age       = query?Age.AsInt16()        // string -> int16
+
+        // Rest of handler ...
 ```
 
 > Use of the `?` dynamic operator also performs **case-insenstive** lookups against the collection.
