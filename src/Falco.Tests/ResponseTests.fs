@@ -11,7 +11,7 @@ open NSubstitute
 open Xunit
 
 [<Fact>]
-let ``setStatusCode should modify HttpResponse StatusCode`` () =
+let ``Response.withStatusCode should modify HttpResponse StatusCode`` () =
     let ctx = getHttpContextWriteable false
 
     let expected = 204
@@ -28,7 +28,7 @@ let ``setStatusCode should modify HttpResponse StatusCode`` () =
 [<Theory>]
 [<InlineData(false)>]
 [<InlineData(true)>]
-let ``redirect temporary should invoke HttpResponse Redirect with provided bool`` (permanent : bool) =
+let ``Response.redirect temporary should invoke HttpResponse Redirect with provided bool`` (permanent : bool) =
     let ctx = getHttpContextWriteable false
 
     task {
@@ -39,7 +39,7 @@ let ``redirect temporary should invoke HttpResponse Redirect with provided bool`
     }
 
 [<Fact>]
-let ``textOut produces text/plain result`` () =
+let ``Response.ofPlainText produces text/plain result`` () =
     let ctx = getHttpContextWriteable false
 
     let expected = "hello"
@@ -58,7 +58,7 @@ let ``textOut produces text/plain result`` () =
     }
 
 [<Fact>]
-let ``jsonOut produces applicaiton/json result`` () =
+let ``Response.ofJson produces applicaiton/json result`` () =
     let ctx = getHttpContextWriteable false
 
     let expected = "{\"Name\":\"John Doe\"}"
@@ -77,7 +77,7 @@ let ``jsonOut produces applicaiton/json result`` () =
     }
 
 [<Fact>]
-let ``jsonOutWithOptions produces applicaiton/json result ignoring nulls`` () =
+let ``Response.ofJsonOptions produces applicaiton/json result ignoring nulls`` () =
     let ctx = getHttpContextWriteable false
 
     let expected = "{}"
@@ -87,7 +87,7 @@ let ``jsonOutWithOptions produces applicaiton/json result ignoring nulls`` () =
         jsonOptions.IgnoreNullValues <- true
 
         do! ctx
-            |> Response.ofJsonOptions { Name = null } jsonOptions
+            |> Response.ofJsonOptions jsonOptions { Name = null }
 
         let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength        
@@ -99,7 +99,7 @@ let ``jsonOutWithOptions produces applicaiton/json result ignoring nulls`` () =
     }
 
 [<Fact>]
-let ``htmlOut produces text/html result`` () =
+let ``Response.ofHtml produces text/html result`` () =
     let ctx = getHttpContextWriteable false
 
     let expected = "<!DOCTYPE html><html><div class=\"my-class\"><h1>hello</h1></div></html>"
