@@ -5,18 +5,14 @@ open System.Collections.Generic
 open System.IO
 open System.Text
 open System.Text.Json
-open System.Threading.Tasks
 open Falco
-open Falco.Markup
 open FSharp.Control.Tasks
 open FsUnit.Xunit
-open Microsoft.Net.Http.Headers
 open NSubstitute
 open Xunit
 open Microsoft.AspNetCore.Routing
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
-open System.IO.Pipelines
 
 [<Fact>]
 let ``getVerb should return HttpVerb from HttpContext`` () =
@@ -68,7 +64,7 @@ let ``tryBindQuery should bind record successfully`` () =
     let boundRecord = Request.tryBindQuery bind ctx
     
     match boundRecord with
-    | Error     -> false 
+    | Error _    -> false 
                    |> should equal true
 
     | Ok record -> record.Name 
@@ -93,7 +89,7 @@ let ``tryBindForm should return a FormCollectionReader instance`` () =
         let! boundRecord = Request.tryBindForm bind ctx
         
         match boundRecord with
-        | Error     -> false 
+        | Error _   -> false 
                        |> should equal true
 
         | Ok record -> record.Name 
@@ -110,7 +106,7 @@ let ``tryBindJson should return deserialzed FakeRecord record `` () =
         let! boundRecord = Request.tryBindJson<FakeRecord> ctx
 
         match boundRecord with
-        | Error     -> false 
+        | Error _   -> false 
                        |> should equal true
 
         | Ok record -> record.Name 
@@ -148,7 +144,7 @@ let ``tryBindJsonAsyncOptions should return empty record `` () =
         let! boundRecord = Request.tryBindJsonOptions<FakeRecord> jsonOptions ctx
 
         match boundRecord with
-        | Error     -> false 
+        | Error _   -> false 
                        |> should equal true
 
         | Ok record -> record.Name 
