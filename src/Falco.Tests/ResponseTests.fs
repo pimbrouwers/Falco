@@ -25,6 +25,34 @@ let ``Response.withStatusCode should modify HttpResponse StatusCode`` () =
         |> should equal expected
     }
 
+[<Fact>]
+let ``Response.withHeader should set header`` () =
+    let serverName = "Kestrel"
+    let ctx = getHttpContextWriteable false    
+    
+    task {
+        do! ctx 
+            |> Response.withHeader HeaderNames.Server serverName 
+            |> fun ctx -> ctx.Response.CompleteAsync ()
+        
+        ctx.Response.Headers.[HeaderNames.Server]
+        |> should equal serverName
+    }
+
+[<Fact>]
+let ``Response.withContentType should set header`` () =
+    let contentType = "text/plain; charset=utf-8" 
+    let ctx = getHttpContextWriteable false    
+    
+    task {
+        do! ctx 
+            |> Response.withHeader HeaderNames.ContentType contentType
+            |> fun ctx -> ctx.Response.CompleteAsync ()
+        
+        ctx.Response.Headers.[HeaderNames.ContentType]
+        |> should equal contentType
+    }
+
 [<Theory>]
 [<InlineData(false)>]
 [<InlineData(true)>]

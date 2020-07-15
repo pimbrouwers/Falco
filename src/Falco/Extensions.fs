@@ -31,6 +31,9 @@ type HttpRequest with
         | m when strEquals m HttpMethods.Trace   -> TRACE
         | _ -> ANY
 
+    member this.GetHeader (headerName : string) =
+        this.Headers.[headerName].ToArray() // always returns a StringValues, so safe to call ToArray()
+
     /// Obtain Map<string,string> of current route values
     member this.GetRouteValues () =
         this.RouteValues

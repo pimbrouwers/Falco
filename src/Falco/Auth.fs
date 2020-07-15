@@ -5,6 +5,7 @@ open System.Security.Claims
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
+open Falco.StringUtils
 open Falco.Extensions
 
 let isAuthenticated 
@@ -18,6 +19,16 @@ let isInRole
     | None      -> false
     | Some user -> List.exists user.IsInRole roles
     
+let getClaim
+    (claim : string)
+    (ctx : HttpContext) : Claim option =
+    match ctx.GetUser() with
+    | None      -> None
+    | Some user ->         
+        match user.Claims |> Seq.tryFind (fun c -> strEquals c.Type claim) with
+        | None   -> None
+        | Some c -> Some c
+               
 let signInAsync
     (authScheme : string)
     (claimsPrincipal : ClaimsPrincipal)

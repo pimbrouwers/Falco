@@ -21,11 +21,7 @@ let getResponseBody (ctx : HttpContext) =
 
 let getHttpContextWriteable (authenticated : bool) =
     let req = Substitute.For<HttpRequest>()    
-    //let reqBody = new MemoryStream()        
-    //req.Body <- reqBody
-    //req.BodyReader.Returns(PipeReader.Create(reqBody)) |> ignore
-    //let reqBodyReader = PipeReader.Create(reqBody)
-    //req.BodyReader.Returns(reqBodyReader) |> ignore
+    req.Headers.Returns(Substitute.For<HeaderDictionary>()) |> ignore
     
     let resp = Substitute.For<HttpResponse>()    
     let respBody = new MemoryStream()

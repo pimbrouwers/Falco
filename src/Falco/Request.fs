@@ -10,9 +10,14 @@ let getVerb
     (ctx : HttpContext) : HttpVerb =
     ctx.Request.HttpVerb
 
+let getHeader 
+    (headerName : string)
+    (ctx : HttpContext) : string[] =
+    ctx.Request.GetHeader headerName
+
 let getRouteValues
     (ctx : HttpContext) =
-    ctx.Request.GetRouteValues()
+    ctx.Request.GetRouteValues ()
 
 let tryGetRouteValue 
     (key : string) 
@@ -21,7 +26,7 @@ let tryGetRouteValue
 
 let getQuery
     (ctx : HttpContext) : StringCollectionReader =
-    ctx.Request.GetQueryReader()
+    ctx.Request.GetQueryReader ()
 
 let tryBindQuery    
     (bind : StringCollectionReader -> Result<'a, string>) 
@@ -31,7 +36,7 @@ let tryBindQuery
 
 let getForm
     (ctx : HttpContext) : Task<FormCollectionReader> = 
-    ctx.Request.GetFormReaderAsync()    
+    ctx.Request.GetFormReaderAsync ()    
 
 let tryBindForm
     (bind : FormCollectionReader -> Result<'a, string>)
@@ -41,10 +46,9 @@ let tryBindForm
     }
 
 let tryStreamForm
-    (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> = task {
-        return! ctx.Request.TryStreamFormAsync()
-    }
-
+    (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> = 
+    ctx.Request.TryStreamFormAsync()
+    
 let tryBindJson<'a>
     (ctx : HttpContext) : Task<Result<'a, string>> = task {
     let options = JsonSerializerOptions()

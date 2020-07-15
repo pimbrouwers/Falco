@@ -11,11 +11,12 @@ open FsUnit.Xunit
 open NSubstitute
 open Xunit
 open Microsoft.AspNetCore.Routing
+open Microsoft.Net.Http.Headers
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
 
 [<Fact>]
-let ``getVerb should return HttpVerb from HttpContext`` () =
+let ``Request.getVerb should return HttpVerb from HttpContext`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.Method <- "GET"
 
@@ -23,7 +24,19 @@ let ``getVerb should return HttpVerb from HttpContext`` () =
     |> should equal GET
 
 [<Fact>]
-let ``getRouteValues should return RouteValueDictionary from HttpContext`` () =
+let ``Request.getHeader should work for present and missing header names`` () =
+    let serverName = "Kestrel"
+    let ctx = getHttpContextWriteable false    
+    ctx.Request.Headers.Add(HeaderNames.Server, StringValues(serverName))
+    
+    Request.getHeader HeaderNames.Server ctx
+    |> should equal [|serverName|]
+
+    Request.getHeader "missing" ctx
+    |> should equal [||]
+
+[<Fact>]
+let ``Request.getRouteValues should return Map<string, string> from HttpContext`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
 
@@ -33,7 +46,7 @@ let ``getRouteValues should return RouteValueDictionary from HttpContext`` () =
     |> should equal "falco"
 
 [<Fact>]
-let ``tryGetRouteValue should return Some`` () =
+let ``Request.tryGetRouteValue should return Some`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
 
@@ -41,7 +54,7 @@ let ``tryGetRouteValue should return Some`` () =
     |> should equal (Some "falco")
 
 [<Fact>]
-let ``tryGetRouteValue should return None`` () =
+let ``Request.tryGetRouteValue should return None`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
 
@@ -49,7 +62,7 @@ let ``tryGetRouteValue should return None`` () =
     |> should equal None
 
 [<Fact>]
-let ``tryBindQuery should bind record successfully`` () =
+let ``Request.tryBindQuery should bind record successfully`` () =
     let ctx = getHttpContextWriteable false
     let query = Dictionary<string, StringValues>()
     query.Add("name", StringValues("falco"))
@@ -71,7 +84,7 @@ let ``tryBindQuery should bind record successfully`` () =
                    |> should equal "falco"
 
 [<Fact>]
-let ``tryBindForm should return a FormCollectionReader instance`` () =
+let ``Request.tryBindForm should return a FormCollectionReader instance`` () =
     let ctx = getHttpContextWriteable false
     let form = Dictionary<string, StringValues>()
     form.Add("name", StringValues("falco"))
@@ -97,7 +110,7 @@ let ``tryBindForm should return a FormCollectionReader instance`` () =
     }
 
 [<Fact>]
-let ``tryBindJson should return deserialzed FakeRecord record `` () =
+let ``Request.tryBindJson should return deserialzed FakeRecord record `` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))    
     ctx.Request.Body.Returns(ms) |> ignore
@@ -114,7 +127,7 @@ let ``tryBindJson should return deserialzed FakeRecord record `` () =
     }
 
 [<Fact>]
-let ``tryBindJsonAsync should return Error on failure`` () =
+let ``Request.tryBindJsonAsync should return Error on failure`` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))    
     ctx.Request.Body.Returns(ms) |> ignore
@@ -131,7 +144,7 @@ let ``tryBindJsonAsync should return Error on failure`` () =
     }
 
 [<Fact>]
-let ``tryBindJsonAsyncOptions should return empty record `` () =
+let ``Request.tryBindJsonAsyncOptions should return empty record `` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":null}"))    
     ctx.Request.Body.Returns(ms) |> ignore

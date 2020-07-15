@@ -7,7 +7,6 @@ open System.Text
 open System.Text.Json
 open Falco.Markup
 open FSharp.Control.Tasks
-open Microsoft.AspNetCore.Http
 open Microsoft.Net.Http.Headers
 
 let redirect     
@@ -38,21 +37,6 @@ let withStatusCode
     (statusCode : int) : HttpResponseModifier =
     fun ctx ->
         ctx.Response.SetStatusCode statusCode
-        ctx
-
-let withCookie
-    (key : string)
-    (value : string) : HttpResponseModifier =
-    fun ctx ->
-        ctx.Response.AddCookie key value
-        ctx
-
-let withCookieOptions
-    (cookieOptions : CookieOptions)
-    (key : string)
-    (value : string) : HttpResponseModifier =
-    fun ctx ->
-        ctx.Response.AddCookieOptions key value cookieOptions
         ctx
 
 let ofString
