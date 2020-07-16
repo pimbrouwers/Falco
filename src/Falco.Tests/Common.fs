@@ -1,12 +1,14 @@
 ﻿[<AutoOpen>]
 module Falco.Tests.Common 
 
+open System
 open System.IO
 open System.IO.Pipelines
 open System.Security.Claims
 open FSharp.Control.Tasks
 open FsUnit.Xunit
 open Microsoft.AspNetCore.Http
+open Microsoft.Extensions.Hosting
 open NSubstitute
 
 [<CLIMutable>]
@@ -30,6 +32,7 @@ let getHttpContextWriteable (authenticated : bool) =
     resp.Body <- respBody    
     resp.StatusCode <- 200 
 
+    let services = Substitute.For<IServiceProvider>()
     
     let identity = Substitute.For<ClaimsIdentity>()
     identity.IsAuthenticated.Returns(authenticated) |> ignore
@@ -40,6 +43,7 @@ let getHttpContextWriteable (authenticated : bool) =
     let ctx = Substitute.For<HttpContext>()    
     ctx.Request.Returns(req) |> ignore
     ctx.Response.Returns(resp) |> ignore
+    ctx.RequestServices.Returns(services) |> ignore
     ctx.User.Returns(user) |> ignore
 
     ctx

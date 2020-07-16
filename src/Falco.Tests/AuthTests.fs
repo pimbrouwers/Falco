@@ -5,8 +5,9 @@ open Falco
 open Falco.Security
 open FSharp.Control.Tasks
 open FsUnit.Xunit
-open Xunit
+open Microsoft.AspNetCore.Authentication
 open NSubstitute
+open Xunit
 
 [<Theory>] 
 [<InlineData(false)>]
@@ -47,3 +48,4 @@ let ``Auth.getClaim returns none claim if does not exist`` () =
     
     let claim = Auth.getClaim ClaimTypes.Name ctx
     claim.IsNone |> should equal true
+    

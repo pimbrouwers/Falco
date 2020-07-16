@@ -8,8 +8,10 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
+/// Specifies the process of configuring the IWebHost builder
 type ConfigureWebHost = HttpEndpoint list -> IWebHostBuilder -> unit
 
+/// The default exception handler, attempts to logs exception (if exists) and returns HTTP 500
 let defaultExceptionHandler 
     (ex : Exception)
     (log : ILogger) : HttpHandler =
@@ -17,12 +19,14 @@ let defaultExceptionHandler
     log.Log(LogLevel.Error, logMessage)        
     
     Response.withStatusCode 500
-    >> Response.ofPlainText logMessage
+    >> (fun ctx -> ctx.Response.CompleteAsync ())
         
+/// Returns HTTP 404
 let defaultNotFoundHandler : HttpHandler =    
     Response.withStatusCode 404
-    >> Response.ofPlainText "Not found"
+    >> (fun ctx -> ctx.Response.CompleteAsync ())
 
+/// Create and start a new IHost (Alias for Host.CreateDefaultBuilder(args))
 let startWebHost =
     fun (args : string[]) 
         (webHostBuilder : ConfigureWebHost)
@@ -32,6 +36,7 @@ let startWebHost =
         .Build()
         .Run()
 
+/// The default host configuration
 let defaultConfigureWebHost = 
     let configureLogging
             (log : ILoggingBuilder) =
@@ -66,6 +71,7 @@ let defaultConfigureWebHost =
             .Configure(configure endpoints)
             |> ignore
 
+/// Start the default host
 let startWebHostDefault =
     fun (args : string[]) 
         (endpoints : HttpEndpoint list) ->

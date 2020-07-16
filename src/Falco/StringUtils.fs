@@ -16,4 +16,6 @@ let strEquals s1 s2 =
 
 /// Join strings with a separator
 let strJoin (sep : string) (lst : string seq) = 
+    // String.Join uses a StringBuilder when provided an IEnumerable
+    // Url: https://github.com/microsoft/referencesource/blob/master/mscorlib/system/string.cs#L161
     String.Join(sep, lst)
