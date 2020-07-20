@@ -211,6 +211,53 @@ let main args =
 
 Should you wish to fully customize your host instance the `Host.startWebHost` exposes the `IWebHostBuilder` which enables full customization. For a full example, see the [Blog sample][8].
 
+```f#
+let configureLogging 
+    (log : ILoggingBuilder) =
+    log.SetMinimumLevel(LogLevel.Error)
+    |> ignore
+
+let configureServices 
+    (services : IServiceCollection) =
+    services.AddRouting()     
+            .AddResponseCaching()
+            .AddResponseCompression()
+    |> ignore
+
+let configure                 
+    (routes : HttpEndpoint list)
+    (app : IApplicationBuilder) = 
+            
+    app.UseExceptionMiddleware(Host.defaultExceptionHandler)
+        .UseResponseCaching()
+        .UseResponseCompression()
+        .UseStaticFiles()
+        .UseRouting()
+        .UseHttpEndPoints(routes)
+        .UseNotFoundHandler(Host.defaultNotFoundHandler)
+        |> ignore 
+
+let configureWebHost : ConfigureWebHost =
+  fun (endPoints : HttpEndPointList) 
+      (host : IWebHostBuilder) ->
+       webHost
+            .UseKestrel()
+            .ConfigureLogging(configureLogging)
+            .ConfigureServices(configureServices)
+            .Configure(configure endpoints)
+            |> ignore
+
+[<EntryPoint>]
+let main args =    
+    Host.startWebHost 
+        args
+        configureWebHost
+        [
+            // Routes go here
+        ]
+    0
+```
+
 ## View Engine
 
 A core feature of Falco is the functional view engine. Using it means:
