@@ -240,12 +240,12 @@ let configure
 let configureWebHost : ConfigureWebHost =
   fun (endPoints : HttpEndPointList) 
       (host : IWebHostBuilder) ->
-       webHost
-            .UseKestrel()
-            .ConfigureLogging(configureLogging)
-            .ConfigureServices(configureServices)
-            .Configure(configure endpoints)
-            |> ignore
+      webHost
+           .UseKestrel()
+           .ConfigureLogging(configureLogging)
+           .ConfigureServices(configureServices)
+           .Configure(configure endpoints)
+           |> ignore
 
 [<EntryPoint>]
 let main args =    
