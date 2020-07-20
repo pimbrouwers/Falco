@@ -194,6 +194,23 @@ let endpoints : HttpEndpoint list =
     ]
 ```
 
+## Host
+
+[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  If you're looking to get a host up and running quickly the `Host.startWebHostDefault` function will enable everythigng necessary for Falco to work:
+
+```f#
+[<EntryPoint>]
+let main args =        
+    Host.startWebHostDefault 
+        args 
+        [
+            // Routes go here
+        ]
+    0
+```
+
+Should you wish to fully customize your host instance the `Host.startWebHost` exposes the `IWebHostBuilder` which enables full customization. For a full example, see the [Blog sample][8].
+
 ## View Engine
 
 A core feature of Falco is the functional view engine. Using it means:
@@ -589,7 +606,7 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [5]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#route-template-reference
 [6]: https://github.com/pimbrouwers/Falco/tree/master/samples
 [7]: https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld
-[8]: https://github.com/pimbrouwers/Falco/tree/master/samples/SampleApp
+[8]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
 [9]: https://en.wikipedia.org/wiki/Function_composition "Function composition"
 [10]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1 "ASP.NET Core Middlware"
 [11]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/options "F# Options"

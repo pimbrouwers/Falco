@@ -79,9 +79,8 @@ let ofHtml
     let html = renderHtml html
     withContentType "text/html; charset=utf-8"
     >> ofString Encoding.UTF8 html
-
- 
-/// Returns a "application/json; charset=utf-8" response with the serialized object provided to the client 
+     
+/// Returns an optioned "application/json; charset=utf-8" response with the serialized object provided to the client 
 let ofJsonOptions
     (options : JsonSerializerOptions) 
     (obj : 'a) : HttpHandler =
@@ -90,7 +89,7 @@ let ofJsonOptions
         use str = new MemoryStream()
         do! JsonSerializer.SerializeAsync(str, obj, options = options)   
         str.Flush ()
-        do! ctx.Response.WriteBytes (str.ToArray())
+        do! ctx.Response.WriteBytes (str.ToArray ())
         return ()
     }
 
