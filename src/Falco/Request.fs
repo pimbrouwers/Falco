@@ -57,19 +57,6 @@ let tryBindForm
 let tryStreamForm
     (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> = 
     ctx.Request.TryStreamFormAsync()
-    
-/// Attempt to bind request body using System.Text.Json
-let tryBindJson<'a>
-    (ctx : HttpContext) : Task<Result<'a, string>> = task {
-    let options = JsonSerializerOptions()
-    options.AllowTrailingCommas <- true
-    options.PropertyNameCaseInsensitive <- true  
-    try
-        let! result = JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
-        return Ok result        
-    with
-    :? JsonException as ex -> return Error ex.Message
-}
 
 /// Attempt to bind request body using System.Text.Json and provided JsonSerializerOptions
 let tryBindJsonOptions<'a>
@@ -81,3 +68,8 @@ let tryBindJsonOptions<'a>
     with
     :? JsonException as ex -> return Error ex.Message
 }
+    
+/// Attempt to bind request body using System.Text.Json
+let tryBindJson<'a>
+    (ctx : HttpContext) : Task<Result<'a, string>> = 
+    tryBindJsonOptions Constants.defaultJsonOptions ctx

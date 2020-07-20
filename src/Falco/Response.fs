@@ -80,17 +80,6 @@ let ofHtml
     withContentType "text/html; charset=utf-8"
     >> ofString Encoding.UTF8 html
 
-/// Returns a "application/json; charset=utf-8" response with the serialized object provided to the client 
-let ofJson    
-    (obj : 'a) : HttpHandler =    
-    withContentType "application/json; charset=utf-8"
-    >> fun ctx -> task {
-        use str = new MemoryStream()
-        do! JsonSerializer.SerializeAsync(str, obj)
-        str.Flush ()
-        do! ctx.Response.WriteBytes (str.ToArray())
-        return ()
-    }
  
 /// Returns a "application/json; charset=utf-8" response with the serialized object provided to the client 
 let ofJsonOptions
@@ -104,3 +93,9 @@ let ofJsonOptions
         do! ctx.Response.WriteBytes (str.ToArray())
         return ()
     }
+
+/// Returns a "application/json; charset=utf-8" response with the serialized object provided to the client 
+let ofJson    
+    (obj : 'a) : HttpHandler =    
+    withContentType "application/json; charset=utf-8"
+    >> ofJsonOptions Constants.defaultJsonOptions obj

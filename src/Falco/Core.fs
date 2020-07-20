@@ -11,6 +11,16 @@ open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
 
 // ------------
+// Constants
+// ------------
+module Constants =
+    let defaultJsonOptions =
+        let options = Text.Json.JsonSerializerOptions()
+        options.AllowTrailingCommas <- true
+        options.PropertyNameCaseInsensitive <- true 
+        options
+
+// ------------
 // HTTP
 // ------------
 
@@ -48,7 +58,6 @@ type HttpEndpoint =
 
 /// The process of associating a route and handler
 type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
-
 
 // ------------
 // Errors 

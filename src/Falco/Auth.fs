@@ -38,6 +38,7 @@ let getClaim
         match user.Claims |> Seq.tryFind (fun c -> strEquals c.Type claim) with
         | None   -> None
         | Some c -> Some c
+
 /// Establish an authenticated context for the provide scheme and principal
 let signIn
     (authScheme : string)

@@ -127,7 +127,7 @@ let ``Request.tryBindJson should return deserialzed FakeRecord record `` () =
     }
 
 [<Fact>]
-let ``Request.tryBindJsonAsync should return Error on failure`` () =
+let ``Request.tryBindJson should return Error on failure`` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))    
     ctx.Request.Body.Returns(ms) |> ignore
@@ -144,7 +144,7 @@ let ``Request.tryBindJsonAsync should return Error on failure`` () =
     }
 
 [<Fact>]
-let ``Request.tryBindJsonAsyncOptions should return empty record `` () =
+let ``Request.tryBindJsonOptions should return empty record `` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":null}"))    
     ctx.Request.Body.Returns(ms) |> ignore
