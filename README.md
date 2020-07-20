@@ -204,7 +204,7 @@ let main args =
     Host.startWebHostDefault 
         args 
         [
-            // Routes go here
+            // Endpoints go here
         ]
     0
 ```
@@ -212,11 +212,13 @@ let main args =
 Should you wish to fully customize your host instance the `Host.startWebHost` exposes the `IWebHostBuilder` which enables full customization. For a full example, see the [Blog sample][8].
 
 ```f#
+// Logging
 let configureLogging 
     (log : ILoggingBuilder) =
     log.SetMinimumLevel(LogLevel.Error)
     |> ignore
 
+// Services
 let configureServices 
     (services : IServiceCollection) =
     services.AddRouting()     
@@ -224,8 +226,9 @@ let configureServices
             .AddResponseCompression()
     |> ignore
 
+// Middleware
 let configure                 
-    (routes : HttpEndpoint list)
+    (endpoints : HttpEndpoint list)
     (app : IApplicationBuilder) = 
             
     app.UseExceptionMiddleware(Host.defaultExceptionHandler)
@@ -233,12 +236,13 @@ let configure
         .UseResponseCompression()
         .UseStaticFiles()
         .UseRouting()
-        .UseHttpEndPoints(routes)
+        .UseHttpEndPoints(endpoints)
         .UseNotFoundHandler(Host.defaultNotFoundHandler)
         |> ignore 
 
+// Web Host
 let configureWebHost : ConfigureWebHost =
-  fun (endPoints : HttpEndPointList) 
+  fun (endpoints : HttpEndPointList) 
       (host : IWebHostBuilder) ->
       webHost
            .UseKestrel()
@@ -253,7 +257,7 @@ let main args =
         args
         configureWebHost
         [
-            // Routes go here
+            // Endpoints go here
         ]
     0
 ```

@@ -51,14 +51,14 @@ let defaultConfigureWebHost =
         |> ignore
                     
     let configure             
-        (routes : HttpEndpoint list)
+        (endpoints : HttpEndpoint list)
         (app : IApplicationBuilder) =         
         app.UseExceptionMiddleware(defaultExceptionHandler)
             .UseResponseCaching()
             .UseResponseCompression()
             .UseStaticFiles()
             .UseRouting()
-            .UseHttpEndPoints(routes)
+            .UseHttpEndPoints(endpoints)
             .UseNotFoundHandler(defaultNotFoundHandler)
             |> ignore 
                      

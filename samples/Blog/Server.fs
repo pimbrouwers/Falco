@@ -44,7 +44,7 @@ let configureWebHost
                         
     let configure             
         (developerMode : DeveloperMode)
-        (routes : HttpEndpoint list)
+        (enpoints : HttpEndpoint list)
         (app : IApplicationBuilder) = 
             
         app.UseExceptionMiddleware(handleException developerMode)
@@ -52,7 +52,7 @@ let configureWebHost
             .UseResponseCompression()
             .UseStaticFiles()
             .UseRouting()
-            .UseHttpEndPoints(routes)
+            .UseHttpEndPoints(enpoints)
             .UseNotFoundHandler(handleNotFound)
             |> ignore 
 
