@@ -9,6 +9,7 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 
 - Asynchronous [request handling](#request-handling).
 - Simple and powerful [routing](#routing) API.
+- Fast, secure and configurable [web server](#host).
 - Native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
 - [Authentication](#authentication) and [security](#security) utilities. 
