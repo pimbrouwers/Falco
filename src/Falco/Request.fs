@@ -5,6 +5,7 @@ open System.Text.Json
 open System.Threading.Tasks
 open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
+open Falco.Security
 
 /// Obtain the HttpVerb of the request
 let getVerb 
@@ -73,3 +74,49 @@ let tryBindJsonOptions<'a>
 let tryBindJson<'a>
     (ctx : HttpContext) : Task<Result<'a, string>> = 
     tryBindJsonOptions Constants.defaultJsonOptions ctx
+
+// ------------
+// Handlers
+// ------------
+
+/// Validate the CSRF of the current request
+let validateCsrfToken
+    (handleOk : HttpHandler) 
+    (handleInvalid : HttpHandler) : HttpHandler =
+    fun ctx -> task {
+        let! isValid = Xss.validateToken ctx
+
+        let respondWith =
+            match isValid with 
+            | true  -> handleOk
+            | false -> handleInvalid
+
+        return! respondWith ctx
+    }
+
+/// Attempt to bind the FormCollectionReader of the current
+/// request with the provided binder
+let bindForm<'a>
+    (binder : FormCollectionReader -> Result<'a, string>)        
+    (handleOk : 'a -> HttpHandler)
+    (handleError : string list -> HttpHandler) : HttpHandler = 
+        fun ctx -> task {
+            let! form = tryBindForm binder ctx
+            let respondWith =
+                match form with
+                | Error error -> handleError [error]
+                | Ok form -> handleOk form
+
+            return! respondWith ctx
+        }
+
+/// Validate the CSRF of the current request attempt to bind 
+/// the FormCollectionReader of with the provided binder
+let bindFormSecure<'a>
+    (binder : FormCollectionReader -> Result<'a, string>)    
+    (handleOk : 'a -> HttpHandler)
+    (handleError : string list -> HttpHandler) 
+    (handleInvalidToken : HttpHandler) : HttpHandler =    
+    validateCsrfToken 
+        (bindForm binder handleOk handleError)
+        handleInvalidToken

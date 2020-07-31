@@ -6,7 +6,9 @@ open System.IO
 open System.Text
 open System.Text.Json
 open Falco.Markup
+open Falco.Security
 open FSharp.Control.Tasks
+open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Net.Http.Headers
 
@@ -79,7 +81,17 @@ let ofHtml
     let html = renderHtml html
     withContentType "text/html; charset=utf-8"
     >> ofString Encoding.UTF8 html
-     
+
+/// Returns a CSRF token-dependant "text/html; charset=utf-8" response with provided HTML to client     
+let ofHtmlCsrf 
+    (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
+    let withCsrfToken (handleToken : AntiforgeryTokenSet -> HttpHandler) : HttpHandler =
+        fun ctx ->
+            let csrfToken = Xss.getToken ctx
+            handleToken csrfToken ctx
+
+    withCsrfToken (fun token -> token |> view |> ofHtml)
+
 /// Returns an optioned "application/json; charset=utf-8" response with the serialized object provided to the client 
 let ofJsonOptions
     (options : JsonSerializerOptions) 
@@ -98,3 +110,10 @@ let ofJson
     (obj : 'a) : HttpHandler =    
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Constants.defaultJsonOptions obj
+
+/// Responsds with a 301, and terminates authenticated context for provided scheme
+let signOutAndRedirect (authScheme : string) (url : string) : HttpHandler =
+    fun ctx -> task {
+        do! Auth.signOut authScheme ctx
+        do! redirect url false ctx
+    }
