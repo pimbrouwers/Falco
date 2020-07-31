@@ -19,12 +19,12 @@ let defaultExceptionHandler
     log.Log(LogLevel.Error, logMessage)        
     
     Response.withStatusCode 500
-    >> (fun ctx -> ctx.Response.CompleteAsync ())
+    >> Response.ofEmpty
         
 /// Returns HTTP 404
 let defaultNotFoundHandler : HttpHandler =    
     Response.withStatusCode 404
-    >> (fun ctx -> ctx.Response.CompleteAsync ())
+    >> Response.ofEmpty
 
 /// Create and start a new IHost (Alias for Host.CreateDefaultBuilder(args))
 let startWebHost =

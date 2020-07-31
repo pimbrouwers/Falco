@@ -18,8 +18,7 @@ let ``Response.withStatusCode should modify HttpResponse StatusCode`` () =
 
     task {
         do! ctx 
-            |> Response.withStatusCode expected 
-            |> fun ctx -> ctx.Response.CompleteAsync ()
+            |> (Response.withStatusCode expected >> Response.ofEmpty)
         
         ctx.Response.StatusCode 
         |> should equal expected
@@ -32,8 +31,7 @@ let ``Response.withHeader should set header`` () =
     
     task {
         do! ctx 
-            |> Response.withHeader HeaderNames.Server serverName 
-            |> fun ctx -> ctx.Response.CompleteAsync ()
+            |> (Response.withHeader HeaderNames.Server serverName >> Response.ofEmpty)
         
         ctx.Response.Headers.[HeaderNames.Server]
         |> should equal serverName
@@ -46,8 +44,7 @@ let ``Response.withContentType should set header`` () =
     
     task {
         do! ctx 
-            |> Response.withHeader HeaderNames.ContentType contentType
-            |> fun ctx -> ctx.Response.CompleteAsync ()
+            |> (Response.withHeader HeaderNames.ContentType contentType>> Response.ofEmpty)
         
         ctx.Response.Headers.[HeaderNames.ContentType]
         |> should equal contentType

@@ -62,6 +62,10 @@ let redirect
         ctx.Response.Redirect(url, permanent)        
         ctx.Response.CompleteAsync ()
 
+/// Flushes any remaining response headers or data and returns empty response
+let ofEmpty : HttpHandler =
+    fun ctx -> ctx.Response.CompleteAsync ()
+
 /// Writes string to response body with provided encoding
 let ofString
     (encoding : Encoding)
