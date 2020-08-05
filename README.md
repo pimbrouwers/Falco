@@ -55,23 +55,23 @@ let layout message =
                 ]
         ]
 
-let handleIndex =
-    get "/" (Response.ofPlainText message)
+let handleText =
+     Response.ofPlainText message
 
 let handleJson =
-    get "/json" (Response.ofJson {| Message = message |})
+    Response.ofJson {| Message = message |}
 
 let handleHtml =
-    get "/html" (Response.ofHtml (layout message))
+    Response.ofHtml (layout message)
 
 [<EntryPoint>]
 let main args =        
     Host.startWebHostDefault 
         args 
         [
-            handleHtml
-            handleJson
-            handleIndex
+            get "/html" handleHtml
+            get "/json" handleJson
+            get "/"     handleText
         ]
     0
 ```
