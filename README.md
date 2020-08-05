@@ -56,7 +56,7 @@ let layout message =
         ]
 
 let handleText =
-     Response.ofPlainText message
+    Response.ofPlainText message
 
 let handleJson =
     Response.ofJson {| Message = message |}
