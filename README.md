@@ -200,7 +200,7 @@ let endpoints : HttpEndpoint list =
 
 ## Host
 
-[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  If you're looking to get a host up and running quickly the `Host.startWebHostDefault` function will enable everythigng necessary for Falco to work:
+[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  If you're looking to get a host up and running quickly the `Host.startWebHostDefault` function will enable everything necessary for Falco to work:
 
 ```f#
 [<EntryPoint>]
