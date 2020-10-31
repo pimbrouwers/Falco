@@ -4,7 +4,7 @@ open System.Text
 open System.Text.Json
 open Falco
 open Falco.Markup
-open FSharp.Control.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Microsoft.Net.Http.Headers
 open NSubstitute

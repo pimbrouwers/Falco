@@ -3,7 +3,7 @@ module Falco.Request
 
 open System.Text.Json
 open System.Threading.Tasks
-open FSharp.Control.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Falco.Security
 
@@ -100,15 +100,15 @@ let bindForm<'a>
     (binder : FormCollectionReader -> Result<'a, string>)        
     (handleOk : 'a -> HttpHandler)
     (handleError : string list -> HttpHandler) : HttpHandler = 
-        fun ctx -> task {
-            let! form = tryBindForm binder ctx
-            let respondWith =
-                match form with
-                | Error error -> handleError [error]
-                | Ok form -> handleOk form
+    fun ctx -> task {
+        let! form = tryBindForm binder ctx
+        let respondWith =
+            match form with
+            | Error error -> handleError [error]
+            | Ok form -> handleOk form
 
-            return! respondWith ctx
-        }
+        return! respondWith ctx
+    }
 
 /// Validate the CSRF of the current request attempt to bind 
 /// the FormCollectionReader of with the provided binder

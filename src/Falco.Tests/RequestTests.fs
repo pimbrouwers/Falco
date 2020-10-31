@@ -6,7 +6,7 @@ open System.IO
 open System.Text
 open System.Text.Json
 open Falco
-open FSharp.Control.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open NSubstitute
 open Xunit

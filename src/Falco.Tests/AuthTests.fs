@@ -3,7 +3,7 @@
 open System.Security.Claims
 open Falco
 open Falco.Security
-open FSharp.Control.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Microsoft.AspNetCore.Authentication
 open NSubstitute

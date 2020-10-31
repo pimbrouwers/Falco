@@ -6,7 +6,7 @@ open System.IO
 open System.Net
 open System.Security.Claims
 open System.Text
-open FSharp.Control.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery    
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
@@ -14,6 +14,8 @@ open Microsoft.AspNetCore.WebUtilities
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
+open Falco.Exception
+open Falco.Multipart
 open Falco.StringUtils
 open Falco.StringParser
 

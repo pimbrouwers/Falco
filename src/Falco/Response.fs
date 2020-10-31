@@ -5,9 +5,10 @@ open System
 open System.IO
 open System.Text
 open System.Text.Json
+open System.Threading.Tasks
 open Falco.Markup
 open Falco.Security
-open FSharp.Control.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Net.Http.Headers

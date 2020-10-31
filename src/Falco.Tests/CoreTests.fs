@@ -3,7 +3,7 @@
 open System.Text
 open Xunit
 open Falco
-open FSharp.Control.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http

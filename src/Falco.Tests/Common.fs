@@ -5,7 +5,7 @@ open System
 open System.IO
 open System.IO.Pipelines
 open System.Security.Claims
-open FSharp.Control.Tasks
+open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Hosting
