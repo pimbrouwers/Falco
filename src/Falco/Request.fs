@@ -79,6 +79,12 @@ let tryBindJson<'a>
 // Handlers
 // ------------
 
+/// Project route values map onto 'a and feed into next HttpHandler
+let mapRoute
+    (map : Map<string, string> -> 'a) 
+    (next : 'a -> HttpHandler) : HttpHandler = 
+    fun ctx -> next (getRouteValues ctx |> map) ctx
+
 /// Validate the CSRF of the current request
 let validateCsrfToken
     (handleOk : HttpHandler) 
