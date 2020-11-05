@@ -79,12 +79,6 @@ let tryBindJson<'a>
 // Handlers
 // ------------
 
-/// Project route values map onto 'a and feed into next HttpHandler
-let mapRoute
-    (map : Map<string, string> -> 'a) 
-    (next : 'a -> HttpHandler) : HttpHandler = 
-    fun ctx -> next (getRouteValues ctx |> map) ctx
-
 /// Validate the CSRF of the current request
 let validateCsrfToken
     (handleOk : HttpHandler) 
@@ -100,9 +94,31 @@ let validateCsrfToken
         return! respondWith ctx
     }
 
+/// Project route values map onto 'a and feed into next HttpHandler
+let bindRoute
+    (map : Map<string, string> -> 'a) 
+    (next : 'a -> HttpHandler) : HttpHandler = 
+    fun ctx -> next (getRouteValues ctx |> map) ctx
+
+/// Attempt to bind the StringCollectionReader of the current
+/// request with the provided binder
+let bindQuery
+    (binder : StringCollectionReader -> Result<'a, string>)        
+    (handleOk : 'a -> HttpHandler)
+    (handleError : string list -> HttpHandler) : HttpHandler = 
+    fun ctx -> task {
+        let query = tryBindQuery binder ctx
+        let respondWith =
+            match query with
+            | Error error -> handleError [error]
+            | Ok query -> handleOk query
+    
+        return! respondWith ctx
+    }
+
 /// Attempt to bind the FormCollectionReader of the current
 /// request with the provided binder
-let bindForm<'a>
+let bindForm
     (binder : FormCollectionReader -> Result<'a, string>)        
     (handleOk : 'a -> HttpHandler)
     (handleError : string list -> HttpHandler) : HttpHandler = 
@@ -118,7 +134,7 @@ let bindForm<'a>
 
 /// Validate the CSRF of the current request attempt to bind 
 /// the FormCollectionReader of with the provided binder
-let bindFormSecure<'a>
+let bindFormSecure
     (binder : FormCollectionReader -> Result<'a, string>)    
     (handleOk : 'a -> HttpHandler)
     (handleError : string list -> HttpHandler) 
