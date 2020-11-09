@@ -20,7 +20,7 @@
 
     <!-- NuGet config -->
     <PackageId>Falco</PackageId>
-    <PackageVersion>2.0.3</PackageVersion>
+    <PackageVersion>2.0.4</PackageVersion>
     <PackageTags>fsharp;functional;falco;asp.net core;asp.net;.net core;routing;view engine;web</PackageTags>        
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
