@@ -24,6 +24,7 @@ type StringCollectionReader (values : seq<KeyValuePair<string,StringValues>>) =
         | None -> failwith (sprintf "Could not find %s" name)
 
     member this.TryGetString (name : string)           = name |> this.TryGetValue |> Option.bind (fun v -> Some v.[0])
+    member this.TryGetStringNonEmpty (name : string)   = match this.TryGetString name with Some x when x <> "" -> Some x | _ -> None
     member this.TryGet (name : string)                 = this.TryGetString name
     member this.TryGetInt16 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt16 v.[0])
     member this.TryGetInt32 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt32 v.[0])

@@ -85,12 +85,6 @@ let tryBindJson<'a>
 // Handlers
 // ------------
 
-/// Project route values map onto 'a and feed into next HttpHandler
-let mapRoute 
-    (map : Map<string, string> -> 'a) 
-    (next : 'a -> HttpHandler) : HttpHandler =
-    fun ctx -> next (getRouteValues ctx |> map) ctx
-
 /// Attempt to bind JSON request body onto ' and provider
 /// to handleOk, otherwise provide handleError with error string
 let bindJson
@@ -179,3 +173,16 @@ let bindFormSecure
     validateCsrfToken 
         (bindForm binder handleOk handleError)
         handleInvalidToken
+
+/// Project route values map onto 'a and provide to next HttpHandler
+let mapRoute 
+    (map : Map<string, string> -> 'a) 
+    (next : 'a -> HttpHandler) : HttpHandler =
+    fun ctx -> next (getRouteValues ctx |> map) ctx
+
+/// Project StringCollectionReader onto 'a and provide
+/// to next HttpHandler
+let mapQuery
+    (map : StringCollectionReader -> 'a)        
+    (next : 'a -> HttpHandler): HttpHandler = 
+    fun ctx -> next (getQuery ctx |> map) ctx
