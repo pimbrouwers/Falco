@@ -1,5 +1,4 @@
-﻿[<AutoOpen>]
-module Falco.Routing
+﻿module Falco.Routing
 
 /// Constructor for multi-method HttpEndpoint
 let all (pattern : string) (handlers : HttpEndpointHandler list) : HttpEndpoint =        

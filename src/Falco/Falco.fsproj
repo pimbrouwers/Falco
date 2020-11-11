@@ -10,7 +10,7 @@
     <NeutralLanguage>en-CA</NeutralLanguage>
         
     <!-- Build config -->
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
     <DebugType>portable</DebugType>
     <OutputType>Library</OutputType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -18,10 +18,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
     
-
     <!-- NuGet config -->
     <PackageId>Falco</PackageId>
-    <PackageVersion>2.1.0</PackageVersion>
+    <PackageVersion>3.0.0-alpha2</PackageVersion>
     <PackageTags>fsharp;functional;asp.net core;asp.net;.net core;routing;view engine;web;falco;falco-sharp;</PackageTags>        
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
