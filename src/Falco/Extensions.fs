@@ -229,22 +229,23 @@ type IApplicationBuilder with
         this.UseMiddleware<ExceptionHandlingMiddleware> exceptionHandler
 
     /// Activate Falco integration with IEndpointRouteBuilder
-    member this.UseHttpEndPoints (endPoints : HttpEndpoint list) =
+    member this.UseHttpEndPoints (endpoints : HttpEndpoint list) =
         this.UseEndpoints(fun r -> 
-                for e in endPoints do            
-                    let rd = HttpHandler.toRequestDelegate e.Handler
+                for endpoint in endpoints do                           
+                    for handler in endpoint.Handlers do                          
+                        let requestDelegate = HttpHandler.toRequestDelegate handler.HttpHandler
                     
-                    match e.Verb with
-                    | GET     -> r.MapGet(e.Pattern, rd)
-                    | HEAD    -> r.MapMethods(e.Pattern, [ HttpMethods.Head ], rd)
-                    | POST    -> r.MapPost(e.Pattern, rd)
-                    | PUT     -> r.MapPut(e.Pattern, rd)
-                    | PATCH   -> r.MapMethods(e.Pattern, [ HttpMethods.Patch ], rd)
-                    | DELETE  -> r.MapDelete(e.Pattern, rd)
-                    | OPTIONS -> r.MapMethods(e.Pattern, [ HttpMethods.Options ], rd)
-                    | TRACE   -> r.MapMethods(e.Pattern, [ HttpMethods.Trace ], rd)
-                    | ANY     -> r.Map(e.Pattern, rd)
-                    |> ignore)
+                        match handler.Verb with
+                        | GET     -> r.MapGet(endpoint.Pattern, requestDelegate)
+                        | HEAD    -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Head ], requestDelegate)
+                        | POST    -> r.MapPost(endpoint.Pattern, requestDelegate)
+                        | PUT     -> r.MapPut(endpoint.Pattern, requestDelegate)
+                        | PATCH   -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Patch ], requestDelegate)
+                        | DELETE  -> r.MapDelete(endpoint.Pattern, requestDelegate)
+                        | OPTIONS -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Options ], requestDelegate)
+                        | TRACE   -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Trace ], requestDelegate)
+                        | ANY     -> r.Map(endpoint.Pattern, requestDelegate)
+                        |> ignore)
             
     /// Enable Falco not found handler.
     ///

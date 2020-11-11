@@ -55,12 +55,18 @@ module HttpHandler =
 /// In-and-out processing of a HttpContext
 type HttpResponseModifier = HttpContext -> HttpContext
 
-/// Specifies an association of an HttpHandler to an HttpVerb and route pattern
+/// Specifies an association of an HttpHandler to an HttpVerb
+type HttpEndpointHandler = 
+    {
+        Verb        : HttpVerb
+        HttpHandler : HttpHandler
+    }
+
+/// Specifies an association of a route pattern to a collection of HttpEndpointHandler
 type HttpEndpoint = 
     {
-        Pattern : string   
-        Verb    : HttpVerb
-        Handler : HttpHandler
+        Pattern  : string   
+        Handlers : HttpEndpointHandler list
     }
 
 /// The process of associating a route and handler
