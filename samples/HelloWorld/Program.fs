@@ -4,23 +4,16 @@ open Falco
 open Falco.Markup
 open Falco.Routing
 
-let layout message =
-    Elem.html [] [
-            Elem.head [] [
-                    Elem.title [] [ Text.raw message ]
-                ]
-            Elem.body [] [
-                    Elem.h1 [] [ Text.raw message ]
-                ]
-        ]
-
 let endpoints = 
     [            
+        get "/greet/{name:alpha}"
+            (Request.mapRoute (fun r -> r.["name"] |> sprintf "Hi %s") Response.ofPlainText)
+
         get "/json" 
             (Response.ofJson {| Message = "Hello from /json" |})
 
         get "/html" 
-            (Response.ofHtml (layout "Hello from /html" ))
+            (Response.ofHtml (Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]))
 
         get "/" 
             (Response.ofPlainText "Hello from /")

@@ -24,7 +24,7 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 - Should be extensible.
 - Should provide a toolset to build a working end-to-end web application.
 
-## Quick Start - Hello World 3 ways
+## Quick Start - [Hello World][7] 3 ways
 
 Create a new F# web project:
 ```
@@ -42,37 +42,23 @@ module HelloWorld.Program
 
 open Falco
 open Falco.Markup
+open Falco.Routing
 
-let message = "Hello, world!"
+let endpoints = 
+    [            
+        get "/json" 
+            (Response.ofJson {| Message = "Hello from /json" |})
 
-let layout message =
-    Elem.html [] [
-            Elem.head [] [
-                    Elem.title [] [ Text.raw message ]
-                ]
-            Elem.body [] [
-                    Elem.h1 [] [ Text.raw message ]
-                ]
-        ]
+        get "/html" 
+            (Response.ofHtml (Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]))
 
-let handleText =
-    Response.ofPlainText message
-
-let handleJson =
-    Response.ofJson {| Message = message |}
-
-let handleHtml =
-    Response.ofHtml (layout message)
+        get "/" 
+            (Response.ofPlainText "Hello from /")
+    ]
 
 [<EntryPoint>]
-let main args =        
-    Host.startWebHostDefault 
-        args 
-        [
-            get "/html" handleHtml
-            get "/json" handleJson
-            get "/"     handleText
-        ]
+let main args =            
+    Host.startWebHostDefault args endpoints
     0
 ```
 
@@ -152,17 +138,13 @@ let oldUrlHandler : HttpHandler =
 ```
 
 - Accessing route parameters.
-    - The following function defines an `HttpHandler` which checks for a route value called "name" and uses the built-in `textOut` handler to return plain-text to the client:
+    - The following function defines an `HttpHandler` which uses the route value called "name" and the built-in `Response.ofPlainText` handler to return a plain-text greeting to the client:
 
 ```f#
-let helloHandler : HttpHandler =
-    fun ctx ->        
-        let greeting =
-            Request.tryGetRouteValue "name" ctx 
-            |> Option.defaultValue "someone"
-            |> sprintf "hi %s" 
-
-        Response.ofPlainText greeting ctx
+let helloHandler : HttpHandler =    
+    Request.mapRoute 
+        (fun route -> route.["name"] |> sprintf "hi %s") 
+        Response.ofPlainText
 ```
 
 ## Routing
@@ -172,30 +154,31 @@ The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route 
 Bearing this in mind, routing can practically be represented by a list of these "mappings" known in Falco as an `HttpEndpoint` which bind together: a route, verb and handler.
 
 ```f#
-let loginHandler : HttpHandler =
-  fun ctx -> // ...
+let helloHandler : HttpHandler = // ...
 
-let helloHandler : HttpHandler =
-  fun ctx -> // ...
+let greetingHandler name : HttpHandler = // ...
+
+let loginHandler : HttpHandler = // ...
+
+let loginSubmitHandler : HttpHandler = // ...  
 
 let endpoints : HttpEndpoint list = 
   [
-    post "/login"              loginHandler        
-    get  "/hello/{name:alpha}" helloHandler    
+    // a basic GET handler
+    get "/hello/{name:alpha}" 
+        helloHandler    
+
+    // map route then handle
+    get "/greet/{name:alpha}"
+        (Request.mapRoute (fun r -> r.["name"] |> sprintf "Hi %s") greetingHandler)
+
+    // multi-method endpoint
+    all "/login"              
+        [ 
+            handle POST loginHandler        
+            handle GET login
+        ]
   ]
-
-// OR alternatively
-let handleLogin : HttpEndpoint =
-    post "/login" (fun ctx -> // ...)
-
-let handleHello : HttpEndpoint =
-    get "/hello/{name:alpha}" (fun ctx -> // ...)
-
-let endpoints : HttpEndpoint list = 
-    [
-        handleLogin
-        handleHello
-    ]
 ```
 
 ## Host
@@ -302,17 +285,11 @@ The benefits of using the Falco markup module as an HTML engine include:
 - Markup is compiled alongside the rest of your code, leading to improved performance and ultimately simpler deployments.
 
 ```f#
+// Create an HTML5 document using built-in template
 let doc = 
-    Elem.html [ Attr.lang "en" ] [
-            Elem.head [] [                    
-                    Elem.title [] [ Text.raw "Sample App" ]                                                            
-                ]
-            Elem.body [] [                     
-                    Elem.main [] [
-                            Elem.h1 [] [ Text.raw "Sample App" ]
-                        ]
-                ]
-        ] 
+    Templates.html5 "en"
+        [ Elem.title [] [ Text.raw "Sample App" ] ] // <head></head>
+        [ Elem.h1 [] [ Text.raw "Sample App" ] ]    // <body></body>
 ```
 
 Since views are plain F# they can easily be made strongly-typed:
@@ -375,32 +352,120 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 
 > Methods are available for all primitive types, and perform **case-insenstivie** lookups against the collection.
 
+### Query Binding
+
+Query binding is enabled by the `StringCollectionReader`, an abstraction intended to make it easier to work with the query collection.
+
 ```f#
-/// An example handler, safely obtaining values from IFormCollection
-let parseFormHandler : HttpHandler =
-    fun ctx -> task {
-        let! form = Request.getFormAsync() ctx
+type Person = { FirstName : string; LastName : string }
 
-        let firstName = form.TryGetString "FirstName" // string -> string option        
-        let lastName  = form.TryGet "LastName"        // alias for TryGetString
-        let age       = form.TryGetInt "Age"          // string -> int option
+let mapQueryHandler : HttpHandler =    
+    Request.mapQuery
+        (fun rd -> { 
+            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
+            LastName = rd.GetString "LastName" "Doe" 
+        })
+        Response.ofJson 
 
-        // Rest of handler ...
-    }
+let bindQueryHandler : HttpHandler = 
+    Request.bindQuery 
+        (fun rd -> 
+            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
+            | Some f, Some l -> Ok { FirstName = f; LastName = l }
+            | _  -> Error {| Message = "Invalid query string" |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
 
-/// An example handler, safely obtaining values from IQueryCollection
-let parseQueryHandler : HttpHandler =
+let manualQueryHandler : HttpHandler =
     fun ctx ->
         let query = Request.getQuery ctx
+        
+        let person = 
+            { 
+                FirstName = query.GetString "FirstName" "John" // Get value or return default value
+                LastName = query.GetString "LastName" "Doe" 
+            }
 
-        let firstName = query.TryGetString "FirstName" // string -> string option        
-        let lastName  = query.TryGet "LastName"        // alias for TryGetString
-        let age       = query.TryGetInt "Age"          // string -> int option
-
-        // Rest of handler ...
+        Response.ofJson person ctx
 ```
 
-In this case where you don't care about gracefully handling non-existence. Or, you are certain values will be present, the dynamic operator `?` can be useful:
+### Form Binding
+
+Form value binding is enabled by the `FormCollectionReader`, which inherits from `StringCollectionReader` thus sharing it's API. Because of this you'll notice from the example below, that the code used to `map` and `bind` query values and forms is virtually identical, exception being the manual handler since form IO is asynchronous.
+
+> Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
+
+```f#
+type Person = { FirstName : string; LastName : string }
+
+let mapFormHandler : HttpHandler =    
+    Request.mapForm
+        (fun rd -> { 
+            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
+            LastName = rd.GetString "LastName" "Doe" 
+        })
+        Response.ofJson 
+
+let mapFormSecureHandler : HttpHandler =    
+    Request.mapFormSecure
+        (fun rd -> { 
+            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
+            LastName = rd.GetString "LastName" "Doe" 
+        })
+        Response.ofJson 
+        (Response.withStatusCode 400 >> Response.ofEmpty)
+
+let bindFormHandler : HttpHandler = 
+    Request.bindForm 
+        (fun rd -> 
+            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
+            | Some f, Some l -> Ok { FirstName = f; LastName = l }
+            | _  -> Error {| Message = "Invalid form data" |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+
+let bindFormSecureHandler : HttpHandler = 
+    Request.bindFormSecure
+        (fun rd -> 
+            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
+            | Some f, Some l -> Ok { FirstName = f; LastName = l }
+            | _  -> Error {| Message = "Invalid form data" |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+        (Response.withStatusCode 400 >> Response.ofEmpty)
+
+let manualFormHandler : HttpHandler =
+    fun ctx -> task {
+        let! query = Request.getForm ctx
+        
+        let person = 
+            { 
+                FirstName = query.GetString "FirstName" "John" // Get value or return default value
+                LastName = query.GetString "LastName" "Doe" 
+            }
+
+        return! Response.ofJson person ctx
+    }        
+```
+
+### JSON Binding
+
+Bind JSON using the built-in `System.Text.Json` API.
+
+```f#
+type Person = { FirstName : string; LastName : string }
+
+let jsonBindHandler : HttpHandler =    
+    Request.bindJson
+        (fun person -> Response.ofPlainText (sprintf "hello %s %s" person.FirstName person.LastName))
+        (fun error -> Response.withStatusCode 400 >> Response.ofPlainText (sprintf "Invalid JSON: %s" error))
+```
+
+### Dynamic value binding
+
+In the case where you don't care about gracefully handling non-existence. Or, you are certain values will be present, the dynamic operator `?` can be useful for both the `StringCollectionReader` and `FormCollectionReader`:
+
+> Use of the `?` dynamic operator performs **case-insenstive** lookups against the collection.
 
 ```f#
 let parseQueryHandler : HttpHandler =
@@ -413,69 +478,6 @@ let parseQueryHandler : HttpHandler =
         let age       = query?Age.AsInt16()        // string -> int16
 
         // Rest of handler ...
-```
-
-> Use of the `?` dynamic operator also performs **case-insenstive** lookups against the collection.
-
-Further to this, helper functions are available to allow for the typical case of *try-or-fail* applying the provided binding function.
-
-```f#
-// An example handler which attempts to bind a form
-let exampleTryBindFormHandler : HttpHandler =
-    fun ctx ->
-        let bindForm form =     
-            {
-              FirstName = form?FirstName.AsString()
-              LastName  = form?LastName.AsString()
-              Age       = form?Age.AsInt16()      
-            }
-
-        let respondWith =
-            match Request.tryBindForm (bindForm >> Result.Ok) ctx with
-            | Error error -> Response.ofPlainText error
-            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
-
-        respondWith ctx
-
-// An example handler which attempts to bind a query
-let exampleTryBindQueryHandler : HttpHandler =
-    fun ctx ->
-        let bindQuery query =
-            {
-              FirstName = query?FirstName.AsString()
-              LastName  = query?LastName.AsString()
-              Age       = query?Age.AsInt16()      
-            }
-
-        let respondWith =
-            match Request.tryBindQuery (bindQuery >> Result.Ok) ctx with
-            | Error error -> Response.ofPlainText error
-            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
-
-        respondWith ctx
-
-// An example using a type and static binder, which can make things simpler
-type SearchQuery =
-    {
-        Frag : string
-        Page : int option
-        Take : int
-    }
-    static member fromReader (r : StringCollectionReader) =
-        {
-            Frag = r?frag.AsString()
-            Page = r.TryGetInt "page" |> Option.defaultValue 1
-            Take = r?take.AsInt()
-        }
-
-let searchResultsHandler : HttpHandler =
-    fun ctx ->
-        let respondWith =
-            match Request.tryBindQuery (SearchQuery.fromReader >> Result.Ok) ctx with
-            | Error error -> Response.ofPlainText error
-            | Ok model    -> Response.ofPlainText (sprintf "%A" model)
-
-        respondWith ctx
 ```
 
 ## Authentication
@@ -640,8 +642,6 @@ let imageUploadHandler : HttpHandler =
 ## JSON
 
 Included in Falco are basic JSON in/out handlers, `Request.bindJsonAsync<'a>` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
-
-> Looking for a package to work with JSON? Checkout [Jay](https://github.com/pimbrouwers/Jay). 
 
 ## Why "Falco"?
 

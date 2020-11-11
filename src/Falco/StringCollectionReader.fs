@@ -36,7 +36,23 @@ type StringCollectionReader (values : seq<KeyValuePair<string,StringValues>>) =
     member this.TryGetDateTime (name : string)         = name |> this.TryGetValue |> Option.bind (fun v -> parseDateTime v.[0])
     member this.TryGetDateTimeOffset (name : string)   = name |> this.TryGetValue |> Option.bind (fun v -> parseDateTimeOffset v.[0])
     member this.TryGetGuid (name : string)             = name |> this.TryGetValue |> Option.bind (fun v -> parseGuid v.[0])
-    member this.TryGetTimeSpan (name : string)         = name |> this.TryGetValue |> Option.bind (fun v -> parseTimeSpan v.[0])       
+    member this.TryGetTimeSpan (name : string)         = name |> this.TryGetValue |> Option.bind (fun v -> parseTimeSpan v.[0])      
+    
+    member this.GetString (name : string) defaultValue           = name |> this.TryGetString |> Option.defaultValue defaultValue
+    member this.GetStringNonEmpty (name : string) defaultValue   = name |> this.TryGetStringNonEmpty |> Option.defaultValue defaultValue
+    member this.Get (name : string) defaultValue                 = name |> this.TryGet |> Option.defaultValue defaultValue
+    member this.GetInt16 (name : string) defaultValue            = name |> this.TryGetInt16 |> Option.defaultValue defaultValue
+    member this.GetInt32 (name : string) defaultValue            = name |> this.TryGetInt32 |> Option.defaultValue defaultValue
+    member this.GetInt (name : string) defaultValue              = name |> this.TryGetInt |> Option.defaultValue defaultValue
+    member this.GetInt64 (name : string) defaultValue            = name |> this.TryGetInt64 |> Option.defaultValue defaultValue
+    member this.GetBoolean (name : string) defaultValue          = name |> this.TryGetBoolean |> Option.defaultValue defaultValue
+    member this.GetFloat (name : string) defaultValue            = name |> this.TryGetFloat |> Option.defaultValue defaultValue
+    member this.GetDecimal (name : string) defaultValue          = name |> this.TryGetDecimal |> Option.defaultValue defaultValue
+    member this.GetDateTime (name : string) defaultValue         = name |> this.TryGetDateTime |> Option.defaultValue defaultValue
+    member this.GetDateTimeOffset (name : string) defaultValue   = name |> this.TryGetDateTimeOffset |> Option.defaultValue defaultValue
+    member this.GetGuid (name : string) defaultValue             = name |> this.TryGetGuid |> Option.defaultValue defaultValue
+    member this.GetTimeSpan (name : string) defaultValue         = name |> this.TryGetTimeSpan |> Option.defaultValue defaultValue
+
     member this.TryArrayString (name : string)         = name |> this.TryGetValue |> Option.map  (fun v -> v.ToArray())
     member this.TryArrayInt16 (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt16)
     member this.TryArrayInt32 (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt32)
