@@ -17,10 +17,7 @@ type MultipartSection with
     static member GetEncondingFromContentType (section : MultipartSection) =
         match MediaTypeHeaderValue.TryParse(StringSegment(section.ContentType)) with
         | false, _     -> System.Text.Encoding.UTF8
-        | true, parsed -> 
-            match System.Text.Encoding.UTF7.Equals(parsed.Encoding) with
-            | true -> System.Text.Encoding.UTF8
-            | false -> parsed.Encoding
+        | true, parsed -> parsed.Encoding
 
     /// Safely obtain the content disposition header value
     static member TryGetContentDisposition(section : MultipartSection) =                        

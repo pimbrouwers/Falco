@@ -2,26 +2,27 @@
 
   <PropertyGroup>
     <AssemblyName>Falco</AssemblyName>
-    <Version>1.0.0</Version>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
     
     <!-- General info -->
-    <Description>A functional micro-library for building brilliant ASP.NET Core applications using F#.</Description>
+    <Description>A functional-first toolkit for building brilliant ASP.NET Core applications using F#.</Description>
     <Copyright>Copyright 2020 Pim Brouwers</Copyright>
     <Authors>Pim Brouwers</Authors>
     <NeutralLanguage>en-CA</NeutralLanguage>
-
+        
     <!-- Build config -->
+    <TargetFramework>net5.0</TargetFramework>
     <DebugType>portable</DebugType>
     <OutputType>Library</OutputType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    
 
     <!-- NuGet config -->
     <PackageId>Falco</PackageId>
-    <PackageVersion>2.0.5</PackageVersion>
-    <PackageTags>fsharp;functional;falco;asp.net core;asp.net;.net core;routing;view engine;web</PackageTags>        
+    <PackageVersion>3.0.0-alpha1</PackageVersion>
+    <PackageTags>fsharp;functional;asp.net core;asp.net;.net core;routing;view engine;web;falco;falco-sharp;</PackageTags>        
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -38,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.5.2" />
+    <!--<PackageReference Update="FSharp.Core" Version="4.5.2" />-->
     <PackageReference Include="TaskBuilder.fs" Version="2.1.*" />
   </ItemGroup>
 

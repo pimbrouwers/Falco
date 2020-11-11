@@ -11,57 +11,7 @@ module Model =
             Body  : string
         }
 
-[<RequireQualifiedAccess>]
-module Data =            
-    open System
-    open System.Globalization
-    open System.IO
-    open Model
-
-    type UnprocessedPost =
-        {
-            Slug : string            
-            Date : DateTime
-            Body : string
-        }
-
-    let loadAll postsDirectory =  
-        let (PostsDirectory postsDirectory) = postsDirectory
-
-        let readPost (postPath : string) = 
-            let relativePath = Path.GetFileNameWithoutExtension postPath
-
-            let extractDateFromPath =
-                let path = relativePath.Substring(0, 10) // keep only yyyy-MM-dd
-                DateTime.ParseExact(path, "yyyy-MM-dd", CultureInfo.InvariantCulture)
-
-            let extractSlugFromPath =
-                relativePath.Substring(11) //strip yyyy-MM-dd
-                
-            let date = extractDateFromPath
-            let slug = extractSlugFromPath            
-            let markdown = File.ReadAllText(postPath)
-
-            {
-                Slug = slug
-                Date = date
-                Body = markdown
-            }
-
-        let processPost (unprocessedPost : UnprocessedPost) =
-            let markdownDoc = Markdown.renderMarkdown unprocessedPost.Body            
-            {
-                Slug = unprocessedPost.Slug
-                Title = markdownDoc.Title
-                Date = unprocessedPost.Date
-                Body = markdownDoc.Body
-            }
-
-        postsDirectory
-        |> Directory.GetFiles        
-        |> Array.map (readPost >> processPost)
      
-[<RequireQualifiedAccess>]
 module View =
     open Falco.Markup
     open Blog.UI
@@ -74,7 +24,7 @@ module View =
         ]
         |> layout blogPost.Title 
 
-    let index (blogPosts : PostModel[]) =    
+    let index (blogPosts : PostModel list) =    
         let postElement p =
             Elem.div [] [ 
                     Elem.span [] [ Text.raw (p.Date.ToShortDateString()) ]
@@ -84,8 +34,7 @@ module View =
 
         let postElements = 
             blogPosts         
-            |> Array.map postElement        
-            |> List.ofArray
+            |> List.map postElement                    
 
         [ 
             Elem.h1 [] [ Text.raw "Falco Blog "]
@@ -105,17 +54,16 @@ module View =
         ]
         |> layout "Not Found"
     
-[<RequireQualifiedAccess>]
 module Controller =
     open Falco 
     open Falco.StringUtils
     open Model
     
-    let details (posts : PostModel[]) : HttpHandler =   
+    let details (posts : PostModel list) : HttpHandler =   
         fun ctx ->
             let findPost slug = 
                 posts 
-                |> Array.tryFind (fun post -> strEquals post.Slug slug)
+                |> List.tryFind (fun post -> strEquals post.Slug slug)
 
             let handleNotFound slug =
                 slug
@@ -139,13 +87,11 @@ module Controller =
             respondWith ctx
                         
             
-    let index (posts : PostModel[]) : HttpHandler =       
-        posts 
-        |> Array.sortBy (fun p -> p.Date) 
+    let index (posts : PostModel list) : HttpHandler =       
+        posts         
         |> View.index 
         |> Response.ofHtml
 
-    let json (posts : PostModel[]) : HttpHandler =
-        posts 
-        |> Array.sortBy (fun p -> p.Date) 
+    let json (posts : PostModel list) : HttpHandler =
+        posts         
         |> Response.ofJson

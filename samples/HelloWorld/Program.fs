@@ -3,8 +3,6 @@ module HelloWorld.Program
 open Falco
 open Falco.Markup
 
-let message = "Hello, world!"
-
 let layout message =
     Elem.html [] [
             Elem.head [] [
@@ -15,22 +13,19 @@ let layout message =
                 ]
         ]
 
-let handleIndex =
-    get "/" (Response.ofPlainText message)
+let endpoints = 
+    [            
+        get "/json" 
+            (Response.ofJson {| Message = "Hello from /json" |})
 
-let handleJson =
-    get "/json" (Response.ofJson {| Message = message |})
+        get "/html" 
+            (Response.ofHtml (layout "Hello from /html" ))
 
-let handleHtml =
-    get "/html" (Response.ofHtml (layout message))
+        get "/" 
+            (Response.ofPlainText "Hello from /")
+    ]
 
 [<EntryPoint>]
-let main args =        
-    Host.startWebHostDefault 
-        args 
-        [
-            handleHtml
-            handleJson
-            handleIndex
-        ]
+let main args =            
+    Host.startWebHostDefault args endpoints
     0

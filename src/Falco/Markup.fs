@@ -210,3 +210,16 @@ module Attr =
     let step v         = create "step" v
     let type' v        = create "type" v
     let value v        = create "value" v
+
+module Templates =
+    let html5 (langCode : string) (head : XmlNode list) (body : XmlNode list) = 
+        let defaultHead = [
+            Elem.meta  [ Attr.charset "UTF-8" ]
+            Elem.meta  [ Attr.httpEquiv "X-UA-Compatible"; Attr.content "IE=edge, chrome=1" ]
+            Elem.meta  [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]                
+        ]
+
+        Elem.html [ Attr.lang "en"; ] [
+            Elem.head [] (defaultHead @ head)
+            Elem.body [] body
+        ] 

@@ -184,5 +184,25 @@ let mapRoute
 /// to next HttpHandler
 let mapQuery
     (map : StringCollectionReader -> 'a)        
-    (next : 'a -> HttpHandler): HttpHandler = 
+    (next : 'a -> HttpHandler) : HttpHandler = 
     fun ctx -> next (getQuery ctx |> map) ctx
+
+/// Project FormCollectionReader onto 'a and provide
+/// to next HttpHandler
+let mapForm
+    (map : FormCollectionReader -> 'a)        
+    (next : 'a -> HttpHandler) : HttpHandler =
+    fun ctx -> task {
+        let! form = getForm ctx
+        return! next (form |> map) ctx
+    }
+
+/// Project FormCollectionReader onto 'a and provide
+/// to next HttpHandler
+let mapFormSecure
+    (map : FormCollectionReader -> 'a)        
+    (next : 'a -> HttpHandler)    
+    (handleInvalidToken : HttpHandler) : HttpHandler =
+        validateCsrfToken
+            (mapForm map next)
+            handleInvalidToken
