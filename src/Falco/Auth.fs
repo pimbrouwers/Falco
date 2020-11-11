@@ -1,5 +1,4 @@
-﻿[<RequireQualifiedAccess>]
-module Falco.Security.Auth
+﻿module Falco.Security.Auth
 
 open System.Security.Claims
 open System.Threading.Tasks

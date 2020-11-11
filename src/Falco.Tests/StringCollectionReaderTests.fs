@@ -73,6 +73,7 @@ let ``Inline StringCollectionReader from query collection should resolve primiti
 
     // single values
     scr.TryGetString "fstring"                   |> Option.iter (should equal "John Doe")
+    scr.TryGetStringNonEmpty "fstring"           |> Option.iter (should equal "John Doe")
     scr.TryGetInt16 "fint16"                     |> Option.iter (should equal 16s)
     scr.TryGetInt32 "fint32"                     |> Option.iter (should equal 32)
     scr.TryGetInt "fint32"                       |> Option.iter (should equal 32)

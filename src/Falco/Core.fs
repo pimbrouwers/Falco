@@ -60,7 +60,7 @@ type HttpEndpointHandler =
     {
         Verb        : HttpVerb
         HttpHandler : HttpHandler
-    }
+    }    
 
 /// Specifies an association of a route pattern to a collection of HttpEndpointHandler
 type HttpEndpoint = 

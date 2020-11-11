@@ -2,6 +2,7 @@ module HelloWorld.Program
 
 open Falco
 open Falco.Markup
+open Falco.Routing
 
 let layout message =
     Elem.html [] [

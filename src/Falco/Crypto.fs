@@ -1,5 +1,4 @@
-﻿[<RequireQualifiedAccess>]
-module Falco.Security.Crypto
+﻿module Falco.Security.Crypto
 
 open System
 open System.Text

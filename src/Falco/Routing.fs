@@ -1,17 +1,16 @@
-﻿[<AutoOpen>]
-module Falco.Routing
+﻿module Falco.Routing
 
 /// Constructor for multi-method HttpEndpoint
-let all (pattern : string) (handlers : (HttpVerb * HttpHandler) list) : HttpEndpoint =        
-    { 
-        Pattern  = pattern
-        Handlers = handlers 
-                   |> List.map (fun (verb, handler) -> { Verb = verb; HttpHandler = handler })
-    }
+let all (pattern : string) (handlers : HttpEndpointHandler list) : HttpEndpoint =        
+    { Pattern  = pattern; Handlers = handlers  }
+
+/// Construct an HttpEndpointHandler from HttpVerb and HttpHandler
+let handle (verb : HttpVerb) (handler : HttpHandler) = 
+    { Verb = verb; HttpHandler = handler }
 
 /// Constructor for a singular HttpEndpoint
 let route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) : HttpEndpoint =   
-    all pattern [ (verb, handler) ]
+    all pattern [ handle verb handler ]
 
 /// HttpEndpoint constructor that matches any HttpVerb
 let any : MapHttpEndpoint = route ANY    

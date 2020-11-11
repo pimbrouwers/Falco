@@ -3,9 +3,8 @@ module Blog.Program
 open System
 open System.IO
 open Falco
-open Falco.StringUtils
+open Falco.Routing
 open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.Configuration
 
 [<EntryPoint>]
 let main args =    
@@ -36,6 +35,12 @@ let main args =
                 get "/{slug:regex(^[a-z\-])}" 
                     (Post.Controller.details posts)
                 
+                all "/json"
+                    [ 
+                        handle POST (Post.Controller.json posts)
+                        handle GET  Response.ofEmpty
+                    ]
+
                 get "/json" 
                     (Post.Controller.json posts)
                 

@@ -2,6 +2,7 @@
 
 open Xunit
 open Falco
+open Falco.Routing
 open FsUnit.Xunit
 
 let emptyHandler : HttpHandler = Response.ofPlainText ""

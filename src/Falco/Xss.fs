@@ -1,5 +1,4 @@
-﻿[<RequireQualifiedAccess>]
-module Falco.Security.Xss
+﻿module Falco.Security.Xss
 
 open System.Threading.Tasks
 open Falco.Extensions
