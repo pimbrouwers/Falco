@@ -175,8 +175,8 @@ let endpoints : HttpEndpoint list =
     // multi-method endpoint
     all "/login"              
         [ 
-            handle POST loginHandler        
-            handle GET login
+            handle POST loginSubmitHandler        
+            handle GET  loginHandler
         ]
   ]
 ```
