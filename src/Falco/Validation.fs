@@ -7,8 +7,8 @@ type ValidationErrors = string list
 type ValidationResult<'a> = Result<'a, ValidationErrors>
 
 module ValidationResult = 
-    let create cond success error : ValidationResult<'a> =
-        if cond then Ok success
+    let create condition success error : ValidationResult<'a> =
+        if condition then Ok success
         else [error] |> Error
 
     let apply (resultFn : ValidationResult<'a -> 'b>) (result : ValidationResult<'a>) =
