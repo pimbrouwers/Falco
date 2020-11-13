@@ -14,7 +14,7 @@ let ``antiforgetInput should return valid XmlNode`` () =
     let expected = "<input type=\"hidden\" name=\"FORM_FIELD_NAME\" value=\"REQUEST_TOKEN\" />"
     
     match input with
-    | Text _  
+    | TextNode _  
     | ParentNode _  -> 
         false |> should equal true
 
