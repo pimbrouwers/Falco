@@ -4,6 +4,7 @@ open Xunit
 open Falco.Validation
 open FsUnit.Xunit
 
+(*
 [<Theory>]
 [<InlineData(false)>]
 [<InlineData(true)>]
@@ -13,3 +14,4 @@ let ``ValidationResult.create produces result based on condition`` (isValid : bo
     
     if isValid then validationResult |> should equal (Ok ())
     else validationResult |> should equal (Error [ errorMessage ])
+*)
