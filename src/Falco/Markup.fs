@@ -5,8 +5,8 @@ open Falco.StringUtils
 
 /// Specifies an XML-style attribute
 type XmlAttribute =
-    | KeyValue of string * string
-    | BooleanValue of string
+    | KeyValueAttr of string * string
+    | NonValueAttr of string
 
 /// Represents an XML-style element containing attributes
 type XmlElement = 
@@ -16,7 +16,7 @@ type XmlElement =
 type XmlNode =
     | ParentNode      of XmlElement * XmlNode list 
     | SelfClosingNode of XmlElement                
-    | Text            of string   
+    | TextNode        of string   
 
 /// Render XmlNode recursively to string representation
 let renderNode (tag : XmlNode) =  
@@ -25,8 +25,8 @@ let renderNode (tag : XmlNode) =
 
     let createAttr (attr : XmlAttribute) = 
         match attr with 
-        | KeyValue (key, value) -> createKeyValue key value
-        | BooleanValue key      -> key
+        | KeyValueAttr (key, value) -> createKeyValue key value
+        | NonValueAttr key          -> key
 
     let createAttrs (attrs : XmlAttribute[]) =
         attrs
@@ -56,7 +56,7 @@ let renderNode (tag : XmlNode) =
             |> strJoin ""
 
         match tag with 
-        | Text text                           -> text
+        | TextNode text                           -> text
         | SelfClosingNode (tag, attrs)        -> createSelfClosingTag tag attrs
         | ParentNode ((tag, attrs), children) -> createTag (buildChildXml children) tag attrs 
         :: doc            
@@ -75,10 +75,10 @@ let renderHtml tag =
 
 module Text =       
     /// Text XmlNode constructor
-    let raw content = Text content
+    let raw content = TextNode content
     
     /// Encoded-text XmlNode constructor
-    let enc content = Text (WebUtility.HtmlEncode content)
+    let enc content = TextNode (WebUtility.HtmlEncode content)
     
 module Elem =
     /// Standard XmlNode constructor
@@ -164,8 +164,8 @@ module Elem =
 
 module Attr = 
     /// XmlAttribute constructor
-    let create key value = KeyValue (key, value)
-    let createBool key = BooleanValue key 
+    let create key value = KeyValueAttr (key, value)
+    let createBool key = NonValueAttr key 
 
     let httpEquiv v   = create "http-equip" v
     let lang v        = create "lang" v
