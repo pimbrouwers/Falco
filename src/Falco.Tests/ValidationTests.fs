@@ -4,14 +4,14 @@ open Xunit
 open Falco.Validation
 open FsUnit.Xunit
 
-(*
-[<Theory>]
-[<InlineData(false)>]
-[<InlineData(true)>]
-let ``ValidationResult.create produces result based on condition`` (isValid : bool) =
+[<Fact>]
+let ``ValidationResult.create produces Ok result`` () =    
+    ValidationResult.create true () ""
+    |> Result.bind (fun result -> Ok (result |> should equal ()))
+
+[<Fact>]
+let ``ValidationResult.create produces Error result`` () =
     let errorMessage = "fake error message"
-    let validationResult = ValidationResult.create isValid () errorMessage
     
-    if isValid then validationResult |> should equal (Ok ())
-    else validationResult |> should equal (Error [ errorMessage ])
-*)
+    ValidationResult.create false () errorMessage
+    |> Result.mapError (fun errors -> errors |> should equal [ errorMessage ])
