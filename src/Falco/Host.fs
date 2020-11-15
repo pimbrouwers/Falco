@@ -30,53 +30,47 @@ let defaultNotFoundHandler : HttpHandler =
 let startWebHost =
     fun (args : string[]) 
         (webHostBuilder : ConfigureWebHost)
-        (endpoints : HttpEndpoint list) ->    
+        (endpoints : HttpEndpoint list) ->          
     Host.CreateDefaultBuilder(args)
         .ConfigureWebHost(Action<IWebHostBuilder> (webHostBuilder endpoints))
         .Build()
         .Run()
 
-/// The default host configuration
-let defaultConfigureWebHost = 
-    let configureLogging
-            (log : ILoggingBuilder) =
-            log.SetMinimumLevel(LogLevel.Error)
-            |> ignore
-
-    let configureServices 
-        (services : IServiceCollection) =
-        services.AddRouting()     
-                .AddResponseCaching()
-                .AddResponseCompression()
-        |> ignore
-                    
-    let configure             
-        (endpoints : HttpEndpoint list)
-        (app : IApplicationBuilder) =         
-        app.UseExceptionMiddleware(defaultExceptionHandler)
-            .UseResponseCaching()
-            .UseResponseCompression()
-            .UseStaticFiles()
-            .UseRouting()
-            .UseHttpEndPoints(endpoints)
-            .UseNotFoundHandler(defaultNotFoundHandler)
-            |> ignore 
-                     
-    fun (endpoints : HttpEndpoint list)
-        (webHost : IWebHostBuilder) ->  
-        webHost
-            .UseKestrel()
-            .ConfigureLogging(configureLogging)
-            .ConfigureServices(configureServices)
-            .Configure(configure endpoints)
-            |> ignore
-
 /// Start the default host
 let startWebHostDefault =
-    fun (args : string[]) 
-        (endpoints : HttpEndpoint list) ->
-            
-    Host.CreateDefaultBuilder(args)
-        .ConfigureWebHost(Action<IWebHostBuilder> (defaultConfigureWebHost endpoints))
-        .Build()
-        .Run()
+    fun (args : string[]) (endpoints : HttpEndpoint list) -> 
+        let configureLogging
+                (log : ILoggingBuilder) =
+                log.SetMinimumLevel(LogLevel.Error)
+                |> ignore
+
+        let configureServices 
+            (services : IServiceCollection) =
+            services.AddRouting()     
+                    .AddResponseCaching()
+                    .AddResponseCompression()
+            |> ignore
+
+        let configureApp
+            (endpoints : HttpEndpoint list)
+            (app : IApplicationBuilder) =         
+            app.UseExceptionMiddleware(defaultExceptionHandler)
+                .UseResponseCaching()
+                .UseResponseCompression()
+                .UseStaticFiles()
+                .UseRouting()
+                .UseHttpEndPoints(endpoints)
+                .UseNotFoundHandler(defaultNotFoundHandler)
+                |> ignore 
+                
+        let defaultConfigureWebHost =                     
+            fun (endpoints : HttpEndpoint list)
+                (webHost : IWebHostBuilder) ->  
+                webHost
+                    .UseKestrel()
+                    .ConfigureLogging(configureLogging)
+                    .ConfigureServices(configureServices)
+                    .Configure(configureApp endpoints)
+                    |> ignore
+
+        startWebHost args defaultConfigureWebHost endpoints
