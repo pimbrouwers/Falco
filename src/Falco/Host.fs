@@ -12,9 +12,7 @@ open Microsoft.Extensions.Logging
 type ConfigureWebHost = HttpEndpoint list -> IWebHostBuilder -> unit
 
 /// The default exception handler, attempts to logs exception (if exists) and returns HTTP 500
-let defaultExceptionHandler 
-    (ex : Exception)
-    (log : ILogger) : HttpHandler =
+let defaultExceptionHandler (ex : Exception) (log : ILogger) : HttpHandler =
     let logMessage = sprintf "Server error: %s\n\n%s" ex.Message ex.StackTrace
     log.Log(LogLevel.Error, logMessage)        
     
@@ -28,9 +26,7 @@ let defaultNotFoundHandler : HttpHandler =
 
 /// Create and start a new IHost (Alias for Host.CreateDefaultBuilder(args))
 let startWebHost =
-    fun (args : string[]) 
-        (webHostBuilder : ConfigureWebHost)
-        (endpoints : HttpEndpoint list) ->          
+    fun (args : string[]) (webHostBuilder : ConfigureWebHost) (endpoints : HttpEndpoint list) ->          
     Host.CreateDefaultBuilder(args)
         .ConfigureWebHost(Action<IWebHostBuilder> (webHostBuilder endpoints))
         .Build()
@@ -44,16 +40,13 @@ let startWebHostDefault =
                 log.SetMinimumLevel(LogLevel.Error)
                 |> ignore
 
-        let configureServices 
-            (services : IServiceCollection) =
+        let configureServices (services : IServiceCollection) =
             services.AddRouting()     
                     .AddResponseCaching()
                     .AddResponseCompression()
             |> ignore
 
-        let configureApp
-            (endpoints : HttpEndpoint list)
-            (app : IApplicationBuilder) =         
+        let configureApp (endpoints : HttpEndpoint list) (app : IApplicationBuilder) =         
             app.UseExceptionMiddleware(defaultExceptionHandler)
                 .UseResponseCaching()
                 .UseResponseCompression()
@@ -64,8 +57,7 @@ let startWebHostDefault =
                 |> ignore 
                 
         let defaultConfigureWebHost =                     
-            fun (endpoints : HttpEndpoint list)
-                (webHost : IWebHostBuilder) ->  
+            fun (endpoints : HttpEndpoint list) (webHost : IWebHostBuilder) ->  
                 webHost
                     .UseKestrel()
                     .ConfigureLogging(configureLogging)

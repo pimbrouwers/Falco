@@ -47,7 +47,7 @@ module Validators =
         | Some v -> validator message v
         | None   -> Error [ messageOrDefault message defaultMessage ]
     
-    module private Numeric = 
+    module private Comparison = 
         let between (min : 'a) (max : 'a) (message : string option) : Validator<'a> =
             let defaultMessage () = sprintf "Value must be between %A and %A" min max
             fun (value) -> ValidationResult.create (value >= min && value <= max) value (messageOrDefault message defaultMessage)
@@ -68,43 +68,58 @@ module Validators =
             let defaultMessage () = sprintf "Value must not equal %A" notEqualTo
             fun (value) -> ValidationResult.create (value <> notEqualTo) value (messageOrDefault message defaultMessage)
 
-    //module DateTime = 
-    //    open System
+    module DateTime = 
+        open System
+
+        let between (min : DateTime) (max : DateTime) (message : string option) (value : DateTime) = Comparison.between min max message value
+        let equals (equalTo : DateTime) (message : string option) (value : DateTime)               = Comparison.equals equalTo message value
+        let greaterThan (min : DateTime) (message : string option) (value : DateTime)              = Comparison.greaterThan min message value
+        let lessThan (max : DateTime) (message : string option) (value : DateTime)                 = Comparison.lessThan max message value
+        let notEquals (notEqualTo : DateTime) (message : string option) (value : DateTime)         = Comparison.notEquals notEqualTo message value
+
+    module DateTimeOffset = 
+        open System
+
+        let between (min : DateTimeOffset) (max : DateTimeOffset) (message : string option) (value : DateTimeOffset) = Comparison.between min max message value
+        let equals (equalTo : DateTimeOffset) (message : string option) (value : DateTimeOffset)                     = Comparison.equals equalTo message value
+        let greaterThan (min : DateTimeOffset) (message : string option) (value : DateTimeOffset)                    = Comparison.greaterThan min message value
+        let lessThan (max : DateTimeOffset) (message : string option) (value : DateTimeOffset)                       = Comparison.lessThan max message value
+        let notEquals (notEqualTo : DateTimeOffset) (message : string option) (value : DateTimeOffset)               = Comparison.notEquals notEqualTo message value
 
     module Decimal = 
-        let between (min : decimal) (max : decimal) (message : string option) (value : decimal) = Numeric.between min max message value
-        let equals (equalTo : decimal) (message : string option) (value : decimal)              = Numeric.equals equalTo message value
-        let greaterThan (min : decimal) (message : string option) (value : decimal)             = Numeric.greaterThan min message value
-        let lessThan (max : decimal) (message : string option) (value : decimal)                = Numeric.lessThan max message value
-        let notEquals (notEqualTo : decimal) (message : string option) (value : decimal)        = Numeric.notEquals notEqualTo message value
+        let between (min : decimal) (max : decimal) (message : string option) (value : decimal) = Comparison.between min max message value
+        let equals (equalTo : decimal) (message : string option) (value : decimal)              = Comparison.equals equalTo message value
+        let greaterThan (min : decimal) (message : string option) (value : decimal)             = Comparison.greaterThan min message value
+        let lessThan (max : decimal) (message : string option) (value : decimal)                = Comparison.lessThan max message value
+        let notEquals (notEqualTo : decimal) (message : string option) (value : decimal)        = Comparison.notEquals notEqualTo message value
     
     module Float = 
-        let between (min : float) (max : float) (message : string option) (value : float) = Numeric.between min max message value
-        let equals (equalTo : float) (message : string option) (value : float)            = Numeric.equals equalTo message value
-        let greaterThan (min : float) (message : string option) (value : float)           = Numeric.greaterThan min message value
-        let lessThan (max : float) (message : string option) (value : float)              = Numeric.lessThan max message value
-        let notEquals (notEqualTo : float) (message : string option) (value : float)      = Numeric.notEquals notEqualTo message value
+        let between (min : float) (max : float) (message : string option) (value : float) = Comparison.between min max message value
+        let equals (equalTo : float) (message : string option) (value : float)            = Comparison.equals equalTo message value
+        let greaterThan (min : float) (message : string option) (value : float)           = Comparison.greaterThan min message value
+        let lessThan (max : float) (message : string option) (value : float)              = Comparison.lessThan max message value
+        let notEquals (notEqualTo : float) (message : string option) (value : float)      = Comparison.notEquals notEqualTo message value
 
     module Int = 
-        let between (min : int) (max : int) (message : string option) (value : int) = Numeric.between min max message value
-        let equals (equalTo : int) (message : string option) (value : int)          = Numeric.equals equalTo message value
-        let greaterThan (min : int) (message : string option) (value : int)         = Numeric.greaterThan min message value
-        let lessThan (max : int) (message : string option) (value : int)            = Numeric.lessThan max message value
-        let notEquals (notEqualTo : int) (message : string option) (value : int)    = Numeric.notEquals notEqualTo message value
+        let between (min : int) (max : int) (message : string option) (value : int) = Comparison.between min max message value
+        let equals (equalTo : int) (message : string option) (value : int)          = Comparison.equals equalTo message value
+        let greaterThan (min : int) (message : string option) (value : int)         = Comparison.greaterThan min message value
+        let lessThan (max : int) (message : string option) (value : int)            = Comparison.lessThan max message value
+        let notEquals (notEqualTo : int) (message : string option) (value : int)    = Comparison.notEquals notEqualTo message value
 
     module Int16 = 
-        let between (min : int16) (max : int16) (message : string option) (value : int16) = Numeric.between min max message value
-        let equals (equalTo : int16) (message : string option) (value : int16)            = Numeric.equals equalTo message value
-        let greaterThan (min : int16) (message : string option) (value : int16)           = Numeric.greaterThan min message value
-        let lessThan (max : int16) (message : string option) (value : int16)              = Numeric.lessThan max message value
-        let notEquals (notEqualTo : int16) (message : string option) (value : int16)      = Numeric.notEquals notEqualTo message value
+        let between (min : int16) (max : int16) (message : string option) (value : int16) = Comparison.between min max message value
+        let equals (equalTo : int16) (message : string option) (value : int16)            = Comparison.equals equalTo message value
+        let greaterThan (min : int16) (message : string option) (value : int16)           = Comparison.greaterThan min message value
+        let lessThan (max : int16) (message : string option) (value : int16)              = Comparison.lessThan max message value
+        let notEquals (notEqualTo : int16) (message : string option) (value : int16)      = Comparison.notEquals notEqualTo message value
 
     module Int64 = 
-        let between (min : int64) (max : int64) (message : string option) (value : int64) = Numeric.between min max message value
-        let equals (equalTo : int64) (message : string option) (value : int64)            = Numeric.equals equalTo message value
-        let greaterThan (min : int64) (message : string option) (value : int64)           = Numeric.greaterThan min message value
-        let lessThan (max : int64) (message : string option) (value : int64)              = Numeric.lessThan max message value
-        let notEquals (notEqualTo : int64) (message : string option) (value : int64)      = Numeric.notEquals notEqualTo message value
+        let between (min : int64) (max : int64) (message : string option) (value : int64) = Comparison.between min max message value
+        let equals (equalTo : int64) (message : string option) (value : int64)            = Comparison.equals equalTo message value
+        let greaterThan (min : int64) (message : string option) (value : int64)           = Comparison.greaterThan min message value
+        let lessThan (max : int64) (message : string option) (value : int64)              = Comparison.lessThan max message value
+        let notEquals (notEqualTo : int64) (message : string option) (value : int64)      = Comparison.notEquals notEqualTo message value
 
     //module String =
     //    let minLength (min : int) (fieldName : string) (value : string) =
