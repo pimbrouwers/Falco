@@ -15,3 +15,12 @@ let ``ValidationResult.create produces Error result`` () =
     
     ValidationResult.create false () errorMessage
     |> Result.mapError (fun errors -> errors |> should equal [ errorMessage ])
+
+[<Fact>]
+let ``Validation`` () =
+    let result : ValidationResult<FakeRecord> = 
+        fun name -> { Name = name }
+        <!> Validators.String.minLen 3 None "Pim"
+
+    result 
+    |> Result.bind (fun r -> Ok(r |> should equal { Name = "Pim" }))

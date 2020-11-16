@@ -1,6 +1,7 @@
 module Falco.Validation
 
 open System
+open Falco.StringUtils
 
 /// Collection of 
 type ValidationErrors = string list
@@ -73,7 +74,7 @@ module Validators =
 
         member _.empty (message : string option) (value : string) =
             let defaultMessage () = sprintf "Value must be empty"
-            ValidationResult.create (String.IsNullOrWhiteSpace(value)) value (messageOrDefault message defaultMessage)
+            ValidationResult.create (strEmpty value) value (messageOrDefault message defaultMessage)
 
         member _.maxLen (max : int) (message : string option) (value : string) =
             let defaultMessage () = sprintf "Value must not execeed %i characters" max
@@ -85,7 +86,7 @@ module Validators =
 
         member _.notEmpty (message : string option) (value : string) =
             let defaultMessage () = sprintf "Value must not be empty"
-            ValidationResult.create (not(String.IsNullOrWhiteSpace(value))) value (messageOrDefault message defaultMessage)
+            ValidationResult.create (strNotEmpty value) value (messageOrDefault message defaultMessage)
 
         member _.pattern (pattern : string) (message : string option) (value : string) =
             let defaultMessage () = sprintf "Value must match pattern %s" pattern

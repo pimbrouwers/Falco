@@ -21,7 +21,7 @@ type XmlNode =
 /// Render XmlNode recursively to string representation
 let renderNode (tag : XmlNode) =  
     let createKeyValue key value =
-        strJoin "" [| key; "=\""; value ; "\"" |]
+        strConcat [| key; "=\""; value ; "\"" |]
 
     let createAttr (attr : XmlAttribute) = 
         match attr with 
@@ -35,15 +35,15 @@ let renderNode (tag : XmlNode) =
 
     let createSelfClosingTag (tag : string) (attrs : XmlAttribute[]) =
         if attrs.Length > 0 then
-            strJoin "" [| "<"; tag; " "; (createAttrs attrs); " />" |] 
+            strConcat [| "<"; tag; " "; (createAttrs attrs); " />" |] 
         else 
-            strJoin "" [| "<"; tag; " />" |]
+            strConcat [| "<"; tag; " />" |]
 
     let createTag (children : string) (tag : string) (attrs : XmlAttribute[]) =
         if attrs.Length > 0 then
-            strJoin "" [| "<"; tag; " "; (createAttrs attrs); ">"; children; "</"; tag; ">" |]
+            strConcat [| "<"; tag; " "; (createAttrs attrs); ">"; children; "</"; tag; ">" |]
         else 
-            strJoin "" [| "<"; tag; ">"; children; "</"; tag; ">" |]
+            strConcat [| "<"; tag; ">"; children; "</"; tag; ">" |]
 
     let rec buildXml doc tag =   
         let buildChildXml (children : XmlNode list) =
@@ -51,9 +51,9 @@ let renderNode (tag : XmlNode) =
                 for c in children do 
                     buildXml [] c 
                     |> List.toArray 
-                    |> strJoin ""
+                    |> strConcat
             |]
-            |> strJoin ""
+            |> strConcat
 
         match tag with 
         | TextNode text                           -> text
@@ -63,7 +63,7 @@ let renderNode (tag : XmlNode) =
     
     buildXml [] tag
     |> List.toArray
-    |> strJoin ""
+    |> strConcat
 
 /// Render XmlNode as HTML string
 let renderHtml tag =
@@ -71,7 +71,7 @@ let renderHtml tag =
         "<!DOCTYPE html>"
         renderNode tag
     |]
-    |> strJoin ""
+    |> strConcat
 
 module Text =       
     /// Text XmlNode constructor
@@ -91,211 +91,213 @@ module Elem =
         (tag, List.toArray attr)
         |> SelfClosingNode
 
-    /// <html></html> HTML tag
+    /// HTML Tag <html></html>
     let html = tag "html"
 
-    /// <head></head> HTML tag
+    /// HTML Tag <head></head>
     let head = tag "head"
 
-    /// <title></title> HTML tag
+    /// HTML Tag <title></title>
     let title = tag "title"
 
-    /// <style></style> HTML tag
+    /// HTML Tag <style></style>
     let style = tag "style"
 
-    /// <base></base> HTML tag
-    let ``base = tag "base"
+    /// HTML Tag <base></base>
+    let ``base`` = tag "base"
 
-    /// <body></body> HTML tag
+    /// HTML Tag <body></body>
     let body = tag "body"
 
-    /// <div></div> HTML tag
+    /// HTML Tag <div></div>
     let div = tag "div"
 
-    /// <a></a> HTML tag
+    /// HTML Tag <a></a>
     let a = tag "a"
 
-    /// <h1></h1> HTML tag
+    /// HTML Tag <h1></h1>
     let h1 = tag "h1"
 
-    /// <h2></h2> HTML tag
+    /// HTML Tag <h2></h2>
     let h2 = tag "h2"
 
-    /// <h3></h3> HTML tag
+    /// HTML Tag <h3></h3>
     let h3 = tag "h3"
 
-    /// <h4></h4> HTML tag
+    /// HTML Tag <h4></h4>
     let h4 = tag "h4"
 
-    /// <h5></h5> HTML tag
+    /// HTML Tag <h5></h5>
     let h5 = tag "h5"
 
-    /// <h6></h6> HTML tag
+    /// HTML Tag <h6></h6>
     let h6 = tag "h6"
 
-    /// <p></p> HTML tag
+    /// HTML Tag <p></p>
     let p = tag "p"
 
-    /// <span></span> HTML tag
+    /// HTML Tag <span></span>
     let span = tag "span"
 
-    /// <em></em> HTML tag
+    /// HTML Tag <em></em>
     let em = tag "em"
 
-    /// <strong></strong> HTML tag
+    /// HTML Tag <strong></strong>
     let strong = tag "strong"
 
-    /// <b></b> HTML tag
+    /// HTML Tag <b></b>
     let b = tag "b"
 
-    /// <u></u> HTML tag
+    /// HTML Tag <u></u>
     let u = tag "u"
 
-    /// <i></i> HTML tag
+    /// HTML Tag <i></i>
     let i = tag "i"
 
-    /// <blockquote></blockquote> HTML tag
+    /// HTML Tag <blockquote></blockquote>
     let blockquote = tag "blockquote"
 
-    /// <pre></pre> HTML tag
+    /// HTML Tag <pre></pre>
     let pre = tag "pre"
 
-    /// <code></code> HTML tag
+    /// HTML Tag <code></code>
     let code = tag "code"
 
-    /// <small></small> HTML tag
+    /// HTML Tag <small></small>
     let small = tag "small"
 
-    /// <sub></sub> HTML tag
+    /// HTML Tag <sub></sub>
     let sub = tag "sub"
 
-    /// <sup></sup> HTML tag
+    /// HTML Tag <sup></sup>
     let sup = tag "sup"
 
-    /// <dl></dl> HTML tag
+    /// HTML Tag <dl></dl>
     let dl = tag "dl"
 
-    /// <dt></dt> HTML tag
+    /// HTML Tag <dt></dt>
     let dt = tag "dt"
 
-    /// <dd></dd> HTML tag
+    /// HTML Tag <dd></dd>
     let dd = tag "dd"
 
-    /// <ol></ol> HTML tag
+    /// HTML Tag <ol></ol>
     let ol = tag "ol"
 
-    /// <ul></ul> HTML tag
+    /// HTML Tag <ul></ul>
     let ul = tag "ul"
 
-    /// <li></li> HTML tag
+    /// HTML Tag <li></li>
     let li = tag "li"
 
-    /// <fieldset></fieldset> HTML tag
+    /// HTML Tag <fieldset></fieldset>
     let fieldset = tag "fieldset"
 
-    /// <form></form> HTML tag
+    /// HTML Tag <form></form>
     let form = tag "form"
 
-    /// <label></label> HTML tag
+    /// HTML Tag <label></label>
     let label = tag "label"
 
-    /// <legend></legend> HTML tag
+    /// HTML Tag <legend></legend>
     let legend = tag "legend"
 
-    /// <textarea></textarea> HTML tag
+    /// HTML Tag <textarea></textarea>
     let textarea = tag "textarea"
 
-    /// <select></select> HTML tag
+    /// HTML Tag <select></select>
     let select = tag "select"
 
-    /// <option></option> HTML tag
+    /// HTML Tag <option></option>
     let option = tag "option"
 
-    /// <optgroup></optgroup> HTML tag
+    /// HTML Tag <optgroup></optgroup>
     let optgroup = tag "optgroup"
 
-    /// <table></table> HTML tag
+    /// HTML Tag <table></table>
     let table = tag "table"
 
-    /// <tbody></tbody> HTML tag
+    /// HTML Tag HTML Tag <tbody></tbody>
     let tbody = tag "tbody"
 
-    /// <tfoot></tfoot> HTML tag
+    /// HTML Tag <tfoot></tfoot>
     let tfoot = tag "tfoot"
 
-    /// <thead></thead> HTML tag
+    /// HTML Tag <thead></thead>
     let thead = tag "thead"
 
-    /// <tr></tr> HTML tag
+    /// HTML Tag <tr></tr>
     let tr = tag "tr"
 
-    /// <th></th> HTML tag
+    /// HTML Tag <th></th>
     let th = tag "th"
 
-    /// <td></td> HTML tag
+    /// HTML Tag <td></td>
     let td = tag "td"
 
-    /// <iframe></iframe> HTML tag
+    /// HTML Tag <iframe></iframe>
     let iframe = tag "iframe"
 
-    /// <figure></figure> HTML tag
+    /// HTML Tag <figure></figure>
     let figure = tag "figure"
 
-    /// <figcaption></figcaption> HTML tag
+    /// HTML Tag <figcaption></figcaption>
     let figcaption = tag "figcaption"
 
-    /// <article></article> HTML tag
+    /// HTML Tag <article></article>
     let article = tag "article"
 
-    /// <aside></aside> HTML tag
+    /// HTML Tag <aside></aside>
     let aside = tag "aside"
 
-    /// <canvas></canvas> HTML tag
+    /// HTML Tag <canvas></canvas>
     let canvas = tag "canvas"
 
-    /// <details></details> HTML tag
+    /// HTML Tag <details></details>
     let details = tag "details"
 
-    /// <footer></footer> HTML tag
+    /// HTML Tag <footer></footer>
     let footer = tag "footer"
 
-    /// <hroup></hroup> HTML tag
+    /// HTML Tag <hroup></hroup>
     let hgroup = tag "hroup"
 
-    /// <header></header> HTML tag
+    /// HTML Tag <header></header>
     let header = tag "header"
 
-    /// <main></main> HTML tag
+    /// HTML Tag <main></main>
     let main = tag "main"
 
-    /// <nav></nav> HTML tag
+    /// HTML Tag <nav></nav>
     let nav = tag "nav"
 
-    /// <section></section> HTML tag
+    /// HTML Tag <section></section>
     let section = tag "section"
 
-    /// <summary></summary> HTML tag
+    /// HTML Tag <summary></summary>
     let summary = tag "summary"
 
-    /// <meta /> HTML tag
+    /// HTML Tag <meta />
     let meta = selfClosingTag "meta"
 
-    /// <link /> HTML tag
+    /// HTML Tag <link />
     let link = selfClosingTag "link"
 
-    /// <img /> HTML tag
+    /// HTML Tag <img />
     let img = selfClosingTag "img"
 
-    /// <hr /> HTML tag
+    /// HTML Tag <hr />
     let hr = selfClosingTag "hr"
 
-    /// <br /> HTML tag
+    /// HTML Tag <br />
     let br = selfClosingTag "br"
 
-    /// <input /> HTML tag
+    /// HTML Tag <input />
     let input = selfClosingTag "input"
 
 module Attr = 
+    open System
+     
     /// XmlAttribute KeyValueAttr constructor
     let create key value = KeyValueAttr (key, value)
     
@@ -305,7 +307,7 @@ module Attr =
     /// Merge two XmlAttribute lists
     let merge attrs1 attrs2 =
         attrs1 @ attrs2
-        |> List.map (fun attr -> match attr with KeyValue(k, v) -> k, Some v | BooleanValue(k) -> k, None)    
+        |> List.map (fun attr -> match attr with KeyValueAttr(k, v) -> k, Some v | NonValueAttr(k) -> k, None)    
         |> List.groupBy (fun (k, _) -> k)    
         |> List.map (fun (g, attrs) -> 
             let attrValue : string option = 
@@ -314,126 +316,126 @@ module Attr =
                     match acc, v with 
                     | None, _          -> v 
                     | Some _, None     -> acc
-                    | Some acc, Some v -> Some (String.Join(" ", [| acc; v |]))) None        
+                    | Some acc, Some v -> Some (strJoin " " [| acc; v |])) None        
             match attrValue with
             | None   -> NonValueAttr(g)
             | Some v -> KeyValueAttr(g, v))
 
-    /// "http-equiv" HTML Attribute 
+   /// HTML Attribute "http-equiv"
     let httpEquiv v = create "http-equip" v
 
-    /// "lang" HTML Attribute 
+    /// HTML Attribute "lang"
     let lang v = create "lang" v
 
-    /// "charset" HTML Attribute 
+    /// HTML Attribute "charset"
     let charset v = create "charset" v
 
-    /// "content" HTML Attribute 
+    /// HTML Attribute "content"
     let content v = create "content" v
 
-    /// "id" HTML Attribute 
+    /// HTML Attribute "id"
     let id v = create "id" v
 
-    /// "class" HTML Attribute 
+    /// HTML Attribute "class"
     let class' v = create "class" v
 
-    /// "name" HTML Attribute 
+    /// HTML Attribute "name"
     let name v = create "name" v
 
-    /// "alt" HTML Attribute 
+    /// HTML Attribute "alt"
     let alt v = create "alt" v
 
-    /// "title" HTML Attribute 
+    /// HTML Attribute "title"
     let title v = create "title" v
 
-    /// "rel" HTML Attribute 
+    /// HTML Attribute "rel"
     let rel v = create "rel" v
 
-    /// "href" HTML Attribute 
+    /// HTML Attribute "href"
     let href v = create "href" v
 
-    /// "target" HTML Attribute 
+    /// HTML Attribute "target"
     let target v = create "target" v
 
-    /// "src" HTML Attribute 
+    /// HTML Attribute "src"
     let src v = create "src" v
 
-    /// "width" HTML Attribute 
+    /// HTML Attribute "width"
     let width v = create "width" v
 
-    /// "height" HTML Attribute 
+    /// HTML Attribute "height"
     let height v = create "height" v
 
-    /// "style" HTML Attribute 
+    /// HTML Attribute "style"
     let style v = create "style" v
 
-    /// "novalidate" HTML Attribute 
+    /// HTML Attribute "novalidate"
     let novalidate = createBool "novalidate" 
 
-    /// "action" HTML Attribute 
+    /// HTML Attribute "action"
     let action v = create "action" v
 
-    /// "method" HTML Attribute 
+    /// HTML Attribute "method"
     let method v = create "method" v
 
-    /// "enctype" HTML Attribute 
+    /// HTML Attribute "enctype"
     let enctype v = create "enctype" v
 
-    /// "accept" HTML Attribute 
+    /// HTML Attribute "accept"
     let accept v = create "accept" v
 
-    /// "autocomplete" HTML Attribute 
+    /// HTML Attribute "autocomplete"
     let autocomplete v = create "autocomplete" v
 
-    /// "autofocus" HTML Attribute 
+    /// HTML Attribute "autofocus"
     let autofocus = createBool "autofocus"
 
-    /// "checked" HTML Attribute 
-    let checked '       = createBool "checked" 
+    /// HTML Attribute "checked"
+    let checked' = createBool "checked" 
 
-    /// "disabled" HTML Attribute 
+    /// HTML Attribute "disabled"
     let disabled = createBool "disabled"
 
-    /// "for" HTML Attribute 
+    /// HTML Attribute "for"
     let for' v = create "for" v
 
-    /// "max" HTML Attribute 
+    /// HTML Attribute "max"
     let max v = create "max" v
 
-    /// "maxlength" HTML Attribute 
+    /// HTML Attribute "maxlength"
     let maxlength v = create "maxlength" v
 
-    /// "min" HTML Attribute 
+    /// HTML Attribute "min"
     let min v = create "min" v
 
-    /// "multiple" HTML Attribute 
+    /// HTML Attribute "multiple"
     let multiple = createBool "multiple"
 
-    /// "pattern" HTML Attribute 
+    /// HTML Attribute "pattern"
     let pattern v = create "pattern" v
 
-    /// "placeholder" HTML Attribute 
+    /// HTML Attribute "placeholder"
     let placeholder v = create "placeholder" v
 
-    /// "readonly" HTML Attribute 
+    /// HTML Attribute "readonly"
     let readonly = createBool "readonly"
 
-    /// "required" HTML Attribute 
+    /// HTML Attribute "required"
     let required = createBool "required"
 
-    /// "rows" HTML Attribute 
+    /// HTML Attribute "rows"
     let rows v = create "rows" v
 
-    /// "selected" HTML Attribute 
+    /// HTML Attribute "selected"
     let selected = createBool "selected"
 
-    /// "step" HTML Attribute 
+    /// HTML Attribute "step"
     let step v = create "step" v
 
-    /// "type" HTML Attribute 
+    /// HTML Attribute "type"
     let type' v = create "type" v
 
-    /// "value" HTML Attribute 
+    /// HTML Attribute "value"
     let value v = create "value" v
 
 module Templates =

@@ -35,3 +35,19 @@ let ``Should produce valid html doc`` () =
                     ]
             ]
     renderHtml doc |> should equal "<!DOCTYPE html><html><body><div class=\"my-class\"><h1>hello</h1></div></body></html>"
+
+[<Fact>]
+let ``Attr.merge should combine two XmlAttribute lists`` () =
+    Attr.merge
+        [ KeyValueAttr("class", "ma2") ] 
+        [ KeyValueAttr("id", "some-el"); KeyValueAttr("class", "bg-red"); NonValueAttr("readonly") ]
+    |> should equal [ KeyValueAttr("class", "ma2 bg-red"); KeyValueAttr("id", "some-el"); NonValueAttr("readonly") ]
+
+[<Fact>]
+let ``Attr.merge should work with bogus "class" NonValeAttr`` () =
+    Attr.merge
+        [ KeyValueAttr("class", "ma2") ] 
+        [ KeyValueAttr("id", "some-el"); KeyValueAttr("class", "bg-red"); NonValueAttr("class") ]
+    |> should equal [ KeyValueAttr("class", "ma2 bg-red"); KeyValueAttr("id", "some-el") ]
+
+    
