@@ -91,125 +91,350 @@ module Elem =
         (tag, List.toArray attr)
         |> SelfClosingNode
 
-    let html     = tag "html"
-    let head     = tag "head"
-    let title    = tag "title"
-    let meta     = selfClosingTag "meta"
-    let link     = selfClosingTag "link"
-    let style    = tag "style"
-    let ``base`` = tag "base"
+    /// <html></html> HTML tag
+    let html = tag "html"
 
-    let body       = tag "body"
-    let div        = tag "div"
-    let a          = tag "a"
-    let img        = selfClosingTag "img"
-    let h1         = tag "h1"
-    let h2         = tag "h2"
-    let h3         = tag "h3"
-    let h4         = tag "h4"
-    let h5         = tag "h5"
-    let h6         = tag "h6"
-    let p          = tag "p"
-    let span       = tag "span"
-    let em         = tag "em"
-    let strong     = tag "strong"
-    let b          = tag "b"
-    let u          = tag "u"
-    let i          = tag "i"
+    /// <head></head> HTML tag
+    let head = tag "head"
+
+    /// <title></title> HTML tag
+    let title = tag "title"
+
+    /// <style></style> HTML tag
+    let style = tag "style"
+
+    /// <base></base> HTML tag
+    let ``base = tag "base"
+
+    /// <body></body> HTML tag
+    let body = tag "body"
+
+    /// <div></div> HTML tag
+    let div = tag "div"
+
+    /// <a></a> HTML tag
+    let a = tag "a"
+
+    /// <h1></h1> HTML tag
+    let h1 = tag "h1"
+
+    /// <h2></h2> HTML tag
+    let h2 = tag "h2"
+
+    /// <h3></h3> HTML tag
+    let h3 = tag "h3"
+
+    /// <h4></h4> HTML tag
+    let h4 = tag "h4"
+
+    /// <h5></h5> HTML tag
+    let h5 = tag "h5"
+
+    /// <h6></h6> HTML tag
+    let h6 = tag "h6"
+
+    /// <p></p> HTML tag
+    let p = tag "p"
+
+    /// <span></span> HTML tag
+    let span = tag "span"
+
+    /// <em></em> HTML tag
+    let em = tag "em"
+
+    /// <strong></strong> HTML tag
+    let strong = tag "strong"
+
+    /// <b></b> HTML tag
+    let b = tag "b"
+
+    /// <u></u> HTML tag
+    let u = tag "u"
+
+    /// <i></i> HTML tag
+    let i = tag "i"
+
+    /// <blockquote></blockquote> HTML tag
     let blockquote = tag "blockquote"
-    let pre        = tag "pre"
-    let code       = tag "code"
-    let sub        = tag "sub"
-    let sup        = tag "sup"
-    let dl         = tag "dl"
-    let dt         = tag "dt"
-    let dd         = tag "dd"
-    let ol         = tag "ol"
-    let ul         = tag "ul"
-    let li         = tag "li"
-    let hr         = selfClosingTag "hr"
-    let br         = selfClosingTag "br"
-    let fieldset   = tag "fieldset"
-    let form       = tag "form"
-    let label      = tag "label"
-    let legend     = tag "legend"
-    let input      = selfClosingTag "input"
-    let textarea   = tag "textarea"
-    let select     = tag "select"
-    let option     = tag "option"
-    let optgroup   = tag "optgroup"
-    let table      = tag "table"
-    let tbody      = tag "tbody"
-    let tfoot      = tag "tfoot"
-    let thead      = tag "thead"
-    let tr         = tag "tr"
-    let th         = tag "th"
-    let td         = tag "td"
-    let iframe     = tag "iframe"
-    let figure     = tag "figure"
+
+    /// <pre></pre> HTML tag
+    let pre = tag "pre"
+
+    /// <code></code> HTML tag
+    let code = tag "code"
+
+    /// <small></small> HTML tag
+    let small = tag "small"
+
+    /// <sub></sub> HTML tag
+    let sub = tag "sub"
+
+    /// <sup></sup> HTML tag
+    let sup = tag "sup"
+
+    /// <dl></dl> HTML tag
+    let dl = tag "dl"
+
+    /// <dt></dt> HTML tag
+    let dt = tag "dt"
+
+    /// <dd></dd> HTML tag
+    let dd = tag "dd"
+
+    /// <ol></ol> HTML tag
+    let ol = tag "ol"
+
+    /// <ul></ul> HTML tag
+    let ul = tag "ul"
+
+    /// <li></li> HTML tag
+    let li = tag "li"
+
+    /// <fieldset></fieldset> HTML tag
+    let fieldset = tag "fieldset"
+
+    /// <form></form> HTML tag
+    let form = tag "form"
+
+    /// <label></label> HTML tag
+    let label = tag "label"
+
+    /// <legend></legend> HTML tag
+    let legend = tag "legend"
+
+    /// <textarea></textarea> HTML tag
+    let textarea = tag "textarea"
+
+    /// <select></select> HTML tag
+    let select = tag "select"
+
+    /// <option></option> HTML tag
+    let option = tag "option"
+
+    /// <optgroup></optgroup> HTML tag
+    let optgroup = tag "optgroup"
+
+    /// <table></table> HTML tag
+    let table = tag "table"
+
+    /// <tbody></tbody> HTML tag
+    let tbody = tag "tbody"
+
+    /// <tfoot></tfoot> HTML tag
+    let tfoot = tag "tfoot"
+
+    /// <thead></thead> HTML tag
+    let thead = tag "thead"
+
+    /// <tr></tr> HTML tag
+    let tr = tag "tr"
+
+    /// <th></th> HTML tag
+    let th = tag "th"
+
+    /// <td></td> HTML tag
+    let td = tag "td"
+
+    /// <iframe></iframe> HTML tag
+    let iframe = tag "iframe"
+
+    /// <figure></figure> HTML tag
+    let figure = tag "figure"
+
+    /// <figcaption></figcaption> HTML tag
     let figcaption = tag "figcaption"
 
-    /// HTML 5
+    /// <article></article> HTML tag
     let article = tag "article"
-    let aside   = tag "aside"
-    let canvas  = tag "canvas"
+
+    /// <aside></aside> HTML tag
+    let aside = tag "aside"
+
+    /// <canvas></canvas> HTML tag
+    let canvas = tag "canvas"
+
+    /// <details></details> HTML tag
     let details = tag "details"
-    let footer  = tag "footer"
-    let hgroup  = tag "hroup"
-    let header  = tag "header"
-    let main    = tag "main"
-    let nav     = tag "nav"
+
+    /// <footer></footer> HTML tag
+    let footer = tag "footer"
+
+    /// <hroup></hroup> HTML tag
+    let hgroup = tag "hroup"
+
+    /// <header></header> HTML tag
+    let header = tag "header"
+
+    /// <main></main> HTML tag
+    let main = tag "main"
+
+    /// <nav></nav> HTML tag
+    let nav = tag "nav"
+
+    /// <section></section> HTML tag
     let section = tag "section"
+
+    /// <summary></summary> HTML tag
     let summary = tag "summary"
 
+    /// <meta /> HTML tag
+    let meta = selfClosingTag "meta"
+
+    /// <link /> HTML tag
+    let link = selfClosingTag "link"
+
+    /// <img /> HTML tag
+    let img = selfClosingTag "img"
+
+    /// <hr /> HTML tag
+    let hr = selfClosingTag "hr"
+
+    /// <br /> HTML tag
+    let br = selfClosingTag "br"
+
+    /// <input /> HTML tag
+    let input = selfClosingTag "input"
+
 module Attr = 
-    /// XmlAttribute constructor
+    /// XmlAttribute KeyValueAttr constructor
     let create key value = KeyValueAttr (key, value)
+    
+    /// XmlAttribute NonValueAttr constructor
     let createBool key = NonValueAttr key 
+    
+    /// Merge two XmlAttribute lists
+    let merge attrs1 attrs2 =
+        attrs1 @ attrs2
+        |> List.map (fun attr -> match attr with KeyValue(k, v) -> k, Some v | BooleanValue(k) -> k, None)    
+        |> List.groupBy (fun (k, _) -> k)    
+        |> List.map (fun (g, attrs) -> 
+            let attrValue : string option = 
+                attrs 
+                |> List.fold (fun acc (_, v) -> 
+                    match acc, v with 
+                    | None, _          -> v 
+                    | Some _, None     -> acc
+                    | Some acc, Some v -> Some (String.Join(" ", [| acc; v |]))) None        
+            match attrValue with
+            | None   -> NonValueAttr(g)
+            | Some v -> KeyValueAttr(g, v))
 
-    let httpEquiv v   = create "http-equip" v
-    let lang v        = create "lang" v
-    let charset v     = create "charset" v
-    let content v     = create "content" v
-    let id v          = create "id" v
-    let class' v      = create "class" v
-    let name v        = create "name" v
-    let alt v         = create "alt" v
-    let title v       = create "title" v
-    let rel v         = create "rel" v
-    let href v        = create "href" v
-    let target v      = create "target" v
-    let src v         = create "src" v
-    let width v       = create "width" v
-    let height v      = create "height" v
-    let style v       = create "style" v
+    /// "http-equiv" HTML Attribute 
+    let httpEquiv v = create "http-equip" v
 
-    /// Forms
-    let novalidate    = createBool "novalidate" 
-    let action v      = create "action" v
-    let method v      = create "method" v
-    let enctype v     = create "enctype" v
+    /// "lang" HTML Attribute 
+    let lang v = create "lang" v
 
-    /// Inputs
-    let accept v       = create "accept" v
+    /// "charset" HTML Attribute 
+    let charset v = create "charset" v
+
+    /// "content" HTML Attribute 
+    let content v = create "content" v
+
+    /// "id" HTML Attribute 
+    let id v = create "id" v
+
+    /// "class" HTML Attribute 
+    let class' v = create "class" v
+
+    /// "name" HTML Attribute 
+    let name v = create "name" v
+
+    /// "alt" HTML Attribute 
+    let alt v = create "alt" v
+
+    /// "title" HTML Attribute 
+    let title v = create "title" v
+
+    /// "rel" HTML Attribute 
+    let rel v = create "rel" v
+
+    /// "href" HTML Attribute 
+    let href v = create "href" v
+
+    /// "target" HTML Attribute 
+    let target v = create "target" v
+
+    /// "src" HTML Attribute 
+    let src v = create "src" v
+
+    /// "width" HTML Attribute 
+    let width v = create "width" v
+
+    /// "height" HTML Attribute 
+    let height v = create "height" v
+
+    /// "style" HTML Attribute 
+    let style v = create "style" v
+
+    /// "novalidate" HTML Attribute 
+    let novalidate = createBool "novalidate" 
+
+    /// "action" HTML Attribute 
+    let action v = create "action" v
+
+    /// "method" HTML Attribute 
+    let method v = create "method" v
+
+    /// "enctype" HTML Attribute 
+    let enctype v = create "enctype" v
+
+    /// "accept" HTML Attribute 
+    let accept v = create "accept" v
+
+    /// "autocomplete" HTML Attribute 
     let autocomplete v = create "autocomplete" v
-    let autofocus      = createBool "autofocus"
-    let checked'       = createBool "checked" 
-    let disabled       = createBool "disabled"
-    let for' v         = create "for" v
-    let max v          = create "max" v
-    let maxlength v    = create "maxlength" v
-    let min v          = create "min" v
-    let multiple       = createBool "multiple"
-    let pattern v      = create "pattern" v
-    let placeholder v  = create "placeholder" v
-    let readonly       = createBool "readonly"
-    let required       = createBool "required"
-    let rows v         = create "rows" v
-    let selected       = createBool "selected"
-    let step v         = create "step" v
-    let type' v        = create "type" v
-    let value v        = create "value" v
+
+    /// "autofocus" HTML Attribute 
+    let autofocus = createBool "autofocus"
+
+    /// "checked" HTML Attribute 
+    let checked '       = createBool "checked" 
+
+    /// "disabled" HTML Attribute 
+    let disabled = createBool "disabled"
+
+    /// "for" HTML Attribute 
+    let for' v = create "for" v
+
+    /// "max" HTML Attribute 
+    let max v = create "max" v
+
+    /// "maxlength" HTML Attribute 
+    let maxlength v = create "maxlength" v
+
+    /// "min" HTML Attribute 
+    let min v = create "min" v
+
+    /// "multiple" HTML Attribute 
+    let multiple = createBool "multiple"
+
+    /// "pattern" HTML Attribute 
+    let pattern v = create "pattern" v
+
+    /// "placeholder" HTML Attribute 
+    let placeholder v = create "placeholder" v
+
+    /// "readonly" HTML Attribute 
+    let readonly = createBool "readonly"
+
+    /// "required" HTML Attribute 
+    let required = createBool "required"
+
+    /// "rows" HTML Attribute 
+    let rows v = create "rows" v
+
+    /// "selected" HTML Attribute 
+    let selected = createBool "selected"
+
+    /// "step" HTML Attribute 
+    let step v = create "step" v
+
+    /// "type" HTML Attribute 
+    let type' v = create "type" v
+
+    /// "value" HTML Attribute 
+    let value v = create "value" v
 
 module Templates =
     let html5 (langCode : string) (head : XmlNode list) (body : XmlNode list) = 
