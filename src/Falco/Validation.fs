@@ -2,33 +2,35 @@ module Falco.Validation
 
 open System
 
+/// Collection of 
 type ValidationErrors = string list
 
+/// Type appreviation for Result<'a, ValidationErrors>
 type ValidationResult<'a> = Result<'a, ValidationErrors>
 
+/// The process of validating value of 'a
 type Validator<'a> = 'a -> ValidationResult<'a>
 
 module ValidationResult = 
+    /// Create a ValidationResult<'a> based on condition, yield
+    /// error message if condition evaluates false
     let create condition value error : ValidationResult<'a> =
         if condition then Ok value
         else [error] |> Error
 
-    let apply (resultFn : ValidationResult<'a -> 'b>) (result : ValidationResult<'a>) =
+    /// Unpack ValidationResult and feed into validation function
+    let apply (resultFn : ValidationResult<'a -> 'b>) (result : ValidationResult<'a>) : ValidationResult<'b> =
         match resultFn, result with
         | Ok fn, Ok x        -> fn x |> Ok
         | Error e, Ok _      -> Error e
         | Ok _, Error e      -> Error e
         | Error e1, Error e2 -> List.concat [e1;e2] |> Error
 
-    let map (fn : 'a -> 'b) (result : ValidationResult<'a>) =
+    /// Unpack ValidationResult, evaluate function if Ok or return if Error
+    let map (fn : 'a -> 'b) (result : ValidationResult<'a>) : ValidationResult<'b> =
         match result with 
         | Ok x    -> fn x |> Ok
         | Error e -> Error e
-
-    let mapError (errorFn : ValidationErrors -> 'b) (result : ValidationResult<'a>) =
-        match result with
-        | Ok x -> Ok x
-        | Error e -> e |> errorFn |> Error
 
 let (<*>) = ValidationResult.apply
 let (<!>) = ValidationResult.map
