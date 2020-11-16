@@ -38,30 +38,56 @@ module Validators =
     let private messageOrDefault (message : string option) (defaultMessage : unit -> string) =
         message |> Option.defaultValue (defaultMessage ())
 
-    type EqualityValidator<'a when 'a : equality>() = 
-        
-        member this.equals (equalTo : 'a) (message : string option) : Validator<'a> =
-                let defaultMessage () = sprintf "Value must be equal to %A" equalTo
-                fun (value) -> ValidationResult.create (value = equalTo) value (messageOrDefault message defaultMessage)
+    type EqualityValidator<'a when 'a : equality>() =                 
+        member _.equals (equalTo : 'a) (message : string option) : Validator<'a> =
+            let defaultMessage () = sprintf "Value must be equal to %A" equalTo
+            fun (value) -> ValidationResult.create (value = equalTo) value (messageOrDefault message defaultMessage)
 
-        member this.notEquals (notEqualTo : 'a) (message : string option) : Validator<'a> =
-                let defaultMessage () = sprintf "Value must not equal %A" notEqualTo
-                fun (value) -> ValidationResult.create (value <> notEqualTo) value (messageOrDefault message defaultMessage)    
+        member _.notEquals (notEqualTo : 'a) (message : string option) : Validator<'a> =
+            let defaultMessage () = sprintf "Value must not equal %A" notEqualTo
+            fun (value) -> ValidationResult.create (value <> notEqualTo) value (messageOrDefault message defaultMessage)    
 
     type ComparisonValidator<'a when 'a : comparison>() = 
         inherit EqualityValidator<'a>()
 
-        member this.between (min : 'a) (max : 'a) (message : string option) : Validator<'a> =
+        member _.between (min : 'a) (max : 'a) (message : string option) : Validator<'a> =
             let defaultMessage () = sprintf "Value must be between %A and %A" min max
             fun (value) -> ValidationResult.create (value >= min && value <= max) value (messageOrDefault message defaultMessage)
                 
-        member this.greaterThan (min : 'a) (message : string option) : Validator<'a> =
+        member _.greaterThan (min : 'a) (message : string option) : Validator<'a> =
             let defaultMessage () = sprintf "Value must be greater than or equal to %A" min
             fun (value) -> ValidationResult.create (value >= min) value (messageOrDefault message defaultMessage)
 
-        member this.lessThan (max : 'a) (message : string option) : Validator<'a> =
+        member _.lessThan (max : 'a) (message : string option) : Validator<'a> =
             let defaultMessage () = sprintf "Value must be less than or equal to %A" min
             fun (value) -> ValidationResult.create (value <= max) value (messageOrDefault message defaultMessage)
+
+    type StringValidator() =
+        inherit EqualityValidator<string>() 
+
+        member _.betweenLen (min : int) (max : int) (message : string option) (value : string) =
+            let defaultMessage () = sprintf "Value must be between %i and %i characters" min max
+            ValidationResult.create (value.Length >= min && value.Length <= max) value (messageOrDefault message defaultMessage)
+
+        member _.empty (message : string option) (value : string) =
+            let defaultMessage () = sprintf "Value must be empty"
+            ValidationResult.create (String.IsNullOrWhiteSpace(value)) value (messageOrDefault message defaultMessage)
+
+        member _.maxLen (max : int) (message : string option) (value : string) =
+            let defaultMessage () = sprintf "Value must not execeed %i characters" max
+            ValidationResult.create (value.Length <= max) value (messageOrDefault message defaultMessage)
+
+        member _.minLen (min : int) (message : string option) (value : string) =
+            let defaultMessage () = sprintf "Value must be at least %i characters" min
+            ValidationResult.create (value.Length >= min) value (messageOrDefault message defaultMessage)
+
+        member _.notEmpty (message : string option) (value : string) =
+            let defaultMessage () = sprintf "Value must not be empty"
+            ValidationResult.create (not(String.IsNullOrWhiteSpace(value))) value (messageOrDefault message defaultMessage)
+
+        member _.pattern (pattern : string) (message : string option) (value : string) =
+            let defaultMessage () = sprintf "Value must match pattern %s" pattern
+            ValidationResult.create (Text.RegularExpressions.Regex.IsMatch(value, pattern)) value (messageOrDefault message defaultMessage)
 
     let optional (validator : string option -> 'a -> ValidationResult<'a>) (message : string option) (value : 'a option) : ValidationResult<'a option> =  
         match value with
@@ -81,7 +107,5 @@ module Validators =
     let Int            = ComparisonValidator<int>()
     let Int16          = ComparisonValidator<int16>()
     let Int64          = ComparisonValidator<int64>()
-
-    //module String =
-    //    let minLength (min : int) (fieldName : string) (value : string) =
-    //        ValidationResult.create (value.Length >= min) value (Messages.gteSuffix (Some "characters") fieldName min)
+    let String         = StringValidator()
+    let TimeSpan       = ComparisonValidator<TimeSpan>()
