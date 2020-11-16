@@ -439,6 +439,7 @@ module Attr =
     let value v = create "value" v
 
 module Templates =
+    /// HTML 5 template with customizable <head> and <body>
     let html5 (langCode : string) (head : XmlNode list) (body : XmlNode list) = 
         let defaultHead = [
             Elem.meta  [ Attr.charset "UTF-8" ]
