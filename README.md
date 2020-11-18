@@ -643,7 +643,7 @@ let imageUploadHandler : HttpHandler =
 
 Included in Falco are basic JSON in/out handlers, `Request.bindJsonAsync<'a>` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
 
-> Looking for a library to work with JSON? Check out [Jay][19]
+> Looking for a library to work with JSON? Check out [Jay][19].
 
 ## Why "Falco"?
 
