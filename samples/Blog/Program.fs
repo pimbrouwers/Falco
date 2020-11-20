@@ -1,13 +1,12 @@
 module Blog.Program
 
-open System
 open System.IO
 open Falco
-open Falco.Markup
 open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
 
 let endpoints posts = 
     [
@@ -51,13 +50,15 @@ let main args =
     try
         // Load all posts from disk only once when server starts
         let posts = PostProcessor.loadAll postsDirectory
-            
-        Host.startWebHost 
-            args  
-            (fun webhost -> 
+               
+        Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(fun webhost ->   
                 webhost
                     .ConfigureServices(configureServices)
-                    .Configure(configureApp posts))            
+                    .Configure(configureApp posts)
+                    |> ignore)
+            .Build()
+            .Run()
         0
     with
     | ex -> 

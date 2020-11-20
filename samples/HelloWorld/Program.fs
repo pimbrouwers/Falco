@@ -6,6 +6,7 @@ open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
 
 let endpoints = 
     [            
@@ -27,20 +28,21 @@ let configureServices (services : IServiceCollection) =
 
 let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =    
     let env = ctx.HostingEnvironment.EnvironmentName
-    let isDeveloperMode = StringUtils.strEquals env "Development"
-
-    app.UseWhen(isDeveloperMode, fun app -> app.UseDeveloperExceptionPage())
-       .UseWhen(not(isDeveloperMode), fun app -> app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server Error"))
+    let developerMode = StringUtils.strEquals env "Development"
+    
+    app.UseWhen(developerMode, fun app -> app.UseDeveloperExceptionPage())
+       .UseWhen(not(developerMode), fun app -> app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server Error"))
        .UseFalco(endpoints) 
        |> ignore
 
 [<EntryPoint>]
 let main args =    
-    Host.startWebHost 
-        args  
-        (fun webhost -> 
+    Host.CreateDefaultBuilder(args)
+        .ConfigureWebHostDefaults(fun webhost ->   
             webhost
                 .ConfigureServices(configureServices)
-                .Configure(configureApp))
-                
+                .Configure(configureApp)
+                |> ignore)
+        .Build()
+        .Run()                        
     0
