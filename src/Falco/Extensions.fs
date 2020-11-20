@@ -256,11 +256,11 @@ type IApplicationBuilder with
 type IServiceCollection with        
     /// Adds default Falco services to the ASP.NET Core service container.
     member this.AddFalco() =
-        this.AddRouting() |> ignore
+        this.AddRouting()
 
     /// Adds default Falco services to the ASP.NET Core service container.
     member this.AddFalco(routeOptions : RouteOptions -> unit) =
-        this.AddRouting(Action<RouteOptions>(routeOptions)) |> ignore
+        this.AddRouting(Action<RouteOptions>(routeOptions))
 
     /// Executes function against IServiceCollection if the predicate returns true
     member this.AddWhen (predicate : bool, fn : IServiceCollection -> IServiceCollection) =
