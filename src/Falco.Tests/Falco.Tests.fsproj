@@ -18,7 +18,6 @@
     <Compile Include="CryptoTests.fs" />
     <Compile Include="XssTests.fs" />
     <Compile Include="AuthTests.fs" />
-    <Compile Include="ValidationTests.fs" />
     <Compile Include="RequestTests.fs" />
     <Compile Include="ResponseTests.fs" />
     <Compile Include="Program.fs" />
