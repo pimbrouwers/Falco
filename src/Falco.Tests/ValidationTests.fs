@@ -2,7 +2,10 @@
 
 open Xunit
 open Falco.Validation
+open Falco.Validation.Operators
 open FsUnit.Xunit
+
+type FakeValidationRecord = { Name : string; Age : int }
 
 [<Fact>]
 let ``ValidationResult.create produces Ok result`` () =    
@@ -18,9 +21,10 @@ let ``ValidationResult.create produces Error result`` () =
 
 [<Fact>]
 let ``Validation`` () =
-    let result : ValidationResult<FakeRecord> = 
-        fun name -> { Name = name }
+    let result : ValidationResult<FakeValidationRecord> = 
+        fun name age -> { Name = name; Age = age }
         <!> Validators.String.minLen 3 None "Pim"
+        <*> Validators.Int.greaterThan 0 None 1
 
     result 
-    |> Result.bind (fun r -> Ok(r |> should equal { Name = "Pim" }))
+    |> Result.bind (fun r -> Ok(r |> should equal { Name = "Pim"; Age = 1 }))

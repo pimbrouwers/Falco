@@ -33,8 +33,10 @@ module ValidationResult =
         | Ok x    -> fn x |> Ok
         | Error e -> Error e
 
-let (<*>) = ValidationResult.apply
-let (<!>) = ValidationResult.map
+/// Custom operators for ValidationResult
+module Operators =
+    let (<*>) = ValidationResult.apply
+    let (<!>) = ValidationResult.map
 
 [<RequireQualifiedAccess>]
 module Validators =

@@ -10,11 +10,12 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery    
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Routing
 open Microsoft.AspNetCore.WebUtilities
+open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
-open Falco.Exception
 open Falco.Multipart
 open Falco.StringUtils
 open Falco.StringParser
@@ -222,15 +223,10 @@ type HttpContext with
         | Some user -> isAuthenciated user
 
 type IApplicationBuilder with
-    /// Enable Falco exception handling middleware. 
-    ///
-    /// It is recommended to specify this BEFORE any other middleware.
-    member this.UseExceptionMiddleware (exceptionHandler : ExceptionHandler) =
-        this.UseMiddleware<ExceptionHandlingMiddleware> exceptionHandler
-
     /// Activate Falco integration with IEndpointRouteBuilder
-    member this.UseHttpEndPoints (endpoints : HttpEndpoint list) =
-        this.UseEndpoints(fun r -> 
+    member this.UseFalco (endpoints : HttpEndpoint list) =
+        this.UseRouting()
+            .UseEndpoints(fun r -> 
                 for endpoint in endpoints do                           
                     for handler in endpoint.Handlers do                          
                         let requestDelegate = HttpHandler.toRequestDelegate handler.HttpHandler
@@ -246,10 +242,27 @@ type IApplicationBuilder with
                         | TRACE   -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Trace ], requestDelegate)
                         | ANY     -> r.Map(endpoint.Pattern, requestDelegate)
                         |> ignore)
-            
-    /// Enable Falco not found handler.
-    ///
-    /// This handler is terminal and must be specified 
-    /// AFTER all other middlewar.
-    member this.UseNotFoundHandler (notFoundHandler : HttpHandler) =
-        this.Run(HttpHandler.toRequestDelegate notFoundHandler)
+    
+    /// Register a Falco HttpHandler as exception handler lambda
+    /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
+    member this.UseFalcoExceptionHandler (exceptionHandler : HttpHandler) =
+        this.UseExceptionHandler(fun (errApp : IApplicationBuilder) -> errApp.Run(HttpHandler.toRequestDelegate exceptionHandler))
+
+    /// Executes function against IApplicationBuidler if the predicate returns true
+    member this.UseWhen (predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
+        if predicate then fn this
+        else this
+
+type IServiceCollection with        
+    /// Adds default Falco services to the ASP.NET Core service container.
+    member this.AddFalco() =
+        this.AddRouting() |> ignore
+
+    /// Adds default Falco services to the ASP.NET Core service container.
+    member this.AddFalco(routeOptions : RouteOptions -> unit) =
+        this.AddRouting(Action<RouteOptions>(routeOptions)) |> ignore
+
+    /// Executes function against IServiceCollection if the predicate returns true
+    member this.AddWhen (predicate : bool, fn : IServiceCollection -> IServiceCollection) =
+        if predicate then fn this
+        else this

@@ -20,7 +20,7 @@
     
     <!-- NuGet config -->
     <PackageId>Falco</PackageId>
-    <PackageVersion>3.0.0-alpha2</PackageVersion>
+    <PackageVersion>3.0.0-alpha3</PackageVersion>
     <PackageTags>fsharp;functional;asp.net core;asp.net;.net core;routing;view engine;web;falco;falco-sharp;</PackageTags>        
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -48,7 +48,6 @@
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="Multipart.fs" />
-    <Compile Include="Exception.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Markup.fs" />

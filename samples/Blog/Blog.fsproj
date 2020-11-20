@@ -10,7 +10,6 @@
     <Compile Include="UI.fs" />
     <Compile Include="Post.fs" />
     <Compile Include="PostProcessor.fs" />
-    <Compile Include="Server.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   

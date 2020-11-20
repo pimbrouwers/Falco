@@ -28,6 +28,13 @@ module Constants =
         options
 
 // ------------
+// Errors
+// ------------
+
+/// Represents a missing dependency, thrown on request
+exception InvalidDependencyException of string
+
+// ------------
 // HTTP
 // ------------
 

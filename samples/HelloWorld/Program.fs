@@ -3,6 +3,9 @@ module HelloWorld.Program
 open Falco
 open Falco.Markup
 open Falco.Routing
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
 
 let endpoints = 
     [            
@@ -19,7 +22,25 @@ let endpoints =
             (Response.ofPlainText "Hello from /")
     ]
 
+let configureServices (services : IServiceCollection) =
+    services.AddFalco() |> ignore
+
+let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =    
+    let env = ctx.HostingEnvironment.EnvironmentName
+    let isDeveloperMode = StringUtils.strEquals env "Development"
+
+    app.UseWhen(isDeveloperMode, fun app -> app.UseDeveloperExceptionPage())
+       .UseWhen(not(isDeveloperMode), fun app -> app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server Error"))
+       .UseFalco(endpoints) 
+       |> ignore
+
 [<EntryPoint>]
-let main args =            
-    Host.startWebHostDefault args endpoints
+let main args =    
+    Host.startWebHost 
+        args  
+        (fun webhost -> 
+            webhost
+                .ConfigureServices(configureServices)
+                .Configure(configureApp))
+                
     0
