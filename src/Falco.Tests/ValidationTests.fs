@@ -6,6 +6,7 @@ open Falco.Validation.Operators
 open FsUnit.Xunit
 
 type FakeValidationRecord = { Name : string; Age : int }
+type FakeValidationRecordWithOption = { Name : string; Age : int option }
 
 [<Fact>]
 let ``ValidationError.merges produces Map<string, string list> from two source`` () =
@@ -39,13 +40,41 @@ let ``ValidationResult.create produces Error result`` () =
 
 [<Fact>]
 let ``Validation of record succeeds`` () =        
+    let expected : FakeValidationRecord = { Name = "John"; Age = 1 }
     let result : ValidationResult<FakeValidationRecord> = 
         fun name age -> { 
             Name = name
             Age = age
         }
-        <!> Validators.String.minLen 3 "Name" None "John"
+        <!> Validators.String.greaterThanLen 2 "Name" None "John"
         <*> Validators.Int.greaterThan 0 "Age" None 1
     
     result 
-    |> Result.bind (fun r -> Ok(r |> should equal { Name = "John"; Age = 1 }))
+    |> Result.bind (fun r -> Ok(r |> should equal expected))
+
+[<Fact>]
+let ``Validation of record with option succeeds`` () =        
+    let expected : FakeValidationRecordWithOption = { Name = "John"; Age = None }
+    let result : ValidationResult<FakeValidationRecordWithOption> = 
+        fun name age -> { 
+            Name = name
+            Age = age
+        }
+        <!> Validators.String.greaterThanLen 2 "Name" None "John"
+        <*> Validators.optional (Validators.Int.greaterThan 0) "Age" None None
+    
+    result 
+    |> Result.bind (fun r -> Ok(r |> should equal expected))
+
+[<Fact>]
+let ``Validation of record fails`` () =       
+    let result : ValidationResult<FakeValidationRecord> = 
+        fun name age -> { 
+            Name = name
+            Age = age
+        }
+        <!> Validators.String.greaterThanLen 2 "Name" None "Jo"
+        <*> Validators.Int.greaterThan 0 "Age" None 0
+    
+    result 
+    |> Result.mapError (fun r -> (r.ContainsKey "Name", r.ContainsKey "Age") |> should equal (true, true))
