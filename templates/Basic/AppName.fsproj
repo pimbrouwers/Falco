@@ -7,9 +7,8 @@
   <ItemGroup>
     <Compile Include="Program.fs" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Falco" Version="3.0.0-alpha5" />
   </ItemGroup>
-
 </Project>

@@ -2,21 +2,20 @@
 
   <PropertyGroup>
     <PackageType>Template</PackageType>
-    <PackageVersion>0.1</PackageVersion>
-    <PackageId>Falco.Templates</PackageId>
+    <PackageVersion>1.0.0-alpha1</PackageVersion>
+    <PackageId>Falco.Template</PackageId>
     <Title>Falco dotnet templates</Title>
-    <Authors>Falco</Authors>
-    <Description>These are the Falco dotnet templates</Description>
+    <Authors>Pim Brouwers, Daniel Tuna and contributors</Authors>
+    <Description>Templates to use when creating a new Falco application</Description>
     <PackageTags>dotnet-new;Templates;Falco</PackageTags>
     <TargetFramework>netstandard2.0</TargetFramework>
-
     <IncludeContentInPack>true</IncludeContentInPack>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>content</ContentTargetFolders>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Falco.*\**\*" Exclude="Falco.*\**\bin\**;Falco.*\**\obj\**" />
+    <Content Include="content\**\*" Exclude="content\**\bin\**;content\**\obj\**"    
     <Compile Remove="**\*" />
   </ItemGroup>
 

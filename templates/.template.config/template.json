@@ -1,0 +1,55 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "identity": "Falco.Template",
+    "shortName": "falco",
+    "name": "Falco",
+    "author": "Pim Brouwers, Daniel Tuna and contributors",
+    "classifications": [
+        "Web",
+        "F#",
+        "Falco"
+    ],
+    "tags": {
+        "language": "F#"
+    },
+    "sourceName": "AppName",
+    "preferNameDirectory": true,    
+    "symbols": {
+        "ProjectType": {
+            "type": "parameter",
+            "dataType": "choice",
+            "defaultValue": "basic",
+            "choices": [
+                {
+                    "choice": "basic",
+                    "description": "A basic Falco app"
+                },
+                {
+                    "choice": "mvc",
+                    "description": "An MVC-style Falco app"
+                },
+                {
+                    "choice": "rest",
+                    "description": "A RESTful JSON API implemented using Falco"
+                }
+            ]
+        }
+    },
+    "sources": [
+        {
+            "source": "./Basic/",
+            "target": "./",
+            "condition": "ProjectType== \"basic\""
+        },
+        {
+            "source": "./Mvc/",
+            "target": "./",
+            "condition": "ProjectType== \"mvc\""
+        },
+        {
+            "source": "./Rest/",
+            "target": "./",
+            "condition": "ProjectType== \"rest\""
+        },
+    ]
+}
