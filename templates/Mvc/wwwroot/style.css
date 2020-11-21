@@ -1,0 +1,22 @@
+﻿html { max-width: 40rem; margin: 0 auto; font-size: 16px; font-family: sans-serif; line-height: 1.4; color: #333; }
+body { padding: 0 .5em; }
+ul { list-style-position: inside; }
+
+.pa2 { padding: .5em; }
+
+:root {
+	--red: #dd4136;
+	--red-washed: #ffdfdf;
+}
+
+.bg-washed-red { background-color: var(--red-washed); }
+
+.ba { border-width: 1px; }
+
+.b--red { border-color: var(--red); }
+
+.red { color: var(--red); }
+
+@media screen and (min-width: 480px) {	
+	body { padding: 0; font-size: 1.25em; }
+}

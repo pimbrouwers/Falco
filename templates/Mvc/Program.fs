@@ -12,7 +12,7 @@ open Microsoft.Extensions.Hosting
 // ------------
 let endpoints =
     [            
-        get "/" (Response.ofPlainText "Hello world")
+        get "/" Todo.Controller.index
     ]
 
 // ------------
@@ -25,7 +25,8 @@ let configureServices (services : IServiceCollection) =
 // Activate middleware
 // ------------
 let configureApp (app : IApplicationBuilder) =    
-    app.UseFalco(endpoints) |> ignore
+    app.UseStaticFiles()
+       .UseFalco(endpoints) |> ignore
 
 [<EntryPoint>]
 let main args =    
