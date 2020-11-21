@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="content\**\*" Exclude="content\**\bin\**;content\**\obj\**"    
+    <Content Include="**\*" Exclude="**\bin\**;**\obj\**" />
     <Compile Remove="**\*" />
   </ItemGroup>
 
