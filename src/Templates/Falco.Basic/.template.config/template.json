@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Falco",
+    "classifications": [
+        "Web",
+        "F#"
+    ],
+    "identity": "Falco.Basic",
+    "name": "Falco Basic Template",
+    "sourceName": "Falco.Basic",
+    "preferNameDirectory": true,
+    "shortName": "falco.basic",
+    "defaultName": "AppServer",
+    "tags": {
+        "language": "F#",
+        "type": "project"
+    },
+    "description": "Provides a bare bones Falco project just to get you started right away."
+}
