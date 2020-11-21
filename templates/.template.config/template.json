@@ -3,7 +3,7 @@
     "identity": "Falco.Template",
     "shortName": "falco",
     "name": "Falco",
-    "author": "Pim Brouwers, Daniel Tuna and contributors",
+    "author": "Pim Brouwers, Angel Munoz and contributors",
     "classifications": [
         "Web",
         "F#",
