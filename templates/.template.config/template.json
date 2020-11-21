@@ -10,10 +10,11 @@
         "Falco"
     ],
     "tags": {
-        "language": "F#"
+        "language": "F#",
+        "type": "project"
     },
     "sourceName": "AppName",
-    "preferNameDirectory": true,    
+    "preferNameDirectory": true,
     "symbols": {
         "ProjectType": {
             "type": "parameter",
