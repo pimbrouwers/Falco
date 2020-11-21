@@ -183,69 +183,59 @@ let endpoints : HttpEndpoint list =
 
 ## Host
 
-[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  If you're looking to get a host up and running quickly the `Host.startWebHostDefault` function will enable everythigng necessary for Falco to work:
+> Note: The `Host` module was deprecated in v3.0.0 - see the release notes for details.
+
+[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  Below is an example on customizing your host instance For a full example, see the [Blog sample][8].
 
 ```f#
-[<EntryPoint>]
-let main args =        
-    Host.startWebHostDefault 
-        args 
-        [
-            // Endpoints go here
-        ]
-    0
-```
+// Endpoints 
+let endpoints = 
+    [            
+        get "/greet/{name:alpha}"
+            (Request.mapRoute (fun r -> r.["name"] |> sprintf "Hi %s") Response.ofPlainText)
 
-Should you wish to fully customize your host instance the `Host.startWebHost` exposes the `IWebHostBuilder` which enables full customization. For a full example, see the [Blog sample][8].
+        get "/json" 
+            (Response.ofJson {| Message = "Hello from /json" |})
 
-```f#
+        get "/html" 
+            (Response.ofHtml (Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]))
+
+        get "/" 
+            (Response.ofPlainText "Hello from /")
+    ]
+    
 // Logging
-let configureLogging 
-    (log : ILoggingBuilder) =
+let configureLogging (log : ILoggingBuilder) =
     log.SetMinimumLevel(LogLevel.Error)
     |> ignore
 
 // Services
-let configureServices 
-    (services : IServiceCollection) =
-    services.AddRouting()     
-            .AddResponseCaching()
-            .AddResponseCompression()
+let configureServices (services : IServiceCollection) =
+    services.AddRouting()                 
     |> ignore
 
 // Middleware
-let configure                 
-    (endpoints : HttpEndpoint list)
-    (app : IApplicationBuilder) = 
-            
-    app.UseExceptionMiddleware(Host.defaultExceptionHandler)
-        .UseResponseCaching()
-        .UseResponseCompression()
-        .UseStaticFiles()
-        .UseRouting()
-        .UseHttpEndPoints(endpoints)
-        .UseNotFoundHandler(Host.defaultNotFoundHandler)
-        |> ignore 
+let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =             
+    let env = ctx.HostingEnvironment.EnvironmentName
+    let isDeveloperMode = StringUtils.strEquals env "Development"
 
-// Web Host
-let configureWebHost : ConfigureWebHost =
-  fun (endpoints : HttpEndPointList) 
-      (host : IWebHostBuilder) ->
-      webHost
-           .UseKestrel()
-           .ConfigureLogging(configureLogging)
-           .ConfigureServices(configureServices)
-           .Configure(configure endpoints)
-           |> ignore
+    app.UseWhen(isDeveloperMode, fun app -> app.UseDeveloperExceptionPage())
+       .UseWhen(not(isDeveloperMode), fun app -> app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server Error"))
+       .UseStaticFiles()
+       .UseFalco(endpoints) 
+       |> ignore
 
 [<EntryPoint>]
 let main args =    
-    Host.startWebHost 
-        args
-        configureWebHost
-        [
-            // Endpoints go here
-        ]
+    Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(fun webhost ->   
+                webhost
+                    .ConfigureLogging(configureLogging)
+                    .ConfigureServices(configureServices)
+                    .Configure(configureApp)
+                    |> ignore)
+            .Build()
+            .Run()
     0
 ```
 
