@@ -24,7 +24,23 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 - Should be extensible.
 - Should provide a toolset to build a working end-to-end web application.
 
-## Quick Start - [Hello World][7] 3 ways
+## Getting Started
+
+### Using `dotnet new`
+
+The easiest way to get started with Falco is by installing the Falco.Template package, which adds a new template to your dotnet new command line tool:
+
+```
+dotnet new -i "Falco.Template::*"
+```
+
+Afterwards you can create a new Falco application by running:
+
+```
+dotnet new falco -o HelloWorldApp
+```
+
+### Manually installing
 
 Create a new F# web project:
 ```
@@ -41,42 +57,57 @@ Remove the `Startup.fs` file and save the following in `Program.fs`:
 module HelloWorld.Program
 
 open Falco
-open Falco.Markup
 open Falco.Routing
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
 
+// ------------
+// Handlers 
+// ------------
 let handlePlainText : HttpHandler =
     Response.ofPlainText "Hello from /"
 
-let handleJson : HttpHandler =
-    Response.ofJson {| Message = "Hello from /json" |}
-
-let handleHtml : HttpHandler = 
-    let html = 
-        Templates.html5 "en" 
-            [] 
-            [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]
-
-    Response.ofHtml html
-
-let endpoints = 
+// ------------
+// Routes
+// ------------
+let endpoints =
     [            
-        get "/json" handleJson
-        get "/html" handleHtml
-        get "/"     handlePlainText
+        get "/" handlePlainText
     ]
 
+// ------------
+// Register services
+// ------------
+let configureServices (services : IServiceCollection) =
+    services.AddFalco() |> ignore
+
+// ------------
+// Activate middleware
+// ------------
+let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =        
+    app.UseFalco(endpoints) |> ignore
+
 [<EntryPoint>]
-let main args =            
-    Host.startWebHostDefault args endpoints
-    0
+let main args =        
+    Host.CreateDefaultBuilder(args)
+        .ConfigureWebHostDefaults(fun webhost ->   
+            webhost
+                .ConfigureServices(configureServices)
+                .Configure(configureApp)
+                |> ignore)
+        .Build()
+        .Run()                        
+    0    
 ```
 
 Run the application:
 ```
-dotnet run HelloWorldApp
+dotnet run
 ```
 
-There you have it, an industrial-strength "hello world 3 ways" web app, achieved using primarily base ASP.NET Core libraries. Pretty sweet!
+There you have it, an industrial-strength [Hello World][7] web app, achieved using only base ASP.NET Core libraries. Pretty sweet!
 
 ## Sample Applications 
 
@@ -84,9 +115,9 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 | Sample | Description |
 | ------ | ----------- |
-| [HelloWorld][7] | A basic hello world app |
+| [Hello World][7] | A basic hello world app |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
-| [TodoMVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
+| [Todo MVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
 
 ## Request Handling
 

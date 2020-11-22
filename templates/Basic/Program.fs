@@ -8,11 +8,17 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 
 // ------------
+// Handlers 
+// ------------
+let handlePlainText : HttpHandler =
+    Response.ofPlainText "Hello from /"
+
+// ------------
 // Routes
 // ------------
 let endpoints =
     [            
-        get "/" (Response.ofPlainText "Hello world")
+        get "/" handlePlainText
     ]
 
 // ------------
@@ -31,26 +37,6 @@ let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =
        .UseWhen(not(devMode), fun app -> 
             app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server error"))
        .UseFalco(endpoints) |> ignore
-
-let mapQueryHandler : HttpHandler =    
-    Request.mapRoute
-        (fun route -> route.GetString "Name" "John Doe")
-        Response.ofJson 
-
-let bindQueryHandler : HttpHandler = 
-    Request.bindQuery 
-        (fun route -> 
-            match route.TryGetString "Name" with
-            | Some name -> Ok name
-            | _         -> Error {| Message = "Invalid route" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-
-let manualQueryHandler : HttpHandler =
-    fun ctx ->
-        let route = Request.getRoute ctx
-        let name = route.GetString "Name" "John Doe"
-        Response.ofJson name ctx
 
 [<EntryPoint>]
 let main args =    
