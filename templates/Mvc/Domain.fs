@@ -1,19 +1,9 @@
 ﻿module AppName.Domain
 
-type NewTodo = 
-    {
-        Description : string        
-    }
+open System
 
-type Todo = 
-    {
-        TodoId      : string
-        Description : string        
-        Completed   : bool
+type Value = 
+    {        
+        Description : string                
     }
-
-type TodoStatusUpdate =
-    {
-        TodoId    : string
-        Completed : bool
-    }
+    static member Empty = { Description = String.Empty }

@@ -9,7 +9,7 @@
     <Compile Include="Provider.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Common.fs" />
-    <Compile Include="Todo.fs" />
+    <Compile Include="Value.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   

@@ -12,13 +12,13 @@ open Microsoft.Extensions.Hosting
 // ------------
 let endpoints =
     [            
-        all "/todo/create" 
+        all Urls.``/value/create``
             [
-                handle GET  Todo.Controller.create
-                handle POST Todo.Controller.createSubmit
+                handle GET  Value.Controller.create
+                handle POST Value.Controller.createSubmit
             ]
-        get "/" 
-            Todo.Controller.index
+        get Urls.``/``
+            Value.Controller.index
     ]
 
 // ------------
