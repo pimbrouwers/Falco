@@ -77,6 +77,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | ------ | ----------- |
 | [HelloWorld][7] | A basic hello world app |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
+| [Blog][20] | A basic Todo app, following MVC _(work in progress)_ |
 
 ## Request Handling
 
@@ -237,7 +238,7 @@ let main args =
 
 Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
 
-We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary` and `IHeaderCollection`. "Readers" for all four exist as derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
+We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary` and `IHeaderCollection`. _Readers_ for all four exist as derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
 
 ### Route Binding 
 
@@ -654,3 +655,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
 [18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs
 [19]: https://github.com/pimbrouwers/Jay
+[17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Todo
