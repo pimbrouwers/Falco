@@ -77,7 +77,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | ------ | ----------- |
 | [HelloWorld][7] | A basic hello world app |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
-| [Blog][20] | A basic Todo app, following MVC _(work in progress)_ |
+| [TodoMVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
 
 ## Request Handling
 
@@ -655,4 +655,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
 [18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs
 [19]: https://github.com/pimbrouwers/Jay
-[17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Todo
+[20]: https://github.com/pimbrouwers/Falco/tree/master/samples/Todo
