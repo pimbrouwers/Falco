@@ -1,4 +1,4 @@
-﻿module AppName.Todo
+﻿module Todo.Todo
 
 open System
 open Falco
