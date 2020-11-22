@@ -32,6 +32,26 @@ let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =
             app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server error"))
        .UseFalco(endpoints) |> ignore
 
+let mapQueryHandler : HttpHandler =    
+    Request.mapRoute
+        (fun route -> route.GetString "Name" "John Doe")
+        Response.ofJson 
+
+let bindQueryHandler : HttpHandler = 
+    Request.bindQuery 
+        (fun route -> 
+            match route.TryGetString "Name" with
+            | Some name -> Ok name
+            | _         -> Error {| Message = "Invalid route" |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+
+let manualQueryHandler : HttpHandler =
+    fun ctx ->
+        let route = Request.getRoute ctx
+        let name = route.GetString "Name" "John Doe"
+        Response.ofJson name ctx
+
 [<EntryPoint>]
 let main args =    
     try
