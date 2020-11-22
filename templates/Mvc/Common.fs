@@ -2,14 +2,21 @@
 
 open Falco
 
+/// Work to be done that will generate output
 type ServiceHandler<'input, 'output, 'error> = 'input -> Result<'output, 'error>
-type ServiceQuery<'output, 'error> = ServiceHandler<unit, 'output, 'error>
+
+/// Work to be done that won't generate output
 type ServiceCommand<'input, 'error> = ServiceHandler<'input, unit, 'error>
 
-module Handlers =
+/// Common HttpHandler's
+module ErrorHandler =
     let invalidCsrfToken : HttpHandler = 
-        Response.withStatusCode 400 >> Response.ofPlainText "Bad request"
+        Response.withStatusCode 400 
+        >> Response.ofPlainText "Bad request"
 
+/// An HttpHandler to execute services, and can help reduce code
+/// repetition by acting as a composition root for injecting
+/// dependencies for logging, database, http etc.
 module Service =
     let run
         (serviceHandler: ServiceHandler<'input, 'output, 'error>)
@@ -24,9 +31,10 @@ module Service =
 
             respondWith ctx
 
+/// Internal URLs
 [<RequireQualifiedAccess>]
 module Urls = 
     let ``/`` = "/"
     let ``/todo/create`` = "/todo/create"
-    let ``/todo/complete/{index:int}`` = sprintf "/todo/complete/%i"
-    let ``/todo/incomplete/{index:int}`` = sprintf "/todo/incomplete/%i"
+    let ``/todo/complete/{id}`` = sprintf "/todo/complete/%s"
+    let ``/todo/incomplete/{id}`` = sprintf "/todo/incomplete/%s"

@@ -11,7 +11,7 @@ open Microsoft.Extensions.Hosting
 let endpoints = 
     [            
         get "/greet/{name:alpha}"
-            (Request.mapRoute (fun r -> r.["name"] |> sprintf "Hi %s") Response.ofPlainText)
+            (Request.mapRoute (fun r -> r.GetString "name" "John Doe" |> sprintf "Hi %s") Response.ofPlainText)
 
         get "/json" 
             (Response.ofJson {| Message = "Hello from /json" |})

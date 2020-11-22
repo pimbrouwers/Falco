@@ -5,6 +5,7 @@ open System.Text.Json
 open System.Threading.Tasks
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
+open Falco.Multipart
 open Falco.Security
 
 /// Obtain the HttpVerb of the request
@@ -13,36 +14,27 @@ let getVerb
     ctx.Request.HttpVerb
 
 /// Retrieve a specific header from the request
-let getHeader 
-    (headerName : string)
-    (ctx : HttpContext) : string[] =
-    ctx.Request.GetHeader headerName
+let getHeaders (ctx : HttpContext) : HeaderCollectionReader  =
+    ctx.Request.GetHeaderReader ()
 
 /// Retrieve all route values from the request as Map<string, string>
-let getRouteValues
-    (ctx : HttpContext) : Map<string, string> =
-    ctx.Request.GetRouteValues ()
+let getRoute (ctx : HttpContext) : RouteCollectionReader =
+    ctx.Request.GetRouteReader ()
 
 let tryBindRoute 
-    (binder : Map<string, string> -> Result<'a, 'b>) 
+    (binder : RouteCollectionReader -> Result<'a, 'b>) 
     (ctx : HttpContext) : Result<'a, 'b> =
-    getRouteValues ctx
+    getRoute ctx
     |> binder
 
-/// Attempt to retrieve a specific route value from the request
-let tryGetRouteValue
-    (key : string) 
-    (ctx : HttpContext) : string option =
-    ctx.Request.TryGetRouteValue key
-
-/// Retrieve the query string from the request as an instance of StringCollectionReader
+/// Retrieve the query string from the request as an instance of QueryCollectionReader
 let getQuery
-    (ctx : HttpContext) : StringCollectionReader =
+    (ctx : HttpContext) : QueryCollectionReader =
     ctx.Request.GetQueryReader ()
 
 /// Attempt to bind query collection
 let tryBindQuery    
-    (binder : StringCollectionReader -> Result<'a, 'b>) 
+    (binder : QueryCollectionReader -> Result<'a, 'b>) 
     (ctx : HttpContext) : Result<'a, 'b> = 
     getQuery ctx 
     |> binder
@@ -103,7 +95,7 @@ let bindJson
 /// Attempt to bind the route values map onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
 let bindRoute
-    (binder : Map<string, string> -> Result<'a, 'b>) 
+    (binder : RouteCollectionReader -> Result<'a, 'b>) 
     (handleOk : 'a -> HttpHandler)
     (handleError : 'b -> HttpHandler) : HttpHandler = 
     fun ctx -> 
@@ -115,10 +107,10 @@ let bindRoute
     
         respondWith ctx
 
-/// Attempt to bind the StringCollectionReader onto 'a and provide
+/// Attempt to bind the QueryCollectionReader onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
 let bindQuery
-    (binder : StringCollectionReader -> Result<'a, 'b>)        
+    (binder : QueryCollectionReader -> Result<'a, 'b>)        
     (handleOk : 'a -> HttpHandler)
     (handleError : 'b -> HttpHandler) : HttpHandler = 
     fun ctx -> 
@@ -174,18 +166,29 @@ let bindFormSecure
         (bindForm binder handleOk handleError)
         handleInvalidToken
 
-/// Project route values map onto 'a and provide to next HttpHandler
+/// Project RouteCollectionReader onto 'a and provide 
+/// to next HttpHandler
 let mapRoute 
-    (map : Map<string, string> -> 'a) 
+    (map : RouteCollectionReader -> 'a) 
     (next : 'a -> HttpHandler) : HttpHandler =
-    fun ctx -> next (getRouteValues ctx |> map) ctx
+    fun ctx -> next (getRoute ctx |> map) ctx
 
-/// Project StringCollectionReader onto 'a and provide
+/// Project QueryCollectionReader onto 'a and provide
 /// to next HttpHandler
 let mapQuery
-    (map : StringCollectionReader -> 'a)        
+    (map : QueryCollectionReader -> 'a)        
     (next : 'a -> HttpHandler) : HttpHandler = 
     fun ctx -> next (getQuery ctx |> map) ctx
+
+/// Project RouteCollectionReader & QueryCollectionReader onto 'a 
+/// and provide  to next HttpHandler
+let mapRouteAndQuery
+    (map : RouteCollectionReader * QueryCollectionReader -> 'a)        
+    (next : 'a -> HttpHandler) : HttpHandler = 
+    fun ctx ->
+        let route = getRoute ctx
+        let query = getQuery ctx
+        next ((route, query) |> map) ctx
 
 /// Project FormCollectionReader onto 'a and provide
 /// to next HttpHandler

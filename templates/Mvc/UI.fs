@@ -3,7 +3,7 @@
 open Falco.Markup
 
 /// Reusable components
-module Components = 
+module Common = 
     /// Display a list of errors as <ul>...</ul>
     let errorSummary (errors : string list) =
         match errors.Length with
@@ -23,12 +23,9 @@ module Components =
 
 /// Form elements
 module Forms =
-    let inputCss = "db w-100 mb3 pa2 ba b--black-20"
+    let private inputCss = "db w-100 mb3 pa2 ba b--black-20"
 
-    let label for' text = 
-        Elem.label [ Attr.for' for'; Attr.class' "db" ] [ Text.raw text ]
-    
-    let input (inputType : string) (value : string) (attrs : XmlAttribute list) =
+    let private input (inputType : string) (value : string) (attrs : XmlAttribute list) =
         [
             Attr.type' inputType                  
             Attr.value value
@@ -41,7 +38,10 @@ module Forms =
 
     let inputText name value attrs = 
         input "text" value (attrs |> Attr.merge [ Attr.class' inputCss; Attr.name name ])
-
+            
+    let label for' text = 
+        Elem.label [ Attr.for' for'; Attr.class' "db" ] [ Text.raw text ]
+    
     let submit name value =
         match name with 
         | Some name -> input "submit" value ([ Attr.name name])
@@ -49,7 +49,7 @@ module Forms =
 
 /// Website layouts
 module Layouts =
-    /// Master layout
+    /// Master layout which accepts a title and content for <body></body>
     let master (htmlTitle : string) (content : XmlNode list) =
         Templates.html5 "en"
             [

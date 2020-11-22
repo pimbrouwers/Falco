@@ -7,6 +7,7 @@ open Falco.Security
 open Microsoft.AspNetCore.Antiforgery
 open AppName.Common
 open AppName.Domain
+open AppName.Provider
 
 module Model =
     type TodoSummary = 
@@ -25,35 +26,71 @@ module Model =
             static member Empty = { Description = String.Empty }
         
         // Errors
-        type Error = InvalidInput of Input * string list
+        type Error = 
+            | InvalidInput of Input * string list
+            | UnexpectedError
 
         // Steps         
-        let validateInput (input : Input) : Result<NewTodo, Error> =
+        let validateInput (input : Input) : Result<NewTodo, Error> =            
             if String.IsNullOrWhiteSpace(input.Description) then
-                InvalidInput (input, ["Must provide description"]) 
-                |> Error
+                Error (InvalidInput (input, ["Must provide description"]))
             else 
                 Ok { Description = input.Description }
+
+        let addNewTodo (createTodo : NewTodo -> ProviderResult<unit>) (newTodo : NewTodo) : Result<unit, Error> =
+            match createTodo newTodo with
+            | ProviderOk result -> Ok result
+            | ProviderError _   -> Error UnexpectedError
         
-        // Workflow
-        let handle (createTodo : NewTodo -> unit) : ServiceCommand<Input, Error> =
+        // Workflow (receiving dependencies)
+        let handle (createTodo : NewTodo -> ProviderResult<unit>) : ServiceCommand<Input, Error> =
             fun input ->
                 input
                 |> validateInput
-                |> Result.bind (createTodo >> Ok)
+                |> Result.bind (addNewTodo createTodo)
 
     module ChangeStatus =
         // Input
+        type InputAction = MarkComplete | MarkIncomplete
         type Input =
             {
-                Index    : int
-                Complete : bool
+                TodoId : string
+                Action : InputAction
             }
 
         // Errors
         type Error = 
-            | InvalidInput of string list
+            | InvalidInput of Input * string list
             | NonExistentTodo
+
+        // Steps
+        let validateInput (input : Input) : Result<TodoStatusUpdate, Error> =            
+            if StringUtils.strEmpty input.TodoId then
+                Error (InvalidInput (input, ["Invalid ID"]))
+            else 
+                let completed = 
+                    match input.Action with 
+                    | MarkComplete   -> true 
+                    | MarkIncomplete -> false
+
+                Ok { 
+                    TodoId = input.TodoId
+                    Completed = completed 
+                }
+
+        let changeTodoStatus 
+            (updateTodoStatus : TodoStatusUpdate -> ProviderResult<unit>) 
+            (todoStatus : TodoStatusUpdate) : Result<unit, Error> =
+            match updateTodoStatus todoStatus with
+            | ProviderOk _    -> Ok ()
+            | ProviderError _ -> Error NonExistentTodo
+                
+        // Workflow (receiving dependencies)
+        let handle (updateTodoStatus : TodoStatusUpdate -> ProviderResult<unit>) : ServiceCommand<Input, Error> =
+            fun input ->
+                input
+                |> validateInput
+                |> Result.bind (changeTodoStatus updateTodoStatus)
             
     module GetAll = 
         // Errors
@@ -75,32 +112,31 @@ module Model =
             }
 
         // Workflow
-        let handle (getTodos : unit -> Todo list) : ServiceQuery<TodoSummary, Error> =
-            fun _ ->                 
+        let handle (getTodos : unit -> Todo list) : ServiceHandler<unit, TodoSummary, Error> =
+            fun () ->                 
                 match getTodos () with
                 | []     -> Error EmptyTodos 
                 | todos  -> Ok (todos |> mapResult)
                 
 module View =    
-    open AppName.UI
     open Model
 
     let create (input : AddNew.Input) (errors : string list) (token : AntiforgeryTokenSet) =
         [
-            Components.pageTitle "New Todo"
+            UI.Common.pageTitle "New Todo"
             Elem.form [ Attr.method "post" ] [
-                Components.errorSummary errors
+                UI.Common.errorSummary errors
 
-                Forms.label "description" "Description"
-                Forms.inputText "description" input.Description [ Attr.placeholder "Ex: mow the lawn" ]                
+                UI.Forms.label "description" "Description"
+                UI.Forms.inputText "description" input.Description [ Attr.placeholder "Ex: mow the lawn" ]                
 
                 Xss.antiforgeryInput token
-                Forms.submit None "Submit"
+                UI.Forms.submit None "Submit"
             ]
             Elem.br []
             Elem.a [ Attr.href Urls.``/`` ] [ Text.raw "Cancel" ]
         ]
-        |> Layouts.master "Todo Create"
+        |> UI.Layouts.master "Todo Create"
 
     let index todos errors = 
         // partial view for Todos
@@ -109,30 +145,28 @@ module View =
             |> List.map (fun todo -> 
                 Elem.div [ Attr.class' "mb3 pa2 ba b--black-20" ] [ 
                     Elem.div [] [ Text.raw todo.Description ]
-                    Elem.form [ Attr.class' "tr" ] [ 
-                        Forms.inputHidden "index" (todo.TodoId) []
-                        Forms.submit None actionLabel                        
-                    ]                    
+                    Elem.a   [ Attr.class' "db tr"; Attr.href (actionUrl todo.TodoId) ] [ Text.raw actionLabel ]                                                         
                 ])
 
         [           
-            Components.pageTitle "My Todos"
+            UI.Common.pageTitle "My Todos"
             Elem.a [ Attr.href Urls.``/todo/create`` ] [ Text.raw "Create New" ]
             
-            Components.errorSummary errors
+            UI.Common.errorSummary errors
 
             if not(List.isEmpty todos.Pending) then
-                Components.subTitle "Pending"
-                Elem.div [] (todoElems Urls.``/todo/complete/{index:int}`` "Mark Completed" todos.Pending)
+                UI.Common.subTitle "Pending"
+                Elem.div [] (todoElems Urls.``/todo/complete/{id}`` "Mark Completed" todos.Pending)
 
             if not(List.isEmpty todos.Completed) then
-                Components.subTitle "Completed"
-                Elem.div [] (todoElems Urls.``/todo/incomplete/{index:int}`` "Mark Incomplete" todos.Completed)
+                UI.Common.subTitle "Completed"
+                Elem.div [] (todoElems Urls.``/todo/incomplete/{id}`` "Mark Incomplete" todos.Completed)
         ]
-        |> Layouts.master "Todo Index"
+        |> UI.Layouts.master "Todo Index"
 
 module Controller =
     open Model 
+    
     let create : HttpHandler =
         View.create AddNew.Input.Empty []
         |> Response.ofHtmlCsrf
@@ -141,6 +175,7 @@ module Controller =
         let handleError error =            
             match error with
             | AddNew.InvalidInput (input, e) -> View.create input e
+            | AddNew.UnexpectedError         -> View.create AddNew.Input.Empty [ "Unexpected error occurred" ]
             |> Response.ofHtmlCsrf
 
         let handleOk () =
@@ -148,19 +183,21 @@ module Controller =
 
         let handleService input = 
             Service.run
-                (AddNew.handle (Provider.Todo.add))
+                (AddNew.handle (Provider.TodoProvider.add))
                 handleOk
                 handleError
                 input
 
         let formBinder (form : FormCollectionReader) : AddNew.Input =
-            { Description = form.GetString "description" "" }
+            { 
+                Description = form.GetString "description" "" 
+            }
         
         Request.mapFormSecure
             formBinder
             handleService
-            Handlers.invalidCsrfToken
-        
+            ErrorHandler.invalidCsrfToken
+    
     let index : HttpHandler = 
         let handleError error = 
             let errors = 
@@ -172,10 +209,10 @@ module Controller =
 
         let handleOk todos = 
             View.index todos []
-            |> Response.ofHtml 
+            |> Response.ofHtml
 
         Service.run
-            (GetAll.handle (Provider.Todo.getAll))
+            (GetAll.handle (Provider.TodoProvider.getAll))
             handleOk
             handleError
             ()

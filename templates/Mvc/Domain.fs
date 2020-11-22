@@ -11,3 +11,9 @@ type Todo =
         Description : string        
         Completed   : bool
     }
+
+type TodoStatusUpdate =
+    {
+        TodoId    : string
+        Completed : bool
+    }
