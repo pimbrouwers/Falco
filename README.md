@@ -44,6 +44,9 @@ open Falco
 open Falco.Markup
 open Falco.Routing
 
+let handlePlainText : HttpHandler =
+    Response.ofPlainText "Hello from /"
+
 let handleJson : HttpHandler =
     Response.ofJson {| Message = "Hello from /json" |}
 
@@ -54,9 +57,6 @@ let handleHtml : HttpHandler =
             [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]
 
     Response.ofHtml html
-
-let handlePlainText : HttpHandler =
-    Response.ofPlainText "Hello from /"
 
 let endpoints = 
     [            
