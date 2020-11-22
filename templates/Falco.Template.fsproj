@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- General info -->
+    <Description>A dotnet-new template for Falco web applications.</Description>
+    <Copyright>Copyright 2020 Pim Brouwers</Copyright>
+    <Authors>Pim Brouwers, Angel Munoz and contributors</Authors>    
+    <NeutralLanguage>en-CA</NeutralLanguage>
+
+    <!-- Build config -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+
+    <!-- NuGet config -->
+    <PackageType>Template</PackageType>
+    <PackageId>Falco.Template</PackageId>
+    <PackageVersion>1.0.0-alpha1</PackageVersion>
+    <PackageTags>falco;web;app;razor;pages;micro;service;dotnet;new;template</PackageTags>
+    <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/pimbrouwers/Falco</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="**\*" Exclude="**\bin\**;**\obj\**" />
+    <Compile Remove="**\*" />
+  </ItemGroup>
+
+</Project>
