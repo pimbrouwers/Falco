@@ -12,20 +12,27 @@ open Microsoft.Extensions.Hosting
 // ------------
 let endpoints =
     [            
-        get "/" Todo.Controller.index
+        all "/todo/create" 
+            [
+                handle GET  Todo.Controller.create
+                handle POST Todo.Controller.createSubmit
+            ]
+        get "/" 
+            Todo.Controller.index
     ]
 
 // ------------
 // Register services
 // ------------
 let configureServices (services : IServiceCollection) =
-    services.AddFalco() |> ignore
+    services.AddAntiforgery()
+            .AddFalco() |> ignore
 
 // ------------
 // Activate middleware
 // ------------
 let configureApp (app : IApplicationBuilder) =    
-    app.UseStaticFiles()
+    app.UseStaticFiles()       
        .UseFalco(endpoints) |> ignore
 
 [<EntryPoint>]
