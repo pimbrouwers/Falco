@@ -45,24 +45,24 @@ let ``WriteString writes to body and sets content length`` () =
     |> ignore
 
 
-[<Fact>]
-let ``RouteValue returns None for missing`` () =
-    let ctx = Substitute.For<HttpContext>()
-    ctx.Request.RouteValues <- new RouteValueDictionary()
-    (ctx.Request.TryGetRouteValue "name").IsNone |> should equal true
+//[<Fact>]
+//let ``RouteValue returns None for missing`` () =
+//    let ctx = Substitute.For<HttpContext>()
+//    ctx.Request.RouteValues <- new RouteValueDictionary()
+//    (ctx.Request.TryGetRouteValue "name").IsNone |> should equal true
 
-[<Fact>]
-let ``RouteValue returns Some `` () =
-    let ctx = Substitute.For<HttpContext>()
-    ctx.Request.RouteValues <- new RouteValueDictionary(dict["name", "world"])
-    let name = ctx.Request.TryGetRouteValue "name"            
-    name.IsSome |> should equal true
-    name        |> Option.iter (fun n -> n |> should equal "world")
+//[<Fact>]
+//let ``RouteValue returns Some `` () =
+//    let ctx = Substitute.For<HttpContext>()
+//    ctx.Request.RouteValues <- new RouteValueDictionary(dict["name", "world"])
+//    let name = ctx.Request.TryGetRouteValue "name"            
+//    name.IsSome |> should equal true
+//    name        |> Option.iter (fun n -> n |> should equal "world")
      
-[<Fact>]
-let ``RouteValues returns entire route collection`` () =
-    let ctx = Substitute.For<HttpContext>()
-    ctx.Request.RouteValues <- new RouteValueDictionary(dict["name", "world"])
-    let routeValues = ctx.Request.GetRouteValues()
-    routeValues.Count    |> should equal 1
-    routeValues.["name"] |> should equal "world"
+//[<Fact>]
+//let ``RouteValues returns entire route collection`` () =
+//    let ctx = Substitute.For<HttpContext>()
+//    ctx.Request.RouteValues <- new RouteValueDictionary(dict["name", "world"])
+//    let routeValues = ctx.Request.GetRouteReader()
+//    routeValues.Count    |> should equal 1
+//    routeValues.["name"] |> should equal "world"

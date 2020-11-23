@@ -1,21 +1,36 @@
 ﻿[<AutoOpen>]
 module Falco.StringCollectionReader
 
+open System
 open System.Collections.Generic
 open Microsoft.Extensions.Primitives
 open Falco.StringParser
-open Falco.StringUtils
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Routing
 
-type StringCollectionReader (values : seq<KeyValuePair<string,StringValues>>) = 
+type StringCollectionReader internal (values : Map<string, string[]>) =
 
-    let values : KeyValuePair<string,StringValues> array = values |> Seq.toArray
-    
-    /// Safely retrieve value from StringCollectionReader
+    new (kvpValues : KeyValuePair<string, StringValues> seq) =
+        let map =
+            kvpValues 
+            |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToArray()) 
+            |> Map.ofSeq
+
+        StringCollectionReader(map)
+
+    new (routeValues : RouteValueDictionary) =
+        let map =
+            routeValues
+            |> Seq.map (fun kvp -> kvp.Key, [|Convert.ToString(kvp.Value, Globalization.CultureInfo.InvariantCulture)|])
+            |> Map.ofSeq
+
+        StringCollectionReader(map)
+
+    /// Safely retrieve value
     member _.TryGetValue (name : string) =                 
-        match values |> Array.tryFind (fun kvp -> strEquals kvp.Key name) with
-        | Some v when v.Value.Count > 0 -> Some v.Value
-        | _                             -> None
+        match values |> Map.tryFind name with
+        | Some v when v.Length > 0 -> Some v
+        | _                        -> None
     
     /// Retrieve value from StringCollectionReader
     member this.GetValue (name : string) = 
@@ -23,57 +38,63 @@ type StringCollectionReader (values : seq<KeyValuePair<string,StringValues>>) =
         | Some v -> v 
         | None -> failwith (sprintf "Could not find %s" name)
 
-    member this.TryGetString (name : string)           = name |> this.TryGetValue |> Option.bind (fun v -> Some v.[0])
-    member this.TryGetStringNonEmpty (name : string)   = match this.TryGetString name with Some x when x <> "" -> Some x | _ -> None
-    member this.TryGet (name : string)                 = this.TryGetString name
-    member this.TryGetInt16 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt16 v.[0])
-    member this.TryGetInt32 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt32 v.[0])
-    member this.TryGetInt (name : string)              = this.TryGetInt32 name
-    member this.TryGetInt64 (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseInt64 v.[0])
-    member this.TryGetBoolean (name : string)          = name |> this.TryGetValue |> Option.bind (fun v -> parseBoolean v.[0])
-    member this.TryGetFloat (name : string)            = name |> this.TryGetValue |> Option.bind (fun v -> parseFloat v.[0])
-    member this.TryGetDecimal (name : string)          = name |> this.TryGetValue |> Option.bind (fun v -> parseDecimal v.[0])
-    member this.TryGetDateTime (name : string)         = name |> this.TryGetValue |> Option.bind (fun v -> parseDateTime v.[0])
-    member this.TryGetDateTimeOffset (name : string)   = name |> this.TryGetValue |> Option.bind (fun v -> parseDateTimeOffset v.[0])
-    member this.TryGetGuid (name : string)             = name |> this.TryGetValue |> Option.bind (fun v -> parseGuid v.[0])
-    member this.TryGetTimeSpan (name : string)         = name |> this.TryGetValue |> Option.bind (fun v -> parseTimeSpan v.[0])      
+    member this.TryGetString (name : string)                     = name |> this.TryGetValue |> Option.bind (fun v -> Some v.[0])
+    member this.TryGetInt16 (name : string)                      = name |> this.TryGetValue |> Option.bind (fun v -> parseInt16 v.[0])
+    member this.TryGetInt32 (name : string)                      = name |> this.TryGetValue |> Option.bind (fun v -> parseInt32 v.[0])
+    member this.TryGetInt64 (name : string)                      = name |> this.TryGetValue |> Option.bind (fun v -> parseInt64 v.[0])
+    member this.TryGetBoolean (name : string)                    = name |> this.TryGetValue |> Option.bind (fun v -> parseBoolean v.[0])
+    member this.TryGetFloat (name : string)                      = name |> this.TryGetValue |> Option.bind (fun v -> parseFloat v.[0])
+    member this.TryGetDecimal (name : string)                    = name |> this.TryGetValue |> Option.bind (fun v -> parseDecimal v.[0])
+    member this.TryGetDateTime (name : string)                   = name |> this.TryGetValue |> Option.bind (fun v -> parseDateTime v.[0])
+    member this.TryGetDateTimeOffset (name : string)             = name |> this.TryGetValue |> Option.bind (fun v -> parseDateTimeOffset v.[0])
+    member this.TryGetGuid (name : string)                       = name |> this.TryGetValue |> Option.bind (fun v -> parseGuid v.[0])
+    member this.TryGetTimeSpan (name : string)                   = name |> this.TryGetValue |> Option.bind (fun v -> parseTimeSpan v.[0])      
+    member this.TryGetStringNonEmpty (name : string)             = match this.TryGetString name with Some x when x <> "" -> Some x | _ -> None
+    member this.TryGet (name : string)                           = this.TryGetString name
+    member this.TryGetInt (name : string)                        = this.TryGetInt32 name
     
-    member this.GetString (name : string) defaultValue           = name |> this.TryGetString |> Option.defaultValue defaultValue
+    member this.GetString (name : string) defaultValue           = name |> this.TryGetString         |> Option.defaultValue defaultValue
     member this.GetStringNonEmpty (name : string) defaultValue   = name |> this.TryGetStringNonEmpty |> Option.defaultValue defaultValue
-    member this.Get (name : string) defaultValue                 = name |> this.TryGet |> Option.defaultValue defaultValue
-    member this.GetInt16 (name : string) defaultValue            = name |> this.TryGetInt16 |> Option.defaultValue defaultValue
-    member this.GetInt32 (name : string) defaultValue            = name |> this.TryGetInt32 |> Option.defaultValue defaultValue
-    member this.GetInt (name : string) defaultValue              = name |> this.TryGetInt |> Option.defaultValue defaultValue
-    member this.GetInt64 (name : string) defaultValue            = name |> this.TryGetInt64 |> Option.defaultValue defaultValue
-    member this.GetBoolean (name : string) defaultValue          = name |> this.TryGetBoolean |> Option.defaultValue defaultValue
-    member this.GetFloat (name : string) defaultValue            = name |> this.TryGetFloat |> Option.defaultValue defaultValue
-    member this.GetDecimal (name : string) defaultValue          = name |> this.TryGetDecimal |> Option.defaultValue defaultValue
-    member this.GetDateTime (name : string) defaultValue         = name |> this.TryGetDateTime |> Option.defaultValue defaultValue
+    member this.Get (name : string) defaultValue                 = name |> this.TryGet               |> Option.defaultValue defaultValue
+    member this.GetInt16 (name : string) defaultValue            = name |> this.TryGetInt16          |> Option.defaultValue defaultValue
+    member this.GetInt32 (name : string) defaultValue            = name |> this.TryGetInt32          |> Option.defaultValue defaultValue
+    member this.GetInt (name : string) defaultValue              = name |> this.TryGetInt            |> Option.defaultValue defaultValue
+    member this.GetInt64 (name : string) defaultValue            = name |> this.TryGetInt64          |> Option.defaultValue defaultValue
+    member this.GetBoolean (name : string) defaultValue          = name |> this.TryGetBoolean        |> Option.defaultValue defaultValue
+    member this.GetFloat (name : string) defaultValue            = name |> this.TryGetFloat          |> Option.defaultValue defaultValue
+    member this.GetDecimal (name : string) defaultValue          = name |> this.TryGetDecimal        |> Option.defaultValue defaultValue
+    member this.GetDateTime (name : string) defaultValue         = name |> this.TryGetDateTime       |> Option.defaultValue defaultValue
     member this.GetDateTimeOffset (name : string) defaultValue   = name |> this.TryGetDateTimeOffset |> Option.defaultValue defaultValue
-    member this.GetGuid (name : string) defaultValue             = name |> this.TryGetGuid |> Option.defaultValue defaultValue
-    member this.GetTimeSpan (name : string) defaultValue         = name |> this.TryGetTimeSpan |> Option.defaultValue defaultValue
+    member this.GetGuid (name : string) defaultValue             = name |> this.TryGetGuid           |> Option.defaultValue defaultValue
+    member this.GetTimeSpan (name : string) defaultValue         = name |> this.TryGetTimeSpan       |> Option.defaultValue defaultValue
 
-    member this.TryArrayString (name : string)         = name |> this.TryGetValue |> Option.map  (fun v -> v.ToArray())
-    member this.TryArrayInt16 (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt16)
-    member this.TryArrayInt32 (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt32)
-    member this.TryArrayInt (name : string)            = this.TryArrayInt32 name
-    member this.TryArrayInt64 (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt64)
-    member this.TryArrayBoolean (name : string)        = name |> this.TryGetValue |> Option.bind (tryParseArray parseBoolean)
-    member this.TryArrayFloat (name : string)          = name |> this.TryGetValue |> Option.bind (tryParseArray parseFloat)
-    member this.TryArrayDecimal (name : string)        = name |> this.TryGetValue |> Option.bind (tryParseArray parseDecimal)
-    member this.TryArrayDateTime (name : string)       = name |> this.TryGetValue |> Option.bind (tryParseArray parseDateTime)
-    member this.TryArrayDateTimeOffset (name : string) = name |> this.TryGetValue |> Option.bind (tryParseArray parseDateTimeOffset)
-    member this.TryArrayGuid (name : string)           = name |> this.TryGetValue |> Option.bind (tryParseArray parseGuid)
-    member this.TryArrayTimeSpan (name : string)       = name |> this.TryGetValue |> Option.bind (tryParseArray parseTimeSpan)
-        
-let (?) (q : StringCollectionReader) = q.GetValue
+    member this.TryArrayString (name : string)                   = name |> this.TryGetValue |> Option.map  (fun v -> v)
+    member this.TryArrayInt16 (name : string)                    = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt16)
+    member this.TryArrayInt32 (name : string)                    = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt32)
+    member this.TryArrayInt64 (name : string)                    = name |> this.TryGetValue |> Option.bind (tryParseArray parseInt64)
+    member this.TryArrayBoolean (name : string)                  = name |> this.TryGetValue |> Option.bind (tryParseArray parseBoolean)
+    member this.TryArrayFloat (name : string)                    = name |> this.TryGetValue |> Option.bind (tryParseArray parseFloat)
+    member this.TryArrayDecimal (name : string)                  = name |> this.TryGetValue |> Option.bind (tryParseArray parseDecimal)
+    member this.TryArrayDateTime (name : string)                 = name |> this.TryGetValue |> Option.bind (tryParseArray parseDateTime)
+    member this.TryArrayDateTimeOffset (name : string)           = name |> this.TryGetValue |> Option.bind (tryParseArray parseDateTimeOffset)
+    member this.TryArrayGuid (name : string)                     = name |> this.TryGetValue |> Option.bind (tryParseArray parseGuid)
+    member this.TryArrayTimeSpan (name : string)                 = name |> this.TryGetValue |> Option.bind (tryParseArray parseTimeSpan)
+    member this.TryArrayInt (name : string)                      = this.TryArrayInt32 name
 
-type FormCollectionReader (form: IFormCollection, files : IFormFileCollection option) =
-    inherit StringCollectionReader(form)
-
+type FormCollectionReader (form : IFormCollection, files : IFormFileCollection option) =    
+    inherit StringCollectionReader (form)
     member _.Files = files
 
-type StringValues with 
+type HeaderCollectionReader (headers : IHeaderDictionary) =    
+    inherit StringCollectionReader (headers)
+
+type QueryCollectionReader (query : IQueryCollection) =
+    inherit StringCollectionReader (query)
+
+type RouteCollectionReader (route : RouteValueDictionary) =
+    inherit StringCollectionReader (route)
+
+type private StringValues with 
     member this.AsString () =
         match this.Count with
         | 0 -> failwith "StringValues is empty"

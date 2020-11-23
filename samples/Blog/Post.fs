@@ -70,19 +70,22 @@ module Controller =
                 |> View.notFound 
                 |> Response.ofHtml
 
-            let handlePost post =
-                post
-                |> View.details
-                |> Response.ofHtml
+            let handlePost slug =
+                match findPost slug with
+                | None _    -> handleNotFound (Some slug)
+                | Some post ->
+                    post
+                    |> View.details
+                    |> Response.ofHtml
 
             let respondWith =
-                match Request.tryGetRouteValue "slug" ctx with
-                | None      -> handleNotFound None            
-                | Some slug ->
-
-                    match findPost slug with
-                    | None      -> handleNotFound (Some slug)
-                    | Some post -> handlePost post
+                Request.bindRoute 
+                    (fun route -> 
+                        match route.TryGet "slug" with
+                        | None      -> Error None
+                        | Some slug -> Ok slug)
+                    handlePost
+                    handleNotFound                       
 
             respondWith ctx
                         

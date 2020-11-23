@@ -9,11 +9,11 @@
     <Compile Include="Provider.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Common.fs" />
-    <Compile Include="Value.fs" />
+    <Compile Include="Todo.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Falco" Version="3.0.0-alpha6" />    
+    <PackageReference Include="Falco" Version="3.0.0-alpha5" />    
   </ItemGroup>
 </Project>

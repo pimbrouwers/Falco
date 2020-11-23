@@ -8,11 +8,17 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 
 // ------------
-// Web app
+// Handlers 
+// ------------
+let handlePlainText : HttpHandler =
+    Response.ofPlainText "Hello from /"
+
+// ------------
+// Routes
 // ------------
 let endpoints =
     [            
-        get "/" (Response.ofPlainText "Hello world")
+        get "/" handlePlainText
     ]
 
 // ------------
@@ -24,8 +30,13 @@ let configureServices (services : IServiceCollection) =
 // ------------
 // Activate middleware
 // ------------
-let configureApp (app : IApplicationBuilder) =    
-    app.UseFalco(endpoints) |> ignore
+let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =    
+    let devMode = StringUtils.strEquals ctx.HostingEnvironment.EnvironmentName "Development"    
+    app.UseWhen(devMode, fun app -> 
+            app.UseDeveloperExceptionPage())
+       .UseWhen(not(devMode), fun app -> 
+            app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server error"))
+       .UseFalco(endpoints) |> ignore
 
 [<EntryPoint>]
 let main args =    

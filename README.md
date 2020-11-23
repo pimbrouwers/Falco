@@ -24,7 +24,23 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 - Should be extensible.
 - Should provide a toolset to build a working end-to-end web application.
 
-## Quick Start - [Hello World][7] 3 ways
+## Getting Started
+
+### Using `dotnet new`
+
+The easiest way to get started with Falco is by installing the Falco.Template package, which adds a new template to your dotnet new command line tool:
+
+```
+dotnet new -i "Falco.Template::*"
+```
+
+Afterwards you can create a new Falco application by running:
+
+```
+dotnet new falco -o HelloWorldApp
+```
+
+### Manually installing
 
 Create a new F# web project:
 ```
@@ -41,33 +57,57 @@ Remove the `Startup.fs` file and save the following in `Program.fs`:
 module HelloWorld.Program
 
 open Falco
-open Falco.Markup
 open Falco.Routing
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
 
-let endpoints = 
+// ------------
+// Handlers 
+// ------------
+let handlePlainText : HttpHandler =
+    Response.ofPlainText "Hello from /"
+
+// ------------
+// Routes
+// ------------
+let endpoints =
     [            
-        get "/json" 
-            (Response.ofJson {| Message = "Hello from /json" |})
-
-        get "/html" 
-            (Response.ofHtml (Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]))
-
-        get "/" 
-            (Response.ofPlainText "Hello from /")
+        get "/" handlePlainText
     ]
 
+// ------------
+// Register services
+// ------------
+let configureServices (services : IServiceCollection) =
+    services.AddFalco() |> ignore
+
+// ------------
+// Activate middleware
+// ------------
+let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =        
+    app.UseFalco(endpoints) |> ignore
+
 [<EntryPoint>]
-let main args =            
-    Host.startWebHostDefault args endpoints
-    0
+let main args =        
+    Host.CreateDefaultBuilder(args)
+        .ConfigureWebHostDefaults(fun webhost ->   
+            webhost
+                .ConfigureServices(configureServices)
+                .Configure(configureApp)
+                |> ignore)
+        .Build()
+        .Run()                        
+    0    
 ```
 
 Run the application:
 ```
-dotnet run HelloWorldApp
+dotnet run
 ```
 
-There you have it, an industrial-strength "hello world 3 ways" web app, achieved using primarily base ASP.NET Core libraries. Pretty sweet!
+There you have it, an industrial-strength [Hello World][7] web app, achieved using only base ASP.NET Core libraries. Pretty sweet!
 
 ## Sample Applications 
 
@@ -75,8 +115,9 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 | Sample | Description |
 | ------ | ----------- |
-| [HelloWorld][7] | A basic hello world app |
+| [Hello World][7] | A basic hello world app |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
+| [Todo MVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
 
 ## Request Handling
 
@@ -181,7 +222,7 @@ let endpoints : HttpEndpoint list =
   ]
 ```
 
-## Host
+## Host Configuration
 
 > Note: The `Host` module was deprecated in v3.0.0 - see the release notes for details.
 
@@ -216,13 +257,7 @@ let configureServices (services : IServiceCollection) =
 
 // Middleware
 let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =             
-    let env = ctx.HostingEnvironment.EnvironmentName
-    let isDeveloperMode = StringUtils.strEquals env "Development"
-
-    app.UseWhen(isDeveloperMode, fun app -> app.UseDeveloperExceptionPage())
-       .UseWhen(not(isDeveloperMode), fun app -> app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server Error"))
-       .UseStaticFiles()
-       .UseFalco(endpoints) 
+    app.UseFalco(endpoints) 
        |> ignore
 
 [<EntryPoint>]
@@ -238,6 +273,143 @@ let main args =
             .Run()
     0
 ```
+
+## Model Binding
+
+Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
+
+We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary` and `IHeaderCollection`. _Readers_ for all four exist as derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
+
+### Route Binding 
+
+```f#
+let mapRouteHandler : HttpHandler =    
+    Request.mapRoute
+        (fun route -> route.GetString "Name" "John Doe")
+        Response.ofJson 
+
+let bindRouteHandler : HttpHandler = 
+    Request.bindRoute 
+        (fun route -> 
+            match route.TryGetString "Name" with
+            | Some name -> Ok name
+            | _         -> Error {| Message = "Invalid route" |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+
+let manualRouteHandler : HttpHandler =
+    fun ctx ->
+        let route = Request.getRoute ctx
+        let name = route.GetString "Name" "John Doe"
+        Response.ofJson name ctx
+```
+
+### Query Binding
+
+```f#
+type Person = { FirstName : string; LastName : string }
+
+let mapQueryHandler : HttpHandler =    
+    Request.mapQuery
+        (fun rd -> { 
+            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
+            LastName = rd.GetString "LastName" "Doe" 
+        })
+        Response.ofJson 
+
+let bindQueryHandler : HttpHandler = 
+    Request.bindQuery 
+        (fun rd -> 
+            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
+            | Some f, Some l -> Ok { FirstName = f; LastName = l }
+            | _  -> Error {| Message = "Invalid query string" |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+
+let manualQueryHandler : HttpHandler =
+    fun ctx ->
+        let query = Request.getQuery ctx
+        
+        let person = 
+            { 
+                FirstName = query.GetString "FirstName" "John" // Get value or return default value
+                LastName = query.GetString "LastName" "Doe" 
+            }
+
+        Response.ofJson person ctx
+```
+
+### Form Binding
+
+> Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
+
+```f#
+type Person = { FirstName : string; LastName : string }
+
+let mapFormHandler : HttpHandler =    
+    Request.mapForm
+        (fun rd -> { 
+            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
+            LastName = rd.GetString "LastName" "Doe" 
+        })
+        Response.ofJson 
+
+let mapFormSecureHandler : HttpHandler =    
+    Request.mapFormSecure
+        (fun rd -> { 
+            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
+            LastName = rd.GetString "LastName" "Doe" 
+        })
+        Response.ofJson 
+        (Response.withStatusCode 400 >> Response.ofEmpty)
+
+let bindFormHandler : HttpHandler = 
+    Request.bindForm 
+        (fun rd -> 
+            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
+            | Some f, Some l -> Ok { FirstName = f; LastName = l }
+            | _  -> Error {| Message = "Invalid form data" |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+
+let bindFormSecureHandler : HttpHandler = 
+    Request.bindFormSecure
+        (fun rd -> 
+            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
+            | Some f, Some l -> Ok { FirstName = f; LastName = l }
+            | _  -> Error {| Message = "Invalid form data" |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+        (Response.withStatusCode 400 >> Response.ofEmpty)
+
+let manualFormHandler : HttpHandler =
+    fun ctx -> task {
+        let! query = Request.getForm ctx
+        
+        let person = 
+            { 
+                FirstName = query.GetString "FirstName" "John" // Get value or return default value
+                LastName = query.GetString "LastName" "Doe" 
+            }
+
+        return! Response.ofJson person ctx
+    }        
+```
+
+## JSON
+
+Included in Falco are basic JSON in/out handlers, `Request.bindJsonAsync<'a>` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
+
+```f#
+type Person = { FirstName : string; LastName : string }
+
+let jsonBindHandler : HttpHandler =    
+    Request.bindJson
+        (fun person -> Response.ofPlainText (sprintf "hello %s %s" person.FirstName person.LastName))
+        (fun error -> Response.withStatusCode 400 >> Response.ofPlainText (sprintf "Invalid JSON: %s" error))
+```
+
+> Looking for an F# library to work with JSON? Check out [Jay][19].
 
 ## Markup
 
@@ -260,7 +432,6 @@ let bars =
             path "M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0"
         ]
 ```
-
 
 ### HTML View Engine
 
@@ -332,142 +503,6 @@ let aboutView =
         Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
     ]
     |> master "About Us"
-```
-
-## Model Binding
-
-Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
-
-We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection` and `IQueryCollection`. 
-
-> Methods are available for all primitive types, and perform **case-insenstivie** lookups against the collection.
-
-### Query Binding
-
-Query binding is enabled by the `StringCollectionReader`, an abstraction intended to make it easier to work with the query collection.
-
-```f#
-type Person = { FirstName : string; LastName : string }
-
-let mapQueryHandler : HttpHandler =    
-    Request.mapQuery
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
-
-let bindQueryHandler : HttpHandler = 
-    Request.bindQuery 
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid query string" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-
-let manualQueryHandler : HttpHandler =
-    fun ctx ->
-        let query = Request.getQuery ctx
-        
-        let person = 
-            { 
-                FirstName = query.GetString "FirstName" "John" // Get value or return default value
-                LastName = query.GetString "LastName" "Doe" 
-            }
-
-        Response.ofJson person ctx
-```
-
-### Form Binding
-
-Form value binding is enabled by the `FormCollectionReader`, which inherits from `StringCollectionReader` thus sharing it's API. Because of this you'll notice from the example below, that the code used to `map` and `bind` query values and forms is virtually identical, exception being the manual handler since form IO is asynchronous.
-
-> Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
-
-```f#
-type Person = { FirstName : string; LastName : string }
-
-let mapFormHandler : HttpHandler =    
-    Request.mapForm
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
-
-let mapFormSecureHandler : HttpHandler =    
-    Request.mapFormSecure
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
-        (Response.withStatusCode 400 >> Response.ofEmpty)
-
-let bindFormHandler : HttpHandler = 
-    Request.bindForm 
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid form data" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-
-let bindFormSecureHandler : HttpHandler = 
-    Request.bindFormSecure
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid form data" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-        (Response.withStatusCode 400 >> Response.ofEmpty)
-
-let manualFormHandler : HttpHandler =
-    fun ctx -> task {
-        let! query = Request.getForm ctx
-        
-        let person = 
-            { 
-                FirstName = query.GetString "FirstName" "John" // Get value or return default value
-                LastName = query.GetString "LastName" "Doe" 
-            }
-
-        return! Response.ofJson person ctx
-    }        
-```
-
-### JSON Binding
-
-Bind JSON using the built-in `System.Text.Json` API.
-
-```f#
-type Person = { FirstName : string; LastName : string }
-
-let jsonBindHandler : HttpHandler =    
-    Request.bindJson
-        (fun person -> Response.ofPlainText (sprintf "hello %s %s" person.FirstName person.LastName))
-        (fun error -> Response.withStatusCode 400 >> Response.ofPlainText (sprintf "Invalid JSON: %s" error))
-```
-
-### Dynamic value binding
-
-In the case where you don't care about gracefully handling non-existence. Or, you are certain values will be present, the dynamic operator `?` can be useful for both the `StringCollectionReader` and `FormCollectionReader`:
-
-> Use of the `?` dynamic operator performs **case-insenstive** lookups against the collection.
-
-```f#
-let parseQueryHandler : HttpHandler =
-    fun ctx ->
-        let query = Request.getQuery ctx
-
-        // dynamic operator also case-insensitive
-        let firstName = query?FirstName.AsString() // string -> string
-        let lastName  = query?LastName.AsString()  // string -> string
-        let age       = query?Age.AsInt16()        // string -> int16
-
-        // Rest of handler ...
 ```
 
 ## Authentication
@@ -629,12 +664,6 @@ let imageUploadHandler : HttpHandler =
     }
 ```
 
-## JSON
-
-Included in Falco are basic JSON in/out handlers, `Request.bindJsonAsync<'a>` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
-
-> Looking for a library to work with JSON? Check out [Jay][19].
-
 ## Why "Falco"?
 
 It's all about [Kestrel][1], a simply beautiful piece of software that has been a game changer for the .NET web stack. In the animal kingdom, "Kestrel" is a name given to several members of the falcon genus, also known as "Falco".
@@ -666,3 +695,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
 [18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs
 [19]: https://github.com/pimbrouwers/Jay
+[20]: https://github.com/pimbrouwers/Falco/tree/master/samples/Todo

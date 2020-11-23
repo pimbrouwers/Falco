@@ -1,4 +1,4 @@
-﻿module AppName.UI
+﻿module Todo.UI
 
 open Falco.Markup
 
@@ -33,15 +33,20 @@ module Forms =
         @ attrs
         |> Elem.input
 
+    let inputHidden name value attrs = 
+        input "hidden" value (attrs |> Attr.merge [ Attr.name name ])
+
     let inputText name value attrs = 
         input "text" value (attrs |> Attr.merge [ Attr.class' inputCss; Attr.name name ])
             
     let label for' text = 
         Elem.label [ Attr.for' for'; Attr.class' "db" ] [ Text.raw text ]
     
-    let submit value =
-        input "submit" value []
-        
+    let submit name value =
+        match name with 
+        | Some name -> input "submit" value ([ Attr.name name])
+        | None      -> input "submit" value []        
+
 /// Website layouts
 module Layouts =
     /// Master layout which accepts a title and content for <body></body>

@@ -1,4 +1,4 @@
-module AppName.Program
+module Todo.Program
 
 open Falco
 open Falco.Routing
@@ -12,13 +12,13 @@ open Microsoft.Extensions.Hosting
 // ------------
 let endpoints =
     [            
-        all Urls.``/value/create``
+        all "/todo/create" 
             [
-                handle GET  Value.Controller.create
-                handle POST Value.Controller.createSubmit
+                handle GET  Todo.Controller.create
+                handle POST Todo.Controller.createSubmit
             ]
-        get Urls.``/``
-            Value.Controller.index
+        get "/" 
+            Todo.Controller.index
     ]
 
 // ------------

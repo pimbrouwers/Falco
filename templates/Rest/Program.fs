@@ -12,13 +12,11 @@ open Microsoft.Extensions.Hosting
 // ------------
 let endpoints =
     [            
-        all Urls.``/value/create``
-            [
-                handle GET  Value.Controller.create
-                handle POST Value.Controller.createSubmit
-            ]
-        get Urls.``/``
-            Value.Controller.index
+        post Urls.``/value/create``
+             Value.Controller.createSubmit
+
+        get  Urls.``/``
+             Value.Controller.index
     ]
 
 // ------------

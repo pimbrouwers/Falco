@@ -7,7 +7,6 @@
   <ItemGroup>
     <Compile Include="Domain.fs" />
     <Compile Include="Provider.fs" />
-    <Compile Include="UI.fs" />
     <Compile Include="Common.fs" />
     <Compile Include="Value.fs" />
     <Compile Include="Program.fs" />
