@@ -3,7 +3,7 @@
 open System
 open System.Globalization
 open System.IO
-open Blog.Post.Model
+open Blog.Domain
 
 type UnprocessedPost =
     {
@@ -12,7 +12,7 @@ type UnprocessedPost =
         Body : string
     }
 
-let loadAll (postsDirectory : PostsDirectory) : PostModel list =  
+let loadAll (postsDirectory : PostsDirectory) : Post list =  
     let readPost (postPath : string) = 
         let relativePath = Path.GetFileNameWithoutExtension postPath
 
@@ -33,7 +33,7 @@ let loadAll (postsDirectory : PostsDirectory) : PostModel list =
             Body = markdown
         }
 
-    let processPost (unprocessedPost : UnprocessedPost) : PostModel =
+    let processPost (unprocessedPost : UnprocessedPost) : Post =
         let markdownDoc = Markdown.renderMarkdown unprocessedPost.Body            
         {
             Slug = unprocessedPost.Slug

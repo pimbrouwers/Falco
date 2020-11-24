@@ -8,7 +8,7 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 
 // ------------
-// Web app
+// Endpoints
 // ------------
 let endpoints =
     [            

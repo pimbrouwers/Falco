@@ -5,9 +5,9 @@ open Falco
 open Falco.Markup
 open Falco.Security
 open Microsoft.AspNetCore.Antiforgery
-open AppName.Common
-open AppName.Domain
-open AppName.Provider
+open Todo.Common
+open Todo.Domain
+open Todo.Provider
 
 module Model =
     type TodoSummary = 

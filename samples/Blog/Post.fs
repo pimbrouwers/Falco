@@ -1,30 +1,23 @@
 ﻿module Blog.Post
 
+open Blog.Domain
+
 module Model =
     open System
-        
-    type PostModel =
-        {
-            Slug  : string
-            Title : string
-            Date  : DateTime
-            Body  : string
-        }
-
      
 module View =
     open Falco.Markup
     open Blog.UI
     open Model 
     
-    let details (blogPost : PostModel) =
+    let details (blogPost : Post) =
         [ 
             Elem.a [ Attr.href "/"; ] [ Text.raw "<< Back home" ]
             Text.raw blogPost.Body 
         ]
         |> layout blogPost.Title 
 
-    let index (blogPosts : PostModel list) =    
+    let index (blogPosts : Post list) =    
         let postElement p =
             Elem.div [] [ 
                     Elem.span [] [ Text.raw (p.Date.ToShortDateString()) ]
@@ -59,7 +52,7 @@ module Controller =
     open Falco.StringUtils
     open Model
     
-    let details (posts : PostModel list) : HttpHandler =   
+    let details (posts : Post list) : HttpHandler =   
         fun ctx ->
             let findPost slug = 
                 posts 
@@ -90,11 +83,11 @@ module Controller =
             respondWith ctx
                         
             
-    let index (posts : PostModel list) : HttpHandler =       
+    let index (posts : Post list) : HttpHandler =       
         posts         
         |> View.index 
         |> Response.ofHtml
 
-    let json (posts : PostModel list) : HttpHandler =
+    let json (posts : Post list) : HttpHandler =
         posts         
         |> Response.ofJson

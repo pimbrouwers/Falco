@@ -7,7 +7,11 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
+open Blog.Domain
 
+// ------------
+// Routes
+// ------------
 let endpoints posts = 
     [
         get "/{slug:regex(^[a-z\-])}" 
@@ -26,19 +30,25 @@ let endpoints posts =
             (Post.Controller.index posts)
     ]
 
+// ------------
+// Register services
+// ------------
 let configureServices (services : IServiceCollection) =
     services.AddResponseCaching()
             .AddResponseCompression()
             .AddFalco() 
             |> ignore
 
-let configureApp posts =    
+// ------------
+// Activate middleware
+// ------------
+let configureApp (posts : Post list) =    
     fun (ctx : WebHostBuilderContext) (app : IApplicationBuilder) ->
-        let env = ctx.HostingEnvironment.EnvironmentName
-        let isDeveloperMode = StringUtils.strEquals env "Development"
-
-        app.UseWhen(isDeveloperMode, fun app -> app.UseDeveloperExceptionPage())
-           .UseWhen(not(isDeveloperMode), fun app -> app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server Error"))
+        let devMode = StringUtils.strEquals ctx.HostingEnvironment.EnvironmentName "Development"    
+        app.UseWhen(devMode, fun app -> 
+                app.UseDeveloperExceptionPage())
+           .UseWhen(not(devMode), fun app -> 
+                app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server error"))
            .UseStaticFiles()
            .UseFalco(endpoints posts) 
            |> ignore

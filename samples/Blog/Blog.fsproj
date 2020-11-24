@@ -5,10 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Domain.fs" />
     <Compile Include="Common.fs" />
-    <Compile Include="Markdown.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Post.fs" />
+    <Compile Include="Markdown.fs" />
     <Compile Include="PostProcessor.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
