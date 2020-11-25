@@ -199,7 +199,7 @@ let endpoints : HttpEndpoint list =
 
 ## Host Builder
 
-[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  Below is an example on customizing your host instance For a full example, see the [Configure Host][21] sample (seen below).
+[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people. Below is an example on customizing your host instance, taken from the [Configure Host][21] sample.
 
 ```f#
 module ConfigureHost.Program
