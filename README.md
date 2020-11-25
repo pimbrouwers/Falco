@@ -58,47 +58,21 @@ module HelloWorld.Program
 
 open Falco
 open Falco.Routing
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Hosting
+open Falco.HostBuilder
 
 // ------------
 // Handlers 
 // ------------
 let handlePlainText : HttpHandler =
-    Response.ofPlainText "Hello from /"
-
-// ------------
-// Routes
-// ------------
-let endpoints =
-    [            
-        get "/" handlePlainText
-    ]
-
-// ------------
-// Register services
-// ------------
-let configureServices (services : IServiceCollection) =
-    services.AddFalco() |> ignore
-
-// ------------
-// Activate middleware
-// ------------
-let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =        
-    app.UseFalco(endpoints) |> ignore
+    Response.ofPlainText "Hello world"
 
 [<EntryPoint>]
-let main args =        
-    Host.CreateDefaultBuilder(args)
-        .ConfigureWebHostDefaults(fun webhost ->   
-            webhost
-                .ConfigureServices(configureServices)
-                .Configure(configureApp)
-                |> ignore)
-        .Build()
-        .Run()                        
+let main args =      
+    webHost args {
+        endpoints [            
+            get "/" handlePlainText
+        ]
+    }        
     0    
 ```
 

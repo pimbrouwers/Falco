@@ -15,7 +15,12 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "HelloWorld", "samples\Hello
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Blog", "samples\Blog\Blog.fsproj", "{77F0D7B3-554F-4406-AFA9-ECEDF163D998}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Todo", "samples\Todo\Todo.fsproj", "{43CEC988-EBB3-4FBC-A596-D9AD2727B03E}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Todo", "samples\Todo\Todo.fsproj", "{43CEC988-EBB3-4FBC-A596-D9AD2727B03E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EA4EBE21-2122-4FA2-849C-A5B113695BDA}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
