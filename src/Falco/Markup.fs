@@ -77,6 +77,9 @@ module Text =
     /// Text XmlNode constructor
     let raw content = TextNode content
     
+    /// Text XmlNode constructor that will invoke "sprintf template"
+    let rawf template = Printf.kprintf raw template
+    
     /// Encoded-text XmlNode constructor
     let enc content = TextNode (WebUtility.HtmlEncode content)
     

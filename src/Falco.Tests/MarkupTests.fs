@@ -10,6 +10,11 @@ let ``Text should not be encoded`` () =
     renderNode rawText |> should equal "<div>"
 
 [<Fact>]
+let ``Text should not be encoded, but template applied`` () =
+    let rawText = Text.rawf "<div>%s</div>" "falco"
+    renderNode rawText |> should equal "<div>falco</div>"
+
+[<Fact>]
 let ``Text should be encoded`` () =
     let encodedText = Text.enc "<div>"
     renderNode encodedText |> should equal "&lt;div&gt;"
