@@ -90,6 +90,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | Sample | Description |
 | ------ | ----------- |
 | [Hello World][7] | A basic hello world app |
+| [Configure Host][21] | Demonstrating how to configure the `IHost` instance using then `webHost` computation expression |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
 | [Todo MVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
 
@@ -198,53 +199,92 @@ let endpoints : HttpEndpoint list =
 
 ## Host Configuration
 
-> Note: The `Host` module was deprecated in v3.0.0 - see the release notes for details.
-
-[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  Below is an example on customizing your host instance For a full example, see the [Blog sample][8].
+[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  Below is an example on customizing your host instance For a full example, see the [Configure Host][21] sample.
 
 ```f#
-// Endpoints 
-let endpoints = 
-    [            
-        get "/greet/{name:alpha}"
-            (Request.mapRoute (fun r -> r.["name"] |> sprintf "Hi %s") Response.ofPlainText)
+module ConfigureHost.Program
 
-        get "/json" 
-            (Response.ofJson {| Message = "Hello from /json" |})
+open Falco
+open Falco.Markup
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
 
-        get "/html" 
-            (Response.ofHtml (Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]))
+// ------------
+// Handlers 
+// ------------
+let handlePlainText : HttpHandler =
+    "Hello from /"
+    |> Response.ofPlainText 
 
-        get "/" 
-            (Response.ofPlainText "Hello from /")
-    ]
-    
-// Logging
+let handleHtml : HttpHandler =
+    Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]
+    |> Response.ofHtml
+
+let handleJson : HttpHandler =
+    {| Message = "Hello from /json" |}
+    |> Response.ofJson 
+
+let handleGreeting : HttpHandler =
+    Request.mapRoute 
+        (fun r -> r.Get "name" "John Doe" |> sprintf "Hi %s") 
+        Response.ofPlainText
+
+// ------------
+// Logging 
+// ------------
 let configureLogging (log : ILoggingBuilder) =
-    log.SetMinimumLevel(LogLevel.Error)
+    log.ClearProviders()
+       .AddConsole()
+       .SetMinimumLevel(LogLevel.Error)
     |> ignore
 
-// Services
+// ------------
+// Register services
+// ------------
 let configureServices (services : IServiceCollection) =
-    services.AddRouting()                 
-    |> ignore
+    services.AddFalco() |> ignore
 
-// Middleware
-let configureApp (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =             
-    app.UseFalco(endpoints) 
-       |> ignore
+// ------------
+// Activate middleware
+// ------------
+let configureApp (endpoints : HttpEndpoint list) (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =    
+    let devMode = StringUtils.strEquals ctx.HostingEnvironment.EnvironmentName "Development"    
+    app.UseWhen(devMode, fun app -> 
+            app.UseDeveloperExceptionPage())
+       .UseWhen(not(devMode), fun app -> 
+            app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server error"))
+       .UseFalco(endpoints) |> ignore
+
+// -----------
+// Configure Host
+// -----------
+let configureHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
+    webhost.ConfigureLogging(configureLogging)
+           .ConfigureServices(configureServices)
+           .Configure(configureApp endpoints)
 
 [<EntryPoint>]
 let main args =    
-    Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(fun webhost ->   
-                webhost
-                    .ConfigureLogging(configureLogging)
-                    .ConfigureServices(configureServices)
-                    .Configure(configureApp)
-                    |> ignore)
-            .Build()
-            .Run()
+    webHost args {
+        configure configureHost
+        endpoints [            
+            get "/greet/{name:alpha}" 
+                handleGreeting
+
+            get "/json" 
+                handleJson
+
+            get "/html" 
+                handleHtml
+                
+            get "/" 
+                handlePlainText
+        ]
+    }
     0
 ```
 
@@ -443,7 +483,7 @@ let doc (person : Person) =
             Elem.body [] [                     
                     Elem.main [] [
                             Elem.h1 [] [ Text.raw "Sample App" ]
-                            Elem.p  [] [ Text.raw (sprintf "%s %s" person.First person.Last)]
+                            Elem.p  [] [ Text.rawf "%s %s" person.First person.Last ]
                         ]
                 ]
         ]
@@ -670,3 +710,4 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs
 [19]: https://github.com/pimbrouwers/Jay
 [20]: https://github.com/pimbrouwers/Falco/tree/master/samples/Todo
+[21]: https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost
