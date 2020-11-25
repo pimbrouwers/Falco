@@ -12,7 +12,7 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 
 - Asynchronous [request handling](#request-handling).
 - Simple and powerful [routing](#routing) API.
-- Fast, secure and configurable [web server](#host).
+- Fast, secure and configurable [web server](#host-builder).
 - Native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
 - [Authentication](#authentication) and [security](#security) utilities. 
@@ -197,7 +197,7 @@ let endpoints : HttpEndpoint list =
   ]
 ```
 
-## Host Configuration
+## Host Builder
 
 [Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people.  Below is an example on customizing your host instance For a full example, see the [Configure Host][21] sample.
 
