@@ -52,12 +52,6 @@ let main args =
             get "/{slug:regex(^[a-z\-])}" 
                 (Post.Controller.details posts)
                         
-            all "/json"
-                [ 
-                    handle POST (Post.Controller.json posts)
-                    handle GET  Response.ofEmpty
-                ]
-                        
             get "/json" 
                 (Post.Controller.json posts)
                         

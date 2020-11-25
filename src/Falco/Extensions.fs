@@ -147,10 +147,10 @@ type IApplicationBuilder with
         this.UseRouting()
             .UseEndpoints(fun r -> 
                 for endpoint in endpoints do                           
-                    for handler in endpoint.Handlers do                          
-                        let requestDelegate = HttpHandler.toRequestDelegate handler.HttpHandler
+                    for (verb, handler) in endpoint.Handlers do                          
+                        let requestDelegate = HttpHandler.toRequestDelegate handler
                     
-                        match handler.Verb with
+                        match verb with
                         | GET     -> r.MapGet(endpoint.Pattern, requestDelegate)
                         | HEAD    -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Head ], requestDelegate)
                         | POST    -> r.MapPost(endpoint.Pattern, requestDelegate)

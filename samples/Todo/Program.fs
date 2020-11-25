@@ -14,8 +14,8 @@ let endpoints =
     [            
         all "/todo/create" 
             [
-                handle GET  Todo.Controller.create
-                handle POST Todo.Controller.createSubmit
+                GET, Todo.Controller.create
+                POST, Todo.Controller.createSubmit
             ]
         get "/" 
             Todo.Controller.index
