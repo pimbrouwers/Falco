@@ -1,5 +1,6 @@
 ﻿module Falco.Markup
 
+open System
 open System.Net
 open Falco.StringUtils
 
@@ -74,15 +75,21 @@ let renderHtml tag =
     |> strConcat
 
 module Text =       
+    /// Empty Text node
+    let empty = TextNode String.Empty
+
+    /// Encoded-text XmlNode constructor
+    let enc content = TextNode (WebUtility.HtmlEncode content)
+
     /// Text XmlNode constructor
     let raw content = TextNode content
     
     /// Text XmlNode constructor that will invoke "sprintf template"
     let rawf template = Printf.kprintf raw template
     
-    /// Encoded-text XmlNode constructor
-    let enc content = TextNode (WebUtility.HtmlEncode content)
-    
+    /// HTML Comment Text XmlNode construction
+    let comment = rawf "<!-- %s -->"
+
 module Elem =
     /// Standard XmlNode constructor
     let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
