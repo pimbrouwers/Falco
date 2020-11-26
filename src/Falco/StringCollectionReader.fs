@@ -9,6 +9,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Routing
 
 /// A safe string collection reader, with type utilities
+[<AbstractClass>]
 type StringCollectionReader internal (values : Map<string, string[]>) =
 
     new (kvpValues : KeyValuePair<string, StringValues> seq) =
