@@ -16,6 +16,7 @@ open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
 open Falco.StringUtils
 
+/// HttpRequest extensions
 type HttpRequest with       
     /// The HttpVerb of the current request
     member this.HttpVerb = 
@@ -54,6 +55,7 @@ type HttpRequest with
     member this.GetRouteReader () : RouteCollectionReader =
         RouteCollectionReader(this.RouteValues, this.Query)
 
+/// HttpResponse extensions
 type HttpResponse with
     /// Set HttpResponse header
     member this.SetHeader 
@@ -88,6 +90,7 @@ type HttpResponse with
     member this.AddCookieOptions (key : string) (value : string) (cookieOptions : CookieOptions) =
         this.Cookies.Append(key, value, cookieOptions)
 
+/// HttpContext extension methods
 type HttpContext with       
     // ------------
     // IoC & Logging
@@ -141,6 +144,7 @@ type HttpContext with
         | None      -> false 
         | Some user -> isAuthenciated user
 
+/// IApplicationBuilder extensions
 type IApplicationBuilder with
     /// Activate Falco integration with IEndpointRouteBuilder
     member this.UseFalco (endpoints : HttpEndpoint list) =
@@ -172,6 +176,7 @@ type IApplicationBuilder with
         if predicate then fn this
         else this
 
+/// IServiceCollection Extensions
 type IServiceCollection with        
     /// Adds default Falco services to the ASP.NET Core service container.
     member this.AddFalco() =        
