@@ -91,8 +91,9 @@ type HeaderCollectionReader (headers : IHeaderDictionary) =
 type QueryCollectionReader (query : IQueryCollection) =
     inherit StringCollectionReader (query)
 
-type RouteCollectionReader (route : RouteValueDictionary) =
+type RouteCollectionReader (route : RouteValueDictionary, query : IQueryCollection) =
     inherit StringCollectionReader (route)
+    member _.Query = QueryCollectionReader(query)
 
 type private StringValues with 
     member this.AsString () =

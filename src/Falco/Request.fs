@@ -180,16 +180,6 @@ let mapQuery
     (next : 'a -> HttpHandler) : HttpHandler = 
     fun ctx -> next (getQuery ctx |> map) ctx
 
-/// Project RouteCollectionReader & QueryCollectionReader onto 'a 
-/// and provide  to next HttpHandler
-let mapRouteAndQuery
-    (map : RouteCollectionReader * QueryCollectionReader -> 'a)        
-    (next : 'a -> HttpHandler) : HttpHandler = 
-    fun ctx ->
-        let route = getRoute ctx
-        let query = getQuery ctx
-        next ((route, query) |> map) ctx
-
 /// Project FormCollectionReader onto 'a and provide
 /// to next HttpHandler
 let mapForm

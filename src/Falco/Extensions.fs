@@ -52,7 +52,7 @@ type HttpRequest with
                 
     /// Obtain RouteValues for the current request
     member this.GetRouteReader () : RouteCollectionReader =
-        RouteCollectionReader(this.RouteValues)
+        RouteCollectionReader(this.RouteValues, this.Query)
 
 type HttpResponse with
     /// Set HttpResponse header

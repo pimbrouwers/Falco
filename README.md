@@ -199,7 +199,7 @@ let endpoints : HttpEndpoint list =
 
 ## Host Builder
 
-[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people. Below is an example on customizing your host instance, taken from the [Configure Host][21] sample.
+[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the [Configure Host][21] sample.
 
 ```f#
 module ConfigureHost.Program
@@ -296,18 +296,24 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 
 ### Route Binding 
 
+Route binding will normally achieved through `Request.mapRoute` or `Request.bindRoute` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers, which expose an opportunity to project the values from `RouteCollectionReader`, which also has full access to the query string via `QueryCollectionReader`.
+
 ```f#
-let mapRouteHandler : HttpHandler =    
-    Request.mapRoute
-        (fun route -> route.GetString "Name" "John Doe")
+let mapRouteHandler : HttpHandler = 
+    let routeMap (route : RouteCollectionReader) = route.GetString "Name" "John Doe"
+    
+    Request.mapRoute 
+        routeMap 
         Response.ofJson 
 
 let bindRouteHandler : HttpHandler = 
+    let routeBind (route : RouteCollectionReader) = 
+        match route.TryGetString "Name" with
+        | Some name -> Ok name
+        | _         -> Error {| Message = "Invalid route" |}
+    
     Request.bindRoute 
-        (fun route -> 
-            match route.TryGetString "Name" with
-            | Some name -> Ok name
-            | _         -> Error {| Message = "Invalid route" |})
+        routeBind
         Response.ofJson // handle Ok
         Response.ofJson // handle Error
 
@@ -315,10 +321,15 @@ let manualRouteHandler : HttpHandler =
     fun ctx ->
         let route = Request.getRoute ctx
         let name = route.GetString "Name" "John Doe"
+        
+        // You also have access to the query string
+        let q = route.Query.GetString "q" "{default value}"
         Response.ofJson name ctx
 ```
 
 ### Query Binding
+
+Query binding will normally achieved through `Request.mapQuery` or `Request.bindQuery` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers, which expose an opportunity to project the values from `QueryCollectionReader`.
 
 ```f#
 type Person = { FirstName : string; LastName : string }
@@ -354,6 +365,8 @@ let manualQueryHandler : HttpHandler =
 ```
 
 ### Form Binding
+
+Form binding will normally achieved through `Request.mapForm` or `Request.bindForm` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers, which expose an opportunity to project the values from `FormCollectionReader`, which also has full access to the `IFormFilesCollection` via the `_.Files` member.
 
 > Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
 
@@ -423,8 +436,6 @@ let jsonBindHandler : HttpHandler =
         (fun error -> Response.withStatusCode 400 >> Response.ofPlainText (sprintf "Invalid JSON: %s" error))
 ```
 
-> Looking for an F# library to work with JSON? Check out [Jay][19].
-
 ## Markup
 
 A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML & SVG). 
@@ -450,9 +461,9 @@ let bars =
 ### HTML View Engine
 
 Most of the standard HTML tags & attributes have been built into the markup module, which produce objects to represent the HTML node. Nodes are either:
-- `Text` which represents `string` values.
-- `SelfClosingNode` which represent self-closing tags (i.e. `<br />`).
-- `ParentNode` which represent typical tags with, optionally, other tags within it (i.e. `<div>...</div>`).
+- `Text` which represents `string` values. (Ex: `Text.raw "hello"`, `Text.rawf "hello %s" "world"`)
+- `SelfClosingNode` which represent self-closing tags (Ex: `<br />`).
+- `ParentNode` which represent typical tags with, optionally, other tags within it (Ex: `<div>...</div>`).
 
 The benefits of using the Falco markup module as an HTML engine include:
 
