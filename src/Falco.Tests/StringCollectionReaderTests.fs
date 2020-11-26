@@ -10,12 +10,12 @@ open Microsoft.Extensions.Primitives
 
 [<Fact>]
 let ``Can make StringCollectionReader from IQueryCollection`` () =
-    StringCollectionReader(QueryCollection(Dictionary()))        
+    QueryCollectionReader(QueryCollection(Dictionary()))        
     |> should not' throw
 
 [<Fact>]
 let ``Can make StringCollectionReader from IFormCollection`` () =
-    StringCollectionReader(FormCollection(Dictionary()))        
+    FormCollectionReader(FormCollection(Dictionary()))        
     |> should not' throw
 
 [<Fact>]
@@ -27,7 +27,7 @@ let ``StringCollectionReader value lookups are case-insensitive`` () =
         |> Map.ofList
         |> fun m -> Dictionary(m)
 
-    let scr = StringCollectionReader(values)
+    let scr = QueryCollectionReader(values)
 
     // single values
     scr.TryGet "FSTRING"   |> Option.iter (should equal "John Doe")
@@ -63,7 +63,7 @@ let ``Inline StringCollectionReader from query collection should resolve primiti
         |> Map.ofList
         |> fun m -> Dictionary(m)
 
-    let scr = StringCollectionReader(values)
+    let scr = QueryCollectionReader(values)
 
     // single values
     scr.TryGetString "fstring"                   |> Option.iter (should equal "John Doe")
