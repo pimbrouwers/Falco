@@ -32,7 +32,7 @@ let configureApp (endpoints : HttpEndpoint list) =
            |> ignore
 
 // ------------
-// Configure web host
+// Configure host
 // ------------
 let configureWebHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
     webhost.ConfigureServices(configureServices)

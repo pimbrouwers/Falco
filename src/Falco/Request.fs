@@ -142,14 +142,14 @@ let bindForm
 /// Validate the CSRF of the current request
 let validateCsrfToken
     (handleOk : HttpHandler) 
-    (handleInvalid : HttpHandler) : HttpHandler =
+    (handleInvalidToken : HttpHandler) : HttpHandler =
     fun ctx -> task {
         let! isValid = Xss.validateToken ctx
 
         let respondWith =
             match isValid with 
             | true  -> handleOk
-            | false -> handleInvalid
+            | false -> handleInvalidToken
 
         return! respondWith ctx
     }

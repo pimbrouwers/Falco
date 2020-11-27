@@ -67,6 +67,7 @@ let configureHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
 let main args =    
     webHost args {
         configure configureHost
+
         endpoints [            
             get "/greet/{name:alpha}" 
                 handleGreeting

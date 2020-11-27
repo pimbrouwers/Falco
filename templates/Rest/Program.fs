@@ -1,23 +1,11 @@
 module AppName.Program
 
 open Falco
+open Falco.HostBuilder
 open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Hosting
-
-// ------------
-// Web app
-// ------------
-let endpoints =
-    [            
-        post Urls.``/value/create``
-             Value.Controller.createSubmit
-
-        get  Urls.``/``
-             Value.Controller.index
-    ]
 
 // ------------
 // Register services
@@ -29,23 +17,28 @@ let configureServices (services : IServiceCollection) =
 // ------------
 // Activate middleware
 // ------------
-let configureApp (app : IApplicationBuilder) =    
+let configureApp  (endpoints : HttpEndpoint list) (app : IApplicationBuilder) =    
     app.UseStaticFiles()       
        .UseFalco(endpoints) |> ignore
 
+// -----------
+// Configure Web host
+// -----------
+let configureWebHost (endpoints : HttpEndpoint list) (webHost : IWebHostBuilder) =
+    webHost
+        .ConfigureServices(configureServices)
+        .Configure(configureApp endpoints)
+
 [<EntryPoint>]
 let main args =    
-    try
-        Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(fun webhost ->   
-                webhost
-                    .ConfigureServices(configureServices)
-                    .Configure(configureApp)
-                    |> ignore)
-            .Build()
-            .Run()                        
-        0
-    with 
-    | ex -> 
-        printfn "%s\n\n%s" ex.Message ex.StackTrace
-        -1
+    webHost args {
+        configure configureWebHost
+        endpoints [            
+            post Urls.``/value/create``
+                 Value.Controller.createSubmit
+
+            get  Urls.``/``
+                 Value.Controller.index
+        ]
+    }       
+    0

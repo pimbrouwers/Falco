@@ -6,16 +6,27 @@ open Xunit
 open Falco
 open FsUnit.Xunit
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.Primitives
 
 [<Fact>]
-let ``Can make StringCollectionReader from IQueryCollection`` () =
+let ``Can make QueryCollectionReader from IQueryCollection`` () =
     QueryCollectionReader(QueryCollection(Dictionary()))        
     |> should not' throw
 
 [<Fact>]
-let ``Can make StringCollectionReader from IFormCollection`` () =
-    FormCollectionReader(FormCollection(Dictionary()))        
+let ``Can make HeaderCollectionReader from HeaderDictionary`` () =
+    HeaderCollectionReader(HeaderDictionary())        
+    |> should not' throw
+
+[<Fact>]
+let ``Can make RouteCollectionReader from RouteValueDictionary`` () =
+    RouteCollectionReader(RouteValueDictionary(), QueryCollection(Dictionary()))
+    |> should not' throw
+
+[<Fact>]
+let ``Can make FormCollectionReader from IFormCollection`` () =
+    FormCollectionReader(FormCollection(Dictionary()), Some (FormFileCollection() :> IFormFileCollection))        
     |> should not' throw
 
 [<Fact>]
@@ -27,7 +38,7 @@ let ``StringCollectionReader value lookups are case-insensitive`` () =
         |> Map.ofList
         |> fun m -> Dictionary(m)
 
-    let scr = QueryCollectionReader(values)
+    let scr = QueryCollectionReader(QueryCollection(values))
 
     // single values
     scr.TryGet "FSTRING"   |> Option.iter (should equal "John Doe")
@@ -63,7 +74,7 @@ let ``Inline StringCollectionReader from query collection should resolve primiti
         |> Map.ofList
         |> fun m -> Dictionary(m)
 
-    let scr = QueryCollectionReader(values)
+    let scr = QueryCollectionReader(QueryCollection(values))
 
     // single values
     scr.TryGetString "fstring"                   |> Option.iter (should equal "John Doe")
@@ -79,7 +90,35 @@ let ``Inline StringCollectionReader from query collection should resolve primiti
     scr.TryGetDateTimeOffset "fdatetimeoffset"   |> Option.iter (should equal (DateTimeOffset.Parse(offsetNow)))
     scr.TryGetTimeSpan "ftimespan"               |> Option.iter (should equal (TimeSpan.Parse(timespan)))
     scr.TryGetGuid "fguid"                       |> Option.iter (should equal (Guid.Parse(guid)))
- 
+
+    scr.GetString "fstring" "default_value"                         |> should equal "John Doe"
+    scr.GetStringNonEmpty "fstring" "default_value"                 |> should equal "John Doe"
+    scr.GetInt16 "fint16" -1s                                       |> should equal 16s
+    scr.GetInt32 "fint32" -1                                        |> should equal 32
+    scr.GetInt "fint32" -1                                          |> should equal 32
+    scr.GetInt64 "fint64" 1L                                        |> should equal 64L
+    scr.GetBoolean "fbool" false                                    |> should equal true
+    scr.GetFloat "ffloat" 0.0                                       |> should equal 1.234
+    scr.GetDecimal "fdecimal" 0.0M                                  |> should equal 4.567M
+    scr.GetDateTime "fdatetime" DateTime.MinValue                   |> should equal (DateTime.Parse(now))
+    scr.GetDateTimeOffset "fdatetimeoffset" DateTimeOffset.MinValue |> should equal (DateTimeOffset.Parse(offsetNow))
+    scr.GetTimeSpan "ftimespan" TimeSpan.MinValue                   |> should equal (TimeSpan.Parse(timespan))
+    scr.GetGuid "fguid" Guid.Empty                                  |> should equal (Guid.Parse(guid))
+
+    scr.GetString "_fstring" "default_value"                    |> should equal  "default_value"                    
+    scr.GetStringNonEmpty "_fstring" "default_value"            |> should equal  "default_value"            
+    scr.GetInt16 "_fint16" -1s                                  |> should equal  -1s                                  
+    scr.GetInt32 "_fint32" -1                                   |> should equal  -1                                   
+    scr.GetInt "_fint32" -1                                     |> should equal  -1                                     
+    scr.GetInt64 "_fint64" 1L                                   |> should equal  1L                                   
+    scr.GetBoolean "_fbool" false                               |> should equal  false                               
+    scr.GetFloat "_ffloat" 0.0                                  |> should equal  0.0                                  
+    scr.GetDecimal "_fdecimal" 0.0M                             |> should equal  0.0M                             
+    scr.GetDateTime "_fdatetime" DateTime.MinValue              |> should equal  DateTime.MinValue   
+    scr.GetDateTimeOffset "_fdatetimeoffset" DateTimeOffset.MinValue |> should equal  DateTimeOffset.MinValue
+    scr.GetTimeSpan "_ftimespan" TimeSpan.MinValue              |> should equal  TimeSpan.MinValue              
+    scr.GetGuid "_fguid" Guid.Empty                             |> should equal  Guid.Empty                             
+    
     // array values
     scr.TryArrayString "fstring"                 |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
     scr.TryArrayInt16 "fint16"                   |> Option.iter (should equal [|16s;17s|])
