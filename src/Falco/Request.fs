@@ -199,3 +199,11 @@ let mapFormSecure
         validateCsrfToken
             (mapForm map next)
             handleInvalidToken
+
+/// Proceed based on the authentication status of current IPrincipal
+let ifAuthenticated 
+    (handleAuthenticated : HttpHandler)
+    (handleNotAuthenticated : HttpHandler) : HttpHandler =
+    fun ctx ->
+        if Auth.isAuthenticated ctx then handleAuthenticated ctx
+        else handleNotAuthenticated ctx
