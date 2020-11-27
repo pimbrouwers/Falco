@@ -6,7 +6,7 @@
     <!-- General info -->
     <Description>A functional-first toolkit for building brilliant ASP.NET Core applications using F#.</Description>
     <Copyright>Copyright 2020 Pim Brouwers</Copyright>
-    <Authors>Pim Brouwers</Authors>
+    <Authors>Pim Brouwers and contributors</Authors>
     <NeutralLanguage>en-CA</NeutralLanguage>
         
     <!-- Build config -->
