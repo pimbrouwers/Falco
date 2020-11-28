@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/pimbrouwers/Falco/raw/master/assets/logo.png" />
+  <img src="https://github.com/pimbrouwers/Falco/raw/master/assets/logo.svg" />
 </p>
 
 # Falco
