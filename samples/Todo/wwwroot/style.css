@@ -1,0 +1,32 @@
+﻿:root {
+	--red: #dd4136;
+	--red-washed: #ffdfdf;
+}
+
+*, *::before, *::after { box-sizing: inherit; }
+html { max-width: 40rem; margin: 0 auto; font-size: 16px; font-family: sans-serif; line-height: 1.4; color: #333; }
+body { padding: 0 .5em; }
+ul { list-style-position: inside; }
+input { font-size: inherit; }
+
+.db { display: block; }
+
+.w-100 { width: 100%; }
+
+.mb3 { margin-bottom: 1rem; }
+.pa2 { padding: .5em; }
+
+.tr { text-align: right; }
+
+.bg-washed-red { background-color: var(--red-washed); }
+
+.ba { border-style: solid; border-width: 1px; }
+
+.b--black-20 { border-color: rgba(0,0,0,.2); }
+.b--red { border-color: var(--red); }
+
+.red { color: var(--red); }
+
+@media screen and (min-width: 480px) {	
+	body { padding: 0; font-size: 1.25em; }
+}

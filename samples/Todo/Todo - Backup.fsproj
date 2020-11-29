@@ -7,15 +7,16 @@
   <ItemGroup>
     <Compile Include="Domain.fs" />
     <Compile Include="Provider.fs" />
-    <Compile Include="Common.fs" />
     <Compile Include="UI.fs" />
-    <Compile Include="Service.fs" />
-    <Compile Include="Error.fs" />
     <Compile Include="Todo.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.0" />
   </ItemGroup>
 </Project>

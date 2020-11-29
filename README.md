@@ -7,7 +7,8 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-Falco is a toolkit for building functional-first, fast and fault-tolerant web applications using F#. 
+Falco is a toolkit for building functional-first, fast and fault-tolerant web applications using F#.
+
 - Built upon the high-performance primitives of ASP.NET Core.
 - Optimized for building HTTP applications quickly.
 - Seamlessly integrates with existing .NET Core middleware and frameworks.
@@ -19,7 +20,7 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 - Fast, secure and configurable [web server](#host-builder).
 - Native F# [view engine](#view-engine).
 - Succinct API for [model binding](#model-binding).
-- [Authentication](#authentication) and [security](#security) utilities. 
+- [Authentication](#authentication) and [security](#security) utilities.
 - Built-in support for [large uploads](#handling-large-uploads).
 
 ## Design Goals
@@ -34,30 +35,33 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 
 The easiest way to get started with Falco is by installing the Falco.Template package, which adds a new template to your dotnet new command line tool:
 
-```
+```cmd
 dotnet new -i "Falco.Template::*"
 ```
 
 Afterwards you can create a new Falco application by running:
 
-```
+```cmd
 dotnet new falco -o HelloWorldApp
 ```
 
 ### Manually installing
 
 Create a new F# web project:
-```
+
+```cmd
 dotnet new web -lang F# -o HelloWorldApp
 ```
 
 Install the nuget package:
-```
+
+```cmd
 dotnet add package Falco
 ```
 
 Remove the `Startup.fs` file and save the following in `Program.fs` (if following the manual install path):
-```f#
+
+```fsharp
 module HelloWorld.Program
 
 open Falco
@@ -65,43 +69,41 @@ open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 
-// ------------
-// Handlers 
-// ------------
-let handlePlainText : HttpHandler =
-    "Hello world"
-    |> Response.ofPlainText 
-
-let handleJson : HttpHandler =
-    {| Message = "Hello world" |}
-    |> Response.ofJson 
-
-let handleHtml : HttpHandler =
-    Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello world" ] ]
-    |> Response.ofHtml
-
 [<EntryPoint>]
-let main args =      
+let main args =
     webHost args {
-        endpoints [            
-            get "/html" handleHtml 
-
-            get "/json" handleJson
-
-            get "/" handlePlainText
+        endpoints [
+            get "/" ("Hello world" |> Response.ofPlainText )
         ]
-    }        
-    0    
+    }
+    0
 ```
 
 Run the application:
-```
+
+```cmd
 dotnet run
 ```
 
 There you have it, an industrial-strength [Hello World][7] web app, achieved using only base ASP.NET Core libraries. Pretty sweet!
 
-## Sample Applications 
+## Table of Contents
+
+1. [Sample Applications](#sample-applications)
+2. [Request Handling](#request-handling)
+3. [Routing](#routing)
+4. [Host Builder](#host-builder)
+5. [Model Binding](#model-binding)
+6. [JSON](#json)
+7. [Markup](#markup)
+8. [Authentication](#authentication)
+9. [Security](#security)
+10. [Handling Large Uploads](#handling-large-uploads)
+11. [Why "Falco"?](#why-falco)
+12. [Find a bug?](#find-a-bug)
+13. [License](#license)
+
+## Sample Applications
 
 Code is always worth a thousand words, so for the most up-to-date usage, the [/samples][6] directory contains a few sample applications.
 
@@ -114,30 +116,32 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 ## Request Handling
 
-The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose. 
+The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
 
 Basic request/resposne handling is divided between the aptly named [`Request`][18] and [`Response`][16] modules, which offer a suite of continuation-passing style (CPS) `HttpHandler` functions for common scenarios.
 
-- Plain Text responses 
-```f#
+- Plain Text responses
+
+```fsharp
 let textHandler : HttpHandler =
     Response.ofPlainText "Hello World"
 ```
 
 - HTML responses
-```f#
+
+```fsharp
 let htmlHandler : HttpHandler =
-    let doc = 
+    let doc =
         Elem.html [ Attr.lang "en" ] [
-                Elem.head [] [                    
-                        Elem.title [] [ Text.raw "Sample App" ]                                                            
+                Elem.head [] [
+                        Elem.title [] [ Text.raw "Sample App" ]
                     ]
-                Elem.body [] [                     
+                Elem.body [] [
                         Elem.main [] [
                                 Elem.h1 [] [ Text.raw "Sample App" ]
                             ]
                     ]
-            ] 
+            ]
 
     Response.ofHtml doc
 ```
@@ -146,7 +150,7 @@ let htmlHandler : HttpHandler =
 
 > IMPORTANT: This handler will not work with F# options or unions, since it uses the default `System.Text.Json.JsonSerializer`. See [JSON](#json) section below for further information.
 
-```f#
+```fsharp
 type Person =
     {
         First : string
@@ -159,35 +163,37 @@ let jsonHandler : HttpHandler =
 ```
 
 - Set the status code of the response
-```f#
+
+```fsharp
 let notFoundHandler : HttpHandler =
     Response.withStatusCode 404
     >> Response.ofPlainText "Not found"
 ```
 
 - Redirect (301/302) Response (boolean param to indicate permanency)
-```f#
+
+```fsharp
 let oldUrlHandler : HttpHandler =
     Response.redirect "/new-url" true
 ```
 
 - Accessing route parameters.
-    - The following function defines an `HttpHandler` which uses the route value called "name" and the built-in `Response.ofPlainText` handler to return a plain-text greeting to the client:
+  - The following function defines an `HttpHandler` which uses the route value called "name" and the built-in `Response.ofPlainText` handler to return a plain-text greeting to the client:
 
-```f#
-let helloHandler : HttpHandler =    
-    Request.mapRoute 
-        (fun route -> route.["name"] |> sprintf "hi %s") 
+```fsharp
+let helloHandler : HttpHandler =
+    Request.mapRoute
+        (fun route -> route.["name"] |> sprintf "hi %s")
         Response.ofPlainText
 ```
 
 ## Routing
 
-The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to an `HttpHandler` which represents the ongoing processing (and eventual return) of a request. 
+The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to an `HttpHandler` which represents the ongoing processing (and eventual return) of a request.
 
 Bearing this in mind, routing can practically be represented by a list of these "mappings" known in Falco as an `HttpEndpoint` which bind together: a route, verb and handler.
 
-```f#
+```fsharp
 let helloHandler : HttpHandler = // ...
 
 let greetingHandler name : HttpHandler = // ...
@@ -196,20 +202,20 @@ let loginHandler : HttpHandler = // ...
 
 let loginSubmitHandler : HttpHandler = // ...  
 
-let endpoints : HttpEndpoint list = 
+let endpoints : HttpEndpoint list =
   [
     // a basic GET handler
-    get "/hello/{name:alpha}" 
-        helloHandler    
+    get "/hello/{name:alpha}"
+        helloHandler
 
     // map route then handle
     get "/greet/{name:alpha}"
         (Request.mapRoute (fun r -> r.["name"] |> sprintf "Hi %s") greetingHandler)
 
     // multi-method endpoint
-    all "/login"              
-        [ 
-            handle POST loginSubmitHandler        
+    all "/login"
+        [
+            handle POST loginSubmitHandler
             handle GET  loginHandler
         ]
   ]
@@ -219,7 +225,7 @@ let endpoints : HttpEndpoint list =
 
 [Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the [Configure Host][21] sample.
 
-```f#
+```fsharp
 module ConfigureHost.Program
 
 open Falco
@@ -231,76 +237,20 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 
-// ------------
-// Handlers 
-// ------------
-let handlePlainText : HttpHandler =
-    "Hello from /"
-    |> Response.ofPlainText 
+// ... rest of startup code
 
-let handleHtml : HttpHandler =
-    Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]
-    |> Response.ofHtml
-
-let handleJson : HttpHandler =
-    {| Message = "Hello from /json" |}
-    |> Response.ofJson 
-
-let handleGreeting : HttpHandler =
-    Request.mapRoute 
-        (fun r -> r.Get "name" "John Doe" |> sprintf "Hi %s") 
-        Response.ofPlainText
-
-// ------------
-// Logging 
-// ------------
-let configureLogging (log : ILoggingBuilder) =
-    log.ClearProviders()
-       .AddConsole()
-       .SetMinimumLevel(LogLevel.Error)
-    |> ignore
-
-// ------------
-// Register services
-// ------------
-let configureServices (services : IServiceCollection) =
-    services.AddFalco() |> ignore
-
-// ------------
-// Activate middleware
-// ------------
-let configureApp (endpoints : HttpEndpoint list) (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =    
-    let devMode = StringUtils.strEquals ctx.HostingEnvironment.EnvironmentName "Development"    
-    app.UseWhen(devMode, fun app -> 
-            app.UseDeveloperExceptionPage())
-       .UseWhen(not(devMode), fun app -> 
-            app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server error"))
-       .UseFalco(endpoints) |> ignore
-
-// -----------
-// Configure Host
-// -----------
 let configureHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
+    // definitions omitted for brevity
     webhost.ConfigureLogging(configureLogging)
            .ConfigureServices(configureServices)
            .Configure(configureApp endpoints)
 
 [<EntryPoint>]
-let main args =    
+let main args =
     webHost args {
         configure configureHost
-        endpoints [            
-            get "/greet/{name:alpha}" 
-                handleGreeting
-
-            get "/json" 
-                handleJson
-
-            get "/html" 
-                handleHtml
-                
-            get "/" 
-                handlePlainText
+        endpoints [
+            get "/" ("hello world" |> Response.ofPlainText)
         ]
     }
     0
@@ -312,25 +262,25 @@ Binding at IO boundaries is messy, error-prone and often verbose. Reflection-bas
 
 We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary` and `IHeaderCollection`. _Readers_ for all four exist as derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
 
-### Route Binding 
+### Route Binding
 
 Route binding will normally achieved through `Request.mapRoute` or `Request.bindRoute` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers, which expose an opportunity to project the values from `RouteCollectionReader`, which also has full access to the query string via `QueryCollectionReader`.
 
-```f#
-let mapRouteHandler : HttpHandler = 
+```fsharp
+let mapRouteHandler : HttpHandler =
     let routeMap (route : RouteCollectionReader) = route.GetString "Name" "John Doe"
     
-    Request.mapRoute 
-        routeMap 
-        Response.ofJson 
+    Request.mapRoute
+        routeMap
+        Response.ofJson
 
 let bindRouteHandler : HttpHandler = 
-    let routeBind (route : RouteCollectionReader) = 
+    let routeBind (route : RouteCollectionReader) =
         match route.TryGetString "Name" with
         | Some name -> Ok name
         | _         -> Error {| Message = "Invalid route" |}
     
-    Request.bindRoute 
+    Request.bindRoute
         routeBind
         Response.ofJson // handle Ok
         Response.ofJson // handle Error
@@ -349,7 +299,7 @@ let manualRouteHandler : HttpHandler =
 
 Query binding will normally achieved through `Request.mapQuery` or `Request.bindQuery` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers, which expose an opportunity to project the values from `QueryCollectionReader`.
 
-```f#
+```fsharp
 type Person = { FirstName : string; LastName : string }
 
 let mapQueryHandler : HttpHandler =    
@@ -388,7 +338,7 @@ Form binding will normally achieved through `Request.mapForm` or `Request.bindFo
 
 > Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
 
-```f#
+```fsharp
 type Person = { FirstName : string; LastName : string }
 
 let mapFormHandler : HttpHandler =    
@@ -445,7 +395,7 @@ let manualFormHandler : HttpHandler =
 
 Included in Falco are basic JSON in/out handlers, `Request.bindJsonAsync<'a>` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
 
-```f#
+```fsharp
 type Person = { FirstName : string; LastName : string }
 
 let jsonBindHandler : HttpHandler =    
@@ -460,7 +410,7 @@ A core feature of Falco is the XML markup module. It can be used to produce any 
 
 The module is easily extended since creating new tags is simple. An example to render `<svg>`'s:
 
-```f#
+```fsharp
 let svg (width : float) (height : float) =
     Elem.tag "svg" [
         Attr.create "version" "1.0"
@@ -488,7 +438,7 @@ The benefits of using the Falco markup module as an HTML engine include:
 - Writing your views in plain F#, directly in your assembly.
 - Markup is compiled alongside the rest of your code, leading to improved performance and ultimately simpler deployments.
 
-```f#
+```fsharp
 // Create an HTML5 document using built-in template
 let doc = 
     Templates.html5 "en"
@@ -497,7 +447,7 @@ let doc =
 ```
 
 Since views are plain F# they can easily be made strongly-typed:
-```f#
+```fsharp
 type Person =
     {
         First : string
@@ -519,7 +469,7 @@ let doc (person : Person) =
 ```
 
 Views can also be combined to create more complex views and share output:
-```f#
+```fsharp
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
             Elem.head [] [                    
@@ -556,7 +506,7 @@ ASP.NET Core has amazing built-in support for authentication. Review the [docs][
 
 - Prevent user from accessing secure endpoint:
 
-```f#
+```fsharp
 open Falco.Security
 
 let secureResourceHandler : HttpHandler =
@@ -571,7 +521,7 @@ let secureResourceHandler : HttpHandler =
 
 - Prevent authenticated user from accessing anonymous-only end-point:
 
-```f#
+```fsharp
 open Falco.Security
  
 let anonResourceOnlyHandler : HttpHandler =
@@ -585,7 +535,7 @@ let anonResourceOnlyHandler : HttpHandler =
 ```
 
 - Allow only user's from a certain group to access endpoint"
-```f#
+```fsharp
 open Falco.Security
 
 let secureResourceHandler : HttpHandler =
@@ -603,7 +553,7 @@ let secureResourceHandler : HttpHandler =
 
 - End user session (sign out):
 
-```f#
+```fsharp
 open Falco.Security
 
 let logOut : HttpHandler =         
@@ -629,7 +579,7 @@ Falco provides a few handlers via `Falco.Security.Xss`:
 
 > To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`. 
 
-```f#
+```fsharp
 open Falco.Security 
 
 let formView (token : AntiforgeryTokenSet) = 
@@ -675,7 +625,7 @@ Many sites have the requirement of a secure log in and sign up (i.e. registering
 
 Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
-```f#
+```fsharp
 open Falco.Security
 
 // Generating salt,
@@ -697,7 +647,7 @@ Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is m
 
 To make this process **a lot** easier Falco exposes an `HttpContext` extension method `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
 
-```f#
+```fsharp
 let imageUploadHandler : HttpHandler =
     fun ctx -> task {
         let! form = Request.tryStreamFormAsync()

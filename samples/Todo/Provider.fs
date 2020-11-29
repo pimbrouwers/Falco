@@ -4,11 +4,12 @@ open System.Collections.Generic
 open System.IO
 open Todo.Domain
 
-type ProviderResult<'a> = ProviderOk of 'a | ProviderError of string
+type ProviderResult<'a> = Result<'a, string>
 
 module TodoProvider = 
     let private store : Dictionary<string, Todo> = new Dictionary<string, Todo>()
 
+    type Add = NewTodo -> ProviderResult<unit>
     let add (newTodo : NewTodo) : ProviderResult<unit> = 
         let newId = Path.GetRandomFileName().Replace(".", "")
         let todo = 
@@ -19,16 +20,18 @@ module TodoProvider =
             }
 
         store.Add(newId, todo)
-        ProviderOk ()
+        Ok ()
 
+    type GetAll = unit -> Todo seq
     let getAll () : Todo list = Seq.toList store.Values
 
+    type Update = TodoStatusUpdate -> ProviderResult<unit>
     let updateStatus (todoStatus : TodoStatusUpdate) : ProviderResult<unit> =
         match store.ContainsKey todoStatus.TodoId with
         | true  -> 
             let key = todoStatus.TodoId
             let updatedTodo = { store.[key] with Completed = todoStatus.Completed }
             store.[key] <- updatedTodo
-            ProviderOk ()
+            Ok ()
         | false -> 
-            ProviderError "Invalid Todo ID"
+            Error "Invalid Todo ID"

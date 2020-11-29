@@ -5,9 +5,10 @@ open Falco
 open Falco.Markup
 open Falco.Security
 open Microsoft.AspNetCore.Antiforgery
-open Todo.Common
+open Todo.Common.Urls
 open Todo.Domain
 open Todo.Provider
+open Todo.Service
 
 module Model =
     type TodoSummary = 
@@ -39,8 +40,8 @@ module Model =
 
         let addNewTodo (createTodo : NewTodo -> ProviderResult<unit>) (newTodo : NewTodo) : Result<unit, Error> =
             match createTodo newTodo with
-            | ProviderOk result -> Ok result
-            | ProviderError _   -> Error UnexpectedError
+            | Ok result -> Ok result
+            | Error _   -> Error UnexpectedError
         
         // Workflow (receiving dependencies)
         let handle (createTodo : NewTodo -> ProviderResult<unit>) : ServiceCommand<Input, Error> =
@@ -82,8 +83,8 @@ module Model =
             (updateTodoStatus : TodoStatusUpdate -> ProviderResult<unit>) 
             (todoStatus : TodoStatusUpdate) : Result<unit, Error> =
             match updateTodoStatus todoStatus with
-            | ProviderOk _    -> Ok ()
-            | ProviderError _ -> Error NonExistentTodo
+            | Ok _    -> Ok ()
+            | Error _ -> Error NonExistentTodo
                 
         // Workflow (receiving dependencies)
         let handle (updateTodoStatus : TodoStatusUpdate -> ProviderResult<unit>) : ServiceCommand<Input, Error> =
@@ -134,7 +135,7 @@ module View =
                 UI.Forms.submit None "Submit"
             ]
             Elem.br []
-            Elem.a [ Attr.href Urls.``/`` ] [ Text.raw "Cancel" ]
+            Elem.a [ Attr.href ``/`` ] [ Text.raw "Cancel" ]
         ]
         |> UI.Layouts.master "Todo Create"
 
@@ -150,17 +151,17 @@ module View =
 
         [           
             UI.Common.pageTitle "My Todos"
-            Elem.a [ Attr.href Urls.``/todo/create`` ] [ Text.raw "Create New" ]
+            Elem.a [ Attr.href ``/todo/create`` ] [ Text.raw "Create New" ]
             
             UI.Common.errorSummary errors
 
             if not(List.isEmpty todos.Pending) then
                 UI.Common.subTitle "Pending"
-                Elem.div [] (todoElems Urls.``/todo/complete/{id}`` "Mark Completed" todos.Pending)
+                Elem.div [] (todoElems ``/todo/complete/{id}`` "Mark Completed" todos.Pending)
 
             if not(List.isEmpty todos.Completed) then
                 UI.Common.subTitle "Completed"
-                Elem.div [] (todoElems Urls.``/todo/incomplete/{id}`` "Mark Incomplete" todos.Completed)
+                Elem.div [] (todoElems ``/todo/incomplete/{id}`` "Mark Incomplete" todos.Completed)
         ]
         |> UI.Layouts.master "Todo Index"
 
@@ -169,7 +170,7 @@ module Controller =
     
     /// HTTP POST /todo/change-status/{id}?complete={true|false}
     let changeStatusSubmit : HttpHandler =
-        failwith "not implemented"
+        Response.ofEmpty
 
     /// HTTP GET /todo/create
     let create : HttpHandler =
@@ -185,7 +186,7 @@ module Controller =
             |> Response.ofHtmlCsrf
 
         let handleOk () =
-            Response.redirect Urls.``/`` false
+            Response.redirect ``/`` false
 
         let handleService input = 
             Service.run
@@ -202,7 +203,7 @@ module Controller =
         Request.mapFormSecure
             formBinder
             handleService
-            ErrorHandler.invalidCsrfToken
+            Error.invalidCsrfToken
     
     /// HTTP GET /
     let index : HttpHandler = 
