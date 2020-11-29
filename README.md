@@ -65,7 +65,6 @@ Remove the `Startup.fs` file and save the following in `Program.fs` (if followin
 module HelloWorld.Program
 
 open Falco
-open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 
