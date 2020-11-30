@@ -13,7 +13,7 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 - Optimized for building HTTP applications quickly.
 - Seamlessly integrates with existing .NET Core middleware and frameworks.
 
-## Key features
+## Key Features
 
 - Asynchronous [request handling](#request-handling).
 - Simple and powerful [routing](#routing) API.
