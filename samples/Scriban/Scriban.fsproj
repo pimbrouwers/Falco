@@ -9,11 +9,12 @@
     <None Include="Views\*" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
-   <ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Scriban" Version="3.0.3" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
   </ItemGroup>
+
 </Project>

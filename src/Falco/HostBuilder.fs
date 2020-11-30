@@ -30,9 +30,9 @@ type HostSpec =
 
 /// Computation expression to allow for elegant IHost construction
 type HostBuilder(args : string[]) =    
-    member __.Yield(_) = HostSpec.Empty ()
+    member _.Yield(_) = HostSpec.Empty ()
 
-    member __.Run(webHost : HostSpec) =              
+    member _.Run(webHost : HostSpec) =              
         let configure = 
             let wrappedBuilder = fun bldr -> webHost.Builder webHost.Endpoints bldr |> ignore
             Action<IWebHostBuilder>(wrappedBuilder)
@@ -44,12 +44,12 @@ type HostBuilder(args : string[]) =
     
     /// Configure the IWebHost
     [<CustomOperation("configure")>]
-    member __.Configure (spec : HostSpec, builder : HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder) =
+    member _.Configure (spec : HostSpec, builder : HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder) =
         { spec with Builder = builder }
 
     /// Falco HttpEndpoint's
     [<CustomOperation("endpoints")>]
-    member __.Endpoints (webHost : HostSpec, endpoints : HttpEndpoint list) =
+    member _.Endpoints (webHost : HostSpec, endpoints : HttpEndpoint list) =
         { webHost with Endpoints = endpoints }
 
 /// A computation expression to make IHost construction easier 

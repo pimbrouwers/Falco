@@ -1,7 +1,6 @@
-module HelloWorld.Program
+module Scriban.Program
 
 open Falco
-open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.FSharp.Reflection
@@ -11,19 +10,24 @@ open Scriban
 open Scriban.Runtime
 open FSharp.Control.Tasks
 
+// ------------
+// Define our views
+// ------------
 type View = | Home
 
-let readViews () =
-    let dir =
-        FileInfo(Assembly.GetExecutingAssembly().Location)
-            .Directory
-
+// ------------
+// Load view files from disk
+// ------------
+let readViews (dir : string) =
     typeof<View>
     |> FSharpType.GetUnionCases
-    |> Array.map (fun key -> key.Name, File.ReadAllText $"{dir}/Views/{key.Name}.html")
+    |> Array.map (fun view -> view.Name, Path.Join(dir, $"{view.Name}.html"))
     |> Map.ofArray
 
-let renderScriban model view =
+// ------------
+// Render view with model using Scriban
+// ------------
+let renderScriban (view : string) (model : 'a) =
     let template = Template.Parse view
     let scriptObject = ScriptObject()
     box model |> scriptObject.Import
@@ -33,21 +37,28 @@ let renderScriban model view =
     context.PushGlobal scriptObject
     template.RenderAsync context
 
+let handleRenderScriban(views : Map<string, string>) (viewName : string) (model : 'a) : HttpHandler =
+    fun ctx -> task {
+        let view = views |> Map.find viewName
+        let! html = renderScriban view model
+        return! Response.ofHtmlString html ctx
+    }
+
+// ------------
+// Handlers
+// ------------
 let homeHandler views: HttpHandler =
-    let next model: HttpHandler =
-        fun ctx ->
-            task {
-                let view = views |> Map.find (nameof Home)
-                let! html = renderScriban model view
-                return! Response.ofHtmlString html ctx
-            }
-
+    let viewName = nameof(Home)
     let queryMap (q: QueryCollectionReader) = {| Name = q.Get "name" "World" |}
-
-    Request.mapQuery queryMap next
+    Request.mapQuery queryMap (handleRenderScriban views viewName)
 
 [<EntryPoint>]
 let main args =
-    let views = readViews ()
-    webHost args { endpoints [ get "/" (homeHandler views) ] }
+    let viewsDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Views")         
+
+    let views = readViews viewsDirectory
+    
+    webHost args { 
+        endpoints [ get "/" (homeHandler views) ] 
+    }
     0
