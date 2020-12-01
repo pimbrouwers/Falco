@@ -16,7 +16,7 @@
     <!-- NuGet config -->
     <PackageType>Template</PackageType>
     <PackageId>Falco.Template</PackageId>
-    <PackageVersion>1.0.0</PackageVersion>
+    <PackageVersion>1.0.1</PackageVersion>
     <PackageTags>falco;web;app;razor;pages;micro;service;dotnet;new;template</PackageTags>
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

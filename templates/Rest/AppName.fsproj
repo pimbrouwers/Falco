@@ -13,6 +13,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Falco" Version="3.0.0" />    
+    <PackageReference Include="Falco" Version="3.0.*" />    
   </ItemGroup>
 </Project>
