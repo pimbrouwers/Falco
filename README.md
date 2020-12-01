@@ -18,7 +18,7 @@
 - Asynchronous [request handling](#request-handling).
 - Simple and powerful [routing](#routing) API.
 - Fast, secure and configurable [web server](#host-builder).
-- Native F# [view engine](#view-engine).
+- Native F# [view engine](#markup).
 - Succinct API for [model binding](#model-binding).
 - [Authentication](#authentication) and [security](#security) utilities.
 - Built-in support for [large uploads](#handling-large-uploads).
