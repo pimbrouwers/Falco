@@ -457,7 +457,7 @@ module Templates =
             Elem.meta  [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]                
         ]
 
-        Elem.html [ Attr.lang "en"; ] [
+        Elem.html [ Attr.lang langCode; ] [
             Elem.head [] (defaultHead @ head)
             Elem.body [] body
         ] 
