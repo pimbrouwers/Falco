@@ -19,6 +19,7 @@
     <Compile Include="XssTests.fs" />
     <Compile Include="AuthTests.fs" />
     <Compile Include="RequestTests.fs" />
+    <Compile Include="RequestHandlersTests.fs" />
     <Compile Include="ResponseTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

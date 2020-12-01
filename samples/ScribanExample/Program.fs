@@ -44,6 +44,13 @@ let homeHandler views : HttpHandler =
     let next = handleRenderScriban view
     Request.mapQuery queryMap next 
 
+let textHandler : HttpHandler =
+    let getMessage (query : QueryCollectionReader) =
+        query.GetString "name" "World" 
+        |> sprintf "Hello %s"
+        
+    Request.mapQuery getMessage Response.ofPlainText
+
 // ------------
 // Load view files from disk
 // ------------

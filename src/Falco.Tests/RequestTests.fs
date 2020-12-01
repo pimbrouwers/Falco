@@ -23,43 +23,26 @@ let ``Request.getVerb should return HttpVerb from HttpContext`` () =
     Request.getVerb ctx
     |> should equal GET
 
-//[<Fact>]
-//let ``Request.getHeader should work for present and missing header names`` () =
-//    let serverName = "Kestrel"
-//    let ctx = getHttpContextWriteable false    
-//    ctx.Request.Headers.Add(HeaderNames.Server, StringValues(serverName))
+[<Fact>]
+let ``Request.getHeader should work for present and missing header names`` () =
+    let serverName = "Kestrel"
+    let ctx = getHttpContextWriteable false    
+    ctx.Request.Headers.Add(HeaderNames.Server, StringValues(serverName))
     
-//    Request.getHeader HeaderNames.Server ctx
-//    |> should equal [|serverName|]
+    let headers =  Request.getHeaders ctx
+        
+    headers.GetString HeaderNames.Server "" |> should equal serverName
+    headers.TryGetString "missing" |> should equal None
 
-//    Request.getHeader "missing" ctx
-//    |> should equal [||]
+[<Fact>]
+let ``Request.getRouteValues should return Map<string, string> from HttpContext`` () =
+    let ctx = getHttpContextWriteable false
+    ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
 
-//[<Fact>]
-//let ``Request.getRouteValues should return Map<string, string> from HttpContext`` () =
-//    let ctx = getHttpContextWriteable false
-//    ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
+    let route = Request.getRoute ctx
 
-//    let routeValues = Request.getRouteValues ctx
-
-//    routeValues.Item("name") 
-//    |> should equal "falco"
-
-//[<Fact>]
-//let ``Request.tryGetRouteValue should return Some`` () =
-//    let ctx = getHttpContextWriteable false
-//    ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
-
-//    Request.tryGetRouteValue "name" ctx
-//    |> should equal (Some "falco")
-
-//[<Fact>]
-//let ``Request.tryGetRouteValue should return None`` () =
-//    let ctx = getHttpContextWriteable false
-//    ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
-
-//    Request.tryGetRouteValue "nane" ctx
-//    |> should equal None
+    route.GetString "name" ""
+    |> should equal "falco"
 
 [<Fact>]
 let ``Request.tryBindQuery should bind record successfully`` () =
@@ -88,8 +71,6 @@ let ``Request.tryBindForm should return a FormCollectionReader instance`` () =
     let ctx = getHttpContextWriteable false
     let form = Dictionary<string, StringValues>()
     form.Add("name", StringValues("falco"))
-    ctx.Request.Query <- QueryCollection(form)
-  
     ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
 
     let bind = 
