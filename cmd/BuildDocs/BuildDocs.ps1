@@ -23,7 +23,7 @@ New-Item -ItemType Directory $outputDir | Write-Verbose
 
 #
 # Copy cruft
-'..\..\CNAME', 'prism.css', 'prism.js' | ForEach-Object { 
+'..\..\CNAME', 'prism.css', 'prism.js', 'favicon.ico' | ForEach-Object { 
   Copy-Item -Path (Join-Path -Path $PSScriptRoot -ChildPath $_) -Destination $outputDir
 }
 
