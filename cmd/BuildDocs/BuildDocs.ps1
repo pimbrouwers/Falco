@@ -13,7 +13,7 @@ function Invoke-Template {
 
 $rootDir = Join-Path -Path $PSScriptRoot -ChildPath ..\..
 $outputDir = Join-Path -Path $rootDir -ChildPath docs
-$template = Get-Content -Path template.html -Raw | Out-String
+$template = Get-Content -Path (Join-Path -Path $PSScriptRoot -ChildPath template.html) -Raw | Out-String
 
 if(Test-Path -Path $outputDir) {
   Remove-Item $outputDir -Recurse -Force 
@@ -23,13 +23,15 @@ New-Item -ItemType Directory $outputDir | Write-Verbose
 
 #
 # Copy cruft
-Copy-Item -Path ..\..\CNAME, prism.css, prism.js -Destination $outputDir
+'..\..\CNAME', 'prism.css', 'prism.js' | ForEach-Object { 
+  Copy-Item -Path (Join-Path -Path $PSScriptRoot -ChildPath $_) -Destination $outputDir
+}
 
 #
 # 404
 Invoke-Template {  
   $title = "404 - Not Found | Falco Framework"
-  $markdown = Get-Content 404.md -Raw | ConvertFrom-Markdown    
+  $markdown = Get-Content -Raw -Path (Join-Path -Path $PSScriptRoot -ChildPath 404.md) | ConvertFrom-Markdown    
 
   $htmlContent = $markdown | Select-Object -ExpandProperty Html  
 
