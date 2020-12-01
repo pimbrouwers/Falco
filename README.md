@@ -120,14 +120,14 @@ The `HttpHandler` type is used to represent the processing of a request. It can 
 
 Basic request/resposne handling is divided between the aptly named [`Request`][18] and [`Response`][16] modules, which offer a suite of continuation-passing style (CPS) `HttpHandler` functions for common scenarios.
 
-- Plain Text responses
+### Plain Text responses
 
 ```fsharp
 let textHandler : HttpHandler =
-    Response.ofPlainText "Hello World"
+    Response.ofPlainText "hello world"
 ```
 
-- HTML responses
+### HTML responses
 
 ```fsharp
 let htmlHandler : HttpHandler =
@@ -143,12 +143,24 @@ let htmlHandler : HttpHandler =
                     ]
             ]
 
-    Response.ofHtml doc
+    doc
+    |> Response.ofHtml
 ```
 
-- JSON responses
+Alternatively, if you're using an external view engine and want to return an HTML response from a string literal you can use `Response.ofHtmlString`.
 
-> IMPORTANT: This handler will not work with F# options or unions, since it uses the default `System.Text.Json.JsonSerializer`. See [JSON](#json) section below for further information.
+```fsharp
+let htmlHandler : HttpHandler = 
+    let html = "<html>...</html>"
+
+    html
+    |> Response.ofHtmlString
+```
+
+
+### JSON responses
+
+> IMPORTANT: This handler uses the default `System.Text.Json.JsonSerializer`. See [JSON](#json) section below for further information.
 
 ```fsharp
 type Person =
@@ -162,7 +174,7 @@ let jsonHandler : HttpHandler =
     |> Response.ofJson
 ```
 
-- Set the status code of the response
+### Set the status code of the response
 
 ```fsharp
 let notFoundHandler : HttpHandler =
@@ -170,21 +182,33 @@ let notFoundHandler : HttpHandler =
     >> Response.ofPlainText "Not found"
 ```
 
-- Redirect (301/302) Response (boolean param to indicate permanency)
+### Redirect (301/302) Response (boolean param to indicate permanency)
 
 ```fsharp
 let oldUrlHandler : HttpHandler =
     Response.redirect "/new-url" true
 ```
 
-- Accessing route parameters.
-  - The following function defines an `HttpHandler` which uses the route value called "name" and the built-in `Response.ofPlainText` handler to return a plain-text greeting to the client:
+### Accessing route parameters
 
 ```fsharp
 let helloHandler : HttpHandler =
-    Request.mapRoute
-        (fun route -> route.["name"] |> sprintf "hi %s")
-        Response.ofPlainText
+    let getMessage (route : RouteCollectionReader) =
+        route.GetString "name" "World" 
+        |> sprintf "Hello %s"
+        
+    Request.mapRoute getMessage Response.ofPlainText
+```
+
+### Accessing query parameters
+
+```fsharp
+let helloHandler : HttpHandler =
+    let getMessage (query : QueryCollectionReader) =
+        query.GetString "name" "World" 
+        |> sprintf "Hello %s"
+        
+    Request.mapQuery getMessage Response.ofPlainText
 ```
 
 ## Routing
@@ -194,9 +218,12 @@ The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route 
 Bearing this in mind, routing can practically be represented by a list of these "mappings" known in Falco as an `HttpEndpoint` which bind together: a route, verb and handler.
 
 ```fsharp
-let helloHandler : HttpHandler = // ...
-
-let greetingHandler name : HttpHandler = // ...
+let helloHandler : HttpHandler =
+    let getMessage (route : RouteCollectionReader) =
+        route.GetString "name" "World" 
+        |> sprintf "Hello %s"
+        
+    Request.mapRoute getMessage Response.ofPlainText
 
 let loginHandler : HttpHandler = // ...
 
@@ -205,18 +232,13 @@ let loginSubmitHandler : HttpHandler = // ...
 let endpoints : HttpEndpoint list =
   [
     // a basic GET handler
-    get "/hello/{name:alpha}"
-        helloHandler
-
-    // map route then handle
-    get "/greet/{name:alpha}"
-        (Request.mapRoute (fun r -> r.["name"] |> sprintf "Hi %s") greetingHandler)
+    get "/hello/{name:alpha}" helloHandler
 
     // multi-method endpoint
     all "/login"
         [
-            handle POST loginSubmitHandler
-            handle GET  loginHandler
+            POST, loginSubmitHandler
+            GET,  loginHandler
         ]
   ]
 ```
@@ -250,8 +272,8 @@ let main args =
     webHost args {
         configure configureHost
         endpoints [
-            get "/" ("hello world" |> Response.ofPlainText)
-        ]
+                      get "/" ("hello world" |> Response.ofPlainText)
+                  ]
     }
     0
 ```
@@ -393,22 +415,30 @@ let manualFormHandler : HttpHandler =
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `Request.bindJsonAsync<'a>` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types. This was done purposefully in support of the belief that JSON in F# should be limited to primitive types only in the form of DTO records.
+Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types.
 
 ```fsharp
-type Person = { FirstName : string; LastName : string }
+type Person =
+    {
+        First : string
+        Last  : string
+    }
+
+let jsonHandler : HttpHandler =
+    { First = "John"; Last = "Doe" }
+    |> Response.ofJson
 
 let jsonBindHandler : HttpHandler =    
     Request.bindJson
-        (fun person -> Response.ofPlainText (sprintf "hello %s %s" person.FirstName person.LastName))
+        (fun person -> Response.ofPlainText (sprintf "hello %s %s" person.First person.Last))
         (fun error -> Response.withStatusCode 400 >> Response.ofPlainText (sprintf "Invalid JSON: %s" error))
 ```
 
 ## Markup
 
-A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML & SVG). 
+A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.). 
 
-The module is easily extended since creating new tags is simple. An example to render `<svg>`'s:
+For example, the module is easily extended since creating new tags is simple. An example to render `<svg>`'s:
 
 ```fsharp
 let svg (width : float) (height : float) =
@@ -510,13 +540,15 @@ ASP.NET Core has amazing built-in support for authentication. Review the [docs][
 open Falco.Security
 
 let secureResourceHandler : HttpHandler =
-    fun ctx ->
-        let respondWith =
-            match Auth.isAuthenticated ctx with
-            | false -> Response.redirect "/forbidden" false
-            | true  -> Response.ofPlainText "hello authenticated user"
+    let handleAuth : HttpHandler = 
+        "hello authenticated user"
+        |> Response.ofPlainText 
 
-        respondWith ctx
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403 
+        >> Response.ofPlainText "Forbidden"
+
+    Request.ifAuthenticated handleAuth handleInvalid
 ```
 
 - Prevent authenticated user from accessing anonymous-only end-point:
@@ -525,13 +557,14 @@ let secureResourceHandler : HttpHandler =
 open Falco.Security
  
 let anonResourceOnlyHandler : HttpHandler =
-    fun ctx ->
-        let respondWith =
-            match Auth.isAuthenticated ctx with
-            | true  -> Response.redirect "/forbidden" false
-            | false -> Response.ofPlainText "hello anonymous"
+    let handleAnon : HttpHandler = 
+        Response.ofPlainText "hello anonymous"
 
-        respondWith ctx
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 403 
+        >> Response.ofPlainText "Forbidden"
+
+    Request.ifNotAuthenticated handleAnon handleInvalid
 ```
 
 - Allow only user's from a certain group to access endpoint"
@@ -539,16 +572,16 @@ let anonResourceOnlyHandler : HttpHandler =
 open Falco.Security
 
 let secureResourceHandler : HttpHandler =
-    fun ctx ->
-        let isAuthenticated = Auth.isAuthenticated ctx
-        let isAdmin = Auth.isInRole ["Admin"] ctx
-        
-        let respondWith =
-            match isAuthenticated, isAdmin with
-            | true, true -> Response.ofPlainText "hello admin"
-            | _          -> Response.redirect "/forbidden" false
+    let handleAuthInRole : HttpHandler = 
+        Response.ofPlainText "hello admin"
 
-        respondWith ctx
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 403 
+        >> Response.ofPlainText "Forbidden"
+
+    let rolesAllowed = [ "Admin" ]
+
+    Request.ifAuthenticatedInRole rolesAllowed handleAuthInRole handleInvalid
 ```
 
 - End user session (sign out):
@@ -557,16 +590,10 @@ let secureResourceHandler : HttpHandler =
 open Falco.Security
 
 let logOut : HttpHandler =         
-    fun ctx -> 
-        (Auth.signOutAsync Auth.authScheme ctx).Wait()
-        Response.redirect Urls.``/login`` false ctx
+    let authScheme = "..."
+    let redirectTo = "/login"
 
-// OR using task {}
-let logOut : HttpHandler =         
-    fun ctx -> task {
-        do! Auth.signOutAsync Auth.authScheme ctx
-        do! Response.redirect Urls.``/login`` false ctx
-    }
+    Response.signOutAndRedirect authScheme redirectTo
 ```
 
 ## Security
@@ -582,41 +609,40 @@ Falco provides a few handlers via `Falco.Security.Xss`:
 ```fsharp
 open Falco.Security 
 
-let formView (token : AntiforgeryTokenSet) = 
-    html [] [
-            body [] [
-                    form [ _method "post" ] [
-                            // using the CSRF HTML helper
-                            Xss.antiforgeryInput token
-                            input [ _type "submit"; _value "Submit" ]
-                        ]                                
-                ]
+let formView (token : AntiforgeryTokenSet) =     
+    Elem.html [] [
+        Elem.body [] [
+            Elem.form [ Attr.method "post" ] [
+                Elem.input [ Attr.name "first_name" ]
+
+                Elem.input [ Attr.name "last_name" ]
+
+                // using the CSRF HTML helper
+                Xss.antiforgeryInput token
+
+                Elem.input [ Attr.type' "submit"; Attr.value "Submit" ]
+            ]                                
         ]
+    ]
     
 // A handler that demonstrates obtaining a
 // CSRF token and applying it to a view
 let csrfViewHandler : HttpHandler = 
-    fun ctx ->
-        let csrfToken = Xss.getToken ctx        
-        Response.ofHtml (formView token) ctx
+    formView
+    |> Response.ofHtmlCsrf
     
 // A handler that demonstrates validating
 // the requests CSRF token
-let isTokenValidHandler : HttpHander =
-    fun ctx -> task {
-        let! isTokenValid = Xss.validateToken ctx
+let mapFormSecureHandler : HttpHandler =    
+    let mapPerson (form : FormCollectionReader) =
+        { FirstName = form.GetString "first_name" "John" // Get value or return default value
+          LastName = form.GetString "first_name" "Doe" }
 
-        let respondWith =
-            match isTokenValid with
-            | false -> 
-                Response.withStatusCode 400 
-                >> Response.ofPlainText "Bad request"
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 400 
+        >> Response.ofEmpty
 
-            | true ->
-                Response.ofPlainText "Good request"                
-
-        return! respondWith ctx
-    }
+    Request.mapFormSecure mapPerson Response.ofJson handleInvalid
 ```
 
 ### Crytography

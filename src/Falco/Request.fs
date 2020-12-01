@@ -200,10 +200,32 @@ let mapFormSecure
             (mapForm map next)
             handleInvalidToken
 
-/// Proceed based on the authentication status of current IPrincipal
+/// Proceed if the authentication status of current IPrincipal is true
 let ifAuthenticated 
-    (handleAuthenticated : HttpHandler)
-    (handleNotAuthenticated : HttpHandler) : HttpHandler =
+    (handleOk : HttpHandler)
+    (handleError : HttpHandler) : HttpHandler =
     fun ctx ->
-        if Auth.isAuthenticated ctx then handleAuthenticated ctx
-        else handleNotAuthenticated ctx
+        if Auth.isAuthenticated ctx then handleOk ctx
+        else handleError ctx
+
+/// Proceed if the authentication status of current IPrincipal is true
+/// and they exist in a list of roles
+let ifAuthenticatedInRole
+    (roles : string list)
+    (handleOk : HttpHandler)
+    (handleError : HttpHandler) : HttpHandler =
+    fun ctx ->
+        let isAuthenticated = Auth.isAuthenticated ctx
+        let isInRole = Auth.isInRole roles ctx
+
+        match isAuthenticated, isInRole with
+        | true, true -> handleOk ctx
+        | _          -> handleError ctx
+
+/// Proceed if the authentication status of current IPrincipal is false
+let ifNotAuthenticated 
+    (handleOk : HttpHandler)
+    (handleError : HttpHandler) : HttpHandler =
+    fun ctx ->
+        if Auth.isAuthenticated ctx then handleError ctx
+        else handleOk ctx
