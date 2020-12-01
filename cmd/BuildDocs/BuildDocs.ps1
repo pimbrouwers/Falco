@@ -23,7 +23,7 @@ New-Item -ItemType Directory $outputDir | Write-Verbose
 
 #
 # Copy cruft
-Copy-Item -Path CNAME, prism.css, prism.js -Destination $outputDir
+Copy-Item -Path ..\..\CNAME, prism.css, prism.js -Destination $outputDir
 
 #
 # 404
