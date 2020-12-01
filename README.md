@@ -29,6 +29,23 @@ Falco is a toolkit for building functional-first, fast and fault-tolerant web ap
 - Should be extensible.
 - Should provide a toolset to build a working end-to-end web application.
 
+## Table of Contents
+
+1. [Getting Started](#getting-started)
+2. [Sample Applications](#sample-applications)
+3. [Request Handling](#request-handling)
+4. [Routing](#routing)
+5. [Host Builder](#host-builder)
+6. [Model Binding](#model-binding)
+7. [JSON](#json)
+8. [Markup](#markup)
+9. [Authentication](#authentication)
+10. [Security](#security)
+11. [Handling Large Uploads](#handling-large-uploads)
+12. [Why "Falco"?](#why-falco)
+13. [Find a bug?](#find-a-bug)
+14. [License](#license)
+
 ## Getting Started
 
 ### Using `dotnet new`
@@ -85,22 +102,6 @@ dotnet run
 ```
 
 There you have it, an industrial-strength [Hello World][7] web app, achieved using only base ASP.NET Core libraries. Pretty sweet!
-
-## Table of Contents
-
-1. [Sample Applications](#sample-applications)
-2. [Request Handling](#request-handling)
-3. [Routing](#routing)
-4. [Host Builder](#host-builder)
-5. [Model Binding](#model-binding)
-6. [JSON](#json)
-7. [Markup](#markup)
-8. [Authentication](#authentication)
-9. [Security](#security)
-10. [Handling Large Uploads](#handling-large-uploads)
-11. [Why "Falco"?](#why-falco)
-12. [Find a bug?](#find-a-bug)
-13. [License](#license)
 
 ## Sample Applications
 

@@ -19,18 +19,27 @@
   --purple: rgb(184, 69, 252);
   --washed-purple: rgba(185, 69, 252, 0.102);
 }
+
 html { max-width: 48rem; margin: 0 auto; padding: 4rem 0; font-size: 16px; font-family: Georgia, serif; line-height: 1.5; color: var(--slate); }
+
+/* text */
 h1, h2, h3, h4, h5 { margin-bottom: 0; font-family: 'Helvetica', helvetica, sans-serif; font-weight: 400; }
 h2 { margin-top: 3rem; font-size: 2em; color: rgba(51,51,51,.6); }
 h3 { margin-top: 2rem; font-size: 1.5em; }
 h2 + h3 { margin-top: .5rem; }
 
-a { color: var(--slate); transition: color .125s ease-in; }
+a { color: inherit; transition: color .125s ease-in; }
 a:hover { color: var(--purple);}
+a:visited { color: inherit; }
 
 blockquote { margin-left: 0; margin-right: 0; padding: 1rem; border-left: 4px solid var(--purple); background: var(--washed-purple); }
 blockquote p { margin: 0; }
 
+/* tables */
+table { text-align: left; border-collapse: collapse; }
+td, th { padding: .5rem; border-bottom: 1px solid var(--silver); }
+
+/* code */
 code[class*="language-"], pre[class*="language-"] { font-size: .875rem; }
 pre[class*="language-"] { padding: 1rem; }
 pre { overflow-x: auto; overflow-wrap: normal; white-space: pre; font-size: .875rem; margin: 1rem 0; padding: 1rem; color: #eff0f9; background: #333; }
@@ -38,25 +47,9 @@ code { vertical-align: middle; font-family: Consolas, Monaco, 'Andale Mono', 'Ub
 pre > code { background-color: inherit; }
 h2 > code, h3 > code, p > code { padding: 0 .25rem; }
 
+/* logo*/ 
 #logo { padding-bottom: 3rem; }
-/* 
-hr { max-width: 80px; height: 0; margin: 2rem 0; border-top: 1px dotted var(--silver); }
-h3 { font-weight: 400; }
-a { color: inherit; }
-p, p > a, p > a:visited { color: inherit; }
-p > a:hover { color: var(--purple); }
 
-.big { font-size: 125%; }
-.muted { opacity: .5; }
-.monospace { font-family: monospace; }
-
-code[class*="language-"], pre[class*="language-"] { font-size: .875rem; }
-pre[class*="language-"] { padding: 1rem; }
-pre { overflow-x: auto; overflow-wrap: normal; white-space: pre; font-size: .875rem; margin: 1rem 0; padding: 1rem; color: #eff0f9; background: #333; }
-code { vertical-align: middle; font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; background-color: var(--silver); }
-pre > code { background-color: inherit; }
-p > code { padding: 0 .125em; }
-*/
 @media screen and (min-width: 640px) {  
   body { font-size: 1.125em; }  
   code[class*="language-"], pre[class*="language-"] { font-size: 1rem; }
@@ -93,6 +86,23 @@ p > code { padding: 0 .125em; }
 <li>Should be extensible.</li>
 <li>Should provide a toolset to build a working end-to-end web application.</li>
 </ul>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#sample-applications">Sample Applications</a></li>
+<li><a href="#request-handling">Request Handling</a></li>
+<li><a href="#routing">Routing</a></li>
+<li><a href="#host-builder">Host Builder</a></li>
+<li><a href="#model-binding">Model Binding</a></li>
+<li><a href="#json">JSON</a></li>
+<li><a href="#markup">Markup</a></li>
+<li><a href="#authentication">Authentication</a></li>
+<li><a href="#security">Security</a></li>
+<li><a href="#handling-large-uploads">Handling Large Uploads</a></li>
+<li><a href="#why-falco">Why &quot;Falco&quot;?</a></li>
+<li><a href="#find-a-bug">Find a bug?</a></li>
+<li><a href="#license">License</a></li>
+</ol>
 <h2 id="getting-started">Getting Started</h2>
 <h3 id="using-dotnet-new">Using <code>dotnet new</code></h3>
 <p>The easiest way to get started with Falco is by installing the Falco.Template package, which adds a new template to your dotnet new command line tool:</p>
@@ -128,22 +138,6 @@ let main args =
 <pre><code class="language-cmd">dotnet run
 </code></pre>
 <p>There you have it, an industrial-strength <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld">Hello World</a> web app, achieved using only base ASP.NET Core libraries. Pretty sweet!</p>
-<h2 id="table-of-contents">Table of Contents</h2>
-<ol>
-<li><a href="#sample-applications">Sample Applications</a></li>
-<li><a href="#request-handling">Request Handling</a></li>
-<li><a href="#routing">Routing</a></li>
-<li><a href="#host-builder">Host Builder</a></li>
-<li><a href="#model-binding">Model Binding</a></li>
-<li><a href="#json">JSON</a></li>
-<li><a href="#markup">Markup</a></li>
-<li><a href="#authentication">Authentication</a></li>
-<li><a href="#security">Security</a></li>
-<li><a href="#handling-large-uploads">Handling Large Uploads</a></li>
-<li><a href="#why-falco">Why &quot;Falco&quot;?</a></li>
-<li><a href="#find-a-bug">Find a bug?</a></li>
-<li><a href="#license">License</a></li>
-</ol>
 <h2 id="sample-applications">Sample Applications</h2>
 <p>Code is always worth a thousand words, so for the most up-to-date usage, the <a href="https://github.com/pimbrouwers/Falco/tree/master/samples">/samples</a> directory contains a few sample applications.</p>
 <table>
