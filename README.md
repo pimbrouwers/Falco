@@ -89,8 +89,8 @@ open Falco.HostBuilder
 let main args =
     webHost args {
         endpoints [
-            get "/" ("Hello world" |> Response.ofPlainText )
-        ]
+                      get "/" ("Hello world" |> Response.ofPlainText )
+                  ]
     }
     0
 ```
