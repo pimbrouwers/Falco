@@ -14,23 +14,27 @@
 <link href="/prism.css" rel="stylesheet" />
 <style>
 :root {
+  --gray: rgba(51,51,51,.6);
   --silver: rgb(204, 204, 204);
   --slate: rgb(51, 51, 51);
   --purple: rgb(184, 69, 252);
   --washed-purple: rgba(185, 69, 252, 0.102);
 }
 
-html { max-width: 48rem; margin: 0 auto; padding: 4rem 0; font-size: 16px; font-family: Georgia, serif; line-height: 1.5; color: var(--slate); }
+html { max-width: 48rem; margin: 0 auto; padding: 4rem 0 2rem; font-size: 16px; font-family: Georgia, serif; line-height: 1.5; color: var(--slate); }
+
+/* logo*/ 
+#logo { padding-bottom: 3rem; }
 
 /* text */
 h1, h2, h3, h4, h5 { margin-bottom: 0; font-family: 'Helvetica', helvetica, sans-serif; font-weight: 400; }
-h2 { margin-top: 3rem; font-size: 2em; color: rgba(51,51,51,.6); }
+h2 { margin-top: 3rem; font-size: 2em; color: var(--gray); }
 h3 { margin-top: 2rem; font-size: 1.5em; }
 h2 + h3 { margin-top: .5rem; }
 
 a { color: inherit; transition: color .125s ease-in; }
-a:hover { color: var(--purple);}
 a:visited { color: inherit; }
+a:hover { color: var(--purple); }
 
 blockquote { margin-left: 0; margin-right: 0; padding: 1rem; border-left: 4px solid var(--purple); background: var(--washed-purple); }
 blockquote p { margin: 0; }
@@ -47,8 +51,9 @@ code { vertical-align: middle; font-family: Consolas, Monaco, 'Andale Mono', 'Ub
 pre > code { background-color: inherit; }
 h2 > code, h3 > code, p > code { padding: 0 .25rem; }
 
-/* logo*/ 
-#logo { padding-bottom: 3rem; }
+/* footer */
+footer { padding-top: 4rem; text-align: center; }
+footer a, footer a:visited { color: var(--gray); }
 
 @media screen and (min-width: 640px) {  
   body { font-size: 1.125em; }  
@@ -74,6 +79,10 @@ h2 > code, h3 > code, p > code { padding: 0 .25rem; }
 <p class="big">Whatever you're looking for doesn't exist. Did it ever exist? Do you exist?</p>
 
 
+<!-- /body/footer -->
+<footer>
+  <a href="https://github.com/pimbrouwers/Falco" target="_blank">View on GitHub</a>
+</footer>
 <!-- /body/script -->
 <script src="/prism.js"></script>
 
