@@ -85,7 +85,7 @@ footer a, footer a:visited { color: var(--gray); }
 <p align="center">
   <img id="logo" src="https://github.com/pimbrouwers/Falco/raw/master/assets/logo.png" />
 </p>
-<p><a href="https://github.com/pimbrouwers/Falco">Falco</a> is a toolkit for building functional-first, fast and fault-tolerant web applications using F#.</p>
+<p><a href="https://github.com/pimbrouwers/Falco">Falco</a> is a toolkit for building fast, functional-first and fault-tolerant web applications using F#.</p>
 <ul>
 <li>Built upon the high-performance primitives of ASP.NET Core.</li>
 <li>Optimized for building HTTP applications quickly.</li>
@@ -200,15 +200,15 @@ let main args =
 <pre><code class="language-fsharp">let htmlHandler : HttpHandler =
     let doc =
         Elem.html [ Attr.lang &quot;en&quot; ] [
-                Elem.head [] [
-                        Elem.title [] [ Text.raw &quot;Sample App&quot; ]
-                    ]
-                Elem.body [] [
-                        Elem.main [] [
-                                Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
-                            ]
-                    ]
+            Elem.head [] [
+                Elem.title [] [ Text.raw &quot;Sample App&quot; ]
             ]
+            Elem.body [] [
+                Elem.main [] [
+                    Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
+                ]
+            ]
+        ]
 
     doc
     |&gt; Response.ofHtml
