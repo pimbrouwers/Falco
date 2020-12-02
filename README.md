@@ -7,7 +7,7 @@
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
-[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building functional-first, fast and fault-tolerant web applications using F#.
+[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast, functional-first and fault-tolerant web applications using F#.
 
 - Built upon the high-performance primitives of ASP.NET Core.
 - Optimized for building HTTP applications quickly.
