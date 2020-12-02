@@ -687,7 +687,7 @@ let imageUploadHandler : HttpHandler =
 
 ## Why "Falco"?
 
-It's all about [Kestrel][1], a simply beautiful piece of software that has been a game changer for the .NET web stack. In the animal kingdom, "Kestrel" is a name given to several members of the falcon genus, also known as "Falco".
+[Kestrel][1] has been a game changer for the .NET web stack. In the animal kingdom, "Kestrel" is a name given to several members of the falcon genus. Also known as "Falco".
 
 ## Find a bug?
 
