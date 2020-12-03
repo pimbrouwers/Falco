@@ -2,6 +2,18 @@
   <img id="logo" src="https://github.com/pimbrouwers/Falco/raw/master/assets/logo.png" />
 </p>
 
+```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+
+webHost [||] {
+    endpoints [                    
+        get "/" (Response.ofPlainText "Hello World")
+    ]
+}
+```
+
 # Falco
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)

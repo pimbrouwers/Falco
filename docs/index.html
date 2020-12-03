@@ -85,6 +85,16 @@ footer a, footer a:visited { color: var(--gray); }
 <p align="center">
   <img id="logo" src="https://github.com/pimbrouwers/Falco/raw/master/assets/logo.png" />
 </p>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Falco.HostBuilder
+
+webHost [||] {
+    endpoints [                    
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello World&quot;)
+    ]
+}
+</code></pre>
 <p><a href="https://github.com/pimbrouwers/Falco">Falco</a> is a toolkit for building fast, functional-first and fault-tolerant web applications using F#.</p>
 <ul>
 <li>Built upon the high-performance primitives of ASP.NET Core.</li>
