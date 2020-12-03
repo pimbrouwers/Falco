@@ -2,6 +2,11 @@
   <img id="logo" src="https://github.com/pimbrouwers/Falco/raw/master/assets/logo.png" />
 </p>
 
+# Falco
+
+[![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
+[![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
+
 ```fsharp
 open Falco
 open Falco.Routing
@@ -13,11 +18,6 @@ webHost [||] {
     ]
 }
 ```
-
-# Falco
-
-[![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
-[![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
 [Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast, functional-first and fault-tolerant web applications using F#.
 
