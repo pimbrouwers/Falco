@@ -305,9 +305,10 @@ module Elem =
     /// HTML Tag <input />
     let input = selfClosingTag "input"
 
+    /// HTML TAG <script></script>
+    let script = tag "script"
+
 module Attr = 
-    open System
-     
     /// XmlAttribute KeyValueAttr constructor
     let create key value = KeyValueAttr (key, value)
     
@@ -316,6 +317,7 @@ module Attr =
     
     /// Merge two XmlAttribute lists
     let merge attrs1 attrs2 =
+        // TODO replace the append with recursion and cons
         attrs1 @ attrs2
         |> List.map (fun attr -> match attr with KeyValueAttr(k, v) -> k, Some v | NonValueAttr(k) -> k, None)    
         |> List.groupBy (fun (k, _) -> k)    
