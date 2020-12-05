@@ -200,6 +200,9 @@ module Elem =
     /// HTML Tag <li></li>
     let li = tag "li"
 
+    /// HTML Tag <button></button>
+    let button = tag "button"
+
     /// HTML Tag <fieldset></fieldset>
     let fieldset = tag "fieldset"
 
@@ -211,6 +214,9 @@ module Elem =
 
     /// HTML Tag <legend></legend>
     let legend = tag "legend"
+
+    /// HTML Tag <input />
+    let input = selfClosingTag "input"
 
     /// HTML Tag <textarea></textarea>
     let textarea = tag "textarea"
@@ -301,9 +307,6 @@ module Elem =
 
     /// HTML Tag <br />
     let br = selfClosingTag "br"
-
-    /// HTML Tag <input />
-    let input = selfClosingTag "input"
 
     /// HTML TAG <script></script>
     let script = tag "script"
