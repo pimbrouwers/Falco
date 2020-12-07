@@ -14,11 +14,11 @@ let isAuthenticated
 
 /// Returns bool if IPrincipal is in list of roles, false on None
 let isInRole 
-    (roles : string list)
+    (roles : list<'T>)
     (ctx : HttpContext) : bool =
     match ctx.GetUser() with
     | None      -> false
-    | Some user -> List.exists user.IsInRole roles
+    | Some user -> roles |> List.exists ( fun role -> user.IsInRole(role.ToString()) )
 
 /// Attempts to return claims from IPrincipal, empty seq on None
 let getClaims
