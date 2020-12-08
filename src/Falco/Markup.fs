@@ -414,6 +414,9 @@ module Attr =
     /// HTML Attribute "for"
     let for' v = create "for" v
 
+    /// HTML Attribute "form"
+    let form v = create "form" v
+
     /// HTML Attribute "max"
     let max v = create "max" v
 
