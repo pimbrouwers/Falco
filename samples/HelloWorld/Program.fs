@@ -22,7 +22,7 @@ let handleHtml : HttpHandler =
 
 
 let handleHtmlFile : HttpHandler =
-    "static/index.html"
+    "index.html"
     |> Response.ofHtmlFile
 
 

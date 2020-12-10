@@ -86,7 +86,7 @@ let ofHtmlFile (filePath : string) : HttpHandler =
             | true -> filePath
             | false ->
                 let env = ctx.GetService<IWebHostEnvironment>()
-                Path.Combine(env.ContentRootPath, filePath)
+                Path.Combine(env.WebRootPath, filePath)
         use reader = new StreamReader(file)
         let! htmlString = reader.ReadToEndAsync()
         return! ofHtmlString htmlString ctx
