@@ -13,7 +13,6 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Net.Http.Headers
 
-
 // ------------
 // Modifiers
 // ------------
