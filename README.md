@@ -171,6 +171,15 @@ let htmlHandler : HttpHandler =
     |> Response.ofHtmlString
 ```
 
+You can also render static html files from in directory using `Response.ofHtmlFile`
+
+```fsharp
+let htmlHandler : HttpHandler = 
+    let htmlfile = "static/index.html"
+
+    htmlfile
+    |> Response.ofHtmlFile
+```
 
 ### JSON responses
 

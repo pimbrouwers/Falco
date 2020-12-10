@@ -9,8 +9,10 @@ open Falco.Markup
 open Falco.Security
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery
+open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Net.Http.Headers
+
 
 // ------------
 // Modifiers
@@ -75,6 +77,20 @@ let ofHtmlString (html : string) : HttpHandler =
 let ofHtml (html : XmlNode) : HttpHandler =
     renderHtml html
     |> ofHtmlString
+
+/// Returns a "text/html; charset=utf-8" response with provided HTML to client
+let ofHtmlFile (filePath : string) : HttpHandler =
+    fun ctx -> task {
+        let file =
+            match Path.IsPathRooted filePath with
+            | true -> filePath
+            | false ->
+                let env = ctx.GetService<IWebHostEnvironment>()
+                Path.Combine(env.ContentRootPath, filePath)
+        use reader = new StreamReader(file)
+        let! htmlString = reader.ReadToEndAsync()
+        return! ofHtmlString htmlString ctx
+    }
 
 /// Returns a CSRF token-dependant "text/html; charset=utf-8" response with provided HTML to client
 let ofHtmlCsrf (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
