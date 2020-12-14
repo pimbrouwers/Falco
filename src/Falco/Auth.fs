@@ -26,17 +26,23 @@ let getClaims
     match ctx.GetUser() with
     | None      -> Seq.empty
     | Some user -> user.Claims
-    
-/// Attempts to return specific claim from IPrincipal
-let getClaim
-    (claim : string)
+
+/// Attempts to return a specific claim from IPrincipal with a generic predicate
+let tryFindClaim
+    (predicate : Claim -> bool)
     (ctx : HttpContext) : Claim option =
     match ctx.GetUser() with
     | None      -> None
     | Some user ->         
-        match user.Claims |> Seq.tryFind (fun c -> strEquals c.Type claim) with
+        match user.Claims |> Seq.tryFind predicate with
         | None   -> None
         | Some c -> Some c
+
+/// Attempts to return specific claim from IPrincipal
+let getClaim
+    (claim : string)
+    (ctx : HttpContext) : Claim option =
+    tryFindClaim (fun c -> strEquals c.Type claim) ctx
 
 /// Establish an authenticated context for the provide scheme and principal
 let signIn
