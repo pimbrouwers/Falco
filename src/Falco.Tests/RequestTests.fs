@@ -14,6 +14,7 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Net.Http.Headers
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
+open System.Security.Claims
 
 [<Fact>]
 let ``Request.getVerb should return HttpVerb from HttpContext`` () =
@@ -143,4 +144,52 @@ let ``Request.tryBindJsonOptions should return empty record `` () =
 
         | Ok record -> record.Name 
                        |> should be null
+    }
+
+[<Fact>]
+let ``Request.ifAuthenticatedWithScope should invoke handleOk if authenticated with scope`` () =
+    let ctx = getHttpContextWriteable true
+    let claims = [
+        Claim("sub", "123", "str", "issuer");
+        Claim("scope", "read create", "str", "another-issuer")
+    ]
+    ctx.User.Claims.Returns(claims) |> ignore
+
+    let handleOk = fun _ -> task { true |> should equal true }
+    let handleError = fun _ -> task { true |> should equal false }
+
+    task {
+        do! Request.ifAuthenticatedWithScope "another-issuer" "create" handleOk handleError ctx
+    }
+
+[<Fact>]
+let ``Request.ifAuthenticatedWithScope should invoke handleError if not authenticated`` () =
+    let ctx = getHttpContextWriteable false
+    let claims = [
+        Claim("sub", "123", "str", "issuer");
+        Claim("scope", "read create", "str", "another-issuer")
+    ]
+    ctx.User.Claims.Returns(claims) |> ignore
+
+    let handleOk = fun _ -> task { true |> should equal false }
+    let handleError = fun _ -> task { true |> should equal true }
+
+    task {
+        do! Request.ifAuthenticatedWithScope "another-issuer" "create" handleOk handleError ctx
+    }
+
+[<Fact>]
+let ``Request.ifAuthenticatedWithScope should invoke handleError if authenticated with no scope from issuer`` () =
+    let ctx = getHttpContextWriteable true
+    let claims = [
+        Claim("sub", "123", "str", "issuer");
+        Claim("scope", "read create", "str", "another-issuer")
+    ]
+    ctx.User.Claims.Returns(claims) |> ignore
+
+    let handleOk = fun _ -> task { true |> should equal false }
+    let handleError = fun _ -> task { true |> should equal true }
+
+    task {
+        do! Request.ifAuthenticatedWithScope "issuer" "create" handleOk handleError ctx
     }

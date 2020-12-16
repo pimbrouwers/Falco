@@ -226,8 +226,8 @@ let ifAuthenticatedInRole
 /// Proceed if the authentication status of current IPrincipal is true
 /// and has a specific scope
 let ifAuthenticatedWithScope
-    (scope : string)
     (issuer : string)
+    (scope : string)
     (handleOk : HttpHandler)
     (handleError : HttpHandler) : HttpHandler =
     fun ctx ->

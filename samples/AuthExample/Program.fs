@@ -48,16 +48,16 @@ let main args =
                     handleIndex
 
                 get "/users"
-                    (Request.ifAuthenticatedWithScope readUsersPolicy authority handleReadUsers handleForbidden)
+                    (Request.ifAuthenticatedWithScope authority readUsersPolicy handleReadUsers handleForbidden)
 
                 post "/users"
-                    (Request.ifAuthenticatedWithScope createUsersPolicy authority handleCreateUser handleForbidden)
+                    (Request.ifAuthenticatedWithScope authority createUsersPolicy handleCreateUser handleForbidden)
                 
                 put "/users/{id:guid}"
-                    (Request.ifAuthenticatedWithScope updateUsersPolicy authority handleUpdateUser handleForbidden)
+                    (Request.ifAuthenticatedWithScope authority updateUsersPolicy handleUpdateUser handleForbidden)
 
                 delete "/users/{id:guid}"
-                    (Request.ifAuthenticatedWithScope deleteUsersPolicy authority handleDeleteUser handleForbidden)
+                    (Request.ifAuthenticatedWithScope authority deleteUsersPolicy handleDeleteUser handleForbidden)
             ]
         }           
         0

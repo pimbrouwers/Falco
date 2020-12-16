@@ -610,10 +610,10 @@ let secureResourceHandler : HttpHandler =
         Response.withStatusCode 403 
         >> Response.ofPlainText "Forbidden"
 
-    let scope = "read:users"
     let issuer = "https://oauth2issuer.com"
+    let scope = "read:users"
 
-    Request.ifAuthenticatedInRole scope issuer handleAuthHasScope handleInvalid
+    Request.ifAuthenticatedInRole issuer scope handleAuthHasScope handleInvalid
 ```
 
 - End user session (sign out):
