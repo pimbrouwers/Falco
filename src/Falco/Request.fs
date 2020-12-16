@@ -240,7 +240,7 @@ let ifAuthenticatedWithScope
 
         match isAuthenticated, claimOpt with
         | true, Some _ -> handleOk ctx
-        | _          -> handleError ctx
+        | _            -> handleError ctx
 
 /// Proceed if the authentication status of current IPrincipal is false
 let ifNotAuthenticated 

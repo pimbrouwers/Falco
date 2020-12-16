@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Domain.fs" />
+    <Compile Include="Repository.fs" />
+    <Compile Include="Handler.fs" />
+    <Compile Include="AuthConfig.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   

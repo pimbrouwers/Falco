@@ -36,13 +36,13 @@ let tryFindClaim
     | Some user ->         
         match user.Claims |> Seq.tryFind predicate with
         | None   -> None
-        | Some c -> Some c
+        | Some claim -> Some claim
 
 /// Attempts to return specific claim from IPrincipal
 let getClaim
-    (claim : string)
+    (claimType : string)
     (ctx : HttpContext) : Claim option =
-    tryFindClaim (fun c -> strEquals c.Type claim) ctx
+    tryFindClaim (fun claim -> strEquals claim.Type claimType) ctx
 
 /// Establish an authenticated context for the provide scheme and principal
 let signIn
