@@ -15,21 +15,21 @@ open Microsoft.Net.Http.Headers
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
 
-let handleOk fn v = 
-    fun ctx -> 
+let handleOk fn v =
+    fun ctx ->
         fn v
         true |> should equal true
         Response.ofEmpty ctx
 
-let handleError _ = 
-    fun ctx -> 
+let handleError _ =
+    fun ctx ->
         false |> should equal true
         Response.ofEmpty ctx
 
 [<Fact>]
 let ``Request.bindJson`` () =
     let ctx = getHttpContextWriteable false
-    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))    
+    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))
     ctx.Request.Body.Returns(ms) |> ignore
 
     let predicates j =
@@ -58,6 +58,15 @@ let ``Request.bindQuery`` () =
 
     Request.bindQuery (fun q -> q.GetString "name" "" |> Ok) (handleOk predicates) handleError
 
+let ``Request.bindCookie`` () =
+    let ctx = getHttpContextWriteable false
+    ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
+
+    let predicates name =
+        name |> should equal "falco"
+
+    Request.bindCookie (fun c -> c.GetString "name" "" |> Ok) (handleOk predicates) handleError
+
 [<Fact>]
 let ``Request.bindForm`` () =
     let ctx = getHttpContextWriteable false
@@ -78,9 +87,18 @@ let ``Request.mapRoute`` () =
     let predicates name =
         name |> should equal "falco"
 
-    Request.mapRoute (fun r -> r.GetString "name" "" |> Ok) (handleOk predicates) 
+    Request.mapRoute (fun r -> r.GetString "name" "" |> Ok) (handleOk predicates)
 
 let ``Request.mapQuery`` () =
+    let ctx = getHttpContextWriteable false
+    ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
+
+    let predicates name =
+        name |> should equal "falco"
+
+    Request.mapCookie (fun q -> q.GetString "name" "" |> Ok) (handleOk predicates)
+
+let ``Request.mapCookie`` () =
     let ctx = getHttpContextWriteable false
     let query = Dictionary<string, StringValues>()
     query.Add("name", StringValues("falco"))
@@ -89,7 +107,7 @@ let ``Request.mapQuery`` () =
     let predicates name =
         name |> should equal "falco"
 
-    Request.mapQuery (fun q -> q.GetString "name" "" |> Ok) (handleOk predicates) 
+    Request.mapQuery (fun c -> c.GetString "name" "" |> Ok) (handleOk predicates)
 
 [<Fact>]
 let ``Request.mapForm`` () =
@@ -101,4 +119,4 @@ let ``Request.mapForm`` () =
     let predicates name =
         name |> should equal "falco"
 
-    Request.mapForm (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates) 
+    Request.mapForm (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates)

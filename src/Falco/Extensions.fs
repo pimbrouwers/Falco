@@ -6,7 +6,7 @@ open System.IO
 open System.Security.Claims
 open System.Text
 open FSharp.Control.Tasks.V2.ContextInsensitive
-open Microsoft.AspNetCore.Antiforgery    
+open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Routing
@@ -17,10 +17,10 @@ open Microsoft.Net.Http.Headers
 open Falco.StringUtils
 
 /// HttpRequest extensions
-type HttpRequest with       
+type HttpRequest with
     /// The HttpVerb of the current request
-    member this.HttpVerb = 
-        match this.Method with 
+    member this.HttpVerb =
+        match this.Method with
         | m when strEquals m HttpMethods.Get     -> GET
         | m when strEquals m HttpMethods.Head    -> HEAD
         | m when strEquals m HttpMethods.Post    -> POST
@@ -39,28 +39,32 @@ type HttpRequest with
 
     /// Retrieve StringCollectionReader for IFormCollection from HttpRequest
     member this.GetFormReaderAsync () = task {
-        let! form = this.ReadFormAsync()        
+        let! form = this.ReadFormAsync()
         return FormCollectionReader(form, None)
-    }        
-    
+    }
+
     /// Obtain HeaderValues for the current request
     member this.GetHeaderReader () : HeaderCollectionReader =
         HeaderCollectionReader(this.Headers)
 
     /// Retrieve StringCollectionReader for IQueryCollection from HttpRequest
-    member this.GetQueryReader () = 
+    member this.GetQueryReader () =
         QueryCollectionReader(this.Query)
-                
+
     /// Obtain RouteValues for the current request
     member this.GetRouteReader () : RouteCollectionReader =
         RouteCollectionReader(this.RouteValues, this.Query)
 
+    /// Retrieve CookieCollectionReader for IRequestCookieCollection from HttpRequest
+    member this.GetCookieReader () : CookieCollectionReader =
+        CookieCollectionReader(this.Cookies)
+
 /// HttpResponse extensions
 type HttpResponse with
     /// Set HttpResponse header
-    member this.SetHeader 
-        (name : string) 
-        (content : string) =            
+    member this.SetHeader
+        (name : string)
+        (content : string) =
         if not(this.Headers.ContainsKey(name)) then
             this.Headers.Add(name, StringValues(content))
 
@@ -68,22 +72,22 @@ type HttpResponse with
     member this.SetContentType contentType =
         this.SetHeader HeaderNames.ContentType contentType
 
-    member this.SetStatusCode (statusCode : int) =            
+    member this.SetStatusCode (statusCode : int) =
         this.StatusCode <- statusCode
-            
+
     /// Write bytes to HttpResponse body
     member this.WriteBytes (bytes : byte[]) =
         let byteLen = bytes.Length
         this.ContentLength <- Nullable<int64>(byteLen |> int64)
         this.Body.WriteAsync(bytes, 0, byteLen)
-        
+
     /// Write UTF8 string to HttpResponse body
     member this.WriteString (encoding : Encoding) (httpBodyStr : string) =
         let httpBodyBytes = encoding.GetBytes httpBodyStr
         this.WriteBytes httpBodyBytes
 
     /// Append a new cookie with value
-    member this.AddCookie (key : string) (value : string) =        
+    member this.AddCookie (key : string) (value : string) =
         this.Cookies.Append(key, value)
 
     /// Append a new cookie with value and options
@@ -91,7 +95,7 @@ type HttpResponse with
         this.Cookies.Append(key, value, cookieOptions)
 
 /// HttpContext extension methods
-type HttpContext with       
+type HttpContext with
     // ------------
     // IoC & Logging
     // ------------
@@ -118,9 +122,9 @@ type HttpContext with
         let antiFrg = this.GetService<IAntiforgery>()
         antiFrg.GetAndStoreTokens this
 
-    /// Checks the presence and validity of CSRF token 
+    /// Checks the presence and validity of CSRF token
     member this.ValidateCsrfToken () =
-        let antiFrg = this.GetService<IAntiforgery>()        
+        let antiFrg = this.GetService<IAntiforgery>()
         antiFrg.IsRequestValidAsync this
 
     // ------------
@@ -134,14 +138,14 @@ type HttpContext with
 
     /// Returns authentication status of IPrincipal, false on null
     member this.IsAuthenticated () =
-        let isAuthenciated (user : ClaimsPrincipal) = 
+        let isAuthenciated (user : ClaimsPrincipal) =
             let identity = user.Identity
-            match identity with 
+            match identity with
             | null -> false
             | _    -> identity.IsAuthenticated
 
         match this.GetUser () with
-        | None      -> false 
+        | None      -> false
         | Some user -> isAuthenciated user
 
 /// IApplicationBuilder extensions
@@ -149,11 +153,11 @@ type IApplicationBuilder with
     /// Activate Falco integration with IEndpointRouteBuilder
     member this.UseFalco (endpoints : HttpEndpoint list) =
         this.UseRouting()
-            .UseEndpoints(fun r -> 
-                for endpoint in endpoints do                           
-                    for (verb, handler) in endpoint.Handlers do                          
+            .UseEndpoints(fun r ->
+                for endpoint in endpoints do
+                    for (verb, handler) in endpoint.Handlers do
                         let requestDelegate = HttpHandler.toRequestDelegate handler
-                    
+
                         match verb with
                         | GET     -> r.MapGet(endpoint.Pattern, requestDelegate)
                         | HEAD    -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Head ], requestDelegate)
@@ -165,7 +169,7 @@ type IApplicationBuilder with
                         | TRACE   -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Trace ], requestDelegate)
                         | ANY     -> r.Map(endpoint.Pattern, requestDelegate)
                         |> ignore)
-    
+
     /// Register a Falco HttpHandler as exception handler lambda
     /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
     member this.UseFalcoExceptionHandler (exceptionHandler : HttpHandler) =
@@ -177,9 +181,9 @@ type IApplicationBuilder with
         else this
 
 /// IServiceCollection Extensions
-type IServiceCollection with        
+type IServiceCollection with
     /// Adds default Falco services to the ASP.NET Core service container.
-    member this.AddFalco() =        
+    member this.AddFalco() =
         this.AddRouting()
 
     /// Adds default Falco services to the ASP.NET Core service container.
