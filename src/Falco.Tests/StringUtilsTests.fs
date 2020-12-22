@@ -49,3 +49,13 @@ let ``strEquals should be true`` str1 str2 =
 let ``strEquals should be false`` () =
     strEquals "falco" "aclaf"
     |> should equal false
+
+[<Fact>]
+let ``strSplit should split string into substrings`` () =
+    strSplit ' ' "falco eagle bird"
+    |> should equal [|"falco"; "eagle"; "bird"|]
+
+[<Fact>]
+let ``strSplit should not split if separator is not found`` () =
+    strSplit ';' "falco eagle bird"
+    |> should equal [|"falco eagle bird"|]
