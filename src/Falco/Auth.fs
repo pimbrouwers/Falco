@@ -44,6 +44,16 @@ let getClaim
     (ctx : HttpContext) : Claim option =
     tryFindClaim (fun claim -> strEquals claim.Type claimType) ctx
 
+/// Returns bool if IPrincipal has specified scope
+let hasScope
+    (issuer : string)
+    (scope : string)
+    (ctx : HttpContext) : bool =
+    tryFindClaim (fun claim -> (strEquals claim.Issuer issuer) && (strEquals claim.Type "scope")) ctx
+    |> function
+        | None       -> false
+        | Some claim -> Array.contains scope (strSplit ' ' claim.Value)
+
 /// Establish an authenticated context for the provide scheme and principal
 let signIn
     (authScheme : string)

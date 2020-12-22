@@ -167,7 +167,7 @@ let ``Request.tryBindJsonOptions should return empty record `` () =
     }
 
 [<Fact>]
-let ``Request.ifAuthenticatedWithScope should invoke handleOk if authenticated with scope`` () =
+let ``Request.ifAuthenticatedWithScope should invoke handleOk if authenticated with scope claim from issuer`` () =
     let ctx = getHttpContextWriteable true
     let claims = [
         Claim("sub", "123", "str", "issuer");
@@ -199,7 +199,7 @@ let ``Request.ifAuthenticatedWithScope should invoke handleError if not authenti
     }
 
 [<Fact>]
-let ``Request.ifAuthenticatedWithScope should invoke handleError if authenticated with no scope from issuer`` () =
+let ``Request.ifAuthenticatedWithScope should invoke handleError if authenticated with no scope claim from issuer`` () =
     let ctx = getHttpContextWriteable true
     let claims = [
         Claim("sub", "123", "str", "issuer");

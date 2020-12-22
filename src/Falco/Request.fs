@@ -266,15 +266,11 @@ let ifAuthenticatedWithScope
     (handleError : HttpHandler) : HttpHandler =
     fun ctx ->
         let isAuthenticated = Auth.isAuthenticated ctx
-        let predicate (claim : Claim) =
-            claim.Type = "scope" &&
-            claim.Issuer = issuer &&
-            claim.Value.Split [|' '|] |> Array.exists (fun value ->  value = scope)
-        let claimOpt = Auth.tryFindClaim predicate ctx
-
-        match isAuthenticated, claimOpt with
-        | true, Some _ -> handleOk ctx
-        | _            -> handleError ctx
+        let hasScope = Auth.hasScope issuer scope ctx
+        
+        match isAuthenticated, hasScope with
+        | true, true -> handleOk ctx
+        | _          -> handleError ctx
 
 /// Proceed if the authentication status of current IPrincipal is false
 let ifNotAuthenticated

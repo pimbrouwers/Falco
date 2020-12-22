@@ -70,4 +70,51 @@ let ``Auth.getClaim returns none claim if does not exist`` () =
     
     let claim = Auth.getClaim ClaimTypes.Name ctx
     claim.IsNone |> should equal true
-    
+
+[<Fact>]
+let ``Auth.hasSCope should return true if scope claim from issuer is found and has specific value`` () =
+    let ctx = getHttpContextWriteable true
+    let claims = [
+        Claim("sub", "123", "str", "issuer1");
+        Claim("scope", "read create update delete", "str", "issuer2")
+    ]
+    ctx.User.Claims.Returns(claims) |> ignore
+
+    Auth.hasScope "issuer2" "update" ctx
+    |> should equal true
+
+[<Fact>]
+let ``Auth.hasSCope should return false if no claim from issuer is found`` () =
+    let ctx = getHttpContextWriteable true
+    let claims = [
+        Claim("sub", "123", "str", "issuer1");
+        Claim("scope", "read create update delete", "str", "issuer2")
+    ]
+    ctx.User.Claims.Returns(claims) |> ignore
+
+    Auth.hasScope "issuer3" "update" ctx
+    |> should equal false
+
+[<Fact>]
+let ``Auth.hasSCope should return false if scope claim from issuer is not found`` () =
+    let ctx = getHttpContextWriteable true
+    let claims = [
+        Claim("sub", "123", "str", "issuer1");
+        Claim("scope", "read create update delete", "str", "issuer2")
+    ]
+    ctx.User.Claims.Returns(claims) |> ignore
+
+    Auth.hasScope "issuer1" "update" ctx
+    |> should equal false
+
+[<Fact>]
+let ``Auth.hasSCope should return false if scope claim from issuer has not specific value`` () =
+    let ctx = getHttpContextWriteable true
+    let claims = [
+        Claim("sub", "123", "str", "issuer1");
+        Claim("scope", "read create update delete", "str", "issuer2")
+    ]
+    ctx.User.Claims.Returns(claims) |> ignore
+
+    Auth.hasScope "issuer2" "manage" ctx
+    |> should equal false
