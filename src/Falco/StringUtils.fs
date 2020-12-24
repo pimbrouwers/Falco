@@ -27,5 +27,5 @@ let strJoin (sep : string) (lst : string seq) =
     String.Join(sep, lst)
 
 /// Split string into substrings based on separator
-let strSplit (sep : char) (str : string) =
-    str.Split([|sep|])
+let strSplit (sep : char array) (str : string) =
+    str.Split(sep)

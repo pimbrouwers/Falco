@@ -52,7 +52,7 @@ let hasScope
     tryFindClaim (fun claim -> (strEquals claim.Issuer issuer) && (strEquals claim.Type "scope")) ctx
     |> function
         | None       -> false
-        | Some claim -> Array.contains scope (strSplit ' ' claim.Value)
+        | Some claim -> Array.contains scope (strSplit [|' '|] claim.Value)
 
 /// Establish an authenticated context for the provide scheme and principal
 let signIn

@@ -52,10 +52,10 @@ let ``strEquals should be false`` () =
 
 [<Fact>]
 let ``strSplit should split string into substrings`` () =
-    strSplit ' ' "falco eagle bird"
-    |> should equal [|"falco"; "eagle"; "bird"|]
+    strSplit [|' '; '-'|] "falco eagle bird-crow"
+    |> should equal [|"falco"; "eagle"; "bird"; "crow"|]
 
 [<Fact>]
 let ``strSplit should not split if separator is not found`` () =
-    strSplit ';' "falco eagle bird"
-    |> should equal [|"falco eagle bird"|]
+    strSplit [|';'; '-'|] "falco eagle bird,crow"
+    |> should equal [|"falco eagle bird,crow"|]
