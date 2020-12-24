@@ -7,6 +7,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Falco.Multipart
 open Falco.Security
+open System.Security.Claims
 
 /// Obtain the HttpVerb of the request
 let getVerb
@@ -253,6 +254,21 @@ let ifAuthenticatedInRole
         let isInRole = Auth.isInRole roles ctx
 
         match isAuthenticated, isInRole with
+        | true, true -> handleOk ctx
+        | _          -> handleError ctx
+        
+/// Proceed if the authentication status of current IPrincipal is true
+/// and has a specific scope
+let ifAuthenticatedWithScope
+    (issuer : string)
+    (scope : string)
+    (handleOk : HttpHandler)
+    (handleError : HttpHandler) : HttpHandler =
+    fun ctx ->
+        let isAuthenticated = Auth.isAuthenticated ctx
+        let hasScope = Auth.hasScope issuer scope ctx
+        
+        match isAuthenticated, hasScope with
         | true, true -> handleOk ctx
         | _          -> handleError ctx
 

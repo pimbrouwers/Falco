@@ -598,6 +598,24 @@ let secureResourceHandler : HttpHandler =
     Request.ifAuthenticatedInRole rolesAllowed handleAuthInRole handleInvalid
 ```
 
+- Allow only user's with a certain scope to access endpoint"
+```fsharp
+open Falco.Security
+
+let secureResourceHandler : HttpHandler =
+    let handleAuthHasScope : HttpHandler = 
+        Response.ofPlainText "user1, user2, user3"
+
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 403 
+        >> Response.ofPlainText "Forbidden"
+
+    let issuer = "https://oauth2issuer.com"
+    let scope = "read:users"
+
+    Request.ifAuthenticatedInRole issuer scope handleAuthHasScope handleInvalid
+```
+
 - End user session (sign out):
 
 ```fsharp
