@@ -39,3 +39,8 @@ let parseDateTime =
     tryParse 
         (fun (readString, timeStyle, cultureInfo) -> DateTime.TryParse (readString, cultureInfo, timeStyle))
         DateTimeStyles.None
+
+let parseDateTimeOffset =
+    tryParse 
+        (fun (readString, timeStyle, cultureInfo) -> DateTimeOffset.TryParse (readString, cultureInfo, timeStyle))
+        DateTimeStyles.None

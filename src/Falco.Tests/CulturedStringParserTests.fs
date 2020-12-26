@@ -123,3 +123,19 @@ module CulturedStringParser =
         toParse
         |> parseDateTime "en-ZA"
         |> should equal None
+
+
+    [<Fact>]
+    let ``parseDatetimeOffset en-ZA should be some`` () =
+        let dateStr = "2020-06-06 10:13:40 AM -04:00"
+        dateStr
+        |> parseDateTimeOffset "en-ZA"
+        |> should equal (Some (DateTimeOffset(2020, 6, 6, 10, 13, 40, 0, TimeSpan(-4, 0, 0))))
+
+    [<Theory>]
+    [<InlineData("falco")>]
+    [<InlineData("")>]
+    let ``parseDateTimeOffset en-ZA should be none`` toParse = 
+        toParse
+        |> parseDateTimeOffset "en-ZA"
+        |> should equal None
