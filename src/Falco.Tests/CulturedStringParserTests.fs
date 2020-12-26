@@ -60,3 +60,4 @@ module CulturedStringParser =
         toParse
         |> parseInt64 ""
         |> should equal None
+
