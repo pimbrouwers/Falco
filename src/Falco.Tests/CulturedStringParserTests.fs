@@ -108,3 +108,18 @@ module CulturedStringParser =
         toParse
         |> parseDecimal "en-ZA"
         |> should equal None
+
+    [<Fact>]
+    let ``parseDateTime en-ZA should be some`` () =
+        let dateStr = "2020-06-06 10:13:40 AM"
+        dateStr
+        |> parseDateTime "en-ZA"
+        |> should equal (Some (DateTime(2020, 6, 6, 10, 13, 40, 0)))
+
+    [<Theory>]
+    [<InlineData("falco")>]
+    [<InlineData("")>]
+    let ``parseDateTime en-ZA should be none`` toParse = 
+        toParse
+        |> parseDateTime "en-ZA"
+        |> should equal None
