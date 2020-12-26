@@ -139,3 +139,17 @@ module CulturedStringParser =
         toParse
         |> parseDateTimeOffset "en-ZA"
         |> should equal None
+
+    [<Fact>]
+    let ``parseTimeSpan en-GB should be some`` () =
+        "00:00:01"
+        |> parseTimeSpan "en-GB"
+        |> should equal (Some (TimeSpan.FromSeconds(1.0)))
+
+    [<Theory>]
+    [<InlineData("falco")>]
+    [<InlineData("")>]
+    let ``parseTimeSpan en-GB should be none`` toParse = 
+        toParse
+        |> parseTimeSpan "en-GB"
+        |> should equal None

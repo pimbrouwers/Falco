@@ -44,3 +44,9 @@ let parseDateTimeOffset =
     tryParse 
         (fun (readString, timeStyle, cultureInfo) -> DateTimeOffset.TryParse (readString, cultureInfo, timeStyle))
         DateTimeStyles.None
+
+let parseTimeSpan =
+    tryParse 
+        (fun (readString, _, cultureInfo) -> TimeSpan.TryParse (readString, cultureInfo))
+        DateTimeStyles.None
+        
