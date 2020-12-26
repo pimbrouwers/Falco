@@ -44,6 +44,7 @@
 
   <ItemGroup>
     <Compile Include="StringUtils.fs" />
+    <Compile Include="CulturedStringParser.fs" />
     <Compile Include="StringParser.fs" />
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Core.fs" />

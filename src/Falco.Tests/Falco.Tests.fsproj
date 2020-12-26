@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
+    <Compile Include="CulturedStringParserTests.fs" />
     <Compile Include="StringParserTests.fs" />
     <Compile Include="StringUtilsTests.fs" />
     <Compile Include="StringCollectionReaderTests.fs" />
