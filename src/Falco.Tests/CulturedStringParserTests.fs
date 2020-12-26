@@ -42,3 +42,21 @@ module CulturedStringParser =
         toParse
         |> parseInt ""
         |> should equal None
+
+    [<Theory>]
+    [<InlineData("1", 1L)>]
+    [<InlineData("9223372036854775807", Int64.MaxValue)>]
+    [<InlineData("-9223372036854775808", Int64.MinValue)>]
+    let ``parseInt64 should be some`` toParse result =
+        toParse
+        |> parseInt64 ""
+        |> should equal (Some result)
+
+    [<Theory>]
+    [<InlineData("")>]
+    [<InlineData("9223372036854775808")>]
+    [<InlineData("-9223372036854775809")>]
+    let ``parseInt64 should be none`` toParse =
+        toParse
+        |> parseInt64 ""
+        |> should equal None

@@ -14,4 +14,7 @@ let parseInt16 =
 let parseInt32 = 
     tryParse (fun (readString, numberStyle, cultureInfo) -> Int32.TryParse (readString, numberStyle, cultureInfo))
 
+let parseInt64 = 
+    tryParse (fun (readString, numberStyle, cultureInfo) -> Int64.TryParse (readString, numberStyle, cultureInfo))
+
 let parseInt = parseInt32
