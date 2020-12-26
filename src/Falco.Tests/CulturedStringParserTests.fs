@@ -93,3 +93,18 @@ module CulturedStringParser =
         |> parseFloat "Blah"
         |> should equal (Some result)
 
+    [<Theory>]
+    [<InlineData("99,99", 99.99)>]    
+    [<InlineData("1", 1.0)>]
+    let ``parseDecimal en-ZA should be some`` toParse (result : float) = 
+        toParse
+        |> parseDecimal "en-ZA"
+        |> should equal (Some (Convert.ToDecimal(result)))
+
+    [<Theory>]
+    [<InlineData("falco")>]
+    [<InlineData("")>]
+    let ``parseDecimal en-ZA should be none`` toParse = 
+        toParse
+        |> parseDecimal "en-ZA"
+        |> should equal None

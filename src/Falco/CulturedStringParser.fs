@@ -29,5 +29,9 @@ let parseFloat =
     tryParse 
         (fun (readString, numberStyle, cultureInfo) -> Double.TryParse (readString, numberStyle, cultureInfo))
         NumberStyles.AllowDecimalPoint
-        
 
+
+let parseDecimal = 
+    tryParse 
+        (fun (readString, numberStyle, cultureInfo) -> Decimal.TryParse (readString, numberStyle, cultureInfo))
+        NumberStyles.AllowDecimalPoint
