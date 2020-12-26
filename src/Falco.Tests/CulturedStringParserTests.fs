@@ -69,13 +69,6 @@ module CulturedStringParser =
         |> parseFloat ""
         |> should equal (Some result)
 
-    [<Theory>]
-    [<InlineData("99,99", 99.99)>]    
-    [<InlineData("1", 1.0)>]
-    let ``parseFloat en-ZA should be some`` toParse result = 
-        toParse
-        |> parseFloat "en-ZA"
-        |> should equal (Some result)
 
     [<Theory>]
     [<InlineData("falco")>]
@@ -84,3 +77,12 @@ module CulturedStringParser =
         toParse
         |> parseFloat ""
         |> should equal None
+
+    [<Theory>]
+    [<InlineData("99,99", 99.99)>]    
+    [<InlineData("1", 1.0)>]
+    let ``parseFloat en-ZA should be some`` toParse result = 
+        toParse
+        |> parseFloat "en-ZA"
+        |> should equal (Some result)
+        
