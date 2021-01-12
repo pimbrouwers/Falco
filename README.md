@@ -613,7 +613,7 @@ let secureResourceHandler : HttpHandler =
     let issuer = "https://oauth2issuer.com"
     let scope = "read:users"
 
-    Request.ifAuthenticatedInRole issuer scope handleAuthHasScope handleInvalid
+    Request.ifAuthenticatedWithScope issuer scope handleAuthHasScope handleInvalid
 ```
 
 - End user session (sign out):
