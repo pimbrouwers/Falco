@@ -132,7 +132,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 
 The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
 
-Basic request/resposne handling is divided between the aptly named [`Request`][18] and [`Response`][16] modules, which offer a suite of continuation-passing style (CPS) `HttpHandler` functions for common scenarios.
+Basic request/response handling is divided between the aptly named [`Request`][18] and [`Response`][16] modules, which offer a suite of continuation-passing style (CPS) `HttpHandler` functions for common scenarios.
 
 ### Plain Text responses
 
