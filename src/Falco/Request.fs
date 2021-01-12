@@ -166,7 +166,6 @@ let bindForm
         return! respondWith ctx
     }
 
-
 /// Validate the CSRF of the current request
 let validateCsrfToken
     (handleOk : HttpHandler)
@@ -193,6 +192,11 @@ let bindFormSecure
     validateCsrfToken
         (bindForm binder handleOk handleError)
         handleInvalidToken
+
+/// Create an HttpHandler with lazy evaluation
+let handle
+    (handle : unit -> HttpHandler) : HttpHandler =
+    fun ctx -> handle () ctx
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler
