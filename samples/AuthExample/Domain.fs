@@ -44,8 +44,8 @@ let updateUser (storage : IStorage) (id : string) (userDto : UserDto) =
         users
         |> Seq.tryFind (fun user -> user.Id = id)
         |> function
-            | Some user -> Result.Ok user
-            | None      -> Result.Error { Code = "123"; Message = "User to update not found!" }
+            | Some user -> Ok user
+            | None      -> Error { Code = "123"; Message = "User to update not found!" }
     storage.GetAll()
     |> Result.bind checkUserExist
     |> Result.bind (fun _ -> storage.Update id userDto)
@@ -55,8 +55,8 @@ let deleteUser (storage : IStorage) (id : string) =
         users
         |> Seq.tryFind (fun user -> user.Id = id)
         |> function
-            | Some user -> Result.Ok user
-            | None      -> Result.Error { Code = "456"; Message = "User to delete not found!" }
+            | Some user -> Ok user
+            | None      -> Error { Code = "456"; Message = "User to delete not found!" }
     storage.GetAll()
     |> Result.bind checkUserExist
     |> Result.bind (fun _ -> storage.Remove id)
