@@ -62,7 +62,7 @@ webHost [||] {
 
 ### Using `dotnet new`
 
-The easiest way to get started with Falco is by installing the Falco.Template package, which adds a new template to your dotnet new command line tool:
+The easiest way to get started with Falco is by installing the `Falco.Template` package, which adds a new template to your `dotnet new` command line tool:
 
 ```cmd
 dotnet new -i "Falco.Template::*"
@@ -124,15 +124,15 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | Sample | Description |
 | ------ | ----------- |
 | [Hello World][7] | A basic hello world app |
-| [Configure Host][21] | Demonstrating how to configure the `IHost` instance using then `webHost` computation expression |
+| [Configure Host][21] | Demonstrating how to configure the `IHost` instance using the `webHost` computation expression |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
 | [Todo MVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
 
 ## Request Handling
 
-The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion of and HTTP request processing, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
+The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion and processing of an HTTP request, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
 
-Basic request/resposne handling is divided between the aptly named [`Request`][18] and [`Response`][16] modules, which offer a suite of continuation-passing style (CPS) `HttpHandler` functions for common scenarios.
+Basic request/response handling is divided between the aptly named [`Request`][18] and [`Response`][16] modules, which offer a suite of continuation-passing style (CPS) `HttpHandler` functions for common scenarios.
 
 ### Plain Text responses
 
@@ -161,7 +161,7 @@ let htmlHandler : HttpHandler =
     |> Response.ofHtml
 ```
 
-Alternatively, if you're using an external view engine and want to return an HTML response from a string literal you can use `Response.ofHtmlString`.
+Alternatively, if you're using an external view engine and want to return an HTML response from a string literal, then you can use `Response.ofHtmlString`.
 
 ```fsharp
 let htmlHandler : HttpHandler = 
@@ -227,7 +227,7 @@ let helloHandler : HttpHandler =
 
 ## Routing
 
-The breakdown of [Endpoint Routing][3] is simple. Associate a a specific [route pattern][5] (and optionally an HTTP verb) to an `HttpHandler` which represents the ongoing processing (and eventual return) of a request.
+The breakdown of [Endpoint Routing][3] is simple. Associate a specific [route pattern][5] (and optionally an HTTP verb) to an `HttpHandler` which represents the ongoing processing (and eventual return) of a request.
 
 Bearing this in mind, routing can practically be represented by a list of these "mappings" known in Falco as an `HttpEndpoint` which bind together: a route, verb and handler.
 
@@ -259,7 +259,7 @@ let endpoints : HttpEndpoint list =
 
 ## Host Builder
 
-[Kestrel][1] is the web server at the heart of ASP.NET. It's a performant, secure and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the [Configure Host][21] sample.
+[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the [Configure Host][21] sample.
 
 ```fsharp
 module ConfigureHost.Program
@@ -300,7 +300,7 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 
 ### Route Binding
 
-Route binding will normally achieved through `Request.mapRoute` or `Request.bindRoute` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers, which expose an opportunity to project the values from `RouteCollectionReader`, which also has full access to the query string via `QueryCollectionReader`.
+Route binding is normally achieved through `Request.mapRoute` or `Request.bindRoute` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `RouteCollectionReader`, which itself has full access to the query string via `QueryCollectionReader`.
 
 ```fsharp
 let mapRouteHandler : HttpHandler =
@@ -333,7 +333,7 @@ let manualRouteHandler : HttpHandler =
 
 ### Query Binding
 
-Query binding will normally achieved through `Request.mapQuery` or `Request.bindQuery` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers, which expose an opportunity to project the values from `QueryCollectionReader`.
+Query binding is normally achieved through `Request.mapQuery` or `Request.bindQuery` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `QueryCollectionReader`.
 
 ```fsharp
 type Person = { FirstName : string; LastName : string }
@@ -370,7 +370,7 @@ let manualQueryHandler : HttpHandler =
 
 ### Form Binding
 
-Form binding will normally achieved through `Request.mapForm` or `Request.bindForm` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers, which expose an opportunity to project the values from `FormCollectionReader`, which also has full access to the `IFormFilesCollection` via the `_.Files` member.
+Form binding is normally achieved through `Request.mapForm` or `Request.bindForm` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `FormCollectionReader`, which itself has full access to the `IFormFilesCollection` via the `_.Files` member.
 
 > Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
 
@@ -429,7 +429,7 @@ let manualFormHandler : HttpHandler =
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json`, thus without support for F#'s algebraic types.
+Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have no support for F#'s algebraic types.
 
 ```fsharp
 type Person =
@@ -450,7 +450,7 @@ let jsonBindHandler : HttpHandler =
 
 ## Markup
 
-A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.). 
+A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.).
 
 For example, the module is easily extended since creating new tags is simple. An example to render `<svg>`'s:
 
@@ -472,7 +472,8 @@ let bars =
 
 ### HTML View Engine
 
-Most of the standard HTML tags & attributes have been built into the markup module, which produce objects to represent the HTML node. Nodes are either:
+Most of the standard HTML tags & attributes have been built into the markup module and produce objects to represent the HTML node. Nodes are either:
+
 - `Text` which represents `string` values. (Ex: `Text.raw "hello"`, `Text.rawf "hello %s" "world"`)
 - `SelfClosingNode` which represent self-closing tags (Ex: `<br />`).
 - `ParentNode` which represent typical tags with, optionally, other tags within it (Ex: `<div>...</div>`).
@@ -544,11 +545,11 @@ let aboutView =
 
 ## Authentication
 
-ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilites.
+ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilities.
 
-> To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`. 
+> To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`.
 
-- Prevent user from accessing secure endpoint:
+Prevent user from accessing secure endpoint:
 
 ```fsharp
 open Falco.Security
@@ -565,7 +566,7 @@ let secureResourceHandler : HttpHandler =
     Request.ifAuthenticated handleAuth handleInvalid
 ```
 
-- Prevent authenticated user from accessing anonymous-only end-point:
+Prevent authenticated user from accessing anonymous-only end-point:
 
 ```fsharp
 open Falco.Security
@@ -581,7 +582,8 @@ let anonResourceOnlyHandler : HttpHandler =
     Request.ifNotAuthenticated handleAnon handleInvalid
 ```
 
-- Allow only user's from a certain group to access endpoint"
+Allow only user's from a certain group to access endpoint"
+
 ```fsharp
 open Falco.Security
 
@@ -598,7 +600,26 @@ let secureResourceHandler : HttpHandler =
     Request.ifAuthenticatedInRole rolesAllowed handleAuthInRole handleInvalid
 ```
 
-- End user session (sign out):
+Allow only user's with a certain scope to access endpoint"
+
+```fsharp
+open Falco.Security
+
+let secureResourceHandler : HttpHandler =
+    let handleAuthHasScope : HttpHandler = 
+        Response.ofPlainText "user1, user2, user3"
+
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 403 
+        >> Response.ofPlainText "Forbidden"
+
+    let issuer = "https://oauth2issuer.com"
+    let scope = "read:users"
+
+    Request.ifAuthenticatedWithScope issuer scope handleAuthHasScope handleInvalid
+```
+
+End user session (sign out):
 
 ```fsharp
 open Falco.Security
@@ -612,13 +633,13 @@ let logOut : HttpHandler =
 
 ## Security
 
-Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them. 
+Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.
 
 The [Microsoft.AspNetCore.Antiforgery][14] package provides the required utilities to easily protect yourself against such attacks.
 
 Falco provides a few handlers via `Falco.Security.Xss`:
 
-> To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`. 
+> To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`.
 
 ```fsharp
 open Falco.Security 
@@ -646,7 +667,7 @@ let csrfViewHandler : HttpHandler =
     |> Response.ofHtmlCsrf
     
 // A handler that demonstrates validating
-// the requests CSRF token
+// the request's CSRF token
 let mapFormSecureHandler : HttpHandler =    
     let mapPerson (form : FormCollectionReader) =
         { FirstName = form.GetString "first_name" "John" // Get value or return default value
@@ -661,7 +682,7 @@ let mapFormSecureHandler : HttpHandler =
 
 ### Crytography
 
-Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is of critical importance. 
+Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is of critical importance.
 
 Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
@@ -679,7 +700,7 @@ let iterations = Crypto.randomInt 10000 50000
 // Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
 let password = "5upe45ecure"
 let hashedPassword = password |> Crypto.sha256 iterations 32 salt
-``` 
+```
 
 ## Handling Large Uploads
 
