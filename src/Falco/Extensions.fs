@@ -144,27 +144,31 @@ type HttpContext with
         | None      -> false 
         | Some user -> isAuthenciated user
 
+/// IEndpointRouteBuilder extensions
+type IEndpointRouteBuilder with
+    member this.UseFalcoEndpoints (endpoints : HttpEndpoint list) =
+        for endpoint in endpoints do                           
+            for (verb, handler) in endpoint.Handlers do                          
+                let requestDelegate = HttpHandler.toRequestDelegate handler
+            
+                match verb with
+                | GET     -> this.MapGet(endpoint.Pattern, requestDelegate)
+                | HEAD    -> this.MapMethods(endpoint.Pattern, [ HttpMethods.Head ], requestDelegate)
+                | POST    -> this.MapPost(endpoint.Pattern, requestDelegate)
+                | PUT     -> this.MapPut(endpoint.Pattern, requestDelegate)
+                | PATCH   -> this.MapMethods(endpoint.Pattern, [ HttpMethods.Patch ], requestDelegate)
+                | DELETE  -> this.MapDelete(endpoint.Pattern, requestDelegate)
+                | OPTIONS -> this.MapMethods(endpoint.Pattern, [ HttpMethods.Options ], requestDelegate)
+                | TRACE   -> this.MapMethods(endpoint.Pattern, [ HttpMethods.Trace ], requestDelegate)
+                | ANY     -> this.Map(endpoint.Pattern, requestDelegate)
+                |> ignore
+
 /// IApplicationBuilder extensions
 type IApplicationBuilder with
     /// Activate Falco integration with IEndpointRouteBuilder
     member this.UseFalco (endpoints : HttpEndpoint list) =
         this.UseRouting()
-            .UseEndpoints(fun r -> 
-                for endpoint in endpoints do                           
-                    for (verb, handler) in endpoint.Handlers do                          
-                        let requestDelegate = HttpHandler.toRequestDelegate handler
-                    
-                        match verb with
-                        | GET     -> r.MapGet(endpoint.Pattern, requestDelegate)
-                        | HEAD    -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Head ], requestDelegate)
-                        | POST    -> r.MapPost(endpoint.Pattern, requestDelegate)
-                        | PUT     -> r.MapPut(endpoint.Pattern, requestDelegate)
-                        | PATCH   -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Patch ], requestDelegate)
-                        | DELETE  -> r.MapDelete(endpoint.Pattern, requestDelegate)
-                        | OPTIONS -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Options ], requestDelegate)
-                        | TRACE   -> r.MapMethods(endpoint.Pattern, [ HttpMethods.Trace ], requestDelegate)
-                        | ANY     -> r.Map(endpoint.Pattern, requestDelegate)
-                        |> ignore)
+            .UseEndpoints(fun r -> r.UseFalcoEndpoints(endpoints))
     
     /// Register a Falco HttpHandler as exception handler lambda
     /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
