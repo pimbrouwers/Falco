@@ -3,6 +3,7 @@ module Falco.Response
 
 open System
 open System.IO
+open System.Security.Claims
 open System.Text
 open System.Text.Json
 open Falco.Markup
@@ -101,7 +102,15 @@ let ofJson (obj : 'a) : HttpHandler =
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Constants.defaultJsonOptions obj
 
-/// Responsds with a 301, and terminates authenticated context for provided scheme
+
+/// Sign in claim principal for provided scheme, and responsd with a 301 redirect to provided URL
+let signInAndRedirect (authScheme : string) (claimsPrincipal : ClaimsPrincipal) (url : string) : HttpHandler =
+    fun ctx -> task {
+        do! Auth.signIn authScheme claimsPrincipal ctx
+        do! redirect url false ctx
+    }
+
+/// Terminates authenticated context for provided scheme, and respond with a 301 redirect to provided URL
 let signOutAndRedirect (authScheme : string) (url : string) : HttpHandler =
     fun ctx -> task {
         do! Auth.signOut authScheme ctx
