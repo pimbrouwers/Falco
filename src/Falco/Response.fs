@@ -53,14 +53,30 @@ let redirect (url : string) (permanent : bool) : HttpHandler =
         ctx.Response.Redirect(url, permanent)
         ctx.Response.CompleteAsync ()
 
+/// Returns an inline binary (i.e., Byte[]) response with the specified Content-Type
+let ofBytes (contentType : string) (bytes : Byte[]) : HttpHandler = 
+    withContentType contentType
+    >> withHeader "Content-Disposition" "inline"
+    >> fun ctx -> ctx.Response.WriteBytes bytes
+
+/// Returns a binary (i.e., Byte[]) attachment response with the specified Content-Type and optional filename
+let ofAttachment (filename : string option) (contentType : string) (bytes : Byte[]) : HttpHandler =
+    let contentDisposition = 
+        filename
+        |> Option.map (sprintf "attachment; filename=\"%s\"")
+        |> Option.defaultValue "attachment"
+
+    withContentType contentType
+    >> withHeader "Content-Disposition" contentType
+    >> fun ctx -> ctx.Response.WriteBytes bytes
+
 /// Flushes any remaining response headers or data and returns empty response
 let ofEmpty : HttpHandler =
     fun ctx -> ctx.Response.CompleteAsync ()
 
 /// Writes string to response body with provided encoding
 let ofString (encoding : Encoding) (str : string) : HttpHandler =
-    fun ctx ->
-        ctx.Response.WriteString encoding str
+    fun ctx -> ctx.Response.WriteString encoding str
 
 /// Returns a "text/plain; charset=utf-8" response with provided string to client
 let ofPlainText (str : string) : HttpHandler =
