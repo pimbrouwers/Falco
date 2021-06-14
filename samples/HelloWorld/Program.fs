@@ -8,23 +8,6 @@ open Falco.HostBuilder
 // ------------
 // Handlers 
 // ------------
-let handleFormGet : HttpHandler =
-    [
-        Elem.form [ Attr.method "post"; Attr.enctype "multipart/form-data" ] [
-            Elem.input [ Attr.type' "file"; Attr.name "file" ] 
-            Elem.input [ Attr.type' "submit" ]
-        ]
-    ]
-    |> Templates.html5 "en" []
-    |> Response.ofHtml
-
-let handleFormPost : HttpHandler =
-    let formBinder (f : FormCollectionReader) =
-        let myFile = f.TryGetFormFile "file"
-        "1"
-
-    Request.mapForm formBinder Response.ofPlainText
-
 let handlePlainText : HttpHandler =
     "Hello world"
     |> Response.ofPlainText 
@@ -41,11 +24,6 @@ let handleHtml : HttpHandler =
 let main args =      
     webHost args {
         endpoints [   
-            all "/form"  [
-                GET,  handleFormGet
-                POST, handleFormPost
-            ]
-
             get "/html" handleHtml 
 
             get "/json" handleJson
