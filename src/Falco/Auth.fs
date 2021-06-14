@@ -57,10 +57,11 @@ let hasScope
     (issuer : string)
     (scope : string)
     (ctx : HttpContext) : bool =
-    tryFindClaim (fun claim -> (strEquals claim.Issuer issuer) && (strEquals claim.Type "scope")) ctx
-    |> function
-        | None       -> false
-        | Some claim -> Array.contains scope (strSplit [|' '|] claim.Value)
+    let predicate (claim : Claim) = (strEquals claim.Issuer issuer) && (strEquals claim.Type "scope")
+    
+    tryFindClaim predicate ctx |> function
+    | None       -> false
+    | Some claim -> Array.contains scope (strSplit [|' '|] claim.Value)
 
 /// Establish an authenticated context for the provide scheme and principal
 let signIn

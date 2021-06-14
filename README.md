@@ -1,7 +1,3 @@
-<p align="center">
-  <img id="logo" src="https://github.com/pimbrouwers/Falco/raw/master/assets/logo.png" />
-</p>
-
 # Falco
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
