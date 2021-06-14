@@ -31,6 +31,10 @@ let withContentLength (contentLength : int64) : HttpResponseModifier =
 let withHeader (header : string) (content : string) : HttpResponseModifier =
     modify (fun ctx -> ctx.Response.SetHeader header content)
 
+/// Set multiple headers for response
+let withHeaders (headers : (string * string) list) : HttpResponseModifier =
+    modify (fun ctx -> headers |> List.iter (fun (header, content) -> ctx.Response.SetHeader header content))
+
 /// Set ContentType header for response
 let withContentType (contentType : string) : HttpResponseModifier =
     withHeader HeaderNames.ContentType contentType
@@ -54,20 +58,28 @@ let redirect (url : string) (permanent : bool) : HttpHandler =
         ctx.Response.CompleteAsync ()
 
 /// Returns an inline binary (i.e., Byte[]) response with the specified Content-Type
-let ofBytes (contentType : string) (bytes : Byte[]) : HttpHandler = 
+///
+/// Note: Automatically sets "content-disposition: inline"
+let ofBytes (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =     
+    let headers = (HeaderNames.ContentDisposition, "inline") :: headers
+    
     withContentType contentType
-    >> withHeader "Content-Disposition" "inline"
+    >> withHeaders headers
     >> fun ctx -> ctx.Response.WriteBytes bytes
 
 /// Returns a binary (i.e., Byte[]) attachment response with the specified Content-Type and optional filename
-let ofAttachment (filename : string option) (contentType : string) (bytes : Byte[]) : HttpHandler =
+///
+/// Note: Automatically sets "content-disposition: attachment" and includes filename if provided
+let ofAttachment (filename : string option) (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =
     let contentDisposition = 
         filename
         |> Option.map (sprintf "attachment; filename=\"%s\"")
         |> Option.defaultValue "attachment"
 
+    let headers = (HeaderNames.ContentDisposition, contentType) :: headers
+
     withContentType contentType
-    >> withHeader "Content-Disposition" contentType
+    >> withHeaders headers
     >> fun ctx -> ctx.Response.WriteBytes bytes
 
 /// Flushes any remaining response headers or data and returns empty response
