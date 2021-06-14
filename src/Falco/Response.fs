@@ -60,7 +60,7 @@ let redirect (url : string) (permanent : bool) : HttpHandler =
 /// Returns an inline binary (i.e., Byte[]) response with the specified Content-Type
 ///
 /// Note: Automatically sets "content-disposition: inline"
-let ofBytes (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =     
+let ofBinary (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =     
     let headers = (HeaderNames.ContentDisposition, "inline") :: headers
     
     withContentType contentType

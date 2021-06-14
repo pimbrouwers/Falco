@@ -44,6 +44,14 @@ let getClaim
     (ctx : HttpContext) : Claim option =
     tryFindClaim (fun claim -> strEquals claim.Type claimType) ctx
 
+/// Attempts to return specific claim value from IPrincipal
+let getClaimValue
+    (claimType : string)
+    (ctx : HttpContext) : string option =
+    getClaim claimType ctx |> function 
+    | Some c -> Some c.Value
+    | None -> None
+
 /// Returns bool if IPrincipal has specified scope
 let hasScope
     (issuer : string)
