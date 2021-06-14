@@ -40,7 +40,8 @@ type HttpRequest with
     /// Retrieve StringCollectionReader for IFormCollection from HttpRequest
     member this.GetFormReaderAsync () = task {
         let! form = this.ReadFormAsync()
-        return FormCollectionReader(form, None)
+        let files = if isNull(form.Files) then None else Some form.Files
+        return FormCollectionReader(form, files)
     }
 
     /// Obtain HeaderValues for the current request

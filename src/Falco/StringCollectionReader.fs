@@ -219,7 +219,22 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
 /// Represents a readable collection of parsed form value
 type FormCollectionReader (form : IFormCollection, files : IFormFileCollection option) =
     inherit StringCollectionReader (form)
+
+    /// The IFormFileCollection submitted in the request.
+    /// 
+    /// Note: Only present if form enctype="multipart/form-data".
     member _.Files = files
+
+    /// Safely retrieve the named IFormFile option from the IFormFileCollection
+    member this.TryGetFormFile (name : string) =        
+        if StringUtils.strEmpty name then None 
+        else 
+            match this.Files with
+            | None       -> None
+            | Some files ->                
+                let file = files.GetFile name
+
+                if isNull(file) then None else Some file
 
 /// Represents a readable collection of parsed HTTP header values
 type HeaderCollectionReader (headers : IHeaderDictionary) =
