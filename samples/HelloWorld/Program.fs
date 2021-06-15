@@ -28,8 +28,6 @@ let main args =
 
             get "/json" handleJson
 
-            get "/binary" (Response.ofBinary "text/plain" [] [|102uy; 97uy; 108uy; 99uy; 111uy|])
-
             get "/" handlePlainText
         ]
     }        
