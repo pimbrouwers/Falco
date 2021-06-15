@@ -63,6 +63,47 @@ let ``Response.redirect temporary should invoke HttpResponse Redirect with provi
         ctx.Response.Received().Redirect("/", permanent)
     }
 
+
+[<Fact>]
+let ``Response.ofBinary produces valid inline result from Byte[]`` () =
+    let ctx = getHttpContextWriteable false
+    let expected = "falco"
+    let contentType = "text/plain; charset=utf-8"    
+
+    task {
+        do! ctx
+            |> Response.ofBinary contentType [] (expected |> Encoding.UTF8.GetBytes)
+
+        let! body = getResponseBody ctx
+        let contentLength = ctx.Response.ContentLength
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
+        let contentDisposition = ctx.Response.Headers.[HeaderNames.ContentDisposition]
+
+        body               |> should equal expected        
+        contentType        |> should equal contentType
+        contentDisposition |> should equal "inline"
+    }
+
+[<Fact>]
+let ``Response.ofAttachment produces valid attachment result from Byte[]`` () =
+    let ctx = getHttpContextWriteable false
+    let expected = "falco"
+    let contentType = "text/plain; charset=utf-8"    
+
+    task {
+        do! ctx
+            |> Response.ofAttachment "falco.txt" contentType [] (expected |> Encoding.UTF8.GetBytes)
+
+        let! body = getResponseBody ctx
+        let contentLength = ctx.Response.ContentLength
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
+        let contentDisposition = ctx.Response.Headers.[HeaderNames.ContentDisposition]
+
+        body               |> should equal expected        
+        contentType        |> should equal contentType
+        contentDisposition |> should equal "attachment; filename=\"falco.txt\""
+    }
+
 [<Fact>]
 let ``Response.ofPlainText produces text/plain result`` () =
     let ctx = getHttpContextWriteable false

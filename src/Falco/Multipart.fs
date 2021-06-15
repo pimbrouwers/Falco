@@ -99,3 +99,13 @@ type HttpRequest with
 
             | false, _ -> return Error "Not a multipart request"
         }
+
+    member this.StreamFormAsync() = task {
+        let! form = this.TryStreamFormAsync()
+        
+        return
+            match form with
+            | Error _ -> FormCollectionReader(FormCollection.Empty, None)
+            | Ok form -> form
+    }
+        

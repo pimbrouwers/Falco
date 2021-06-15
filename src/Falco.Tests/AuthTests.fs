@@ -72,6 +72,26 @@ let ``Auth.getClaim returns none claim if does not exist`` () =
     claim.IsNone |> should equal true
 
 [<Fact>]
+let ``Auth.getClaimValue returns claim value if exists`` () =
+    let ctx = getHttpContextWriteable true
+    let expected = "falco"
+    ctx.User.Claims.Returns([Claim(ClaimTypes.Name, expected)]) |> ignore
+    
+    let claimValue = Auth.getClaimValue ClaimTypes.Name ctx
+    claimValue.IsSome |> should equal true
+    
+    claimValue.Value   
+    |> should equal expected
+
+[<Fact>]
+let ``Auth.getClaimValue returns none claim if does not exist`` () =
+    let ctx = getHttpContextWriteable true    
+    ctx.User.Claims.Returns([]) |> ignore
+    
+    let claim = Auth.getClaimValue ClaimTypes.Name ctx
+    claim.IsNone |> should equal true
+
+[<Fact>]
 let ``Auth.hasSCope should return true if scope claim from issuer is found and has specific value`` () =
     let ctx = getHttpContextWriteable true
     let claims = [

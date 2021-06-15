@@ -70,13 +70,12 @@ let ofBinary (contentType : string) (headers : (string * string) list) (bytes : 
 /// Returns a binary (i.e., Byte[]) attachment response with the specified Content-Type and optional filename
 ///
 /// Note: Automatically sets "content-disposition: attachment" and includes filename if provided
-let ofAttachment (filename : string option) (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =
+let ofAttachment (filename : string) (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =
     let contentDisposition = 
-        filename
-        |> Option.map (sprintf "attachment; filename=\"%s\"")
-        |> Option.defaultValue "attachment"
+        if StringUtils.strNotEmpty filename then sprintf "attachment; filename=\"%s\"" filename
+        else "attachment"
 
-    let headers = (HeaderNames.ContentDisposition, contentType) :: headers
+    let headers = (HeaderNames.ContentDisposition, contentDisposition) :: headers
 
     withContentType contentType
     >> withHeaders headers

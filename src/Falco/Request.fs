@@ -58,6 +58,19 @@ let tryStreamForm
     (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> =
     ctx.Request.TryStreamFormAsync()
 
+/// Stream the form collection for multipart form submissions
+let streamForm
+    (ctx : HttpContext) : Task<FormCollectionReader> =
+    ctx.Request.StreamFormAsync()
+
+/// Attempt to bind the form collection
+let tryBindFormStream
+    (binder : FormCollectionReader -> Result<'a, 'b>)
+    (ctx : HttpContext) : Task<Result<'a, 'b>> = task {
+        let! form = streamForm ctx
+        return form |> binder
+    }
+
 /// Retrieve the cookie from the request as an instance of CookieCollectionReader
 let getCookie
     (ctx : HttpContext) : CookieCollectionReader =
@@ -150,6 +163,21 @@ let bindCookie
 
         respondWith ctx
 
+/// Validate the CSRF of the current request
+let validateCsrfToken
+    (handleOk : HttpHandler)
+    (handleInvalidToken : HttpHandler) : HttpHandler =
+    fun ctx -> task {
+        let! isValid = Xss.validateToken ctx
+
+        let respondWith =
+            match isValid with
+            | true  -> handleOk
+            | false -> handleInvalidToken
+
+        return! respondWith ctx
+    }
+
 /// Attempt to bind the FormCollectionReader onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
 let bindForm
@@ -166,18 +194,19 @@ let bindForm
         return! respondWith ctx
     }
 
-
-/// Validate the CSRF of the current request
-let validateCsrfToken
-    (handleOk : HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler =
-    fun ctx -> task {
-        let! isValid = Xss.validateToken ctx
-
+/// Attempt to bind a streamed (i.e., multipart/form-data) 
+/// FormCollectionReader  onto 'a and provide to handleOk, 
+/// otherwise provide handleError with 'b
+let bindFormStream
+    (binder : FormCollectionReader -> Result<'a, 'b>)
+    (handleOk : 'a -> HttpHandler)
+    (handleError : 'b -> HttpHandler) : HttpHandler =
+    fun ctx -> task {        
+        let! form = tryBindFormStream binder ctx
         let respondWith =
-            match isValid with
-            | true  -> handleOk
-            | false -> handleInvalidToken
+            match form with
+            | Error error -> handleError error
+            | Ok form -> handleOk form
 
         return! respondWith ctx
     }
@@ -192,6 +221,19 @@ let bindFormSecure
     (handleInvalidToken : HttpHandler) : HttpHandler =
     validateCsrfToken
         (bindForm binder handleOk handleError)
+        handleInvalidToken
+
+/// Validate the CSRF of the current request then atempt 
+/// to bind a streamed (i.e., multipart/form-data) 
+/// FormCollectionReader onto 'a and provide to handleOk, 
+/// otherwise provide handleError with 'b
+let bindFormStreamSecure
+    (binder : FormCollectionReader -> Result<'a, 'b>)
+    (handleOk : 'a -> HttpHandler)
+    (handleError : 'b -> HttpHandler)
+    (handleInvalidToken : HttpHandler) : HttpHandler =
+    validateCsrfToken
+        (bindFormStream binder handleOk handleError)
         handleInvalidToken
 
 /// Project RouteCollectionReader onto 'a and provide
@@ -225,6 +267,16 @@ let mapForm
         return! next (form |> map) ctx
     }
 
+/// Project FormCollectionReader a streamed (i.e., multipart/form-data) 
+/// onto 'a and provide to next HttpHandler
+let mapFormStream
+    (map : FormCollectionReader -> 'a)
+    (next : 'a -> HttpHandler) : HttpHandler =
+    fun ctx -> task {
+        let! form = streamForm ctx
+        return! next (form |> map) ctx
+    }
+
 /// Project FormCollectionReader onto 'a and provide
 /// to next HttpHandler
 let mapFormSecure
@@ -233,6 +285,16 @@ let mapFormSecure
     (handleInvalidToken : HttpHandler) : HttpHandler =
         validateCsrfToken
             (mapForm map next)
+            handleInvalidToken
+
+/// Project FormCollectionReader a streamed (i.e., multipart/form-data) 
+/// onto 'a and provide to next HttpHandler
+let mapFormStreamSecure
+    (map : FormCollectionReader -> 'a)
+    (next : 'a -> HttpHandler)
+    (handleInvalidToken : HttpHandler) : HttpHandler =
+        validateCsrfToken
+            (mapFormStream map next)
             handleInvalidToken
 
 /// Proceed if the authentication status of current IPrincipal is true
