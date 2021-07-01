@@ -52,6 +52,6 @@ let ofFormSecure getRoot formBinder workflow handleOk handleError handleInvalidC
         handleInvalidCsrfToken
 
 /// Map a JSON request and run the provided workflow
-let ofJson getRoot formBinder workflow handleOk handleError =        
+let ofJson getRoot workflow handleOk handleError =        
     Request.mapJson        
         (execute getRoot workflow handleOk handleError)        
