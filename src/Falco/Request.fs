@@ -7,7 +7,6 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Falco.Multipart
 open Falco.Security
-open System.Security.Claims
 
 /// Obtain the HttpVerb of the request
 let getVerb
@@ -103,15 +102,15 @@ let tryBindJson<'a>
 // Handlers
 // ------------
 
-/// Attempt to bind JSON request body onto ' and provider
+/// Attempt to bind JSON request body onto 'a and provide
 /// to handleOk, otherwise provide handleError with error string
 let bindJson
     (handleOk : 'a -> HttpHandler)
     (handleError : string -> HttpHandler) : HttpHandler =
     fun ctx -> task {
-        let! form = tryBindJson ctx
+        let! json = tryBindJson ctx
         let respondWith =
-            match form with
+            match json with
             | Error error -> handleError error
             | Ok form -> handleOk form
 
@@ -235,6 +234,20 @@ let bindFormStreamSecure
     validateCsrfToken
         (bindFormStream binder handleOk handleError)
         handleInvalidToken
+
+/// Bind JSON request body onto 'a and provide to next
+/// Httphandler, throws exception if JsonException 
+/// occurs during deserialization.
+let mapJson (next : 'a -> HttpHandler) : HttpHandler =
+    fun ctx -> task {
+        let! json = tryBindJson ctx
+        let respondWith =
+            match json with
+            | Error error -> failwith "Could not bind JSON"
+            | Ok json -> next json
+
+        return! respondWith ctx
+    }
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler

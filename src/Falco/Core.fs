@@ -71,3 +71,15 @@ type HttpEndpoint =
 
 /// The process of associating a route and handler
 type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
+
+// ------------
+// Workflows
+// ------------
+
+/// Work to be done that has input and will generate output or an error.
+type Workflow<'input, 'output, 'error> = 'input -> Result<'output, 'error>
+
+/// Composition root for workflows which is automatically
+/// disposed of when exeuction is complete.
+type IWorkflowRoot =
+    inherit IDisposable    
