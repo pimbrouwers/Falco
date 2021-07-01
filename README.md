@@ -425,7 +425,7 @@ let manualFormHandler : HttpHandler =
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have no support for F#'s algebraic types.
+Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have minimal support for F#'s algebraic types.
 
 ```fsharp
 type Person =
