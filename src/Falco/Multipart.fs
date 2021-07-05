@@ -12,10 +12,8 @@ open Microsoft.Net.Http.Headers
 
 /// Represents the accumulation of form fields and binary data
 type MultipartFormData = 
-    {
-        FormData : KeyValueAccumulator
-        FormFiles : FormFileCollection
-    }
+    { FormData : KeyValueAccumulator
+      FormFiles : FormFileCollection }
 
 type MultipartSection with
     /// Attempt to obtain encoding from content type, default to UTF8

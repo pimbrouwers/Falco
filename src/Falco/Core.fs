@@ -64,10 +64,8 @@ type HttpResponseModifier = HttpContext -> HttpContext
 
 /// Specifies an association of a route pattern to a collection of HttpEndpointHandler
 type HttpEndpoint = 
-    {
-        Pattern  : string   
-        Handlers : (HttpVerb * HttpHandler) list
-    }
+    { Pattern  : string   
+      Handlers : (HttpVerb * HttpHandler) list }
 
 /// The process of associating a route and handler
 type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint

@@ -188,7 +188,7 @@ type IApplicationBuilder with
 /// IServiceCollection Extensions
 type IServiceCollection with
     /// Adds default Falco services to the ASP.NET Core service container.
-    member this.AddFalco() =
+    member this.AddFalco () =
         this.AddRouting()
 
     /// Adds default Falco services to the ASP.NET Core service container.
