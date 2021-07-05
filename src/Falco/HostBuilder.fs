@@ -203,41 +203,41 @@ type HostBuilder(args : string[]) =
     // ------------
 
     /// Activate the specified middleware.
-    [<CustomOperation("with")>]
-    member _.With (conf : HostConfig, fn : IApplicationBuilder -> IApplicationBuilder) =
+    [<CustomOperation("plug")>]
+    member _.Plug (conf : HostConfig, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = conf.Middleware >> fn }
 
     /// Activate the specified middleware if the provided predicate is "true".
-    [<CustomOperation("with_if")>]
-    member _.WithIf (conf : HostConfig, pred : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
+    [<CustomOperation("plug_if")>]
+    member _.PlugIf (conf : HostConfig, pred : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = if pred then conf.Middleware >> fn else conf.Middleware }
 
     /// Activate the specified middleware if the provided predicate is "true".
-    [<CustomOperation("with_ifnot")>]
-    member _.WithIfNot (conf : HostConfig, pred : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
+    [<CustomOperation("plug_ifnot")>]
+    member _.PlugIfNot (conf : HostConfig, pred : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = if not(pred) then conf.Middleware >> fn else conf.Middleware }
 
     /// Activate authorization middleware. Call before 
     /// any middleware that depends on users being 
     /// authenticated.    
-    [<CustomOperation("with_authentication")>]
-    member x.WithAuthentication (conf : HostConfig) =
-        x.With (conf, fun app -> app.UseAuthentication())
+    [<CustomOperation("plug_authentication")>]
+    member x.PlugAuthentication (conf : HostConfig) =
+        x.Plug (conf, fun app -> app.UseAuthentication())
 
     /// Activate authorization middleware
-    [<CustomOperation("with_authorization")>]
-    member x.WithAuthorization (conf : HostConfig) =
-        x.With (conf, fun app -> app.UseAuthorization())
+    [<CustomOperation("plug_authorization")>]
+    member x.PlugAuthorization (conf : HostConfig) =
+        x.Plug (conf, fun app -> app.UseAuthorization())
 
     /// Activate HTTP Response caching.
-    member x.WithCaching(conf : HostConfig) =        
+    member x.PlugCaching(conf : HostConfig) =        
         { conf with
                Services = conf.Services >> fun s -> s.AddResponseCaching()
                Middleware = conf.Middleware >> fun app -> app.UseResponseCaching() }
 
     /// Activate Brotli + GZip HTTP Compression.
-    [<CustomOperation("with_compression")>]
-    member _.WithCompression (conf : HostConfig) =
+    [<CustomOperation("plug_compression")>]
+    member _.PlugCompression (conf : HostConfig) =
         let configureCompression (s : IServiceCollection) = 
             let mimeTypes = 
                 let additionalMimeTypes = [|
@@ -262,29 +262,29 @@ type HostBuilder(args : string[]) =
                Middleware = conf.Middleware >> fun app -> app.UseResponseCompression() }
 
     /// Activate developer exception page if predicate is true.
-    [<CustomOperation("with_if_developer_exception")>]
-    member x.WithIfDeveloperException(conf : HostConfig, pred : bool) =
-        x.WithIf(conf, pred, fun app -> app.UseDeveloperExceptionPage())
+    [<CustomOperation("plug_if_developer_exception")>]
+    member x.PlugIfDeveloperException(conf : HostConfig, pred : bool) =
+        x.PlugIf(conf, pred, fun app -> app.UseDeveloperExceptionPage())
 
     /// Activate falco exception handler if predicate is true.
-    [<CustomOperation("with_if_falco_exception")>]
-    member x.WithIfFalcoException(conf : HostConfig, pred : bool, handler : HttpHandler) =
-        x.WithIf(conf, pred, fun app -> app.UseFalcoExceptionHandler(handler))
+    [<CustomOperation("plug_if_falco_exception")>]
+    member x.PlugIfFalcoException(conf : HostConfig, pred : bool, handler : HttpHandler) =
+        x.PlugIf(conf, pred, fun app -> app.UseFalcoExceptionHandler(handler))
 
     /// Activate automatic HSTS middleware (adds 
     /// strict-transport-policy header).
-    [<CustomOperation("with_hsts")>]
-    member x.WithHsts (conf : HostConfig) =
-        x.With (conf, fun app -> app.UseHsts())       
+    [<CustomOperation("plug_hsts")>]
+    member x.PlugHsts (conf : HostConfig) =
+        x.Plug (conf, fun app -> app.UseHsts())       
 
     /// Activate automatic HTTPS redirection.
-    [<CustomOperation("with_https")>]
-    member x.WithHttps (conf : HostConfig) =
-        x.With (conf, fun app -> app.UseHttpsRedirection())       
+    [<CustomOperation("plug_https")>]
+    member x.PlugHttps (conf : HostConfig) =
+        x.Plug (conf, fun app -> app.UseHttpsRedirection())       
 
     /// Activate Static File middleware.
-    [<CustomOperation("with_static_files")>]
-    member _.WithStaticFiles (conf : HostConfig) =
+    [<CustomOperation("plug_static_files")>]
+    member _.PlugStaticFiles (conf : HostConfig) =
         { conf with Middleware = conf.Middleware >> fun app -> app.UseStaticFiles() }
 
     /// Include a catch-all (i.e., Not Found) HttpHandler (must be added last).
