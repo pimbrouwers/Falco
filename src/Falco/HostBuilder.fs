@@ -70,7 +70,7 @@ type ConfigBuilder () =
     /// Add optional JSON file to the ConfigurationBuilder.
     [<CustomOperation("optional_json")>]
     member _.AddOptionalJsonFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with RequiredJson = filePath :: conf.OptionalJson }
+        { conf with OptionalJson = filePath :: conf.OptionalJson }
 
 
 let configuration = ConfigBuilder()
