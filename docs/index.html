@@ -13,7 +13,7 @@
 <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 <link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 <link href="/prism.css" rel="stylesheet" />
 <link href="/tachyons.css" rel="stylesheet" />
 <style>
@@ -25,8 +25,6 @@
   --purple: rgb(184, 69, 252);
   --washed-purple: rgba(185, 69, 252, 0.10);
 }
-
-a { color: inherit; }
 
 /* sizing */
 .mw9 { max-width: 80rem; }
@@ -49,6 +47,23 @@ a { color: inherit; }
 /* transform */
 .ty--50 { transform: translateY(-50%);}
 
+/* text */
+main h1, main h2, main h3, main h4, main h5 { margin-bottom: 0; font-weight: 400; }
+main h2 { margin-top: 3rem; font-size: 2em; color: var(--gray); }
+main h3 { margin-top: 2rem; font-size: 1.5em; }
+main h2 + h3 { margin-top: .5rem; } 
+
+a { color: inherit; transition: color .125s ease-in; }
+main a:visited { color: inherit; }
+main a:hover { color: var(--purple); }
+
+blockquote { margin-left: 0; margin-right: 0; padding: 1rem; border-left: 4px solid var(--purple); background: var(--washed-purple); }
+blockquote p { margin: 0; }
+
+/* tables */
+table { text-align: left; border-collapse: collapse; }
+td, th { padding: .5rem; border-bottom: 1px solid var(--silver); }
+
 /* code */
 code[class*="language-"], pre[class*="language-"] { font-size: .875rem; }
 pre[class*="language-"] { padding: 1rem; }
@@ -58,6 +73,7 @@ pre > code { background-color: inherit; }
 h2 > code, h3 > code, p > code { padding: 0 .25rem; }
 
 @media screen and (min-width: 640px) {      
+  main { font-size: 1.125em; }  
   code[class*="language-"], pre[class*="language-"] { font-size: 1rem; }
 } 
 
@@ -83,11 +99,12 @@ h2 > code, h3 > code, p > code { padding: 0 .25rem; }
       <nav class="flex flex-column flex-row-l items-center">
         <a href="/"><img src="/icon.svg" class="w3 pb3 pb0-l o-80 hover-o-100" /></a>
         <div class="flex-grow-1-l tc tr-l">
-          <a href="https://github.com/pimbrouwers/Falco#key-features" target="_blank" title="Coming soon!" class="dib mh2 mh3-l no-underline white-90 hover-white">overview</a>
-          <a href="https://www.pimbrouwers.com/2020/12/08/fsharp-on-the-web-a-guide-to-building-websites-with-falco-dotnet-x-and-aspdotnet-core.html" target="_blank" title="Coming soon!" class="dib mh2 mh3-l no-underline white-90 hover-white">guide</a>
+          <a href="#key-features" target="_blank" title="Overview of Falco's key features" class="dib mh2 mh3-l no-underline white-90 hover-white">overview</a>
+          <a href="https://www.pimbrouwers.com/2020/12/08/fsharp-on-the-web-a-guide-to-building-websites-with-falco-dotnet-x-and-aspdotnet-core.html" target="_blank" title="A guide on how to write full production-ready applications using Falco" class="dib mh2 mh3-l no-underline white-90 hover-white">guide</a>
           <a href="https://github.com/pimbrouwers/Falco" 
              target="_blank" 
              alt="Falco GitHub Link" 
+             title="Fork Falco on GitHub"
              class="dib ml2 ml3-l no-underline white-90 hover-white">code</a>
         </div>
       </nav>
@@ -98,14 +115,16 @@ h2 > code, h3 > code, p > code { padding: 0 .25rem; }
     <h2 class="mt0 mb4 fw4 f4 f3-l">Falco is a toolkit for building secure, fast, functional-first and fault-tolerant web applications using F#.</h2>
 
     <div class="tc">
-      <a href="https://github.com/pimbrouwers/Falco#getting-started" target="_blank" title="Coming soon!" class="dib mh2 mb2 ph3 pv2 merlot bg-white ba b--white br2 no-underline">Get Started</a>
-      <a href="https://github.com/pimbrouwers/Falco" target="_blank" title="Coming soon!" class="dib mh2 ph3 pv2 white ba b--white br2 no-underline">Learn More</a>
+      <a href="#getting-started" target="_blank" title="Learn how to get started using Falco" class="dib mh2 mb2 ph3 pv2 merlot bg-white ba b--white br2 no-underline">Get Started</a>
+      <a href="#falco" target="_blank" class="dib mh2 ph3 pv2 white ba b--white br2 no-underline">Learn More</a>
     </div>
 </div>
+
 <!-- release info -->
 <div class="mb4 bt b--white-20 tc lh-solid">
     <a href="https://www.nuget.org/packages/Falco" class="dib center ph1 ph4-l pv3 bg-merlot white no-underline ty--50" target="_blank">Latest release: 3.0.5 (June 14, 2021)</a>
 </div>
+
 <!-- benefits -->
 <div class="cf tc lh-copy">    
     <div class="fl-l mw5 mw-none-l w-25-l center mb4 ph4-l br-l b--white-20">
@@ -119,21 +138,21 @@ h2 > code, h3 > code, p > code { padding: 0 .25rem; }
         <img src="/icons/easy.svg" class="w4 o-90" />
         <h3 class="mv2 white">Easy to Learn</h3>
         <div class="mb3 white-90">Designed for getting up to speed quickly.</div>
-        <a href="https://github.com/pimbrouwers/Falco#getting-started" target="_blank" title="Coming soon!" class="dib mh2 pa2 f6 white ba b--white br2 no-underline">Get Started</a>
+        <a href="#getting-started" target="_blank" title="Learn how to get started using Falco" class="dib mh2 pa2 f6 white ba b--white br2 no-underline">Get Started</a>
     </div>    
 
     <div class="fl-l mw5 mw-none-l w-25-l center mb4 ph4-l br-l b--white-20">
         <img src="/icons/view.svg" class="w4 o-90" />
         <h3 class="mv2 white">Native View Engine</h3>
         <div class="mb3 white-90">Markup is written in F# and compiled.</div>
-        <a href="https://github.com/pimbrouwers/Falco#markup" target="_blank" title="Coming soon!" class="dib mh2 pa2 f6 white ba b--white br2 no-underline">See Examples</a>
+        <a href="#markup" target="_blank" title="View examples of Falco markup module" class="dib mh2 pa2 f6 white ba b--white br2 no-underline">See Examples</a>
     </div>    
 
     <div class="fl-l mw5 mw-none-l w-25-l center mb4 ph4-l">
         <img src="/icons/integrate.svg" class="w4 o-90" />
         <h3 class="mv2 white">Extensible</h3>
         <div class="mb3 white-90">Seamlessly integrates with existing libraries.</div>
-        <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ScribanExample" target="_blank" title="Coming soon!" class="dib mh2 pa2 f6 white ba b--white br2 no-underline">Explore How</a>
+        <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ScribanExample" target="_blank" title="Example of incorporating a third-party view engine" class="dib mh2 pa2 f6 white ba b--white br2 no-underline">Explore How</a>
     </div>    
 </div>
    
@@ -142,117 +161,648 @@ h2 > code, h3 > code, p > code { padding: 0 .25rem; }
   
 <!-- /body/content -->
 <div class="bg-white">
-  <!-- Hello Falco -->
-<div class="cf mw9 center pv4 pv5-l ph3">
-<!-- text -->
-<div class="fl-l w-40-l mb4 mb0-l lh-copy">
-<h2 class="mb3 mt0 pb1 f2 fw4 bb b--moon-gray">Hello, Falco!</h2>
-<div class="mb3">Believe it or not, this is a <u>complete Falco application</u>. It does exactly what you'd expect. Upon compiling and running the program, if you visit <strong>https://localhost:5001/Falco</strong>, you would be greeted with:</div>
-<div class="dib mb3 pa1 bg-merlot white br1">Hello, Falco!</div>
-<div>If you visit without specifying a <code>{name}</code>, "world" will be substituted in place of the name. Resulting in "Hello, world". This simple, but illustrative program demonstrates Falco's modular design, in this case specifically request interaction and response writing.</div>
-</div>
-<!-- /end text -->
-<!-- code -->
-<div class="fl-l w-60-l pl4-l">
+  <div class="cf mw8 center pv4 pv5-l ph3">
+    <main><h1 id="falco">Falco</h1>
+<p><a href="https://www.nuget.org/packages/Falco"><img src="https://img.shields.io/nuget/v/Falco.svg" alt="NuGet Version" /></a>
+<a href="https://travis-ci.org/pimbrouwers/Falco"><img src="https://travis-ci.org/pimbrouwers/Falco.svg?branch=master" alt="Build Status" /></a></p>
 <pre><code class="language-fsharp">open Falco
 open Falco.Routing
 open Falco.HostBuilder
 
-let helloHandler : HttpHandler =       
-    let routeBinder (r : RouteCollectionReader) =
-        r.GetString &quot;name&quot; &quot;world&quot; |&gt; sprintf &quot;Hello, %s!&quot;
-    
-    Request.mapRoute routeBinder Response.ofPlainText 
-
 webHost [||] {
-    endpoints [ get &quot;/{name?}&quot; helloHandler ]
-}    
-</code></pre>
-</div>
-<!-- /end code --> 
-</div>
-<!-- /end Hello Falco>
-<!-- HTML View Engine  -->
-<div class="cf pv4 pv5-l bg-near-white">
-<div class="mw9 center ph3">
-<!-- text --> 
-<div class="fr-l w-40-l mb4 mb0-l pl4-l lh-copy">
-<h2 class="mb3 mt0 pb1 f2 fw4 bb b--moon-gray">Markup? Check!</h2>
-<div class="mb3">A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.), most notably HTML. Most of the standard HTML tags & attributes have been built into the markup module, which are pure functions composed into well-formed markup at run time. HTML tag functions are found in the <code>Elem</code> module, attributes in the <code>Attr</code> module. For string literal output there are several functions available in the <code>Text</code> module.</div>
-<div class="mb3">The benefits of using the Falco markup module as an HTML engine include:</div>
-<ul>
-    <li>Writing your views in plain F#, directly in your assembly.</li>
-    <li>Markup is compiled alongside the rest of your code, leading to improved performance and ultimately simpler deployments.</li>
-</ul>
-<div>Since views are plain F# they can easily be made strongly-typed, and more interestingly combined to create complex output.</div>
-</div>
-<!-- /end text -->
-<!-- code -->
-<div class="fl-l w-60-l">
-<pre><code class="language-fsharp">open Falco
-open Falco.Markup
-
-type Person = { First : string; Last  : string }
-
-let master (title : string) (content : XmlNode list) =
-    Elem.html [ Attr.lang &quot;en&quot; ] [
-        Elem.head [] [ Elem.title [] [ Text.raw title ] ]
-        Elem.body [] content 
+    endpoints [                    
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello World&quot;)
     ]
+}
+</code></pre>
+<p><a href="https://github.com/pimbrouwers/Falco">Falco</a> is a toolkit for building fast, functional-first and fault-tolerant web applications using F#.</p>
+<ul>
+<li>Built upon the high-performance primitives of ASP.NET Core.</li>
+<li>Optimized for building HTTP applications quickly.</li>
+<li>Seamlessly integrates with existing .NET Core middleware and frameworks.</li>
+</ul>
+<h2 id="key-features">Key Features</h2>
+<ul>
+<li>Asynchronous <a href="#request-handling">request handling</a>.</li>
+<li>Simple and powerful <a href="#routing">routing</a> API.</li>
+<li>Fast, secure and configurable <a href="#host-builder">web server</a>.</li>
+<li>Native F# <a href="#markup">view engine</a>.</li>
+<li>Succinct API for <a href="#model-binding">model binding</a>.</li>
+<li><a href="#authentication">Authentication</a> and <a href="#security">security</a> utilities.</li>
+<li>Built-in support for <a href="#handling-large-uploads">large uploads</a>.</li>
+</ul>
+<h2 id="design-goals">Design Goals</h2>
+<ul>
+<li>Aim to be very small and easily learnable.</li>
+<li>Should be extensible.</li>
+<li>Should provide a toolset to build a working end-to-end web application.</li>
+</ul>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#sample-applications">Sample Applications</a></li>
+<li><a href="#request-handling">Request Handling</a></li>
+<li><a href="#routing">Routing</a></li>
+<li><a href="#host-builder">Host Builder</a></li>
+<li><a href="#model-binding">Model Binding</a></li>
+<li><a href="#json">JSON</a></li>
+<li><a href="#markup">Markup</a></li>
+<li><a href="#authentication">Authentication</a></li>
+<li><a href="#security">Security</a></li>
+<li><a href="#handling-large-uploads">Handling Large Uploads</a></li>
+<li><a href="#why-falco">Why &quot;Falco&quot;?</a></li>
+<li><a href="#find-a-bug">Find a bug?</a></li>
+<li><a href="#license">License</a></li>
+</ol>
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="using-dotnet-new">Using <code>dotnet new</code></h3>
+<p>The easiest way to get started with Falco is by installing the <code>Falco.Template</code> package, which adds a new template to your <code>dotnet new</code> command line tool:</p>
+<pre><code class="language-cmd">dotnet new -i &quot;Falco.Template::*&quot;
+</code></pre>
+<p>Afterwards you can create a new Falco application by running:</p>
+<pre><code class="language-cmd">dotnet new falco -o HelloWorldApp
+</code></pre>
+<h3 id="manually-installing">Manually installing</h3>
+<p>Create a new F# web project:</p>
+<pre><code class="language-cmd">dotnet new web -lang F# -o HelloWorldApp
+</code></pre>
+<p>Install the nuget package:</p>
+<pre><code class="language-cmd">dotnet add package Falco
+</code></pre>
+<p>Remove the <code>Startup.fs</code> file and save the following in <code>Program.fs</code> (if following the manual install path):</p>
+<pre><code class="language-fsharp">module HelloWorld.Program
+
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+
+let helloHandler : HttpHandler =
+    &quot;Hello world&quot;
+    |&gt; Response.ofPlainText
+
+[&lt;EntryPoint&gt;]
+let main args =
+    webHost args {
+        endpoints [ get &quot;/&quot; helloHandler ]
+    }
+    0
+</code></pre>
+<p>Run the application:</p>
+<pre><code class="language-cmd">dotnet run
+</code></pre>
+<p>There you have it, an industrial-strength <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld">Hello World</a> web app, achieved using only base ASP.NET Core libraries. Pretty sweet!</p>
+<h2 id="sample-applications">Sample Applications</h2>
+<p>Code is always worth a thousand words, so for the most up-to-date usage, the <a href="https://github.com/pimbrouwers/Falco/tree/master/samples">/samples</a> directory contains a few sample applications.</p>
+<table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld">Hello World</a></td>
+<td>A basic hello world app</td>
+</tr>
+<tr>
+<td><a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost">Configure Host</a></td>
+<td>Demonstrating how to configure the <code>IHost</code> instance using the <code>webHost</code> computation expression</td>
+</tr>
+<tr>
+<td><a href="https://github.com/pimbrouwers/Falco/tree/master/samples/Blog">Blog</a></td>
+<td>A basic markdown (with YAML frontmatter) blog</td>
+</tr>
+<tr>
+<td><a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ScribanExample">Third-part View Engine</a></td>
+<td>Demonstrating how to render with an external view engine, specifically <a href="https://github.com/scriban/scriban">Scriban</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/pimbrouwers/FalcoJournal">Falco Journal</a></td>
+<td>A bullet journal built using Falco</td>
+</tr>
+</tbody>
+</table>
+<h2 id="request-handling">Request Handling</h2>
+<p>The <code>HttpHandler</code> type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion and processing of an HTTP request, defined in F# as: <code>HttpContext -&gt; Task</code>. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally response writing.  With access to the <code>HttpContext</code> you are able to inspect all components of the request, and manipulate the response in any way you choose.</p>
+<p>Basic request/response handling is divided between the aptly named <a href="https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs"><code>Request</code></a> and <a href="https://github.com/pimbrouwers/Falco/tree/master/src/Response.fs"><code>Response</code></a> modules, which offer a suite of continuation-passing style (CPS) <code>HttpHandler</code> functions for common scenarios.</p>
+<h3 id="plain-text-responses">Plain Text responses</h3>
+<pre><code class="language-fsharp">let textHandler : HttpHandler =
+    Response.ofPlainText &quot;hello world&quot;
+</code></pre>
+<h3 id="html-responses">HTML responses</h3>
+<pre><code class="language-fsharp">let htmlHandler : HttpHandler =
+    let doc =
+        Elem.html [ Attr.lang &quot;en&quot; ] [
+            Elem.head [] [
+                Elem.title [] [ Text.raw &quot;Sample App&quot; ]
+            ]
+            Elem.body [] [
+                Elem.main [] [
+                    Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
+                ]
+            ]
+        ]
+
+    doc
+    |&gt; Response.ofHtml
+</code></pre>
+<p>Alternatively, if you're using an external view engine and want to return an HTML response from a string literal, then you can use <code>Response.ofHtmlString</code>.</p>
+<pre><code class="language-fsharp">let htmlHandler : HttpHandler = 
+    let html = &quot;&lt;html&gt;...&lt;/html&gt;&quot;
+
+    html
+    |&gt; Response.ofHtmlString
+</code></pre>
+<h3 id="json-responses">JSON responses</h3>
+<blockquote>
+<p>IMPORTANT: This handler uses the default <code>System.Text.Json.JsonSerializer</code>. See <a href="#json">JSON</a> section below for further information.</p>
+</blockquote>
+<pre><code class="language-fsharp">type Person =
+    {
+        First : string
+        Last  : string
+    }
+
+let jsonHandler : HttpHandler =
+    { First = &quot;John&quot;; Last = &quot;Doe&quot; }
+    |&gt; Response.ofJson
+</code></pre>
+<h3 id="set-the-status-code-of-the-response">Set the status code of the response</h3>
+<pre><code class="language-fsharp">let notFoundHandler : HttpHandler =
+    Response.withStatusCode 404
+    &gt;&gt; Response.ofPlainText &quot;Not found&quot;
+</code></pre>
+<h3 id="redirect-301302-response-boolean-param-to-indicate-permanency">Redirect (301/302) Response (boolean param to indicate permanency)</h3>
+<pre><code class="language-fsharp">let oldUrlHandler : HttpHandler =
+    Response.redirect &quot;/new-url&quot; true
+</code></pre>
+<h3 id="accessing-route-parameters">Accessing route parameters</h3>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let getMessage (route : RouteCollectionReader) =
+        route.GetString &quot;name&quot; &quot;World&quot; 
+        |&gt; sprintf &quot;Hello %s&quot;
+        
+    Request.mapRoute getMessage Response.ofPlainText
+</code></pre>
+<h3 id="accessing-query-parameters">Accessing query parameters</h3>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let getMessage (query : QueryCollectionReader) =
+        query.GetString &quot;name&quot; &quot;World&quot; 
+        |&gt; sprintf &quot;Hello %s&quot;
+        
+    Request.mapQuery getMessage Response.ofPlainText
+</code></pre>
+<h2 id="routing">Routing</h2>
+<p>The breakdown of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#configuring-endpoint-metadata" title="EndpointRouting in ASP.NET Core">Endpoint Routing</a> is simple. Associate a specific <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#route-template-reference">route pattern</a> (and optionally an HTTP verb) to an <code>HttpHandler</code> which represents the ongoing processing (and eventual return) of a request.</p>
+<p>Bearing this in mind, routing can practically be represented by a list of these &quot;mappings&quot; known in Falco as an <code>HttpEndpoint</code> which bind together: a route, verb and handler.</p>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let getMessage (route : RouteCollectionReader) =
+        route.GetString &quot;name&quot; &quot;World&quot; 
+        |&gt; sprintf &quot;Hello %s&quot;
+        
+    Request.mapRoute getMessage Response.ofPlainText
+
+let loginHandler : HttpHandler = // ...
+
+let loginSubmitHandler : HttpHandler = // ...  
+
+let endpoints : HttpEndpoint list =
+  [
+    // a basic GET handler
+    get &quot;/hello/{name:alpha}&quot; helloHandler
+
+    // multi-method endpoint
+    all &quot;/login&quot;
+        [
+            POST, loginSubmitHandler
+            GET,  loginHandler
+        ]
+  ]
+</code></pre>
+<h2 id="host-builder">Host Builder</h2>
+<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using <code>Host.CreateDefaultBuilder(args)</code>, but it can grow verbose quickly. To make things more expressive, Falco exposes an optional computation expression. Below is an example using the builder taken from the <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost">Configure Host</a> sample.</p>
+<pre><code class="language-fsharp">[&lt;EntryPoint&gt;]
+let main args = 
+    webHost args {
+        use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
+        use_https
+        use_compression
+        use_static_files
+
+        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
+        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
+
+        endpoints [            
+            get &quot;/greet/{name:alpha}&quot; 
+                handleGreeting
+
+            get &quot;/json&quot; 
+                handleJson
+
+            get &quot;/html&quot; 
+                handleHtml
+                
+            get &quot;/&quot; 
+                handlePlainText
+        ]
+    }
+    0
+</code></pre>
+<h3 id="fully-customizing-the-host">Fully Customizing the Host</h3>
+<p>To assume full control over configuring your <code>IHost</code> use the <code>configure</code> custom operation. It expects a function with the signature of <code>HttpEndpoint list -&gt; IWebHostBuilder -&gt; IWebHostBuilder</code> and assumes you will register and activate Falco (i.e., <code>AddFalco()</code> and <code>UseFalco(endpoints)</code>).</p>
+<pre><code class="language-fsharp">[&lt;EntryPoint&gt;]
+let main args = 
+    let configureServices : IServiceCollection -&gt; unit = 
+      fun services -&gt; services.AddFalco() |&gt; ignore
+    
+    let configureApp : HttpEndpoint list -&gt; IApplicationBuilder -&gt; unit =
+       fun endpoints app -&gt; app.UseFalco(endpoints) |&gt; ignore
+
+    let configureWebHost : HttpEndpoint list -&gt; IWebHostBuilder =
+      fun endpoints webHost -&gt;
+          webHost.ConfigureLogging(configureLogging)
+                 .ConfigureServices(configureServices)
+                 .Configure(configureApp endpoints)
+
+    webHost args {
+      configure configureWebHost
+      endpoints []
+    }
+</code></pre>
+<h2 id="model-binding">Model Binding</h2>
+<p>Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for <code>[&lt;CLIMutable&gt;]</code> attributes.</p>
+<p>We can make this simpler by creating a succinct API to obtain typed values from <code>IFormCollection</code>, <code>IQueryCollection</code>, <code>RouteValueDictionary</code> and <code>IHeaderCollection</code>. <em>Readers</em> for all four exist as derivatives of <code>StringCollectionReader</code> which is an abstraction intended to make it easier to work with the string-based key/value collections.</p>
+<h3 id="route-binding">Route Binding</h3>
+<p>Route binding is normally achieved through <code>Request.mapRoute</code> or <code>Request.bindRoute</code> if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from <code>RouteCollectionReader</code>, which itself has full access to the query string via <code>QueryCollectionReader</code>.</p>
+<pre><code class="language-fsharp">let mapRouteHandler : HttpHandler =
+    let routeMap (route : RouteCollectionReader) = route.GetString &quot;Name&quot; &quot;John Doe&quot;
+    
+    Request.mapRoute
+        routeMap
+        Response.ofJson
+
+let bindRouteHandler : HttpHandler = 
+    let routeBind (route : RouteCollectionReader) =
+        match route.TryGetString &quot;Name&quot; with
+        | Some name -&gt; Ok name
+        | _         -&gt; Error {| Message = &quot;Invalid route&quot; |}
+    
+    Request.bindRoute
+        routeBind
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+
+let manualRouteHandler : HttpHandler =
+    fun ctx -&gt;
+        let route = Request.getRoute ctx
+        let name = route.GetString &quot;Name&quot; &quot;John Doe&quot;
+        
+        // You also have access to the query string
+        let q = route.Query.GetString &quot;q&quot; &quot;{default value}&quot;
+        Response.ofJson name ctx
+</code></pre>
+<h3 id="query-binding">Query Binding</h3>
+<p>Query binding is normally achieved through <code>Request.mapQuery</code> or <code>Request.bindQuery</code> if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from <code>QueryCollectionReader</code>.</p>
+<pre><code class="language-fsharp">type Person = { FirstName : string; LastName : string }
+
+let mapQueryHandler : HttpHandler =    
+    Request.mapQuery
+        (fun rd -&gt; { 
+            FirstName = rd.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+            LastName = rd.GetString &quot;LastName&quot; &quot;Doe&quot; 
+        })
+        Response.ofJson 
+
+let bindQueryHandler : HttpHandler = 
+    Request.bindQuery 
+        (fun rd -&gt; 
+            match rd.TryGetString &quot;FirstName&quot;, rd.TryGetString &quot;LastName&quot; with
+            | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
+            | _  -&gt; Error {| Message = &quot;Invalid query string&quot; |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+
+let manualQueryHandler : HttpHandler =
+    fun ctx -&gt;
+        let query = Request.getQuery ctx
+        
+        let person = 
+            { 
+                FirstName = query.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+                LastName = query.GetString &quot;LastName&quot; &quot;Doe&quot; 
+            }
+
+        Response.ofJson person ctx
+</code></pre>
+<h3 id="form-binding">Form Binding</h3>
+<p>Form binding is normally achieved through <code>Request.mapForm</code> or <code>Request.bindForm</code> if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from <code>FormCollectionReader</code>, which itself has full access to the <code>IFormFilesCollection</code> via the <code>_.Files</code> member.</p>
+<blockquote>
+<p>Note the addition of <code>Request.mapFormSecure</code> and <code>Request.bindFormSecure</code> which will automatically validate CSRF tokens for you.</p>
+</blockquote>
+<pre><code class="language-fsharp">type Person = { FirstName : string; LastName : string }
+
+let mapFormHandler : HttpHandler =    
+    Request.mapForm
+        (fun rd -&gt; { 
+            FirstName = rd.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+            LastName = rd.GetString &quot;LastName&quot; &quot;Doe&quot; 
+        })
+        Response.ofJson 
+
+let mapFormSecureHandler : HttpHandler =    
+    Request.mapFormSecure
+        (fun rd -&gt; { 
+            FirstName = rd.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+            LastName = rd.GetString &quot;LastName&quot; &quot;Doe&quot; 
+        })
+        Response.ofJson 
+        (Response.withStatusCode 400 &gt;&gt; Response.ofEmpty)
+
+let bindFormHandler : HttpHandler = 
+    Request.bindForm 
+        (fun rd -&gt; 
+            match rd.TryGetString &quot;FirstName&quot;, rd.TryGetString &quot;LastName&quot; with
+            | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
+            | _  -&gt; Error {| Message = &quot;Invalid form data&quot; |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+
+let bindFormSecureHandler : HttpHandler = 
+    Request.bindFormSecure
+        (fun rd -&gt; 
+            match rd.TryGetString &quot;FirstName&quot;, rd.TryGetString &quot;LastName&quot; with
+            | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
+            | _  -&gt; Error {| Message = &quot;Invalid form data&quot; |})
+        Response.ofJson // handle Ok
+        Response.ofJson // handle Error
+        (Response.withStatusCode 400 &gt;&gt; Response.ofEmpty)
+
+let manualFormHandler : HttpHandler =
+    fun ctx -&gt; task {
+        let! query = Request.getForm ctx
+        
+        let person = 
+            { 
+                FirstName = query.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+                LastName = query.GetString &quot;LastName&quot; &quot;Doe&quot; 
+            }
+
+        return! Response.ofJson person ctx
+    }        
+</code></pre>
+<h2 id="json">JSON</h2>
+<p>Included in Falco are basic JSON in/out handlers, <code>Request.bindJson</code> and <code>Response.ofJson</code> respectively. Both rely on <code>System.Text.Json</code> and thus have minimal support for F#'s algebraic types.</p>
+<pre><code class="language-fsharp">type Person =
+    {
+        First : string
+        Last  : string
+    }
+
+let jsonHandler : HttpHandler =
+    { First = &quot;John&quot;; Last = &quot;Doe&quot; }
+    |&gt; Response.ofJson
+
+let jsonBindHandler : HttpHandler =    
+    Request.bindJson
+        (fun person -&gt; Response.ofPlainText (sprintf &quot;hello %s %s&quot; person.First person.Last))
+        (fun error -&gt; Response.withStatusCode 400 &gt;&gt; Response.ofPlainText (sprintf &quot;Invalid JSON: %s&quot; error))
+</code></pre>
+<h2 id="markup">Markup</h2>
+<p>A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.).</p>
+<p>For example, the module is easily extended since creating new tags is simple. An example to render <code>&lt;svg&gt;</code>'s:</p>
+<pre><code class="language-fsharp">let svg (width : float) (height : float) =
+    Elem.tag &quot;svg&quot; [
+        Attr.create &quot;version&quot; &quot;1.0&quot;
+        Attr.create &quot;xmlns&quot; &quot;http://www.w3.org/2000/svg&quot;
+        Attr.create &quot;viewBox&quot; (sprintf &quot;0 0 %f %f&quot; width height)
+    ]
+
+let path d = Elem.tag &quot;path&quot; [ Attr.create &quot;d&quot; d ] []
+
+let bars =
+    svg 384.0 384.0 [
+            path &quot;M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0&quot;
+        ]
+</code></pre>
+<h3 id="html-view-engine">HTML View Engine</h3>
+<p>Most of the standard HTML tags &amp; attributes have been built into the markup module and produce objects to represent the HTML node. Nodes are either:</p>
+<ul>
+<li><code>Text</code> which represents <code>string</code> values. (Ex: <code>Text.raw &quot;hello&quot;</code>, <code>Text.rawf &quot;hello %s&quot; &quot;world&quot;</code>)</li>
+<li><code>SelfClosingNode</code> which represent self-closing tags (Ex: <code>&lt;br /&gt;</code>).</li>
+<li><code>ParentNode</code> which represent typical tags with, optionally, other tags within it (Ex: <code>&lt;div&gt;...&lt;/div&gt;</code>).</li>
+</ul>
+<p>The benefits of using the Falco markup module as an HTML engine include:</p>
+<ul>
+<li>Writing your views in plain F#, directly in your assembly.</li>
+<li>Markup is compiled alongside the rest of your code, leading to improved performance and ultimately simpler deployments.</li>
+</ul>
+<pre><code class="language-fsharp">// Create an HTML5 document using built-in template
+let doc = 
+    Templates.html5 &quot;en&quot;
+        [ Elem.title [] [ Text.raw &quot;Sample App&quot; ] ] // &lt;head&gt;&lt;/head&gt;
+        [ Elem.h1 [] [ Text.raw &quot;Sample App&quot; ] ]    // &lt;body&gt;&lt;/body&gt;
+</code></pre>
+<p>Since views are plain F# they can easily be made strongly-typed:</p>
+<pre><code class="language-fsharp">type Person =
+    {
+        First : string
+        Last  : string
+    }
+
+let doc (person : Person) = 
+    Elem.html [ Attr.lang &quot;en&quot; ] [
+            Elem.head [] [                    
+                    Elem.title [] [ Text.raw &quot;Sample App&quot; ]                                                            
+                ]
+            Elem.body [] [                     
+                    Elem.main [] [
+                            Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
+                            Elem.p  [] [ Text.rawf &quot;%s %s&quot; person.First person.Last ]
+                        ]
+                ]
+        ]
+</code></pre>
+<p>Views can also be combined to create more complex views and share output:</p>
+<pre><code class="language-fsharp">let master (title : string) (content : XmlNode list) =
+    Elem.html [ Attr.lang &quot;en&quot; ] [
+            Elem.head [] [                    
+                    Elem.title [] [ Text.raw &quot;Sample App&quot; ]                                                            
+                ]
+            Elem.body [] content
+        ]
 
 let divider = 
     Elem.hr [ Attr.class' &quot;divider&quot; ]
 
-let personView (p : Person) =     
-    master &quot;Sample App&quot; [                     
-        Elem.main [] [   
-            Elem.h1 [] [ Text.raw &quot;Your name is:&quot; ]
-            divider
-            Elem.p  [] [ Text.rawf &quot;%s %s&quot; p.First p.Last ] 
-        ] 
-    ]    
+let homeView =
+    [
+        Elem.h1 [] [ Text.raw &quot;Homepage&quot; ]
+        divider
+        Elem.p  [] [ Text.raw &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;]
+    ]
+    |&gt; master &quot;Homepage&quot; 
+
+let aboutView =
+    [
+        Elem.h1 [] [ Text.raw &quot;About&quot; ]
+        divider
+        Elem.p  [] [ Text.raw &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;]
+    ]
+    |&gt; master &quot;About Us&quot;
 </code></pre>
-</div>
-<!-- /end code -->
-</div>
-</div>
-<!-- /end HTML View Engine -->
-<!-- Model Binding -->
-<div class="cf mw9 center pv4 pv5-l ph3">
-<!-- text -->
-<div class="fl-l w-40-l mb4 mb0-l lh-copy">
-<h2 class="mb3 mt0 pb1 f2 fw4 bb b--moon-gray">Magic-free model binding.</h2>
-<div class="mb3">Reflection-based approaches to binding at IO boundaries work well for simple use cases. But as the complexity of the input rises it becomes error-prone and often involves tedious workarounds. This is especially true for an expressive, algebraic type system like F#. As such, it is often advisable to take back control of this process from the runtime.</div>
-<div>We can make this simpler by creating a uniform API to obtain typed values from <code>IFormCollection</code>, <code>IQueryCollection</code>, <code>RouteValueDictionary</code>, <code>IHeaderCollection</code> and <code>IRequestCookieCollection</code>. These <i>readers</i> exist as derivatives of <code>StringCollectionReader</code> which is an abstraction intended to make it easier to work with the various string-based key/value collections within ASP.NET.</div>
-</div>
-<!-- /end text -->
-<!-- code -->
-<div class="fl-l w-60-l pl4-l">
-<pre><code class="language-fsharp">open Falco
+<h2 id="authentication">Authentication</h2>
+<p>ASP.NET Core has amazing built-in support for authentication. Review the <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1" title="Overview of ASP.NET Core authentication">docs</a> for specific implementation details. Falco optionally (<code>open Falco.Auth</code>) includes some authentication utilities.</p>
+<blockquote>
+<p>To use the authentication helpers, ensure the service has been registered (<code>AddAuthentication()</code>) with the <code>IServiceCollection</code> and activated (<code>UseAuthentication()</code>) using the <code>IApplicationBuilder</code>.</p>
+</blockquote>
+<p>Prevent user from accessing secure endpoint:</p>
+<pre><code class="language-fsharp">open Falco.Security
 
-type CardType = Visa | MasterCard | AmericanExpress
-type CreditCard = { Type : CardType; Number : int; Cvd : int option }
+let secureResourceHandler : HttpHandler =
+    let handleAuth : HttpHandler = 
+        &quot;hello authenticated user&quot;
+        |&gt; Response.ofPlainText 
 
-let handleMapForm : HttpHandler = 
-    let formMap (f : FormCollectionReader) =        
-        let cardType = 
-            match f.GetString &quot;card_type&quot; &quot;visa&quot; with
-            | &quot;MasterCard&quot;      -&gt; MasterCard
-            | &quot;AmericanExpress&quot; -&gt; AmericanExpress
-            | _                 -&gt; Visa
-        
-        let cardNum = f.GetInt32 &quot;card_number&quot; 0
-        let cardCvd = f.TryGetInt32 &quot;cvd&quot;
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403 
+        &gt;&gt; Response.ofPlainText &quot;Forbidden&quot;
 
-        { Type = cardType; Number = cardNumber; Cvd = cardCvd }
-
-    Request.mapForm formMap Response.ofJson
+    Request.ifAuthenticated handleAuth handleInvalid
 </code></pre>
-</div>
-<!-- /end code --> 
-</div>
-<!-- /end Model Binding -->
+<p>Prevent authenticated user from accessing anonymous-only end-point:</p>
+<pre><code class="language-fsharp">open Falco.Security
+ 
+let anonResourceOnlyHandler : HttpHandler =
+    let handleAnon : HttpHandler = 
+        Response.ofPlainText &quot;hello anonymous&quot;
 
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 403 
+        &gt;&gt; Response.ofPlainText &quot;Forbidden&quot;
+
+    Request.ifNotAuthenticated handleAnon handleInvalid
+</code></pre>
+<p>Allow only user's from a certain group to access endpoint&quot;</p>
+<pre><code class="language-fsharp">open Falco.Security
+
+let secureResourceHandler : HttpHandler =
+    let handleAuthInRole : HttpHandler = 
+        Response.ofPlainText &quot;hello admin&quot;
+
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 403 
+        &gt;&gt; Response.ofPlainText &quot;Forbidden&quot;
+
+    let rolesAllowed = [ &quot;Admin&quot; ]
+
+    Request.ifAuthenticatedInRole rolesAllowed handleAuthInRole handleInvalid
+</code></pre>
+<p>Allow only user's with a certain scope to access endpoint&quot;</p>
+<pre><code class="language-fsharp">open Falco.Security
+
+let secureResourceHandler : HttpHandler =
+    let handleAuthHasScope : HttpHandler = 
+        Response.ofPlainText &quot;user1, user2, user3&quot;
+
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 403 
+        &gt;&gt; Response.ofPlainText &quot;Forbidden&quot;
+
+    let issuer = &quot;https://oauth2issuer.com&quot;
+    let scope = &quot;read:users&quot;
+
+    Request.ifAuthenticatedWithScope issuer scope handleAuthHasScope handleInvalid
+</code></pre>
+<p>End user session (sign out):</p>
+<pre><code class="language-fsharp">open Falco.Security
+
+let logOut : HttpHandler =         
+    let authScheme = &quot;...&quot;
+    let redirectTo = &quot;/login&quot;
+
+    Response.signOutAndRedirect authScheme redirectTo
+</code></pre>
+<h2 id="security">Security</h2>
+<p>Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.</p>
+<p>The <a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1" title="Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core">Microsoft.AspNetCore.Antiforgery</a> package provides the required utilities to easily protect yourself against such attacks.</p>
+<p>Falco provides a few handlers via <code>Falco.Security.Xss</code>:</p>
+<blockquote>
+<p>To use the Xss helpers, ensure the service has been registered (<code>AddAntiforgery()</code>) with the <code>IServiceCollection</code> and activated (<code>UseAntiforgery()</code>) using the <code>IApplicationBuilder</code>.</p>
+</blockquote>
+<pre><code class="language-fsharp">open Falco.Security 
+
+let formView (token : AntiforgeryTokenSet) =     
+    Elem.html [] [
+        Elem.body [] [
+            Elem.form [ Attr.method &quot;post&quot; ] [
+                Elem.input [ Attr.name &quot;first_name&quot; ]
+
+                Elem.input [ Attr.name &quot;last_name&quot; ]
+
+                // using the CSRF HTML helper
+                Xss.antiforgeryInput token
+
+                Elem.input [ Attr.type' &quot;submit&quot;; Attr.value &quot;Submit&quot; ]
+            ]                                
+        ]
+    ]
+    
+// A handler that demonstrates obtaining a
+// CSRF token and applying it to a view
+let csrfViewHandler : HttpHandler = 
+    formView
+    |&gt; Response.ofHtmlCsrf
+    
+// A handler that demonstrates validating
+// the request's CSRF token
+let mapFormSecureHandler : HttpHandler =    
+    let mapPerson (form : FormCollectionReader) =
+        { FirstName = form.GetString &quot;first_name&quot; &quot;John&quot; // Get value or return default value
+          LastName = form.GetString &quot;first_name&quot; &quot;Doe&quot; }
+
+    let handleInvalid : HttpHandler = 
+        Response.withStatusCode 400 
+        &gt;&gt; Response.ofEmpty
+
+    Request.mapFormSecure mapPerson Response.ofJson handleInvalid
+</code></pre>
+<h3 id="crytography">Crytography</h3>
+<p>Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is of critical importance.</p>
+<p>Falco helpers are accessed by importing <code>Falco.Auth.Crypto</code>.</p>
+<pre><code class="language-fsharp">open Falco.Security
+
+// Generating salt,
+// using System.Security.Cryptography.RandomNumberGenerator,
+// create a random 16 byte salt and base 64 encode
+let salt = Crypto.createSalt 16 
+
+// Generate random int for iterations
+let iterations = Crypto.randomInt 10000 50000
+
+// Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
+let password = &quot;5upe45ecure&quot;
+let hashedPassword = password |&gt; Crypto.sha256 iterations 32 salt
+</code></pre>
+<h2 id="handling-large-uploads">Handling Large Uploads</h2>
+<p>Microsoft defines <a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming" title="Large file uploads">large uploads</a> as anything <strong>&gt; 64KB</strong>, which well... is most uploads. Anything beyond this size, and they recommend streaming the multipart data to avoid excess memory consumption.</p>
+<p>To make this process <strong>a lot</strong> easier Falco exposes an <code>HttpContext</code> extension method <code>TryStreamFormAsync()</code> that will attempt to stream multipart form data, or return an error message indicating the likely problem.</p>
+<pre><code class="language-fsharp">let imageUploadHandler : HttpHandler =
+    fun ctx -&gt; task {
+        let! form = Request.tryStreamFormAsync()
+            
+        // Rest of code using `FormCollectionReader`
+        // ...
+    }
+</code></pre>
+<h2 id="why-falco">Why &quot;Falco&quot;?</h2>
+<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> has been a game changer for the .NET web stack. In the animal kingdom, &quot;Kestrel&quot; is a name given to several members of the falcon genus. Also known as &quot;Falco&quot;.</p>
+<h2 id="find-a-bug">Find a bug?</h2>
+<p>There's an <a href="https://github.com/pimbrouwers/Falco/issues">issue</a> for that.</p>
+<h2 id="license">License</h2>
+<p>Built with ♥ by <a href="https://github.com/pimbrouwers">Pim Brouwers</a> in Toronto, ON. Licensed under <a href="https://github.com/pimbrouwers/Falco/blob/master/LICENSE">Apache License 2.0</a>.</p>
+</main>
+  </div>
 </div>
 <!-- /body/footer -->
 <footer class="tc ph3 pv4"> 

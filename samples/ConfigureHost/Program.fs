@@ -5,9 +5,6 @@ open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Hosting
 
 // ------------
 // Handlers 

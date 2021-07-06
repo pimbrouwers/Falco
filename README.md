@@ -123,7 +123,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | [Configure Host][21] | Demonstrating how to configure the `IHost` instance using the `webHost` computation expression |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
 | [Third-part View Engine][22] | Demonstrating how to render with an external view engine, specifically [Scriban][23] |
-| [Todo MVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
+| [Falco Journal][20] | A bullet journal built using Falco |
 
 ## Request Handling
 
@@ -167,7 +167,6 @@ let htmlHandler : HttpHandler =
     html
     |> Response.ofHtmlString
 ```
-
 
 ### JSON responses
 
@@ -261,17 +260,14 @@ let endpoints : HttpEndpoint list =
 ```fsharp
 [<EntryPoint>]
 let main args = 
-    let isDevMode : IApplicationBuilder -> bool =
-        fun app -> app.ApplicationServices.GetService<IWebHostEnvironment>().IsDevelopment()
-
     webHost args {
-        use_ifnot isDevMode HstsBuilderExtensions.UseHsts
+        use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
         use_https
         use_compression
         use_static_files
 
-        use_if    isDevMode DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-        use_ifnot isDevMode (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
+        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
+        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
 
         endpoints [            
             get "/greet/{name:alpha}" 
@@ -297,21 +293,23 @@ To assume full control over configuring your `IHost` use the `configure` custom 
 ```fsharp
 [<EntryPoint>]
 let main args = 
-    let configureServices (services : IServiceCollection) = 
-      services.AddFalco() |> ignore
+    let configureServices : IServiceCollection -> unit = 
+      fun services -> services.AddFalco() |> ignore
     
-    let configureApp (endpoints : HttpEndpoint list) (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =
-       app.UseFalco(endpoints) |> ignore
+    let configureApp : HttpEndpoint list -> IApplicationBuilder -> unit =
+       fun endpoints app -> app.UseFalco(endpoints) |> ignore
 
-    let configureHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
-      webhost.ConfigureLogging(configureLogging)
-             .ConfigureServices(configureServices)
-             .Configure(configureApp endpoints)
+    let configureWebHost : HttpEndpoint list -> IWebHostBuilder =
+      fun endpoints webHost ->
+          webHost.ConfigureLogging(configureLogging)
+                 .ConfigureServices(configureServices)
+                 .Configure(configureApp endpoints)
 
     webHost args {
       configure configureWebHost
       endpoints []
     }
+```
 
 ## Model Binding
 
@@ -770,7 +768,7 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
 [18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs
 [19]: https://github.com/pimbrouwers/Jay
-[20]: https://github.com/pimbrouwers/Falco/tree/master/samples/Todo
+[20]: https://github.com/pimbrouwers/FalcoJournal
 [21]: https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost
 [22]: https://github.com/pimbrouwers/Falco/tree/master/samples/ScribanExample
 [23]: https://github.com/scriban/scriban
