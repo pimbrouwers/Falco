@@ -140,9 +140,14 @@ type HostBuilder(args : string[]) =
         { conf with Endpoints = endpoints }
 
     /// Apply the given configuration to the web host.
+    [<CustomOperation("host")>]
+    member _.Host (conf : HostConfig, fn : IWebHostBuilder -> IWebHostBuilder) =
+        { conf with WebHost = conf.WebHost >> fn }
+
+    /// Apply the given configuration to the web host.
     [<CustomOperation("host_config")>]
-    member _.HostConfig (conf : HostConfig, config : IConfiguration) =
-        { conf with WebHost = conf.WebHost >> fun webHost -> webHost.UseConfiguration(config) }
+    member x.HostConfig (conf : HostConfig, config : IConfiguration) =
+        x.Host(conf, fun webHost -> webHost.UseConfiguration(config))
 
 
     // Service Collection
@@ -226,8 +231,10 @@ type HostBuilder(args : string[]) =
 
     /// Activate authorization middleware
     [<CustomOperation("plug_authorization")>]
-    member x.PlugAuthorization (conf : HostConfig) =
-        x.Plug (conf, fun app -> app.UseAuthorization())
+    member _.PlugAuthorization (conf : HostConfig) =
+        { conf with
+               Services = conf.Services >> fun s -> s.AddAuthorization()
+               Middleware = conf.Middleware >> fun app -> app.UseAuthorization() }
 
     /// Activate HTTP Response caching.
     member x.PlugCaching(conf : HostConfig) =        
