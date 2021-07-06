@@ -10,17 +10,20 @@ open Microsoft.AspNetCore.ResponseCompression
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
+open Microsoft.Extensions.Logging
 
 // Config Builder
 // ------------
 type ConfigurationSpec = 
     { BasePath     : string
+      Args         : string array
       RequiredJson : string list
       OptionalJson : string list
       AddEnvVars   : bool }
 
     static member Empty = 
         { BasePath     = IO.Directory.GetCurrentDirectory() 
+          Args         = [||]
           RequiredJson = []
           OptionalJson = []
           AddEnvVars   = false }
@@ -30,14 +33,17 @@ type ConfigBuilder () =
 
     member _.Run(conf : ConfigurationSpec) =
         let mutable bldr = ConfigurationBuilder().SetBasePath(conf.BasePath)
+
+        bldr <- bldr.AddCommandLine (conf.Args)
+
+        if conf.AddEnvVars then 
+            bldr <- bldr.AddEnvironmentVariables()
+
         for json in conf.RequiredJson do
             bldr <- bldr.AddJsonFile(json, optional = false, reloadOnChange = true)
 
         for json in conf.OptionalJson do
             bldr <- bldr.AddJsonFile(json, optional = true, reloadOnChange = true)
-
-        if conf.AddEnvVars then 
-            bldr <- bldr.AddEnvironmentVariables()
 
         bldr.Build() :> IConfiguration
 
@@ -50,6 +56,11 @@ type ConfigBuilder () =
     [<CustomOperation("add_env")>]
     member _.AddEnvVars (conf : ConfigurationSpec) =
         { conf with AddEnvVars = true }
+
+    /// Add Command-line args to the ConfigurationBuilder.
+    [<CustomOperation("add_args")>]
+    member _.AddArgs (conf : ConfigurationSpec, args : string array) =
+        { conf with Args = args }
 
     /// Add required JSON file to the ConfigurationBuilder.
     [<CustomOperation("required_json")>]
@@ -70,10 +81,11 @@ let configuration = ConfigBuilder()
 /// Represents the eventual existence of a runnable IWebhost
 type HostConfig = 
     { WebHost    : IWebHostBuilder -> IWebHostBuilder              
-      Endpoints  : HttpEndpoint list 
-      Middleware : IApplicationBuilder -> IApplicationBuilder 
+      Logging    : ILoggingBuilder -> ILoggingBuilder
       Services   : IServiceCollection -> IServiceCollection
+      Middleware : IApplicationBuilder -> IApplicationBuilder 
       NotFound   : HttpHandler option
+      Endpoints  : HttpEndpoint list 
       Builder    : HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder
       IsCustom   : bool }
 
@@ -89,10 +101,11 @@ type HostConfig =
             webHost.ConfigureServices(configureServices).Configure(configureApp)
 
         { WebHost    = id
-          Endpoints  = [] 
-          Middleware = id
+          Logging    = id
           Services   = id
+          Middleware = id
           NotFound   = None
+          Endpoints  = [] 
           Builder    = defaultBuilder
           IsCustom   = false }
 
@@ -106,9 +119,9 @@ type HostBuilder(args : string[]) =
                 let wrappedBuilder = fun bldr -> conf.Builder conf.Endpoints bldr |> ignore
                 Action<IWebHostBuilder>(wrappedBuilder)
             else 
-                let enableFalco = fun (services : IServiceCollection) -> services.AddFalco ()
+                let addFalco = fun (services : IServiceCollection) -> services.AddFalco ()
 
-                let activateFalco = fun (app : IApplicationBuilder) -> app.UseFalco (conf.Endpoints)
+                let useFalco = fun (app : IApplicationBuilder) -> app.UseFalco (conf.Endpoints)
 
                 let includeNotFound = fun (app : IApplicationBuilder) -> 
                     match conf.NotFound with
@@ -116,9 +129,10 @@ type HostBuilder(args : string[]) =
                     | None -> ()
 
                 let wrappedBuilder = fun bldr -> 
-                    conf.WebHost(bldr)
-                        .ConfigureServices(enableFalco >> conf.Services >> ignore)
-                        .Configure(conf.Middleware >> activateFalco >> includeNotFound)
+                    conf.WebHost(bldr)                             
+                        .ConfigureLogging(conf.Logging >> ignore)
+                        .ConfigureServices(addFalco >> conf.Services >> ignore)
+                        .Configure(conf.Middleware >> useFalco >> includeNotFound)
                     |> ignore
                                             
                 Action<IWebHostBuilder>(wrappedBuilder)
@@ -128,47 +142,45 @@ type HostBuilder(args : string[]) =
             .Build()
             .Run()   
     
-    /// Configure the IWebHost, when specified will overide all
-    /// "with" and "add" operations.
+    /// Fully customize the IWebHost, when specified will overide all
+    /// "use" and "add" operations.
     [<CustomOperation("configure")>]
     member _.Configure (conf : HostConfig, builder : HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder) =
         { conf with Builder = builder; IsCustom = true }
 
-    /// Falco HttpEndpoint's
+    /// Register Falco HttpEndpoint's
     [<CustomOperation("endpoints")>]
     member _.Endpoints (conf : HostConfig, endpoints : HttpEndpoint list) =
         { conf with Endpoints = endpoints }
 
     /// Apply the given configuration to the web host.
-    [<CustomOperation("host")>]
+    [<CustomOperation("configure_host")>]
     member _.Host (conf : HostConfig, fn : IWebHostBuilder -> IWebHostBuilder) =
         { conf with WebHost = conf.WebHost >> fn }
-
-    /// Apply the given configuration to the web host.
-    [<CustomOperation("host_config")>]
-    member x.HostConfig (conf : HostConfig, config : IConfiguration) =
-        x.Host(conf, fun webHost -> webHost.UseConfiguration(config))
 
 
     // Service Collection
     // ------------
+    
+    /// Configure logging via ILogger
+    [<CustomOperation("logging")>]
+    member _.Logging (conf : HostConfig, fn : ILoggingBuilder -> ILoggingBuilder) =
+        { conf with Logging = conf.Logging >> fn }
 
     /// Add a new service descriptor into the IServiceCollection.
-    [<CustomOperation("add")>]
-    member _.Add (conf : HostConfig, fn : IServiceCollection -> IServiceCollection) =
+    [<CustomOperation("add_service")>]
+    member _.AddService (conf : HostConfig, fn : IServiceCollection -> IServiceCollection) =
         { conf with Services = conf.Services >> fn }
 
     /// Add Antiforgery support into the IServiceCollection.
     [<CustomOperation("add_antiforgery")>]
     member x.AddAntiforgery (conf : HostConfig) =
-        x.Add (conf, fun s -> s.AddAntiforgery())
-    
-    
+        x.AddService (conf, fun s -> s.AddAntiforgery())
+        
     /// Add default cookie authentication into the IServiceCollection.
     [<CustomOperation("add_cookie")>]
     member x.AddCookie (conf : HostConfig) =        
-        x.Add (conf, fun s -> s.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie() |> ignore; s)
-
+        x.AddService (conf, fun s -> s.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie() |> ignore; s)
 
     /// Add configured cookie(s) authentication into the IServiceCollection.
     [<CustomOperation("add_conf_cookies")>]
@@ -181,12 +193,12 @@ type HostBuilder(args : string[]) =
             
             s
 
-        x.Add (conf, addAuthentication)
+        x.AddService (conf, addAuthentication)
 
     /// Add default Authorization into the IServiceCollection.
     [<CustomOperation("add_authorization")>]
     member x.AddAuthorization (conf : HostConfig) =
-        x.Add (conf, fun s -> s.AddAuthorization())
+        x.AddService (conf, fun s -> s.AddAuthorization())
 
     /// Add file system based data protection.
     [<CustomOperation("add_data_protection")>]
@@ -196,55 +208,55 @@ type HostBuilder(args : string[]) =
             |> ignore
             s
 
-        x.Add (conf, addDataProtection)
+        x.AddService (conf, addDataProtection)
 
     /// Add IHttpClientFactory into the IServiceCollection
     [<CustomOperation("add_http_client")>]
     member x.AddHttpClient (conf : HostConfig) =
-        x.Add (conf, fun s -> s.AddHttpClient())
+        x.AddService (conf, fun s -> s.AddHttpClient())
 
 
     // Application Builder
     // ------------
 
-    /// Activate the specified middleware.
-    [<CustomOperation("plug")>]
-    member _.Plug (conf : HostConfig, fn : IApplicationBuilder -> IApplicationBuilder) =
+    /// Use the specified middleware.
+    [<CustomOperation("use_middleware")>]
+    member _.Use (conf : HostConfig, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = conf.Middleware >> fn }
 
-    /// Activate the specified middleware if the provided predicate is "true".
-    [<CustomOperation("plug_if")>]
-    member _.PlugIf (conf : HostConfig, pred : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
-        { conf with Middleware = if pred then conf.Middleware >> fn else conf.Middleware }
+    /// Use the specified middleware if the provided predicate is "true".
+    [<CustomOperation("use_if")>]
+    member _.UseIf (conf : HostConfig, pred : IApplicationBuilder -> bool, fn : IApplicationBuilder -> IApplicationBuilder) =
+        { conf with Middleware = fun app -> if pred app then conf.Middleware(app) |> fn else conf.Middleware(app) }
 
-    /// Activate the specified middleware if the provided predicate is "true".
-    [<CustomOperation("plug_ifnot")>]
-    member _.PlugIfNot (conf : HostConfig, pred : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
-        { conf with Middleware = if not(pred) then conf.Middleware >> fn else conf.Middleware }
+    /// Use the specified middleware if the provided predicate is "true".
+    [<CustomOperation("use_ifnot")>]
+    member _.UseIfNot (conf : HostConfig, pred : IApplicationBuilder -> bool, fn : IApplicationBuilder -> IApplicationBuilder) =
+        { conf with Middleware = fun app -> if not(pred app) then conf.Middleware(app) |> fn else conf.Middleware(app) }
 
-    /// Activate authorization middleware. Call before 
+    /// Use authorization middleware. Call before 
     /// any middleware that depends on users being 
     /// authenticated.    
-    [<CustomOperation("plug_authentication")>]
-    member x.PlugAuthentication (conf : HostConfig) =
-        x.Plug (conf, fun app -> app.UseAuthentication())
+    [<CustomOperation("use_authentication")>]
+    member x.UseAuthentication (conf : HostConfig) =
+        x.Use (conf, fun app -> app.UseAuthentication())
 
-    /// Activate authorization middleware
-    [<CustomOperation("plug_authorization")>]
-    member _.PlugAuthorization (conf : HostConfig) =
+    /// Register authorization service and enable middleware
+    [<CustomOperation("use_authorization")>]
+    member _.UseAuthorization (conf : HostConfig) =
         { conf with
                Services = conf.Services >> fun s -> s.AddAuthorization()
                Middleware = conf.Middleware >> fun app -> app.UseAuthorization() }
 
-    /// Activate HTTP Response caching.
-    member x.PlugCaching(conf : HostConfig) =        
+    /// Register HTTP Response caching service and enable middleware.
+    member x.UseCaching(conf : HostConfig) =        
         { conf with
                Services = conf.Services >> fun s -> s.AddResponseCaching()
                Middleware = conf.Middleware >> fun app -> app.UseResponseCaching() }
 
-    /// Activate Brotli + GZip HTTP Compression.
-    [<CustomOperation("plug_compression")>]
-    member _.PlugCompression (conf : HostConfig) =
+    /// Register Brotli + GZip HTTP Compression service and enable middleware.
+    [<CustomOperation("use_compression")>]
+    member _.UseCompression (conf : HostConfig) =
         let configureCompression (s : IServiceCollection) = 
             let mimeTypes = 
                 let additionalMimeTypes = [|
@@ -268,32 +280,24 @@ type HostBuilder(args : string[]) =
                Services = conf.Services >> configureCompression
                Middleware = conf.Middleware >> fun app -> app.UseResponseCompression() }
 
-    /// Activate developer exception page if predicate is true.
-    [<CustomOperation("plug_if_developer_exception")>]
-    member x.PlugIfDeveloperException(conf : HostConfig, pred : bool) =
-        x.PlugIf(conf, pred, fun app -> app.UseDeveloperExceptionPage())
+    /// Use automatic HSTS middleware (adds strict-transport-policy header).
+    [<CustomOperation("use_hsts")>]
+    member x.UseHsts (conf : HostConfig) =
+        x.Use (conf, fun app -> app.UseHsts())       
 
-    /// Activate falco exception handler if predicate is true.
-    [<CustomOperation("plug_if_falco_exception")>]
-    member x.PlugIfFalcoException(conf : HostConfig, pred : bool, handler : HttpHandler) =
-        x.PlugIf(conf, pred, fun app -> app.UseFalcoExceptionHandler(handler))
+    /// Use automatic HTTPS redirection.
+    [<CustomOperation("use_https")>]
+    member x.UseHttps (conf : HostConfig) =
+        x.Use (conf, fun app -> app.UseHttpsRedirection())       
 
-    /// Activate automatic HSTS middleware (adds 
-    /// strict-transport-policy header).
-    [<CustomOperation("plug_hsts")>]
-    member x.PlugHsts (conf : HostConfig) =
-        x.Plug (conf, fun app -> app.UseHsts())       
-
-    /// Activate automatic HTTPS redirection.
-    [<CustomOperation("plug_https")>]
-    member x.PlugHttps (conf : HostConfig) =
-        x.Plug (conf, fun app -> app.UseHttpsRedirection())       
-
-    /// Activate Static File middleware.
-    [<CustomOperation("plug_static_files")>]
-    member _.PlugStaticFiles (conf : HostConfig) =
+    /// Use Static File middleware.
+    [<CustomOperation("use_static_files")>]
+    member _.UseStaticFiles (conf : HostConfig) =
         { conf with Middleware = conf.Middleware >> fun app -> app.UseStaticFiles() }
 
+    // Errors
+    // ------------
+    
     /// Include a catch-all (i.e., Not Found) HttpHandler (must be added last).
     [<CustomOperation("not_found")>]
     member _.NotFound (conf : HostConfig, handler : HttpHandler) =

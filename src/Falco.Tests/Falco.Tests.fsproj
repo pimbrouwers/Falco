@@ -21,7 +21,6 @@
     <Compile Include="RequestTests.fs" />
     <Compile Include="RequestHandlersTests.fs" />
     <Compile Include="ResponseTests.fs" />
-    <Compile Include="HostBuilderTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

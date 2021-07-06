@@ -8,9 +8,11 @@ open System.Text
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
@@ -149,6 +151,7 @@ type HttpContext with
         | None      -> false
         | Some user -> isAuthenciated user
 
+
 /// IEndpointRouteBuilder extensions
 type IEndpointRouteBuilder with
     member this.UseFalcoEndpoints (endpoints : HttpEndpoint list) =
@@ -168,8 +171,13 @@ type IEndpointRouteBuilder with
                 | ANY     -> this.Map(endpoint.Pattern, requestDelegate)
                 |> ignore
 
+
 /// IApplicationBuilder extensions
 type IApplicationBuilder with
+    /// Determine if the application is running in development mode
+    member this.IsDevelopment () =
+        this.ApplicationServices.GetService<IWebHostEnvironment>().IsDevelopment()
+
     /// Activate Falco integration with IEndpointRouteBuilder
     member this.UseFalco (endpoints : HttpEndpoint list) =
         this.UseRouting()
@@ -178,7 +186,7 @@ type IApplicationBuilder with
     /// Register a Falco HttpHandler as exception handler lambda
     /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
     member this.UseFalcoExceptionHandler (exceptionHandler : HttpHandler) =
-        this.UseExceptionHandler(fun (errApp : IApplicationBuilder) -> errApp.Run(HttpHandler.toRequestDelegate exceptionHandler))
+        this.UseExceptionHandler (fun (errApp : IApplicationBuilder) -> errApp.Run(HttpHandler.toRequestDelegate exceptionHandler))
 
     /// Executes function against IApplicationBuidler if the predicate returns true
     member this.UseWhen (predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
@@ -199,3 +207,10 @@ type IServiceCollection with
     member this.AddWhen (predicate : bool, fn : IServiceCollection -> IServiceCollection) =
         if predicate then fn this
         else this
+
+type FalcoExtensions = 
+    static member IsDevelopment : IApplicationBuilder -> bool =
+        fun app -> app.IsDevelopment()
+
+    static member UseFalcoExceptionHandler (exceptionHandler : HttpHandler) (app : IApplicationBuilder) =
+        app.UseFalcoExceptionHandler exceptionHandler
