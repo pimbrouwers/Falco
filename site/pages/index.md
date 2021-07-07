@@ -107,7 +107,7 @@ let personView (p : Person) =
 
 <div class="mb3">Reflection-based approaches to binding at IO boundaries work well for simple use cases. But as the complexity of the input rises it becomes error-prone and often involves tedious workarounds. This is especially true for an expressive, algebraic type system like F#. As such, it is often advisable to take back control of this process from the runtime.</div>
 
-<div>We can make this simpler by creating a succinct API to obtain typed values from <code>IFormCollection</code>, <code>IQueryCollection</code>, <code>RouteValueDictionary</code> and <code>IHeaderCollection</code>. <i>Readers</i> for all four exist as derivatives of <code>StringCollectionReader</code> which is an abstraction intended to make it easier to work with the string-based key/value collections.</div>
+<div>We can make this simpler by creating a uniform API to obtain typed values from <code>IFormCollection</code>, <code>IQueryCollection</code>, <code>RouteValueDictionary</code>, <code>IHeaderCollection</code> and <code>IRequestCookieCollection</code>. These <i>readers</i> exist as derivatives of <code>StringCollectionReader</code> which is an abstraction intended to make it easier to work with the various string-based key/value collections within ASP.NET.</div>
 
 </div>
 <!-- /end text -->

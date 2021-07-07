@@ -13,7 +13,7 @@
 <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 <link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 <link href="/prism.css" rel="stylesheet" />
 <link href="/tachyons.css" rel="stylesheet" />
 <style>
@@ -25,8 +25,6 @@
   --purple: rgb(184, 69, 252);
   --washed-purple: rgba(185, 69, 252, 0.10);
 }
-
-a { color: inherit; }
 
 /* sizing */
 .mw9 { max-width: 80rem; }
@@ -49,6 +47,24 @@ a { color: inherit; }
 /* transform */
 .ty--50 { transform: translateY(-50%);}
 
+/* text */
+main h1, main h2, main h3, main h4, main h5 { margin-bottom: 0; font-weight: 400; }
+main h2 { margin-top: 3rem; font-size: 2em; color: var(--gray); }
+main h3 { margin-top: 2rem; font-size: 1.5em; }
+main h2 + h3 { margin-top: .5rem; } 
+main p { line-height: 1.4; }
+
+a { color: inherit; transition: color .125s ease-in; }
+main a:visited { color: inherit; }
+main a:hover { color: var(--purple); }
+
+blockquote { margin-left: 0; margin-right: 0; padding: 1rem; border-left: 4px solid var(--purple); background: var(--washed-purple); }
+blockquote p { margin: 0; }
+
+/* tables */
+table { text-align: left; border-collapse: collapse; }
+td, th { padding: .5rem; border-bottom: 1px solid var(--silver); }
+
 /* code */
 code[class*="language-"], pre[class*="language-"] { font-size: .875rem; }
 pre[class*="language-"] { padding: 1rem; }
@@ -58,6 +74,7 @@ pre > code { background-color: inherit; }
 h2 > code, h3 > code, p > code { padding: 0 .25rem; }
 
 @media screen and (min-width: 640px) {      
+  main { font-size: 1.125em; }  
   code[class*="language-"], pre[class*="language-"] { font-size: 1rem; }
 } 
 
@@ -83,11 +100,12 @@ h2 > code, h3 > code, p > code { padding: 0 .25rem; }
       <nav class="flex flex-column flex-row-l items-center">
         <a href="/"><img src="/icon.svg" class="w3 pb3 pb0-l o-80 hover-o-100" /></a>
         <div class="flex-grow-1-l tc tr-l">
-          <a href="https://github.com/pimbrouwers/Falco#key-features" target="_blank" title="Coming soon!" class="dib mh2 mh3-l no-underline white-90 hover-white">overview</a>
-          <a href="https://www.pimbrouwers.com/2020/12/08/fsharp-on-the-web-a-guide-to-building-websites-with-falco-dotnet-x-and-aspdotnet-core.html" target="_blank" title="Coming soon!" class="dib mh2 mh3-l no-underline white-90 hover-white">guide</a>
+          <a href="#key-features" title="Overview of Falco's key features" class="dib mh2 mh3-l no-underline white-90 hover-white">overview</a>
+          <a href="https://www.pimbrouwers.com/2020/12/08/fsharp-on-the-web-a-guide-to-building-websites-with-falco-dotnet-x-and-aspdotnet-core.html" target="_blank" title="A guide on how to write full production-ready applications using Falco" class="dib mh2 mh3-l no-underline white-90 hover-white">guide</a>
           <a href="https://github.com/pimbrouwers/Falco" 
              target="_blank" 
              alt="Falco GitHub Link" 
+             title="Fork Falco on GitHub"
              class="dib ml2 ml3-l no-underline white-90 hover-white">code</a>
         </div>
       </nav>
@@ -98,7 +116,9 @@ h2 > code, h3 > code, p > code { padding: 0 .25rem; }
   
 <!-- /body/content -->
 <div class="bg-white">
-  $htmlContent
+  <div class="cf mw8 center pv4 pv5-l ph3">
+    <main>$htmlContent</main>
+  </div>
 </div>
 <!-- /body/footer -->
 <footer class="tc ph3 pv4"> 
