@@ -53,6 +53,10 @@ Write-Verbose "Creating 404 page"
 $markdown = Get-Content -Raw -Path (Join-Path -Path $pagesDir -ChildPath 404.md) | ConvertFrom-Markdown
 
 Invoke-Template {  
+    $htmlContent = $markdown | Select-Object -ExpandProperty Html  
+    
+    Write-Debug $htmlContent
+
     $title = "404 - Not Found | Falco Framework"
     $pageTitle = "Not Found"  
     $pageDescription = "Something went wrong."
@@ -64,40 +68,21 @@ Invoke-Template {
     | Write-Verbose
 }
 
-# Write-Verbose "Creating pages"
-# Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath pages) -Exclude 404.md | ForEach-Object {
-#     Write-Verbose "Creating page: $($_.Name)"
-#     $markdown = Get-Content -Raw -Path $_.FullName | ConvertFrom-Markdown
+Write-Verbose "Creating pages"
+Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath pages) -Exclude 404.md | ForEach-Object {
+    Write-Verbose "Creating page: $($_.Name)"
+    $markdown = Get-Content -Raw -Path $_.FullName | ConvertFrom-Markdown
     
-#     Invoke-Template {
+    Invoke-Template {
 
-#         if ($_.Name -eq "index.md") {
-#             $topHtmlContent = Render-Template $hero                        
-#         } 
+        if ($_.Name -eq "index.md") {
+            $topHtmlContent = Render-Template $hero                        
+        } 
         
-#         $htmlContent = $markdown | Select-Object -ExpandProperty Html  
+        $htmlContent = $markdown | Select-Object -ExpandProperty Html  
     
-#         Render-Template $layout 
-#         | Out-File -Path (Join-Path -Path $outputDir -ChildPath $_.Name.Replace(".md", ".html"))
-#         | Write-Verbose
-#     }
-# }
-
-Write-Verbose "Creating index page"
-$readmePath = Join-Path -Path $PSScriptRoot -ChildPath "../README.md"
-$markdown = Get-Content -Raw -Path $readmePath | ConvertFrom-Markdown
-
-Invoke-Template {
-
-    $topHtmlContent = Render-Template $hero                        
-
-    Write-Debug $topHtmlContent
-
-    $htmlContent = $markdown | Select-Object -ExpandProperty Html
-
-    Write-Debug $htmlContent
-
-    Render-Template $layout 
-    | Out-File -Path (Join-Path -Path $outputDir -ChildPath "index.html")
-    | Write-Verbose
+        Render-Template $layout 
+        | Out-File -Path (Join-Path -Path $outputDir -ChildPath $_.Name.Replace(".md", ".html"))
+        | Write-Verbose
+    }
 }

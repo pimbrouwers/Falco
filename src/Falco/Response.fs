@@ -31,10 +31,6 @@ let withContentLength (contentLength : int64) : HttpResponseModifier =
 let withHeader (header : string) (content : string) : HttpResponseModifier =
     modify (fun ctx -> ctx.Response.SetHeader header content)
 
-/// Set multiple headers for response
-let withHeaders (headers : (string * string) list) : HttpResponseModifier =
-    modify (fun ctx -> headers |> List.iter (fun (header, content) -> ctx.Response.SetHeader header content))
-
 /// Set ContentType header for response
 let withContentType (contentType : string) : HttpResponseModifier =
     withHeader HeaderNames.ContentType contentType
@@ -57,37 +53,14 @@ let redirect (url : string) (permanent : bool) : HttpHandler =
         ctx.Response.Redirect(url, permanent)
         ctx.Response.CompleteAsync ()
 
-/// Returns an inline binary (i.e., Byte[]) response with the specified Content-Type
-///
-/// Note: Automatically sets "content-disposition: inline"
-let ofBinary (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =     
-    let headers = (HeaderNames.ContentDisposition, "inline") :: headers
-    
-    withContentType contentType
-    >> withHeaders headers
-    >> fun ctx -> ctx.Response.WriteBytes bytes
-
-/// Returns a binary (i.e., Byte[]) attachment response with the specified Content-Type and optional filename
-///
-/// Note: Automatically sets "content-disposition: attachment" and includes filename if provided
-let ofAttachment (filename : string) (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =
-    let contentDisposition = 
-        if StringUtils.strNotEmpty filename then sprintf "attachment; filename=\"%s\"" filename
-        else "attachment"
-
-    let headers = (HeaderNames.ContentDisposition, contentDisposition) :: headers
-
-    withContentType contentType
-    >> withHeaders headers
-    >> fun ctx -> ctx.Response.WriteBytes bytes
-
 /// Flushes any remaining response headers or data and returns empty response
 let ofEmpty : HttpHandler =
     fun ctx -> ctx.Response.CompleteAsync ()
 
 /// Writes string to response body with provided encoding
 let ofString (encoding : Encoding) (str : string) : HttpHandler =
-    fun ctx -> ctx.Response.WriteString encoding str
+    fun ctx ->
+        ctx.Response.WriteString encoding str
 
 /// Returns a "text/plain; charset=utf-8" response with provided string to client
 let ofPlainText (str : string) : HttpHandler =

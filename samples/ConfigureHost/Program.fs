@@ -5,6 +5,9 @@ open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
 
 // ------------
 // Handlers 
@@ -14,9 +17,7 @@ let handlePlainText : HttpHandler =
     |> Response.ofPlainText 
 
 let handleHtml : HttpHandler =
-    Templates.html5 "en" 
-        [ Elem.link [ Attr.href "style.css"; Attr.rel "stylesheet" ] ]
-        [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]
+    Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]
     |> Response.ofHtml
 
 let handleJson : HttpHandler =
@@ -28,22 +29,44 @@ let handleGreeting : HttpHandler =
         (fun r -> r.Get "name" "John Doe" |> sprintf "Hi %s") 
         Response.ofPlainText
 
-let exceptionHandler : HttpHandler =
-    Response.withStatusCode 500 >> Response.ofPlainText "Server error"
+// ------------
+// Logging 
+// ------------
+let configureLogging (log : ILoggingBuilder) =
+    log.ClearProviders()
+       .AddConsole()
+       .SetMinimumLevel(LogLevel.Error)
+    |> ignore
 
 // ------------
-// Host
+// Register services
 // ------------
+let configureServices (services : IServiceCollection) =
+    services.AddFalco() |> ignore
+
+// ------------
+// Activate middleware
+// ------------
+let configureApp (endpoints : HttpEndpoint list) (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =    
+    let devMode = StringUtils.strEquals ctx.HostingEnvironment.EnvironmentName "Development"    
+    app.UseWhen(devMode, fun app -> 
+            app.UseDeveloperExceptionPage())
+       .UseWhen(not(devMode), fun app -> 
+            app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server error"))
+       .UseFalco(endpoints) |> ignore
+
+// -----------
+// Configure Host
+// -----------
+let configureHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
+    webhost.ConfigureLogging(configureLogging)
+           .ConfigureServices(configureServices)
+           .Configure(configureApp endpoints)
+
 [<EntryPoint>]
-let main args =     
+let main args =    
     webHost args {
-        use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
-        use_https
-        use_compression
-        use_static_files
-
-        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
+        configure configureHost
 
         endpoints [            
             get "/greet/{name:alpha}" 
@@ -55,7 +78,7 @@ let main args =
             get "/html" 
                 handleHtml
                 
-            any "/" 
+            get "/" 
                 handlePlainText
         ]
     }

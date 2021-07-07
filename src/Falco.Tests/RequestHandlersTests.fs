@@ -80,18 +80,6 @@ let ``Request.bindForm`` () =
     Request.bindForm (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates) handleError
 
 [<Fact>]
-let ``Request.bindFormStream`` () =
-    let ctx = getHttpContextWriteable false
-    let form = Dictionary<string, StringValues>()
-    form.Add("name", StringValues("falco"))
-    ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
-
-    let predicates name =
-        name |> should equal "falco"
-
-    Request.bindFormStream (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates) handleError
-
-[<Fact>]
 let ``Request.mapRoute`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
@@ -132,15 +120,3 @@ let ``Request.mapForm`` () =
         name |> should equal "falco"
 
     Request.mapForm (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates)
-
-[<Fact>]
-let ``Request.mapFormStream`` () =
-    let ctx = getHttpContextWriteable false
-    let form = Dictionary<string, StringValues>()
-    form.Add("name", StringValues("falco"))
-    ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
-
-    let predicates name =
-        name |> should equal "falco"
-
-    Request.mapFormStream (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates)

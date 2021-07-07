@@ -12,8 +12,10 @@ open Microsoft.Net.Http.Headers
 
 /// Represents the accumulation of form fields and binary data
 type MultipartFormData = 
-    { FormData : KeyValueAccumulator
-      FormFiles : FormFileCollection }
+    {
+        FormData : KeyValueAccumulator
+        FormFiles : FormFileCollection
+    }
 
 type MultipartSection with
     /// Attempt to obtain encoding from content type, default to UTF8
@@ -97,13 +99,3 @@ type HttpRequest with
 
             | false, _ -> return Error "Not a multipart request"
         }
-
-    member this.StreamFormAsync() = task {
-        let! form = this.TryStreamFormAsync()
-        
-        return
-            match form with
-            | Error _ -> FormCollectionReader(FormCollection.Empty, None)
-            | Ok form -> form
-    }
-        

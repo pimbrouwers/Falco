@@ -1,3 +1,7 @@
+<p align="center">
+  <img id="logo" src="https://github.com/pimbrouwers/Falco/raw/master/assets/logo.png" />
+</p>
+
 # Falco
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
@@ -122,8 +126,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | [Hello World][7] | A basic hello world app |
 | [Configure Host][21] | Demonstrating how to configure the `IHost` instance using the `webHost` computation expression |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
-| [Third-part View Engine][22] | Demonstrating how to render with an external view engine, specifically [Scriban][23] |
-| [Falco Journal][20] | A bullet journal built using Falco |
+| [Todo MVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
 
 ## Request Handling
 
@@ -167,6 +170,7 @@ let htmlHandler : HttpHandler =
     html
     |> Response.ofHtmlString
 ```
+
 
 ### JSON responses
 
@@ -255,60 +259,37 @@ let endpoints : HttpEndpoint list =
 
 ## Host Builder
 
-[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things more expressive, Falco exposes an optional computation expression. Below is an example using the builder taken from the [Configure Host][21] sample.
+[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the [Configure Host][21] sample.
 
 ```fsharp
+module ConfigureHost.Program
+
+open Falco
+open Falco.Markup
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
+
+// ... rest of startup code
+
+let configureHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
+    // definitions omitted for brevity
+    webhost.ConfigureLogging(configureLogging)
+           .ConfigureServices(configureServices)
+           .Configure(configureApp endpoints)
+
 [<EntryPoint>]
-let main args = 
+let main args =
     webHost args {
-        use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
-        use_https
-        use_compression
-        use_static_files
-
-        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
-
-        endpoints [            
-            get "/greet/{name:alpha}" 
-                handleGreeting
-
-            get "/json" 
-                handleJson
-
-            get "/html" 
-                handleHtml
-                
-            get "/" 
-                handlePlainText
-        ]
+        configure configureHost
+        endpoints [
+                      get "/" ("hello world" |> Response.ofPlainText)
+                  ]
     }
     0
-```
-
-### Fully Customizing the Host
-
-To assume full control over configuring your `IHost` use the `configure` custom operation. It expects a function with the signature of `HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder` and assumes you will register and activate Falco (i.e., `AddFalco()` and `UseFalco(endpoints)`).
-
-```fsharp
-[<EntryPoint>]
-let main args = 
-    let configureServices : IServiceCollection -> unit = 
-      fun services -> services.AddFalco() |> ignore
-    
-    let configureApp : HttpEndpoint list -> IApplicationBuilder -> unit =
-       fun endpoints app -> app.UseFalco(endpoints) |> ignore
-
-    let configureWebHost : HttpEndpoint list -> IWebHostBuilder =
-      fun endpoints webHost ->
-          webHost.ConfigureLogging(configureLogging)
-                 .ConfigureServices(configureServices)
-                 .Configure(configureApp endpoints)
-
-    webHost args {
-      configure configureWebHost
-      endpoints []
-    }
 ```
 
 ## Model Binding
@@ -448,7 +429,7 @@ let manualFormHandler : HttpHandler =
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have minimal support for F#'s algebraic types.
+Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have no support for F#'s algebraic types.
 
 ```fsharp
 type Person =
@@ -768,7 +749,5 @@ Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON.
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
 [18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs
 [19]: https://github.com/pimbrouwers/Jay
-[20]: https://github.com/pimbrouwers/FalcoJournal
+[20]: https://github.com/pimbrouwers/Falco/tree/master/samples/Todo
 [21]: https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost
-[22]: https://github.com/pimbrouwers/Falco/tree/master/samples/ScribanExample
-[23]: https://github.com/scriban/scriban

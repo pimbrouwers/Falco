@@ -7,6 +7,7 @@ open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
 open Falco.Multipart
 open Falco.Security
+open System.Security.Claims
 
 /// Obtain the HttpVerb of the request
 let getVerb
@@ -57,19 +58,6 @@ let tryStreamForm
     (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> =
     ctx.Request.TryStreamFormAsync()
 
-/// Stream the form collection for multipart form submissions
-let streamForm
-    (ctx : HttpContext) : Task<FormCollectionReader> =
-    ctx.Request.StreamFormAsync()
-
-/// Attempt to bind the form collection
-let tryBindFormStream
-    (binder : FormCollectionReader -> Result<'a, 'b>)
-    (ctx : HttpContext) : Task<Result<'a, 'b>> = task {
-        let! form = streamForm ctx
-        return form |> binder
-    }
-
 /// Retrieve the cookie from the request as an instance of CookieCollectionReader
 let getCookie
     (ctx : HttpContext) : CookieCollectionReader =
@@ -102,15 +90,15 @@ let tryBindJson<'a>
 // Handlers
 // ------------
 
-/// Attempt to bind JSON request body onto 'a and provide
+/// Attempt to bind JSON request body onto ' and provider
 /// to handleOk, otherwise provide handleError with error string
 let bindJson
     (handleOk : 'a -> HttpHandler)
     (handleError : string -> HttpHandler) : HttpHandler =
     fun ctx -> task {
-        let! json = tryBindJson ctx
+        let! form = tryBindJson ctx
         let respondWith =
-            match json with
+            match form with
             | Error error -> handleError error
             | Ok form -> handleOk form
 
@@ -162,21 +150,6 @@ let bindCookie
 
         respondWith ctx
 
-/// Validate the CSRF of the current request
-let validateCsrfToken
-    (handleOk : HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler =
-    fun ctx -> task {
-        let! isValid = Xss.validateToken ctx
-
-        let respondWith =
-            match isValid with
-            | true  -> handleOk
-            | false -> handleInvalidToken
-
-        return! respondWith ctx
-    }
-
 /// Attempt to bind the FormCollectionReader onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
 let bindForm
@@ -193,19 +166,18 @@ let bindForm
         return! respondWith ctx
     }
 
-/// Attempt to bind a streamed (i.e., multipart/form-data) 
-/// FormCollectionReader  onto 'a and provide to handleOk, 
-/// otherwise provide handleError with 'b
-let bindFormStream
-    (binder : FormCollectionReader -> Result<'a, 'b>)
-    (handleOk : 'a -> HttpHandler)
-    (handleError : 'b -> HttpHandler) : HttpHandler =
-    fun ctx -> task {        
-        let! form = tryBindFormStream binder ctx
+
+/// Validate the CSRF of the current request
+let validateCsrfToken
+    (handleOk : HttpHandler)
+    (handleInvalidToken : HttpHandler) : HttpHandler =
+    fun ctx -> task {
+        let! isValid = Xss.validateToken ctx
+
         let respondWith =
-            match form with
-            | Error error -> handleError error
-            | Ok form -> handleOk form
+            match isValid with
+            | true  -> handleOk
+            | false -> handleInvalidToken
 
         return! respondWith ctx
     }
@@ -221,33 +193,6 @@ let bindFormSecure
     validateCsrfToken
         (bindForm binder handleOk handleError)
         handleInvalidToken
-
-/// Validate the CSRF of the current request then atempt 
-/// to bind a streamed (i.e., multipart/form-data) 
-/// FormCollectionReader onto 'a and provide to handleOk, 
-/// otherwise provide handleError with 'b
-let bindFormStreamSecure
-    (binder : FormCollectionReader -> Result<'a, 'b>)
-    (handleOk : 'a -> HttpHandler)
-    (handleError : 'b -> HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler =
-    validateCsrfToken
-        (bindFormStream binder handleOk handleError)
-        handleInvalidToken
-
-/// Bind JSON request body onto 'a and provide to next
-/// Httphandler, throws exception if JsonException 
-/// occurs during deserialization.
-let mapJson (next : 'a -> HttpHandler) : HttpHandler =
-    fun ctx -> task {
-        let! json = tryBindJson ctx
-        let respondWith =
-            match json with
-            | Error error -> failwith "Could not bind JSON"
-            | Ok json -> next json
-
-        return! respondWith ctx
-    }
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler
@@ -280,16 +225,6 @@ let mapForm
         return! next (form |> map) ctx
     }
 
-/// Project FormCollectionReader a streamed (i.e., multipart/form-data) 
-/// onto 'a and provide to next HttpHandler
-let mapFormStream
-    (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler =
-    fun ctx -> task {
-        let! form = streamForm ctx
-        return! next (form |> map) ctx
-    }
-
 /// Project FormCollectionReader onto 'a and provide
 /// to next HttpHandler
 let mapFormSecure
@@ -298,16 +233,6 @@ let mapFormSecure
     (handleInvalidToken : HttpHandler) : HttpHandler =
         validateCsrfToken
             (mapForm map next)
-            handleInvalidToken
-
-/// Project FormCollectionReader a streamed (i.e., multipart/form-data) 
-/// onto 'a and provide to next HttpHandler
-let mapFormStreamSecure
-    (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler =
-        validateCsrfToken
-            (mapFormStream map next)
             handleInvalidToken
 
 /// Proceed if the authentication status of current IPrincipal is true

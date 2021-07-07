@@ -4,9 +4,6 @@ module Falco.Core
 open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Routing
-open Microsoft.Extensions.FileProviders
-open Falco.StringUtils
 
 // ------------
 // TaskBuilder.fs overrides 
@@ -53,25 +50,6 @@ type HttpVerb =
     | TRACE
     | ANY
 
-    override x.ToString() =
-        match x with
-        | GET     -> HttpMethods.Get
-        | HEAD    -> HttpMethods.Head
-        | POST    -> HttpMethods.Post
-        | PUT     -> HttpMethods.Put
-        | PATCH   -> HttpMethods.Patch
-        | DELETE  -> HttpMethods.Delete
-        | OPTIONS -> HttpMethods.Options
-        | TRACE   -> HttpMethods.Trace
-        | ANY     -> String.Empty
- 
-module HttpVerb = 
-    let toHttpMethodMetadata verb = 
-        let verbStr = verb.ToString()
-        match verb with 
-        | ANY -> HttpMethodMetadata [||]
-        | _   -> HttpMethodMetadata [|verbStr|]       
-
 /// The eventual return of asynchronous HttpContext processing
 type HttpHandler = 
     HttpContext -> Task
@@ -86,37 +64,10 @@ type HttpResponseModifier = HttpContext -> HttpContext
 
 /// Specifies an association of a route pattern to a collection of HttpEndpointHandler
 type HttpEndpoint = 
-    { Pattern  : string   
-      Handlers : (HttpVerb * HttpHandler) list }
+    {
+        Pattern  : string   
+        Handlers : (HttpVerb * HttpHandler) list
+    }
 
 /// The process of associating a route and handler
 type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
-
-[<Sealed>]
-type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
-    inherit EndpointDataSource()
-
-    [<Literal>]
-    let defaultOrder = 0
-
-    let endpoints = 
-        [| for endpoint in httpEndpoints do            
-            let routePattern = Patterns.RoutePatternFactory.Parse endpoint.Pattern
-
-            for (verb, handler) in endpoint.Handlers do                   
-                let requestDelegate = HttpHandler.toRequestDelegate handler 
-                let verbStr = verb.ToString()           
-                let displayName = if strEmpty verbStr then endpoint.Pattern else strConcat [|verbStr; " "; endpoint.Pattern|]                
-                let httpMethod = HttpVerb.toHttpMethodMetadata verb                                       
-                let metadata = EndpointMetadataCollection(httpMethod)                
-                RouteEndpoint(requestDelegate, routePattern, defaultOrder, metadata, displayName) :> Endpoint |]
-
-    override _.Endpoints = endpoints :> _
-    override _.GetChangeToken() = NullChangeToken.Singleton :> _
-
-// ------------
-// Workflows
-// ------------
-
-/// Work to be done that has input and will generate output or an error.
-type Workflow<'input, 'output, 'error> = 'input -> Result<'output, 'error>
