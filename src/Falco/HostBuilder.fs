@@ -16,25 +16,23 @@ open Microsoft.Extensions.Logging
 // ------------
 type ConfigurationSpec = 
     { BasePath     : string
-      Args         : string array
       RequiredJson : string list
       OptionalJson : string list
       AddEnvVars   : bool }
 
     static member Empty = 
         { BasePath     = IO.Directory.GetCurrentDirectory() 
-          Args         = [||]
           RequiredJson = []
           OptionalJson = []
           AddEnvVars   = false }
 
-type ConfigBuilder () =
+type ConfigBuilder (args : string[]) =
     member _.Yield(_) = ConfigurationSpec.Empty
 
     member _.Run(conf : ConfigurationSpec) =
         let mutable bldr = ConfigurationBuilder().SetBasePath(conf.BasePath)
 
-        bldr <- bldr.AddCommandLine (conf.Args)
+        bldr <- bldr.AddCommandLine (args)
 
         if conf.AddEnvVars then 
             bldr <- bldr.AddEnvironmentVariables()
@@ -57,11 +55,6 @@ type ConfigBuilder () =
     member _.AddEnvVars (conf : ConfigurationSpec) =
         { conf with AddEnvVars = true }
 
-    /// Add Command-line args to the ConfigurationBuilder.
-    [<CustomOperation("add_args")>]
-    member _.AddArgs (conf : ConfigurationSpec, args : string array) =
-        { conf with Args = args }
-
     /// Add required JSON file to the ConfigurationBuilder.
     [<CustomOperation("required_json")>]
     member _.AddRequiredJsonFile (conf : ConfigurationSpec, filePath : string) =
@@ -73,7 +66,7 @@ type ConfigBuilder () =
         { conf with OptionalJson = filePath :: conf.OptionalJson }
 
 
-let configuration = ConfigBuilder()
+let configuration args = ConfigBuilder(args)
 
 // Host Builder
 // ------------

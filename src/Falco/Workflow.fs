@@ -15,16 +15,15 @@ let execute
     (input : 'input) : HttpHandler =
     fun ctx ->  
         // Gather dependencies
-        let root = getRoot ctx
-        
+        use root = getRoot ctx
+
+        // Inject deps into workflow and execute
         let respondWith = 
             match workflow root input with
             | Ok output -> handleOk output
             | Error error -> handleError input error
 
-        // Dispose dependencies
-        root.Dispose()
-
+        // Return handled response
         respondWith ctx
 
 /// Map a query string and run the provided workflow
