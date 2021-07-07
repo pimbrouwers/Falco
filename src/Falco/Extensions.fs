@@ -151,26 +151,11 @@ type HttpContext with
         | None      -> false
         | Some user -> isAuthenciated user
 
-
 /// IEndpointRouteBuilder extensions
 type IEndpointRouteBuilder with
     member this.UseFalcoEndpoints (endpoints : HttpEndpoint list) =
-        for endpoint in endpoints do                           
-            for (verb, handler) in endpoint.Handlers do                          
-                let requestDelegate = HttpHandler.toRequestDelegate handler
-            
-                match verb with
-                | GET     -> this.MapGet(endpoint.Pattern, requestDelegate)
-                | HEAD    -> this.MapMethods(endpoint.Pattern, [ HttpMethods.Head ], requestDelegate)
-                | POST    -> this.MapPost(endpoint.Pattern, requestDelegate)
-                | PUT     -> this.MapPut(endpoint.Pattern, requestDelegate)
-                | PATCH   -> this.MapMethods(endpoint.Pattern, [ HttpMethods.Patch ], requestDelegate)
-                | DELETE  -> this.MapDelete(endpoint.Pattern, requestDelegate)
-                | OPTIONS -> this.MapMethods(endpoint.Pattern, [ HttpMethods.Options ], requestDelegate)
-                | TRACE   -> this.MapMethods(endpoint.Pattern, [ HttpMethods.Trace ], requestDelegate)
-                | ANY     -> this.Map(endpoint.Pattern, requestDelegate)
-                |> ignore
-
+        let dataSource = FalcoEndpointDatasource(endpoints)
+        this.DataSources.Add(dataSource)
 
 /// IApplicationBuilder extensions
 type IApplicationBuilder with

@@ -55,7 +55,7 @@ let main args =
             get "/html" 
                 handleHtml
                 
-            get "/" 
+            any "/" 
                 handlePlainText
         ]
     }
