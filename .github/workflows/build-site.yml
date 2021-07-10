@@ -1,1 +1,17 @@
 name: Build Site
+
+on: 
+  # push: 
+  #   branches: [master]
+
+  repository_dispatch:
+
+jobs:
+  build-site:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run PowerShell script to build site
+    - run: pwsh -command ".\$GITHUB_WORKSPACE\site\Build.ps1"
