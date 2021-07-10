@@ -14,4 +14,4 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Run PowerShell script to build site
-    - run: pwsh -command ".\$GITHUB_WORKSPACE\site\Build.ps1"
+      run: pwsh -command ".\$GITHUB_WORKSPACE\site\Build.ps1"
