@@ -11,7 +11,9 @@ jobs:
 
     runs-on: windows-latest
 
-    steps:
-    - uses: actions/checkout@v1
+    steps:      
+    - uses: actions/checkout@master
+
     - name: Run PowerShell script to build site
+      id: build
       run: pwsh -command ".\$GITHUB_WORKSPACE\site\Build.ps1"
