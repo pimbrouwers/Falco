@@ -43,10 +43,10 @@ webHost [||] {
 2. [Sample Applications](#sample-applications)
 3. [Request Handling](#request-handling)
 4. [Routing](#routing)
-5. [Host Builder](#host-builder)
-6. [Model Binding](#model-binding)
-7. [JSON](#json)
-8. [Markup](#markup)
+5. [Model Binding](#model-binding)
+6. [JSON](#json)
+7. [Markup](#markup)
+8. [Host Builder](#host-builder)
 9. [Authentication](#authentication)
 10. [Security](#security)
 11. [Handling Large Uploads](#handling-large-uploads)
@@ -334,6 +334,263 @@ let endpoints : HttpEndpoint list =
   ]
 ```
 
+## Model Binding
+
+Reflection-based approaches to binding at IO boundaries work well for simple use cases. But as the complexity of the input rises it becomes error-prone and often involves tedious workarounds. This is especially true for an expressive, algebraic type system like F#. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
+
+We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary` and `IHeaderCollection`. _Readers_ for all four exist as derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
+
+The built-in model binding handlers come in two flavors, both of which are continuation-style handlers:
+
+1. `Request.mapXXX` 
+    - Signature: `(map: XXXCollectionReader -> 'a) (next : 'a -> HttpHandler) -> HttpHandler`
+    - The "map" family of handlers are more commonly used and assume that binding will always succeed in one manner or another, either via default values or `Option<T>`.
+
+2. `Request.bindXXX binder handleOk handleError`
+    - Signature: `(bind: XXXCollectionReader -> Result<'a, 'b>) (handleOk : 'a -> HttpHandler) -> (handleError : 'b -> HttpHandler) -> HttpHandler`
+    - The "bind" family of handlers are useful when you explicitly want to indicate errors during binding and return a different response when they occur.
+
+### Route Binding
+
+```fsharp
+let mapRouteHandler : HttpHandler =
+    let routeMap (r : RouteCollectionReader) = 
+        r.GetString "Name" "John Doe"
+    
+    Request.mapRoute routeMap Response.ofJson
+
+let bindRouteHandler : HttpHandler = 
+    let routeBind (r : RouteCollectionReader) =
+        match r.TryGetString "Name" with
+        | Some name -> Ok name
+        | _         -> Error {| Message = "Invalid route" |}
+    
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindRoute routeBind handleOk handleError
+
+let manualRouteHandler : HttpHandler =
+    fun ctx ->
+        let r : RouteCollectionReader = Request.getRoute ctx
+        let name = r.GetString "Name" "John Doe"  
+
+        Response.ofJson name ctx
+```
+
+### Query Binding
+
+```fsharp
+type Person = { FirstName : string; LastName : string }
+
+let mapQueryHandler : HttpHandler =    
+    let queryMap (q : QueryCollectionReader) =
+        let first = q.GetString "FirstName" "John" // Get value or return default value
+        let last = q.GetString "LastName" "Doe"
+        { FirstName = first; LastName = last }
+
+    Request.mapQuery queryMap Response.ofJson 
+
+let bindQueryHandler : HttpHandler = 
+    let queryBind (q : QueryCollectionReader) =
+        match q.TryGetString "FirstName", q.TryGetString "LastName" with
+        | Some f, Some l -> Ok { FirstName = f; LastName = l }
+        | _  -> Error {| Message = "Invalid query string" |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindQuery queryBind handleOk handleError 
+
+let manualQueryHandler : HttpHandler =
+    fun ctx ->
+        let q : QueryCollectionReader = Request.getQuery ctx
+        
+        let person = 
+            { FirstName = q.GetString "FirstName" "John" // Get value or return default value
+              LastName  = q.GetString "LastName" "Doe" }
+
+        Response.ofJson person ctx
+```
+
+### Form Binding
+
+The `FormCollectionReader` has full access to the `IFormFilesCollection` via the `_.Files` member.
+
+> Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
+
+```fsharp
+type Person = { FirstName : string; LastName : string }
+
+let mapFormHandler : HttpHandler =   
+    let formMap (f : FormCollectionReader) =
+        let first = f.GetString "FirstName" "John" // Get value or return default value
+        let last = f.GetString "LastName" "Doe"        
+        { FirstName = first; LastName = last }
+
+    Request.mapForm formMap Response.ofJson 
+
+let mapFormSecureHandler : HttpHandler =    
+    let formMap (f : FormCollectionReader) =
+        let first = f.GetString "FirstName" "John" // Get value or return default value
+        let last = f.GetString "LastName" "Doe"        
+        { FirstName = first; LastName = last }
+
+    let handleInvalidCsrf : HttpHandler = 
+        Response.withStatusCode 400 >> Response.ofEmpty
+
+    Request.mapFormSecure formMap Response.ofJson handleInvalidCsrf
+
+let bindFormHandler : HttpHandler = 
+    let formBind (f : FormCollectionReader) =
+        match f.TryGetString "FirstName", f.TryGetString "LastName" with
+        | Some f, Some l -> Ok { FirstName = f; LastName = l }
+        | _  -> Error {| Message = "Invalid form data" |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindForm formBind handleOk handleError 
+
+let bindFormSecureHandler : HttpHandler = 
+    let formBind (f : FormCollectionReader) =
+        match f.TryGetString "FirstName", f.TryGetString "LastName" with
+        | Some f, Some l -> Ok { FirstName = f; LastName = l }
+        | _  -> Error {| Message = "Invalid form data" |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+    let handleInvalidCsrf : HttpHandler = 
+        Response.withStatusCode 400 >> Response.ofEmpty
+
+    Request.bindForm formBind handleOk handleError handleInvalidCsrf
+
+let manualFormHandler : HttpHandler =
+    fun ctx -> task {
+        let! f : FormCollectionReader = Request.getForm ctx
+        
+        let person = 
+            { FirstName = f.GetString "FirstName" "John" // Get value or return default value
+              LastName = f.GetString "LastName" "Doe" }
+
+        return! Response.ofJson person ctx
+    }        
+```
+
+## JSON
+
+Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have minimal support for F#'s algebraic types.
+
+```fsharp
+type Person = { FirstName : string; LastName : string }
+
+let jsonHandler : HttpHandler =
+    { FirstName = "John"; LastName = "Doe" }
+    |> Response.ofJson
+
+let jsonBindHandler : HttpHandler =    
+    let handleOk person : HttpHandler = 
+        let message = sprintf "hello %s %s" person.First person.Last
+        Response.ofPlainText message
+
+    let handleError error : HttpHandler = 
+        let message = sprintf "Invalid JSON: %s" error
+        Response.withStatusCode 400 >> Response.ofPlainText message
+
+    Request.bindJson handleOk handleError
+```
+
+## Markup
+
+A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.).
+
+For example, the module is easily extended since creating new tags is simple. An example to render `<svg>`'s:
+
+```fsharp
+let svg (width : float) (height : float) =
+    Elem.tag "svg" [
+        Attr.create "version" "1.0"
+        Attr.create "xmlns" "http://www.w3.org/2000/svg"
+        Attr.create "viewBox" (sprintf "0 0 %f %f" width height)
+    ]
+
+let path d = Elem.tag "path" [ Attr.create "d" d ] []
+
+let bars =
+    svg 384.0 384.0 [
+        path "M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0"
+    ]
+```
+
+### HTML View Engine
+
+Most of the standard HTML tags & attributes have been built into the markup module and produce objects to represent the HTML node. Nodes are either:
+
+- `Text` which represents `string` values. (Ex: `Text.raw "hello"`, `Text.rawf "hello %s" "world"`)
+- `SelfClosingNode` which represent self-closing tags (Ex: `<br />`).
+- `ParentNode` which represent typical tags with, optionally, other tags within it (Ex: `<div>...</div>`).
+
+The benefits of using the Falco markup module as an HTML engine include:
+
+- Writing your views in plain F#, directly in your assembly.
+- Markup is compiled alongside the rest of your code, leading to improved performance and ultimately simpler deployments.
+
+```fsharp
+// Create an HTML5 document using built-in template
+let doc = 
+    Templates.html5 "en"
+        [ Elem.title [] [ Text.raw "Sample App" ] ] // <head></head>
+        [ Elem.h1 [] [ Text.raw "Sample App" ] ]    // <body></body>
+```
+
+Since views are plain F# they can easily be made strongly-typed:
+```fsharp
+type Person = { FirstName : string; LastName : string }
+
+let doc (person : Person) = 
+    Elem.html [ Attr.lang "en" ] [
+        Elem.head [] [                    
+            Elem.title [] [ Text.raw "Sample App" ]                                                            
+        ]
+        Elem.body [] [                     
+            Elem.main [] [
+                Elem.h1 [] [ Text.raw "Sample App" ]
+                Elem.p  [] [ Text.rawf "%s %s" person.First person.Last ]
+            ]
+        ]
+    ]
+```
+
+Views can also be combined to create more complex views and share output:
+```fsharp
+let master (title : string) (content : XmlNode list) =
+    Elem.html [ Attr.lang "en" ] [
+        Elem.head [] [                    
+            Elem.title [] [ Text.raw "Sample App" ]                                                            
+        ]
+        Elem.body [] content
+    ]
+
+let divider = 
+    Elem.hr [ Attr.class' "divider" ]
+
+let homeView =
+    [
+        Elem.h1 [] [ Text.raw "Homepage" ]
+        divider
+        Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+    ]
+    |> master "Homepage" 
+
+let aboutView =
+    [
+        Elem.h1 [] [ Text.raw "About" ]
+        divider
+        Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+    ]
+    |> master "About Us"
+```
+
 ## Host Builder
 
 [Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things more expressive, Falco exposes an optional computation expression. Below is an example using the builder taken from the [Configure Host][21] sample.
@@ -390,257 +647,6 @@ let main args =
       configure configureWebHost
       endpoints []
     }
-```
-
-## Model Binding
-
-Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
-
-We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary` and `IHeaderCollection`. _Readers_ for all four exist as derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
-
-### Route Binding
-
-Route binding is normally achieved through `Request.mapRoute` or `Request.bindRoute` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `RouteCollectionReader`, which itself has full access to the query string via `QueryCollectionReader`.
-
-```fsharp
-let mapRouteHandler : HttpHandler =
-    let routeMap (route : RouteCollectionReader) = route.GetString "Name" "John Doe"
-    
-    Request.mapRoute
-        routeMap
-        Response.ofJson
-
-let bindRouteHandler : HttpHandler = 
-    let routeBind (route : RouteCollectionReader) =
-        match route.TryGetString "Name" with
-        | Some name -> Ok name
-        | _         -> Error {| Message = "Invalid route" |}
-    
-    Request.bindRoute
-        routeBind
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-
-let manualRouteHandler : HttpHandler =
-    fun ctx ->
-        let route = Request.getRoute ctx
-        let name = route.GetString "Name" "John Doe"
-        
-        // You also have access to the query string
-        let q = route.Query.GetString "q" "{default value}"
-        Response.ofJson name ctx
-```
-
-### Query Binding
-
-Query binding is normally achieved through `Request.mapQuery` or `Request.bindQuery` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `QueryCollectionReader`.
-
-```fsharp
-type Person = { FirstName : string; LastName : string }
-
-let mapQueryHandler : HttpHandler =    
-    Request.mapQuery
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
-
-let bindQueryHandler : HttpHandler = 
-    Request.bindQuery 
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid query string" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-
-let manualQueryHandler : HttpHandler =
-    fun ctx ->
-        let query = Request.getQuery ctx
-        
-        let person = 
-            { 
-                FirstName = query.GetString "FirstName" "John" // Get value or return default value
-                LastName = query.GetString "LastName" "Doe" 
-            }
-
-        Response.ofJson person ctx
-```
-
-### Form Binding
-
-Form binding is normally achieved through `Request.mapForm` or `Request.bindForm` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `FormCollectionReader`, which itself has full access to the `IFormFilesCollection` via the `_.Files` member.
-
-> Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
-
-```fsharp
-type Person = { FirstName : string; LastName : string }
-
-let mapFormHandler : HttpHandler =    
-    Request.mapForm
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
-
-let mapFormSecureHandler : HttpHandler =    
-    Request.mapFormSecure
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
-        (Response.withStatusCode 400 >> Response.ofEmpty)
-
-let bindFormHandler : HttpHandler = 
-    Request.bindForm 
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid form data" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-
-let bindFormSecureHandler : HttpHandler = 
-    Request.bindFormSecure
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid form data" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-        (Response.withStatusCode 400 >> Response.ofEmpty)
-
-let manualFormHandler : HttpHandler =
-    fun ctx -> task {
-        let! query = Request.getForm ctx
-        
-        let person = 
-            { 
-                FirstName = query.GetString "FirstName" "John" // Get value or return default value
-                LastName = query.GetString "LastName" "Doe" 
-            }
-
-        return! Response.ofJson person ctx
-    }        
-```
-
-## JSON
-
-Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have minimal support for F#'s algebraic types.
-
-```fsharp
-type Person =
-    {
-        First : string
-        Last  : string
-    }
-
-let jsonHandler : HttpHandler =
-    { First = "John"; Last = "Doe" }
-    |> Response.ofJson
-
-let jsonBindHandler : HttpHandler =    
-    Request.bindJson
-        (fun person -> Response.ofPlainText (sprintf "hello %s %s" person.First person.Last))
-        (fun error -> Response.withStatusCode 400 >> Response.ofPlainText (sprintf "Invalid JSON: %s" error))
-```
-
-## Markup
-
-A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.).
-
-For example, the module is easily extended since creating new tags is simple. An example to render `<svg>`'s:
-
-```fsharp
-let svg (width : float) (height : float) =
-    Elem.tag "svg" [
-        Attr.create "version" "1.0"
-        Attr.create "xmlns" "http://www.w3.org/2000/svg"
-        Attr.create "viewBox" (sprintf "0 0 %f %f" width height)
-    ]
-
-let path d = Elem.tag "path" [ Attr.create "d" d ] []
-
-let bars =
-    svg 384.0 384.0 [
-            path "M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0"
-        ]
-```
-
-### HTML View Engine
-
-Most of the standard HTML tags & attributes have been built into the markup module and produce objects to represent the HTML node. Nodes are either:
-
-- `Text` which represents `string` values. (Ex: `Text.raw "hello"`, `Text.rawf "hello %s" "world"`)
-- `SelfClosingNode` which represent self-closing tags (Ex: `<br />`).
-- `ParentNode` which represent typical tags with, optionally, other tags within it (Ex: `<div>...</div>`).
-
-The benefits of using the Falco markup module as an HTML engine include:
-
-- Writing your views in plain F#, directly in your assembly.
-- Markup is compiled alongside the rest of your code, leading to improved performance and ultimately simpler deployments.
-
-```fsharp
-// Create an HTML5 document using built-in template
-let doc = 
-    Templates.html5 "en"
-        [ Elem.title [] [ Text.raw "Sample App" ] ] // <head></head>
-        [ Elem.h1 [] [ Text.raw "Sample App" ] ]    // <body></body>
-```
-
-Since views are plain F# they can easily be made strongly-typed:
-```fsharp
-type Person =
-    {
-        First : string
-        Last  : string
-    }
-
-let doc (person : Person) = 
-    Elem.html [ Attr.lang "en" ] [
-            Elem.head [] [                    
-                    Elem.title [] [ Text.raw "Sample App" ]                                                            
-                ]
-            Elem.body [] [                     
-                    Elem.main [] [
-                            Elem.h1 [] [ Text.raw "Sample App" ]
-                            Elem.p  [] [ Text.rawf "%s %s" person.First person.Last ]
-                        ]
-                ]
-        ]
-```
-
-Views can also be combined to create more complex views and share output:
-```fsharp
-let master (title : string) (content : XmlNode list) =
-    Elem.html [ Attr.lang "en" ] [
-            Elem.head [] [                    
-                    Elem.title [] [ Text.raw "Sample App" ]                                                            
-                ]
-            Elem.body [] content
-        ]
-
-let divider = 
-    Elem.hr [ Attr.class' "divider" ]
-
-let homeView =
-    [
-        Elem.h1 [] [ Text.raw "Homepage" ]
-        divider
-        Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
-    ]
-    |> master "Homepage" 
-
-let aboutView =
-    [
-        Elem.h1 [] [ Text.raw "About" ]
-        divider
-        Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
-    ]
-    |> master "About Us"
 ```
 
 ## Authentication
