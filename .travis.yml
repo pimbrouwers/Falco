@@ -1,7 +1,0 @@
-language: csharp
-mono: none
-dotnet: 5.0.100
-solution: Falco.sln
-script:
-  - dotnet restore
-  - dotnet test  
