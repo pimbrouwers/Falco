@@ -144,13 +144,9 @@ let textHandler : HttpHandler =
 let htmlHandler : HttpHandler =
     let doc =
         Elem.html [ Attr.lang "en" ] [
-            Elem.head [] [
-                Elem.title [] [ Text.raw "Sample App" ]
-            ]
+            Elem.head [] []
             Elem.body [] [
-                Elem.main [] [
-                    Elem.h1 [] [ Text.raw "Sample App" ]
-                ]
+                Elem.h1 [] [ Text.raw "Sample App" ]                
             ]
         ]
 
@@ -174,15 +170,78 @@ let htmlHandler : HttpHandler =
 
 ```fsharp
 type Person =
-    {
-        First : string
-        Last  : string
-    }
+    { First : string
+      Last  : string }
 
 let jsonHandler : HttpHandler =
     { First = "John"; Last = "Doe" }
     |> Response.ofJson
 ```
+
+### Redirect (301/302) Response
+
+```fsharp
+let oldUrlHandler : HttpHandler =
+    Response.redirect "/new-url" true
+```
+
+> Note: The trailing `bool` value is used to indicate permanency (i.e., true = 301 / false = 302)
+
+## Accessing Request Data
+
+Falco exposes a [uniform API](#model-binding) to obtain typed values from the various sources of request data. Note, the similarity in the various binders below. 
+
+### Route Collection
+
+```fsharp
+let helloHandler : HttpHandler =
+    let routeBinder (route : RouteCollectionReader) =
+        let name = route.GetString "name" "World" 
+        sprintf "Hello %s" name
+        
+    Request.mapRoute routeBinder Response.ofPlainText
+```
+
+### Query Parameters
+
+```fsharp
+let helloHandler : HttpHandler =
+    let queryBinder (query : QueryCollectionReader) =
+        let name = query.GetString "name" "World" 
+        sprintf "Hello %s" name
+        
+    Request.mapQuery queryBinder Response.ofPlainText
+```
+
+### Form Data
+
+```fsharp
+let helloHandler : HttpHandler =
+    let formBinder (query : FormCollectionReader) =
+        let name = query.GetString "name" "World" 
+        sprintf "Hello %s" name
+        
+    Request.mapForm formBinder Response.ofPlainText
+```
+
+To prevent XSS attacks it is often advisable to use a [CSRF token](#security) during form submissions. In these situations, you'll want to validate the token before processing the form input using the `Request.mapFormSecure` (or `Request.bindFormSecure`). These functions will automatically validate the token for you before consuming input.
+
+```fsharp
+let secureHelloHandler : HttpHandler =
+    let formBinder (query : FormCollectionReader) =
+        let name = query.GetString "name" "World" 
+        sprintf "Hello %s" name
+
+    let invalidTokenHandler : HttpHandler =
+        Response.withStatusCode 403
+        >> Resposne.ofEmpty
+        
+    Request.mapFormSecure formBinder Response.ofPlainText invalidTokenHandler
+```
+
+## Response Modifiers
+
+Response modifiers can be thought of as the in-and-out modification of the `HttpResponse`. A preamble to writing and returning. Since these functions receive the `Httpcontext` as input and return it as the only output, they can take advantage of [function compoistion](22).
 
 ### Set the status code of the response
 
@@ -192,14 +251,30 @@ let notFoundHandler : HttpHandler =
     >> Response.ofPlainText "Not found"
 ```
 
-### Redirect (301/302) Response (boolean param to indicate permanency)
+### Add a header to the response
 
 ```fsharp
-let oldUrlHandler : HttpHandler =
-    Response.redirect "/new-url" true
+let handlerWithHeader : HttpHandler =
+    Response.withHeader "Content-Language" "en-us"
+    >> Response.ofPlainText "Hello world"
 ```
 
-### Accessing route parameters
+
+### Add a cookie to the response 
+
+```fsharp
+let handlerWithHeader : HttpHandler =
+    Response.withCookie "greeted" "1"
+    >> Response.ofPlainText "Hello world"
+```
+
+> IMPORTANT: *Do not* use this for authentication. Instead use the `Auth.signIn` and `Auth.signOut` functions found in the [Authentication](#authentication) module.
+
+## Routing
+
+The breakdown of [Endpoint Routing][3] is simple. Associate a specific [route pattern][5] (and optionally an HTTP verb) to an `HttpHandler` which represents the ongoing processing (and eventual return) of a request.
+
+Bearing this in mind, routing can practically be represented by a list of these "mappings" known in Falco as an `HttpEndpoint` which bind together: a route, verb and handler.
 
 ```fsharp
 let helloHandler : HttpHandler =
@@ -208,17 +283,23 @@ let helloHandler : HttpHandler =
         |> sprintf "Hello %s"
         
     Request.mapRoute getMessage Response.ofPlainText
-```
 
-### Accessing query parameters
+let loginHandler : HttpHandler = // ...
 
-```fsharp
-let helloHandler : HttpHandler =
-    let getMessage (query : QueryCollectionReader) =
-        query.GetString "name" "World" 
-        |> sprintf "Hello %s"
-        
-    Request.mapQuery getMessage Response.ofPlainText
+let loginSubmitHandler : HttpHandler = // ...  
+
+let endpoints : HttpEndpoint list =
+  [
+    // a basic GET handler
+    get "/hello/{name:alpha}" helloHandler
+
+    // multi-method endpoint
+    all "/login"
+        [
+            POST, loginSubmitHandler
+            GET,  loginHandler
+        ]
+  ]
 ```
 
 ## Routing
