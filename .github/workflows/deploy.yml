@@ -11,17 +11,20 @@ jobs:
     permissions:
       packages: write
       contents: read
+    strategy:
+      matrix:
+        dotnet-version: ['5.0.x']
     steps:
       - uses: actions/checkout@v2
         with:
           ref: 'develop'
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '5.0.x'
+      - uses: actions/setup-dotnet@v1.7.2
+        with:          
+          dotnet-version: ${{ matrix.dotnet-version }}
           source-url: https://nuget.pkg.github.com/pimbrouwers/index.json
         env:
-          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - run: dotnet build -c Release --no-restore
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}        
+      - run: dotnet build -c Release
       - name: Create the package
         run: dotnet pack src/Falco/ -c Release --include-symbols
       - name: Publish the package to GPR
