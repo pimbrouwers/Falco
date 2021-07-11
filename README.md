@@ -346,7 +346,7 @@ The built-in model binding handlers come in two flavors, both of which are conti
     - Signature: `(map: XXXCollectionReader -> 'a) (next : 'a -> HttpHandler) -> HttpHandler`
     - The "map" family of handlers are more commonly used and assume that binding will always succeed in one manner or another, either via default values or `Option<T>`.
 
-2. `Request.bindXXX binder handleOk handleError`
+2. `Request.bindXXX`
     - Signature: `(bind: XXXCollectionReader -> Result<'a, 'b>) (handleOk : 'a -> HttpHandler) -> (handleError : 'b -> HttpHandler) -> HttpHandler`
     - The "bind" family of handlers are useful when you explicitly want to indicate errors during binding and return a different response when they occur.
 
