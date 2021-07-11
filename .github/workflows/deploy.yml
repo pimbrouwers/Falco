@@ -18,14 +18,18 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: 'develop'
-      - uses: actions/setup-dotnet@v1.7.2
+      
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v1.7.2
         with:          
           dotnet-version: ${{ matrix.dotnet-version }}
           source-url: https://nuget.pkg.github.com/pimbrouwers/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}        
-      - run: dotnet build -c Release
+      
+      - name: Build project
+        run: dotnet build src/Falco/ -c Release
+      
       - name: Create the package
-        run: dotnet pack src/Falco/ -c Release --include-symbols
+        run: dotnet pack src/Falco/ -c Release --include-symbols --include-source -p:PackageVersion=$GITHUB_RUN_ID        
+      
       - name: Publish the package to GPR
-        run: dotnet nuget push src/Falco/bin/Release/*.nupkg
+        run: dotnet nuget push src/Falco/bin/Release/*.nupkg --source https://nuget.pkg.github.com/pimbrouwers/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
