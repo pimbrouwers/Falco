@@ -1,4 +1,4 @@
-name: Dotnet
+name: Build & Test
 
 on: 
   push: 
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: ['3.1.x', '5.0.x' ]
+        dotnet-version: ['5.0.x']
     steps:
       - uses: actions/checkout@v2
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
@@ -23,5 +23,5 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Test
-        run: dotnet test --no-restore --verbosity normal
+        run: dotnet test .\src\Falco.Tests\ -- --no-restore --verbosity normal
 
