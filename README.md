@@ -338,134 +338,142 @@ let main args =
 
 ## Model Binding
 
-Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
+Reflection-based approaches to binding at IO boundaries work well for simple use cases. But as the complexity of the input rises it becomes error-prone and often involves tedious workarounds. This is especially true for an expressive, algebraic type system like F#. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
 
 We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary` and `IHeaderCollection`. _Readers_ for all four exist as derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
 
-### Route Binding
+The built-in model binding handlers come in two flavors, both of which are continuation-style handlers:
 
-Route binding is normally achieved through `Request.mapRoute` or `Request.bindRoute` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `RouteCollectionReader`, which itself has full access to the query string via `QueryCollectionReader`.
+1. `Request.mapXXX` 
+    - Signature: `(map: XXXCollectionReader -> 'a) (next : 'a -> HttpHandler) -> HttpHandler`
+    - The "map" family of handlers are more commonly used and assume that binding will always succeed in one manner or another, either via default values or `Option<T>`.
+
+2. `Request.bindXXX binder handleOk handleError`
+    - Signature: `(bind: XXXCollectionReader -> Result<'a, 'b>) (handleOk : 'a -> HttpHandler) -> (handleError : 'b -> HttpHandler) -> HttpHandler`
+    - The "bind" family of handlers are useful when you explicitly want to indicate errors during binding and return a different response when they occur.
+
+### Route Binding
 
 ```fsharp
 let mapRouteHandler : HttpHandler =
-    let routeMap (route : RouteCollectionReader) = route.GetString "Name" "John Doe"
+    let routeMap (r : RouteCollectionReader) = 
+        r.GetString "Name" "John Doe"
     
-    Request.mapRoute
-        routeMap
-        Response.ofJson
+    Request.mapRoute routeMap Response.ofJson
 
 let bindRouteHandler : HttpHandler = 
-    let routeBind (route : RouteCollectionReader) =
-        match route.TryGetString "Name" with
+    let routeBind (r : RouteCollectionReader) =
+        match r.TryGetString "Name" with
         | Some name -> Ok name
         | _         -> Error {| Message = "Invalid route" |}
     
-    Request.bindRoute
-        routeBind
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindRoute routeBind handleOk handleError
 
 let manualRouteHandler : HttpHandler =
     fun ctx ->
-        let route = Request.getRoute ctx
-        let name = route.GetString "Name" "John Doe"
-        
-        // You also have access to the query string
-        let q = route.Query.GetString "q" "{default value}"
+        let r : RouteCollectionReader = Request.getRoute ctx
+        let name = r.GetString "Name" "John Doe"  
+
         Response.ofJson name ctx
 ```
 
 ### Query Binding
 
-Query binding is normally achieved through `Request.mapQuery` or `Request.bindQuery` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `QueryCollectionReader`.
-
 ```fsharp
 type Person = { FirstName : string; LastName : string }
 
 let mapQueryHandler : HttpHandler =    
-    Request.mapQuery
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
+    let queryMap (q : QueryCollectionReader) =
+        let first = q.GetString "FirstName" "John" // Get value or return default value
+        let last = q.GetString "LastName" "Doe"
+        { FirstName = first; LastName = last }
+
+    Request.mapQuery queryMap Response.ofJson 
 
 let bindQueryHandler : HttpHandler = 
-    Request.bindQuery 
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid query string" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
+    let queryBind (q : QueryCollectionReader) =
+        match q.TryGetString "FirstName", q.TryGetString "LastName" with
+        | Some f, Some l -> Ok { FirstName = f; LastName = l }
+        | _  -> Error {| Message = "Invalid query string" |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindQuery queryBind handleOk handleError 
 
 let manualQueryHandler : HttpHandler =
     fun ctx ->
-        let query = Request.getQuery ctx
+        let q : QueryCollectionReader = Request.getQuery ctx
         
         let person = 
-            { 
-                FirstName = query.GetString "FirstName" "John" // Get value or return default value
-                LastName = query.GetString "LastName" "Doe" 
-            }
+            { FirstName = q.GetString "FirstName" "John" // Get value or return default value
+              LastName  = q.GetString "LastName" "Doe" }
 
         Response.ofJson person ctx
 ```
 
 ### Form Binding
 
-Form binding is normally achieved through `Request.mapForm` or `Request.bindForm` if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from `FormCollectionReader`, which itself has full access to the `IFormFilesCollection` via the `_.Files` member.
+The `FormCollectionReader` has full access to the `IFormFilesCollection` via the `_.Files` member.
 
 > Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
 
 ```fsharp
 type Person = { FirstName : string; LastName : string }
 
-let mapFormHandler : HttpHandler =    
-    Request.mapForm
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
+let mapFormHandler : HttpHandler =   
+    let formMap (f : FormCollectionReader) =
+        let first = f.GetString "FirstName" "John" // Get value or return default value
+        let last = f.GetString "LastName" "Doe"        
+        { FirstName = first; LastName = last }
+
+    Request.mapForm formMap Response.ofJson 
 
 let mapFormSecureHandler : HttpHandler =    
-    Request.mapFormSecure
-        (fun rd -> { 
-            FirstName = rd.GetString "FirstName" "John" // Get value or return default value
-            LastName = rd.GetString "LastName" "Doe" 
-        })
-        Response.ofJson 
-        (Response.withStatusCode 400 >> Response.ofEmpty)
+    let formMap (f : FormCollectionReader) =
+        let first = f.GetString "FirstName" "John" // Get value or return default value
+        let last = f.GetString "LastName" "Doe"        
+        { FirstName = first; LastName = last }
+
+    let handleInvalidCsrf : HttpHandler = 
+        Response.withStatusCode 400 >> Response.ofEmpty
+
+    Request.mapFormSecure formMap Response.ofJson handleInvalidCsrf
 
 let bindFormHandler : HttpHandler = 
-    Request.bindForm 
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid form data" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
+    let formBind (f : FormCollectionReader) =
+        match f.TryGetString "FirstName", f.TryGetString "LastName" with
+        | Some f, Some l -> Ok { FirstName = f; LastName = l }
+        | _  -> Error {| Message = "Invalid form data" |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindForm formBind handleOk handleError 
 
 let bindFormSecureHandler : HttpHandler = 
-    Request.bindFormSecure
-        (fun rd -> 
-            match rd.TryGetString "FirstName", rd.TryGetString "LastName" with
-            | Some f, Some l -> Ok { FirstName = f; LastName = l }
-            | _  -> Error {| Message = "Invalid form data" |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-        (Response.withStatusCode 400 >> Response.ofEmpty)
+    let formBind (f : FormCollectionReader) =
+        match f.TryGetString "FirstName", f.TryGetString "LastName" with
+        | Some f, Some l -> Ok { FirstName = f; LastName = l }
+        | _  -> Error {| Message = "Invalid form data" |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+    let handleInvalidCsrf : HttpHandler = 
+        Response.withStatusCode 400 >> Response.ofEmpty
+
+    Request.bindForm formBind handleOk handleError handleInvalidCsrf
 
 let manualFormHandler : HttpHandler =
     fun ctx -> task {
-        let! query = Request.getForm ctx
+        let! f : FormCollectionReader = Request.getForm ctx
         
         let person = 
-            { 
-                FirstName = query.GetString "FirstName" "John" // Get value or return default value
-                LastName = query.GetString "LastName" "Doe" 
-            }
+            { FirstName = f.GetString "FirstName" "John" // Get value or return default value
+              LastName = f.GetString "LastName" "Doe" }
 
         return! Response.ofJson person ctx
     }        
@@ -473,23 +481,25 @@ let manualFormHandler : HttpHandler =
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have no support for F#'s algebraic types.
+Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have minimal support for F#'s algebraic types.
 
 ```fsharp
-type Person =
-    {
-        First : string
-        Last  : string
-    }
+type Person = { FirstName : string; LastName : string }
 
 let jsonHandler : HttpHandler =
-    { First = "John"; Last = "Doe" }
+    { FirstName = "John"; LastName = "Doe" }
     |> Response.ofJson
 
 let jsonBindHandler : HttpHandler =    
-    Request.bindJson
-        (fun person -> Response.ofPlainText (sprintf "hello %s %s" person.First person.Last))
-        (fun error -> Response.withStatusCode 400 >> Response.ofPlainText (sprintf "Invalid JSON: %s" error))
+    let handleOk person : HttpHandler = 
+        let message = sprintf "hello %s %s" person.First person.Last
+        Response.ofPlainText message
+
+    let handleError error : HttpHandler = 
+        let message = sprintf "Invalid JSON: %s" error
+        Response.withStatusCode 400 >> Response.ofPlainText message
+
+    Request.bindJson handleOk handleError
 ```
 
 ## Markup
@@ -510,8 +520,8 @@ let path d = Elem.tag "path" [ Attr.create "d" d ] []
 
 let bars =
     svg 384.0 384.0 [
-            path "M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0"
-        ]
+        path "M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0"
+    ]
 ```
 
 ### HTML View Engine
@@ -537,35 +547,31 @@ let doc =
 
 Since views are plain F# they can easily be made strongly-typed:
 ```fsharp
-type Person =
-    {
-        First : string
-        Last  : string
-    }
+type Person = { FirstName : string; LastName : string }
 
 let doc (person : Person) = 
     Elem.html [ Attr.lang "en" ] [
-            Elem.head [] [                    
-                    Elem.title [] [ Text.raw "Sample App" ]                                                            
-                ]
-            Elem.body [] [                     
-                    Elem.main [] [
-                            Elem.h1 [] [ Text.raw "Sample App" ]
-                            Elem.p  [] [ Text.rawf "%s %s" person.First person.Last ]
-                        ]
-                ]
+        Elem.head [] [                    
+            Elem.title [] [ Text.raw "Sample App" ]                                                            
         ]
+        Elem.body [] [                     
+            Elem.main [] [
+                Elem.h1 [] [ Text.raw "Sample App" ]
+                Elem.p  [] [ Text.rawf "%s %s" person.First person.Last ]
+            ]
+        ]
+    ]
 ```
 
 Views can also be combined to create more complex views and share output:
 ```fsharp
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
-            Elem.head [] [                    
-                    Elem.title [] [ Text.raw "Sample App" ]                                                            
-                ]
-            Elem.body [] content
+        Elem.head [] [                    
+            Elem.title [] [ Text.raw "Sample App" ]                                                            
         ]
+        Elem.body [] content
+    ]
 
 let divider = 
     Elem.hr [ Attr.class' "divider" ]
