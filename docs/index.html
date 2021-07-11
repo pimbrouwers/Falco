@@ -291,13 +291,9 @@ let main args =
 <pre><code class="language-fsharp">let htmlHandler : HttpHandler =
     let doc =
         Elem.html [ Attr.lang &quot;en&quot; ] [
-            Elem.head [] [
-                Elem.title [] [ Text.raw &quot;Sample App&quot; ]
-            ]
+            Elem.head [] []
             Elem.body [] [
-                Elem.main [] [
-                    Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
-                ]
+                Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]                
             ]
         ]
 
@@ -316,42 +312,80 @@ let main args =
 <p>IMPORTANT: This handler uses the default <code>System.Text.Json.JsonSerializer</code>. See <a href="#json">JSON</a> section below for further information.</p>
 </blockquote>
 <pre><code class="language-fsharp">type Person =
-    {
-        First : string
-        Last  : string
-    }
+    { First : string
+      Last  : string }
 
 let jsonHandler : HttpHandler =
     { First = &quot;John&quot;; Last = &quot;Doe&quot; }
     |&gt; Response.ofJson
 </code></pre>
+<h3 id="redirect-301302-response">Redirect (301/302) Response</h3>
+<pre><code class="language-fsharp">let oldUrlHandler : HttpHandler =
+    Response.redirect &quot;/new-url&quot; true
+</code></pre>
+<blockquote>
+<p>Note: The trailing <code>bool</code> value is used to indicate permanency (i.e., true = 301 / false = 302)</p>
+</blockquote>
+<h2 id="accessing-request-data">Accessing Request Data</h2>
+<p>Falco exposes a <a href="#model-binding">uniform API</a> to obtain typed values from the various sources of request data. Note, the similarity in the various binders below.</p>
+<h3 id="route-collection">Route Collection</h3>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let routeBinder (route : RouteCollectionReader) =
+        let name = route.GetString &quot;name&quot; &quot;World&quot; 
+        sprintf &quot;Hello %s&quot; name
+        
+    Request.mapRoute routeBinder Response.ofPlainText
+</code></pre>
+<h3 id="query-parameters">Query Parameters</h3>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let queryBinder (query : QueryCollectionReader) =
+        let name = query.GetString &quot;name&quot; &quot;World&quot; 
+        sprintf &quot;Hello %s&quot; name
+        
+    Request.mapQuery queryBinder Response.ofPlainText
+</code></pre>
+<h3 id="form-data">Form Data</h3>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let formBinder (query : FormCollectionReader) =
+        let name = query.GetString &quot;name&quot; &quot;World&quot; 
+        sprintf &quot;Hello %s&quot; name
+        
+    Request.mapForm formBinder Response.ofPlainText
+</code></pre>
+<p>To prevent XSS attacks it is often advisable to use a <a href="#security">CSRF token</a> during form submissions. In these situations, you'll want to validate the token before processing the form input using the <code>Request.mapFormSecure</code> (or <code>Request.bindFormSecure</code>). These functions will automatically validate the token for you before consuming input.</p>
+<pre><code class="language-fsharp">let secureHelloHandler : HttpHandler =
+    let formBinder (query : FormCollectionReader) =
+        let name = query.GetString &quot;name&quot; &quot;World&quot; 
+        sprintf &quot;Hello %s&quot; name
+
+    let invalidTokenHandler : HttpHandler =
+        Response.withStatusCode 403
+        &gt;&gt; Resposne.ofEmpty
+        
+    Request.mapFormSecure formBinder Response.ofPlainText invalidTokenHandler
+</code></pre>
+<h2 id="response-modifiers">Response Modifiers</h2>
+<p>Response modifiers can be thought of as the in-and-out modification of the <code>HttpResponse</code>. A preamble to writing and returning. Since these functions receive the <code>Httpcontext</code> as input and return it as the only output, they can take advantage of <a href="22">function compoistion</a>.</p>
 <h3 id="set-the-status-code-of-the-response">Set the status code of the response</h3>
 <pre><code class="language-fsharp">let notFoundHandler : HttpHandler =
     Response.withStatusCode 404
     &gt;&gt; Response.ofPlainText &quot;Not found&quot;
 </code></pre>
-<h3 id="redirect-301302-response-boolean-param-to-indicate-permanency">Redirect (301/302) Response (boolean param to indicate permanency)</h3>
-<pre><code class="language-fsharp">let oldUrlHandler : HttpHandler =
-    Response.redirect &quot;/new-url&quot; true
+<h3 id="add-a-header-to-the-response">Add a header to the response</h3>
+<pre><code class="language-fsharp">let handlerWithHeader : HttpHandler =
+    Response.withHeader &quot;Content-Language&quot; &quot;en-us&quot;
+    &gt;&gt; Response.ofPlainText &quot;Hello world&quot;
 </code></pre>
-<h3 id="accessing-route-parameters">Accessing route parameters</h3>
-<pre><code class="language-fsharp">let helloHandler : HttpHandler =
-    let getMessage (route : RouteCollectionReader) =
-        route.GetString &quot;name&quot; &quot;World&quot; 
-        |&gt; sprintf &quot;Hello %s&quot;
-        
-    Request.mapRoute getMessage Response.ofPlainText
+<h3 id="add-a-cookie-to-the-response">Add a cookie to the response</h3>
+<pre><code class="language-fsharp">let handlerWithHeader : HttpHandler =
+    Response.withCookie &quot;greeted&quot; &quot;1&quot;
+    &gt;&gt; Response.ofPlainText &quot;Hello world&quot;
 </code></pre>
-<h3 id="accessing-query-parameters">Accessing query parameters</h3>
-<pre><code class="language-fsharp">let helloHandler : HttpHandler =
-    let getMessage (query : QueryCollectionReader) =
-        query.GetString &quot;name&quot; &quot;World&quot; 
-        |&gt; sprintf &quot;Hello %s&quot;
-        
-    Request.mapQuery getMessage Response.ofPlainText
-</code></pre>
+<blockquote>
+<p>IMPORTANT: <em>Do not</em> use this for authentication. Instead use the <code>Auth.signIn</code> and <code>Auth.signOut</code> functions found in the <a href="#authentication">Authentication</a> module.</p>
+</blockquote>
 <h2 id="routing">Routing</h2>
-<p>The breakdown of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#configuring-endpoint-metadata" title="EndpointRouting in ASP.NET Core">Endpoint Routing</a> is simple. Associate a specific <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#route-template-reference">route pattern</a> (and optionally an HTTP verb) to an <code>HttpHandler</code> which represents the ongoing processing (and eventual return) of a request.</p>
+<p>The breakdown of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#configuring-endpoint-metadata" title="EndpointRouting in ASP.NET Core">Endpoint Routing</a> is simple. Associate a specific <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-template-reference">route pattern</a> (and optionally an HTTP verb) to an <code>HttpHandler</code> which represents the ongoing processing (and eventual return) of a request.</p>
 <p>Bearing this in mind, routing can practically be represented by a list of these &quot;mappings&quot; known in Falco as an <code>HttpEndpoint</code> which bind together: a route, verb and handler.</p>
 <pre><code class="language-fsharp">let helloHandler : HttpHandler =
     let getMessage (route : RouteCollectionReader) =
@@ -378,7 +412,7 @@ let endpoints : HttpEndpoint list =
   ]
 </code></pre>
 <h2 id="host-builder">Host Builder</h2>
-<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using <code>Host.CreateDefaultBuilder(args)</code>, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost">Configure Host</a> sample.</p>
+<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using <code>Host.CreateDefaultBuilder(args)</code>, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost">Configure Host</a> sample.</p>
 <pre><code class="language-fsharp">module ConfigureHost.Program
 
 open Falco
@@ -630,7 +664,7 @@ let aboutView =
     |&gt; master &quot;About Us&quot;
 </code></pre>
 <h2 id="authentication">Authentication</h2>
-<p>ASP.NET Core has amazing built-in support for authentication. Review the <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1" title="Overview of ASP.NET Core authentication">docs</a> for specific implementation details. Falco optionally (<code>open Falco.Auth</code>) includes some authentication utilities.</p>
+<p>ASP.NET Core has amazing built-in support for authentication. Review the <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication/" title="Overview of ASP.NET Core authentication">docs</a> for specific implementation details. Falco optionally (<code>open Falco.Auth</code>) includes some authentication utilities.</p>
 <blockquote>
 <p>To use the authentication helpers, ensure the service has been registered (<code>AddAuthentication()</code>) with the <code>IServiceCollection</code> and activated (<code>UseAuthentication()</code>) using the <code>IApplicationBuilder</code>.</p>
 </blockquote>
@@ -703,7 +737,7 @@ let logOut : HttpHandler =
 </code></pre>
 <h2 id="security">Security</h2>
 <p>Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.</p>
-<p>The <a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1" title="Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core">Microsoft.AspNetCore.Antiforgery</a> package provides the required utilities to easily protect yourself against such attacks.</p>
+<p>The <a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery" title="Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core">Microsoft.AspNetCore.Antiforgery</a> package provides the required utilities to easily protect yourself against such attacks.</p>
 <p>Falco provides a few handlers via <code>Falco.Security.Xss</code>:</p>
 <blockquote>
 <p>To use the Xss helpers, ensure the service has been registered (<code>AddAntiforgery()</code>) with the <code>IServiceCollection</code> and activated (<code>UseAntiforgery()</code>) using the <code>IApplicationBuilder</code>.</p>
@@ -763,7 +797,7 @@ let password = &quot;5upe45ecure&quot;
 let hashedPassword = password |&gt; Crypto.sha256 iterations 32 salt
 </code></pre>
 <h2 id="handling-large-uploads">Handling Large Uploads</h2>
-<p>Microsoft defines <a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming" title="Large file uploads">large uploads</a> as anything <strong>&gt; 64KB</strong>, which well... is most uploads. Anything beyond this size, and they recommend streaming the multipart data to avoid excess memory consumption.</p>
+<p>Microsoft defines <a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming" title="Large file uploads">large uploads</a> as anything <strong>&gt; 64KB</strong>, which well... is most uploads. Anything beyond this size, and they recommend streaming the multipart data to avoid excess memory consumption.</p>
 <p>To make this process <strong>a lot</strong> easier Falco exposes an <code>HttpContext</code> extension method <code>TryStreamFormAsync()</code> that will attempt to stream multipart form data, or return an error message indicating the likely problem.</p>
 <pre><code class="language-fsharp">let imageUploadHandler : HttpHandler =
     fun ctx -&gt; task {
@@ -774,7 +808,7 @@ let hashedPassword = password |&gt; Crypto.sha256 iterations 32 salt
     }
 </code></pre>
 <h2 id="why-falco">Why &quot;Falco&quot;?</h2>
-<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> has been a game changer for the .NET web stack. In the animal kingdom, &quot;Kestrel&quot; is a name given to several members of the falcon genus. Also known as &quot;Falco&quot;.</p>
+<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> has been a game changer for the .NET web stack. In the animal kingdom, &quot;Kestrel&quot; is a name given to several members of the falcon genus. Also known as &quot;Falco&quot;.</p>
 <h2 id="find-a-bug">Find a bug?</h2>
 <p>There's an <a href="https://github.com/pimbrouwers/Falco/issues">issue</a> for that.</p>
 <h2 id="license">License</h2>
