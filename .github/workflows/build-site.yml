@@ -10,12 +10,14 @@ on:
 
 jobs:
   build-site:
-
-    runs-on: windows-latest
+    name: Build docs website
+    runs-on: ubuntu-latest
 
     steps:      
-    - uses: actions/checkout@master
+      - name: Check out repo
+        uses: actions/checkout@master
 
-    - name: Run PowerShell script to build site
-      id: build
-      run: pwsh -command ".\$GITHUB_WORKSPACE\site\Build.ps1"
+      - name: Run PowerShell script to build site
+        shell: pwsh        
+        run: |
+          .\$GITHUB_WORKSPACE\site\Build.ps1 -Verbose
