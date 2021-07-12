@@ -243,7 +243,7 @@ let mapJson (next : 'a -> HttpHandler) : HttpHandler =
         let! json = tryBindJson ctx
         let respondWith =
             match json with
-            | Error error -> failwith "Could not bind JSON"
+            | Error error -> failwithf "Could not bind JSON: %s" error
             | Ok json -> next json
 
         return! respondWith ctx

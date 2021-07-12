@@ -1,4 +1,4 @@
-module AppName.Program
+module templates.Program
 
 open Falco
 open Falco.Routing
