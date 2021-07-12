@@ -96,7 +96,9 @@ open Falco.HostBuilder
 [<EntryPoint>]
 let main args =
     webHost args {
-        endpoints [ get "/" (Response.ofPlainText "Hello world" ]
+        endpoints [ 
+            get "/" (Response.ofPlainText "Hello World")
+        ]
     }
     0
 ```
