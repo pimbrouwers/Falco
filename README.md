@@ -27,7 +27,7 @@ webHost [||] {
 - Simple and powerful [routing](#routing) API.
 - Fast, secure and configurable [web server](#host-builder).
 - Native F# [view engine](#markup).
-- Succinct API for [model binding](#model-binding).
+- Uniform API for [model binding](#model-binding).
 - [Authentication](#authentication) and [security](#security) utilities.
 - Built-in support for [large uploads](#handling-large-uploads).
 
@@ -49,10 +49,9 @@ webHost [||] {
 8. [Host Builder](#host-builder)
 9. [Authentication](#authentication)
 10. [Security](#security)
-11. [Handling Large Uploads](#handling-large-uploads)
-12. [Why "Falco"?](#why-falco)
-13. [Find a bug?](#find-a-bug)
-14. [License](#license)
+11. [Why "Falco"?](#why-falco)
+12. [Find a bug?](#find-a-bug)
+13. [License](#license)
 
 ## Getting Started
 
@@ -300,38 +299,6 @@ let endpoints : HttpEndpoint list =
   ]
 ```
 
-## Routing
-
-The breakdown of [Endpoint Routing][3] is simple. Associate a specific [route pattern][5] (and optionally an HTTP verb) to an `HttpHandler` which represents the ongoing processing (and eventual return) of a request.
-
-Bearing this in mind, routing can practically be represented by a list of these "mappings" known in Falco as an `HttpEndpoint` which bind together: a route, verb and handler.
-
-```fsharp
-let helloHandler : HttpHandler =
-    let getMessage (route : RouteCollectionReader) =
-        route.GetString "name" "World" 
-        |> sprintf "Hello %s"
-        
-    Request.mapRoute getMessage Response.ofPlainText
-
-let loginHandler : HttpHandler = // ...
-
-let loginSubmitHandler : HttpHandler = // ...  
-
-let endpoints : HttpEndpoint list =
-  [
-    // a basic GET handler
-    get "/hello/{name:alpha}" helloHandler
-
-    // multi-method endpoint
-    all "/login"
-        [
-            POST, loginSubmitHandler
-            GET,  loginHandler
-        ]
-  ]
-```
-
 ## Model Binding
 
 Reflection-based approaches to binding at IO boundaries work well for simple use cases. But as the complexity of the input rises it becomes error-prone and often involves tedious workarounds. This is especially true for an expressive, algebraic type system like F#. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
@@ -461,7 +428,7 @@ let bindFormSecureHandler : HttpHandler =
     let handleInvalidCsrf : HttpHandler = 
         Response.withStatusCode 400 >> Response.ofEmpty
 
-    Request.bindForm formBind handleOk handleError handleInvalidCsrf
+    Request.bindFormSecure formBind handleOk handleError handleInvalidCsrf
 
 let manualFormHandler : HttpHandler =
     fun ctx -> task {
@@ -473,6 +440,26 @@ let manualFormHandler : HttpHandler =
 
         return! Response.ofJson person ctx
     }        
+```
+
+#### `multipart/form-data` Binding 
+
+Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
+
+To make this process **a lot** easier Falco provides a set of four `HttpHandler`'s analogous to the form handlers above, which utilize an `HttpContext` extension method called `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
+
+Below is an example demonstrating the insecure map variant:
+
+```fsharp
+let imageUploadHandler : HttpHandler =
+    let formBinder (f : FormCollectionReader) : IFormFile option =            
+        f.TryGetFormFile "profile_image"
+    
+    let uploadImage (profileImage : IFormFile option) : HttpHandler = 
+        // Process the uploaded file ...
+
+    // Safely buffer the multipart form submission
+    Request.mapFormStream formBinder uploadImage
 ```
 
 ## JSON
@@ -560,6 +547,7 @@ let doc (person : Person) =
 ```
 
 Views can also be combined to create more complex views and share output:
+
 ```fsharp
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
@@ -591,7 +579,9 @@ let aboutView =
 
 ## Host Builder
 
-[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things more expressive, Falco exposes an optional computation expression. Below is an example using the builder taken from the [Configure Host][21] sample.
+[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. 
+
+To make things more expressive, Falco exposes an optional computation expression. Below is an example using the builder taken from the [Configure Host][21] sample.
 
 ```fsharp
 [<EntryPoint>]
@@ -737,7 +727,7 @@ let logOut : HttpHandler =
 
 ## Security
 
-Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.
+Cross-site scripting attacks are extremely common since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.
 
 The [Microsoft.AspNetCore.Antiforgery][14] package provides the required utilities to easily protect yourself against such attacks.
 
@@ -786,7 +776,7 @@ let mapFormSecureHandler : HttpHandler =
 
 ### Crytography
 
-Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is of critical importance.
+Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is important.
 
 Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
@@ -804,22 +794,6 @@ let iterations = Crypto.randomInt 10000 50000
 // Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
 let password = "5upe45ecure"
 let hashedPassword = password |> Crypto.sha256 iterations 32 salt
-```
-
-## Handling Large Uploads
-
-Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size, and they recommend streaming the multipart data to avoid excess memory consumption.
-
-To make this process **a lot** easier Falco exposes an `HttpContext` extension method `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
-
-```fsharp
-let imageUploadHandler : HttpHandler =
-    fun ctx -> task {
-        let! form = Request.tryStreamFormAsync()
-            
-        // Rest of code using `FormCollectionReader`
-        // ...
-    }
 ```
 
 ## Why "Falco"?
