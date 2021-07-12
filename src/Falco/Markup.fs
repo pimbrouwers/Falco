@@ -20,7 +20,7 @@ type XmlNode =
     | TextNode        of string   
 
 /// Render XmlNode recursively to string representation
-let renderNode (tag : XmlNode) =  
+let renderNode (tag : XmlNode) =       
     let createKeyValue key value =
         strConcat [| key; "=\""; value ; "\"" |]
 
@@ -57,7 +57,7 @@ let renderNode (tag : XmlNode) =
             |> strConcat
 
         match tag with 
-        | TextNode text                           -> text
+        | TextNode text                       -> text
         | SelfClosingNode (tag, attrs)        -> createSelfClosingTag tag attrs
         | ParentNode ((tag, attrs), children) -> createTag (buildChildXml children) tag attrs 
         :: doc            
@@ -455,6 +455,9 @@ module Attr =
 
     /// HTML Attribute "value"
     let value v = create "value" v
+
+    /// HTML Attribute "colspan"
+    let colspan v = create "colspan" v
 
 module Templates =
     /// HTML 5 template with customizable <head> and <body>
