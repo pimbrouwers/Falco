@@ -452,7 +452,7 @@ Below is an example demonstrating the insecure map variant:
 
 ```fsharp
 let imageUploadHandler : HttpHandler =
-    let formBinder (f : FormCollectionReader) : IFormFile option =            
+    let formBinder (f : FormCollectionReader) : IFormFile option =
         f.TryGetFormFile "profile_image"
     
     let uploadImage (profileImage : IFormFile option) : HttpHandler = 

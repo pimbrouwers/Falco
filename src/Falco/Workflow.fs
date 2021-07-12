@@ -51,6 +51,19 @@ let ofFormSecure getRoot formBinder workflow handleOk handleError handleInvalidC
         (execute getRoot workflow handleOk handleError)
         handleInvalidCsrfToken
 
+/// Map a streamed form collection and run the provided workflow
+let ofFormStream getRoot formBinder workflow handleOk handleError : HttpHandler=        
+    Request.mapFormStream
+        formBinder
+        (execute getRoot workflow handleOk handleError)        
+
+/// Securely map a streamed form collection and run the provided workflow
+let ofFormSteamSecure getRoot formBinder workflow handleOk handleError handleInvalidCsrfToken : HttpHandler=
+    Request.mapFormStreamSecure
+        formBinder
+        (execute getRoot workflow handleOk handleError)
+        handleInvalidCsrfToken
+
 /// Map a JSON request and run the provided workflow
 let ofJson getRoot workflow handleOk handleError : HttpHandler =
     Request.mapJson        
