@@ -52,8 +52,7 @@ let handleCreateUser : HttpHandler =
         (fun _ -> handleBadRequest)
 
 let handleReadUsers : HttpHandler =
-    Request.mapRoute
-        (ignore)
+    Request.handle
         (fun _ -> 
             getAllUsersWithStorage ()
             |> handleResult)
@@ -63,8 +62,8 @@ let handleUpdateUser : HttpHandler =
         (fun routeCollection -> 
             routeCollection.TryGetString "id"
             |> function 
-                | Some id -> Result.Ok id
-                | None    -> Result.Error "No user id provided")
+                | Some id -> Ok id
+                | None    -> Error "No user id provided")
         (fun id ->
             Request.bindJson
                 (fun (userDto : UserDto) -> 
@@ -78,8 +77,8 @@ let handleDeleteUser : HttpHandler =
         (fun routeCollection -> 
             routeCollection.TryGetString "id"
             |> function 
-                | Some id -> Result.Ok id
-                | None    -> Result.Error "No user id provided")
+                | Some id -> Ok id
+                | None    -> Error "No user id provided")
         (fun id ->
             deleteUserWithStorage id
             |> handleResult)

@@ -10,17 +10,17 @@ type MemoryStorage() =
     ]
     interface IStorage with
         member _.GetAll() = 
-            values |> Seq.map id |> Result.Ok
+            values |> Seq.map id |> Ok
         member _.Add(id : string) (userDto : UserDto) = 
             let user = { Id = id; Username = userDto.Username; Name = userDto.Name; Surname = userDto.Surname }
             values <- List.append values [user]
-            Result.Ok user
+            Ok user
         member _.Update(id: string) (userDto: UserDto) = 
             let user = { Id = id; Username = userDto.Username; Name = userDto.Name; Surname = userDto.Surname }
             values <- values |> List.map (fun u -> if u.Id = id then user else u)
-            Result.Ok user
+            Ok user
         member _.Remove(id: string) = 
             let user = values |> List.find (fun u -> u.Id = id)
             values <- values |> List.filter (fun u -> u.Id <> id)
-            Result.Ok user
+            Ok user
 
