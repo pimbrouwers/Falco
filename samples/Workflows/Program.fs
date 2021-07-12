@@ -14,9 +14,10 @@ let exceptionHandler : HttpHandler =
     Response.withStatusCode 500 
     >> Response.ofPlainText "Server error"
 
+
 // Dependencies
 // ------------
-type IterationCounter() =
+type IterationCounter () =
     let mutable i : int = 0
 
     member _.Increment = fun () ->
@@ -35,9 +36,15 @@ module Root =
         let counter = ctx.GetService<IterationCounter>()
         { Counter = counter }
         
+
 // Echo server
 // ------------
-type Envelope<'a> = { IterationNumber : int; Data : 'a}
+type Envelope<'a> = { Error : string; IterationNumber : int; Data : 'a}
+
+// Shared error handler
+let rateLimitReached input _ : HttpHandler =
+    Response.withStatusCode 429 
+    >> Response.ofJson  { Error = "Rate limit reached"; IterationNumber = -1; Data = input }
 
 // Reading from the Query String
 type QueryInput = { Page : int; Frag : string }
@@ -51,18 +58,14 @@ let readQuery : HttpHandler =
     let workflow (root : Root) (input : QueryInput) =
         let i = root.Counter.Increment ()       
         match i with
-        | i when i <= 5 -> Ok { IterationNumber = i; Data = input }
+        | i when i <= 5 -> Ok { Error = ""; IterationNumber = i; Data = input }
         | _ -> 
             root.Counter.Reset() 
             Error ()
 
-    let handleOk = Response.ofJson 
+    let handleOk = Response.ofJson
 
-    let handleError _ _ = 
-        Response.withStatusCode 500 
-        >> Response.ofPlainText "Server Error - could not read query"
-
-    Workflow.ofQuery Root.ofHttpContext queryBinder workflow handleOk handleError
+    Workflow.ofQuery Root.ofHttpContext queryBinder workflow handleOk rateLimitReached
 
 // Read from a form submission
 type FormInput = { Email : string; First : string; Last : string } 
@@ -77,18 +80,14 @@ let readForm : HttpHandler =
     let workflow (root : Root) (input : FormInput) =
         let i = root.Counter.Increment ()        
         match i with
-        | i when i <= 5 -> Ok { IterationNumber = i; Data = input }
+        | i when i <= 5 -> Ok { Error = ""; IterationNumber = i; Data = input }
         | _ -> 
             root.Counter.Reset() 
             Error ()
 
     let handleOk = Response.ofJson 
 
-    let handleError _ _ = 
-        Response.withStatusCode 500 
-        >> Response.ofPlainText "Server Error - could not read form"
-
-    Workflow.ofForm Root.ofHttpContext formBinder workflow handleOk handleError
+    Workflow.ofForm Root.ofHttpContext formBinder workflow handleOk rateLimitReached
 
 // Read from JSON
 type JsonInput = { Title : string; Author : string; ISBN : int} 
@@ -97,18 +96,14 @@ let readJson : HttpHandler =
     let workflow (root : Root) (input : JsonInput ) =
         let i = root.Counter.Increment ()        
         match i with
-        | i when i <= 5 -> Ok { IterationNumber = i; Data = input }
+        | i when i <= 5 -> Ok { Error = ""; IterationNumber = i; Data = input }
         | _ -> 
             root.Counter.Reset() 
             Error ()
 
     let handleOk = Response.ofJson 
 
-    let handleError _ _ = 
-        Response.withStatusCode 500 
-        >> Response.ofPlainText "Server Error - could not read json"
-
-    Workflow.ofJson Root.ofHttpContext workflow handleOk handleError
+    Workflow.ofJson Root.ofHttpContext workflow handleOk rateLimitReached
 
 
 [<EntryPoint>]
