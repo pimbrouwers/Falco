@@ -4,38 +4,20 @@ open Falco
 open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
 
 // ------------
-// Register services
+// Exception Handler
 // ------------
-let configureServices (services : IServiceCollection) =
-    services.AddFalco() |> ignore
-
-// ------------
-// Activate middleware
-// ------------
-let configureApp (endpoints : HttpEndpoint list) (ctx : WebHostBuilderContext) (app : IApplicationBuilder) =    
-    let devMode = StringUtils.strEquals ctx.HostingEnvironment.EnvironmentName "Development"    
-    app.UseWhen(devMode, fun app -> 
-            app.UseDeveloperExceptionPage())
-       .UseWhen(not(devMode), fun app -> 
-            app.UseFalcoExceptionHandler(Response.withStatusCode 500 >> Response.ofPlainText "Server error"))
-       .UseFalco(endpoints) |> ignore
-
-// -----------
-// Configure Web host
-// -----------
-let configureWebHost (endpoints : HttpEndpoint list) (webHost : IWebHostBuilder) =
-    webHost
-        .ConfigureServices(configureServices)
-        .Configure(configureApp endpoints)
+let exceptionHandler : HttpHandler =
+    Response.withStatusCode 500 
+    >> Response.ofPlainText "Server error"
 
 [<EntryPoint>]
 let main args =   
     webHost args {
-        configure configureWebHost
+        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
+        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
+        
         endpoints [            
             get "/" (Response.ofPlainText "Hello world")
         ]
