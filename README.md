@@ -93,14 +93,10 @@ open Falco
 open Falco.Routing
 open Falco.HostBuilder
 
-let helloHandler : HttpHandler =
-    "Hello world"
-    |> Response.ofPlainText
-
 [<EntryPoint>]
 let main args =
     webHost args {
-        endpoints [ get "/" helloHandler ]
+        endpoints [ get "/" (Response.ofPlainText "Hello world" ]
     }
     0
 ```
