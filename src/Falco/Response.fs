@@ -6,11 +6,15 @@ open System.IO
 open System.Security.Claims
 open System.Text
 open System.Text.Json
+open System.Threading.Tasks
 open Falco.Markup
 open Falco.Security
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery
+open Microsoft.AspNetCore.Connections
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
 
@@ -71,8 +75,8 @@ let withCookieOptions (key : string) (value : string) (options : CookieOptions) 
 /// Write bytes to HttpResponse body
 let private writeBytes (bytes : byte[]) (ctx : HttpContext) =   
     let byteLen = bytes.Length
-    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
-    ctx.Response.Body.WriteAsync(bytes, 0, byteLen)
+    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)    
+    ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes)).AsTask() :> Task    
 
 /// Write UTF8 string to HttpResponse body
 let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : HttpContext) =
