@@ -2,11 +2,6 @@
 module Falco.Extensions
 
 open System
-open System.IO
-open System.Security.Claims
-open System.Text
-open FSharp.Control.Tasks.V2.ContextInsensitive
-open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
@@ -14,95 +9,9 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
-open Microsoft.Extensions.Primitives
-open Microsoft.Net.Http.Headers
-open Falco.StringUtils
-
-/// HttpRequest extensions
-type HttpRequest with
-    /// The HttpVerb of the current request
-    member this.HttpVerb =
-        match this.Method with
-        | m when strEquals m HttpMethods.Get     -> GET
-        | m when strEquals m HttpMethods.Head    -> HEAD
-        | m when strEquals m HttpMethods.Post    -> POST
-        | m when strEquals m HttpMethods.Put     -> PUT
-        | m when strEquals m HttpMethods.Patch   -> PATCH
-        | m when strEquals m HttpMethods.Delete  -> DELETE
-        | m when strEquals m HttpMethods.Options -> OPTIONS
-        | m when strEquals m HttpMethods.Trace   -> TRACE
-        | _ -> ANY
-
-    /// Retrieve the HttpRequest body as string
-    member this.GetBodyAsync () = task {
-        use rd = new StreamReader(this.Body)
-        return! rd.ReadToEndAsync()
-    }
-
-    /// Retrieve StringCollectionReader for IFormCollection from HttpRequest
-    member this.GetFormReaderAsync () = task {
-        let! form = this.ReadFormAsync()
-        let files = if isNull(form.Files) then None else Some form.Files
-        return FormCollectionReader(form, files)
-    }
-
-    /// Obtain HeaderValues for the current request
-    member this.GetHeaderReader () : HeaderCollectionReader =
-        HeaderCollectionReader(this.Headers)
-
-    /// Retrieve StringCollectionReader for IQueryCollection from HttpRequest
-    member this.GetQueryReader () =
-        QueryCollectionReader(this.Query)
-
-    /// Obtain RouteValues for the current request
-    member this.GetRouteReader () : RouteCollectionReader =
-        RouteCollectionReader(this.RouteValues, this.Query)
-
-    /// Retrieve CookieCollectionReader for IRequestCookieCollection from HttpRequest
-    member this.GetCookieReader () : CookieCollectionReader =
-        CookieCollectionReader(this.Cookies)
-
-/// HttpResponse extensions
-type HttpResponse with
-    /// Set HttpResponse header
-    member this.SetHeader
-        (name : string)
-        (content : string) =
-        if not(this.Headers.ContainsKey(name)) then
-            this.Headers.Add(name, StringValues(content))
-
-    /// Set HttpResponse ContentType header
-    member this.SetContentType contentType =
-        this.SetHeader HeaderNames.ContentType contentType
-
-    member this.SetStatusCode (statusCode : int) =
-        this.StatusCode <- statusCode
-
-    /// Write bytes to HttpResponse body
-    member this.WriteBytes (bytes : byte[]) =
-        let byteLen = bytes.Length
-        this.ContentLength <- Nullable<int64>(byteLen |> int64)
-        this.Body.WriteAsync(bytes, 0, byteLen)
-
-    /// Write UTF8 string to HttpResponse body
-    member this.WriteString (encoding : Encoding) (httpBodyStr : string) =
-        let httpBodyBytes = encoding.GetBytes httpBodyStr
-        this.WriteBytes httpBodyBytes
-
-    /// Append a new cookie with value
-    member this.AddCookie (key : string) (value : string) =
-        this.Cookies.Append(key, value)
-
-    /// Append a new cookie with value and options
-    member this.AddCookieOptions (key : string) (value : string) (cookieOptions : CookieOptions) =
-        this.Cookies.Append(key, value, cookieOptions)
 
 /// HttpContext extension methods
 type HttpContext with
-    // ------------
-    // IoC & Logging
-    // ------------
-
     /// Attempt to obtain depedency from IServiceCollection
     /// Throws InvalidDependencyException on null
     member this.GetService<'a> () =
@@ -116,46 +25,13 @@ type HttpContext with
         let loggerFactory = this.GetService<ILoggerFactory>()
         loggerFactory.CreateLogger name
 
-    // ------------
-    // XSS
-    // ------------
-
-    /// Returns (and optional creates) csrf tokens for the current session
-    member this.GetCsrfToken () =
-        let antiFrg = this.GetService<IAntiforgery>()
-        antiFrg.GetAndStoreTokens this
-
-    /// Checks the presence and validity of CSRF token
-    member this.ValidateCsrfToken () =
-        let antiFrg = this.GetService<IAntiforgery>()
-        antiFrg.IsRequestValidAsync this
-
-    // ------------
-    // Auth
-    // ------------
-    /// Returns the current user (IPrincipal) or None
-    member this.GetUser () =
-        match this.User with
-        | null -> None
-        | _    -> Some this.User
-
-    /// Returns authentication status of IPrincipal, false on null
-    member this.IsAuthenticated () =
-        let isAuthenciated (user : ClaimsPrincipal) =
-            let identity = user.Identity
-            match identity with
-            | null -> false
-            | _    -> identity.IsAuthenticated
-
-        match this.GetUser () with
-        | None      -> false
-        | Some user -> isAuthenciated user
 
 /// IEndpointRouteBuilder extensions
 type IEndpointRouteBuilder with
     member this.UseFalcoEndpoints (endpoints : HttpEndpoint list) =
         let dataSource = FalcoEndpointDatasource(endpoints)
         this.DataSources.Add(dataSource)
+
 
 /// IApplicationBuilder extensions
 type IApplicationBuilder with
@@ -177,6 +53,7 @@ type IApplicationBuilder with
     member this.UseWhen (predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
         if predicate then fn this
         else this
+
 
 /// IServiceCollection Extensions
 type IServiceCollection with

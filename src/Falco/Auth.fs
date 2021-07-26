@@ -7,23 +7,36 @@ open Microsoft.AspNetCore.Http
 open Falco.StringUtils
 open Falco.Extensions
 
+/// Returns the current user (IPrincipal) or None
+let getUser (ctx : HttpContext) =
+    match ctx.User with
+    | null -> None
+    | _    -> Some ctx.User
+
 /// Returns authentication status of IPrincipal, false on null
-let isAuthenticated 
-    (ctx : HttpContext) : bool =
-    ctx.IsAuthenticated()
+let isAuthenticated (ctx : HttpContext) : bool =
+    let isAuthenciated (user : ClaimsPrincipal) =
+        let identity = user.Identity
+        match identity with
+        | null -> false
+        | _    -> identity.IsAuthenticated
+
+    match getUser ctx with
+    | None      -> false
+    | Some user -> isAuthenciated user
 
 /// Returns bool if IPrincipal is in list of roles, false on None
 let isInRole 
     (roles : string list)
     (ctx : HttpContext) : bool =
-    match ctx.GetUser() with
+    match getUser ctx with
     | None      -> false
     | Some user -> List.exists user.IsInRole roles
 
 /// Attempts to return claims from IPrincipal, empty seq on None
 let getClaims
     (ctx : HttpContext) : Claim seq =
-    match ctx.GetUser() with
+    match getUser ctx with
     | None      -> Seq.empty
     | Some user -> user.Claims
 
@@ -31,7 +44,7 @@ let getClaims
 let tryFindClaim
     (predicate : Claim -> bool)
     (ctx : HttpContext) : Claim option =
-    match ctx.GetUser() with
+    match getUser ctx with
     | None      -> None
     | Some user ->         
         match user.Claims |> Seq.tryFind predicate with

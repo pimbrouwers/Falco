@@ -5,21 +5,31 @@ open System.Text.Json
 open System.Threading.Tasks
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Http
+open Microsoft.Net.Http.Headers
 open Falco.Multipart
 open Falco.Security
+open Falco.StringUtils
 
 /// Obtain the HttpVerb of the request
-let getVerb
-    (ctx : HttpContext) : HttpVerb =
-    ctx.Request.HttpVerb
+let getVerb (ctx : HttpContext) : HttpVerb =
+    match ctx.Request.Method with
+    | m when strEquals m HttpMethods.Get     -> GET
+    | m when strEquals m HttpMethods.Head    -> HEAD
+    | m when strEquals m HttpMethods.Post    -> POST
+    | m when strEquals m HttpMethods.Put     -> PUT
+    | m when strEquals m HttpMethods.Patch   -> PATCH
+    | m when strEquals m HttpMethods.Delete  -> DELETE
+    | m when strEquals m HttpMethods.Options -> OPTIONS
+    | m when strEquals m HttpMethods.Trace   -> TRACE
+    | _ -> ANY
 
 /// Retrieve a specific header from the request
 let getHeaders (ctx : HttpContext) : HeaderCollectionReader  =
-    ctx.Request.GetHeaderReader ()
+    HeaderCollectionReader(ctx.Request.Headers)
 
-/// Retrieve all route values from the request as Map<string, string>
+/// Retrieve all route values from the request as RouteCollectionReader
 let getRoute (ctx : HttpContext) : RouteCollectionReader =
-    ctx.Request.GetRouteReader ()
+    RouteCollectionReader(ctx.Request.RouteValues, ctx.Request.Query)
 
 let tryBindRoute
     (binder : RouteCollectionReader -> Result<'a, 'b>)
@@ -28,9 +38,8 @@ let tryBindRoute
     |> binder
 
 /// Retrieve the query string from the request as an instance of QueryCollectionReader
-let getQuery
-    (ctx : HttpContext) : QueryCollectionReader =
-    ctx.Request.GetQueryReader ()
+let getQuery (ctx : HttpContext) : QueryCollectionReader =
+    QueryCollectionReader(ctx.Request.Query)
 
 /// Attempt to bind query collection
 let tryBindQuery
@@ -40,9 +49,11 @@ let tryBindQuery
     |> binder
 
 /// Retrieve the form collection from the request as an instance of FormCollectionReader
-let getForm
-    (ctx : HttpContext) : Task<FormCollectionReader> =
-    ctx.Request.GetFormReaderAsync ()
+let getForm (ctx : HttpContext) : Task<FormCollectionReader> = task {
+    let! form = ctx.Request.ReadFormAsync()
+    let files = if isNull(form.Files) then None else Some form.Files
+    return FormCollectionReader(form, files)
+}
 
 /// Attempt to bind the form collection
 let tryBindForm
@@ -71,9 +82,8 @@ let tryBindFormStream
     }
 
 /// Retrieve the cookie from the request as an instance of CookieCollectionReader
-let getCookie
-    (ctx : HttpContext) : CookieCollectionReader =
-    ctx.Request.GetCookieReader()
+let getCookie (ctx : HttpContext) : CookieCollectionReader =
+    CookieCollectionReader(ctx.Request.Cookies)
 
 /// Attempt to bind cookie collection
 let tryBindCookie

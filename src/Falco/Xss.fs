@@ -16,12 +16,12 @@ let antiforgeryInput
         ]
 
 /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package
-let getToken 
-    (ctx : HttpContext) : AntiforgeryTokenSet =
-    ctx.GetCsrfToken()
+let getToken (ctx : HttpContext) : AntiforgeryTokenSet =
+    let antiFrg = ctx.GetService<IAntiforgery>()
+    antiFrg.GetAndStoreTokens ctx
 
 /// Validate the Antiforgery token within the provided HttpContext
-let validateToken
-    (ctx : HttpContext) : Task<bool> =        
-    ctx.ValidateCsrfToken()
+let validateToken (ctx : HttpContext) : Task<bool> =        
+    let antiFrg = ctx.GetService<IAntiforgery>()
+    antiFrg.IsRequestValidAsync ctx
 

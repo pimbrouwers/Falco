@@ -639,7 +639,7 @@ let main args =
 
 ## Authentication
 
-ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilities.
+ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco includes some authentication utilities.
 
 > To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`.
 
@@ -663,8 +663,6 @@ let secureResourceHandler : HttpHandler =
 Prevent authenticated user from accessing anonymous-only end-point:
 
 ```fsharp
-open Falco.Security
- 
 let anonResourceOnlyHandler : HttpHandler =
     let handleAnon : HttpHandler = 
         Response.ofPlainText "hello anonymous"
@@ -679,8 +677,6 @@ let anonResourceOnlyHandler : HttpHandler =
 Allow only user's from a certain group to access endpoint"
 
 ```fsharp
-open Falco.Security
-
 let secureResourceHandler : HttpHandler =
     let handleAuthInRole : HttpHandler = 
         Response.ofPlainText "hello admin"
@@ -697,8 +693,6 @@ let secureResourceHandler : HttpHandler =
 Allow only user's with a certain scope to access endpoint"
 
 ```fsharp
-open Falco.Security
-
 let secureResourceHandler : HttpHandler =
     let handleAuthHasScope : HttpHandler = 
         Response.ofPlainText "user1, user2, user3"
@@ -716,8 +710,6 @@ let secureResourceHandler : HttpHandler =
 End user session (sign out):
 
 ```fsharp
-open Falco.Security
-
 let logOut : HttpHandler =         
     let authScheme = "..."
     let redirectTo = "/login"
@@ -736,9 +728,10 @@ Falco provides a few handlers via `Falco.Security.Xss`:
 > To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`.
 
 ```fsharp
+open Falco.Markup
 open Falco.Security 
 
-let formView (token : AntiforgeryTokenSet) =     
+let formView token =     
     Elem.html [] [
         Elem.body [] [
             Elem.form [ Attr.method "post" ] [

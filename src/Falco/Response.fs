@@ -11,45 +11,73 @@ open Falco.Security
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
+open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
 
 // ------------
 // Modifiers
 // ------------
 
-/// A helper function which threads the HttpContext through the provided modifier and returns
-let modify (modifier : HttpContext -> unit) =
-    fun ctx ->
-        modifier ctx
-        ctx
+let private setHeader (name : string) (content : string) (ctx : HttpContext) = 
+    if not(ctx.Response.Headers.ContainsKey(name)) then
+        ctx.Response.Headers.Add(name, StringValues(content))
 
 /// Set ContentLength for response
 let withContentLength (contentLength : int64) : HttpResponseModifier =
-    modify (fun ctx -> ctx.Response.ContentLength <- Nullable(contentLength))
+    fun ctx -> 
+        ctx.Response.ContentLength <- Nullable(contentLength)
+        ctx
 
 /// Set specific header for response
-let withHeader (header : string) (content : string) : HttpResponseModifier =
-    modify (fun ctx -> ctx.Response.SetHeader header content)
-
+let withHeader (name : string) (content : string) : HttpResponseModifier =
+    fun ctx ->
+        setHeader name content ctx
+        ctx
+    
 /// Set multiple headers for response
 let withHeaders (headers : (string * string) list) : HttpResponseModifier =
-    modify (fun ctx -> headers |> List.iter (fun (header, content) -> ctx.Response.SetHeader header content))
+    fun ctx -> 
+        headers 
+        |> List.iter (fun (name, content) -> setHeader name content ctx)
+        ctx
 
 /// Set ContentType header for response
 let withContentType (contentType : string) : HttpResponseModifier =
     withHeader HeaderNames.ContentType contentType
 
 /// Set StatusCode for response
-let withStatusCode (statusCode : int) : HttpResponseModifier =
-    modify (fun ctx -> ctx.Response.SetStatusCode statusCode)
+let withStatusCode (statusCode : int) : HttpResponseModifier =    
+    fun ctx -> 
+        ctx.Response.StatusCode <- statusCode
+        ctx
+    //modify (fun ctx -> ctx.Response.SetStatusCode statusCode)
 
 /// Add cookie to response
 let withCookie (key : string) (value : string) : HttpResponseModifier =
-    modify (fun ctx -> ctx.Response.AddCookie key value)
+    fun ctx -> 
+        ctx.Response.Cookies.Append(key, value) 
+        ctx
+
+/// Add a configured cookie to response, via CookieOptions
+let withCookieOptions (key : string) (value : string) (options : CookieOptions) : HttpResponseModifier =
+    fun ctx -> 
+        ctx.Response.Cookies.Append(key, value, options) 
+        ctx
 
 // ------------
 // Handlers
 // ------------
+
+/// Write bytes to HttpResponse body
+let private writeBytes (bytes : byte[]) (ctx : HttpContext) =   
+    let byteLen = bytes.Length
+    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
+    ctx.Response.Body.WriteAsync(bytes, 0, byteLen)
+
+/// Write UTF8 string to HttpResponse body
+let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : HttpContext) =
+    let httpBodyBytes = encoding.GetBytes httpBodyStr
+    writeBytes httpBodyBytes ctx
 
 /// Returns a redirect (301 or 302) to client
 let redirect (url : string) (permanent : bool) : HttpHandler =
@@ -65,7 +93,7 @@ let ofBinary (contentType : string) (headers : (string * string) list) (bytes : 
     
     withContentType contentType
     >> withHeaders headers
-    >> fun ctx -> ctx.Response.WriteBytes bytes
+    >> writeBytes bytes
 
 /// Returns a binary (i.e., Byte[]) attachment response with the specified Content-Type and optional filename
 ///
@@ -79,7 +107,7 @@ let ofAttachment (filename : string) (contentType : string) (headers : (string *
 
     withContentType contentType
     >> withHeaders headers
-    >> fun ctx -> ctx.Response.WriteBytes bytes
+    >> writeBytes bytes
 
 /// Flushes any remaining response headers or data and returns empty response
 let ofEmpty : HttpHandler =
@@ -87,7 +115,7 @@ let ofEmpty : HttpHandler =
 
 /// Writes string to response body with provided encoding
 let ofString (encoding : Encoding) (str : string) : HttpHandler =
-    fun ctx -> ctx.Response.WriteString encoding str
+    fun ctx -> writeString encoding str ctx
 
 /// Returns a "text/plain; charset=utf-8" response with provided string to client
 let ofPlainText (str : string) : HttpHandler =
@@ -120,7 +148,7 @@ let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
         use str = new MemoryStream()
         do! JsonSerializer.SerializeAsync(str, obj, options = options)
         str.Flush ()
-        do! ctx.Response.WriteBytes (str.ToArray ())
+        do! writeBytes (str.ToArray ()) ctx
         //return ()
     }
 
