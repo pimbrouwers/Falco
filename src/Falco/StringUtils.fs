@@ -2,6 +2,11 @@
 
 open System 
 
+/// stringf is an F# function that invokes any ToString(string) method.
+/// Credit: Mark Seeman - https://blog.ploeh.dk/2015/05/08/stringf/
+let inline stringf format (x : ^a) = 
+    (^a : (member ToString : string -> string) (x, format))
+
 /// Check if string is null or whitespace
 let strEmpty str =
     String.IsNullOrWhiteSpace(str)

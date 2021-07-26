@@ -64,7 +64,6 @@
     <Compile Include="Multipart.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
-    <Compile Include="Workflow.fs" />
     <Compile Include="HostBuilder.fs" />
   </ItemGroup>
 
