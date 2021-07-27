@@ -1,0 +1,31 @@
+name: deploy
+
+on: 
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:  
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      matrix:
+        dotnet-version: ['5.0.x']
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: 'develop'
+      
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v1.7.2
+        with:          
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Create the package
+        run: dotnet pack src/Falco/ -c Release --include-symbols --include-source -p:PackageVersion=$GITHUB_RUN_ID        
+      
+      - name: Publish the package to GPR
+        run: dotnet nuget push src/Falco/bin/Release/*.nupkg --source https://nuget.pkg.github.com/pimbrouwers/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

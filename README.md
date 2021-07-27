@@ -1,7 +1,7 @@
 # Falco
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
-[![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
+[![Build Status](https://github.com/pimbrouwers/Falco/actions/workflows/build.yml/badge.svg)](https://github.com/pimbrouwers/Falco/actions/workflows/build.yml)
 
 ```fsharp
 open Falco
@@ -119,8 +119,7 @@ Code is always worth a thousand words, so for the most up-to-date usage, the [/s
 | [Hello World][7] | A basic hello world app |
 | [Configure Host][21] | Demonstrating how to configure the `IHost` instance using the `webHost` computation expression |
 | [Blog][17] | A basic markdown (with YAML frontmatter) blog |
-| [Third-part View Engine][22] | Demonstrating how to render with an external view engine, specifically [Scriban][23] |
-| [Falco Journal][20] | A bullet journal built using Falco |
+| [Todo MVC][20] | A basic Todo app, following MVC style _(work in progress)_ |
 
 ## Request Handling
 
@@ -217,9 +216,6 @@ let helloHandler : HttpHandler =
     let formBinder (query : FormCollectionReader) =
         let name = query.GetString "name" "World" 
         sprintf "Hello %s" name
-        
-    Request.mapForm formBinder Response.ofPlainText
-```
 
 To prevent XSS attacks it is often advisable to use a [CSRF token](#security) during form submissions. In these situations, you'll want to validate the token before processing the form input using the `Request.mapFormSecure` (or `Request.bindFormSecure`). These functions will automatically validate the token for you before consuming input.
 
@@ -231,7 +227,7 @@ let secureHelloHandler : HttpHandler =
 
     let invalidTokenHandler : HttpHandler =
         Response.withStatusCode 403
-        >> Resposne.ofEmpty
+        >> Response.ofEmpty
         
     Request.mapFormSecure formBinder Response.ofPlainText invalidTokenHandler
 ```
@@ -801,26 +797,25 @@ There's an [issue](https://github.com/pimbrouwers/Falco/issues) for that.
 
 Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON. Licensed under [Apache License 2.0](https://github.com/pimbrouwers/Falco/blob/master/LICENSE).
 
-[1]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1 "Kestrel web server implementation in ASP.NET Core"
+[1]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel "Kestrel web server implementation in ASP.NET Core"
 [2]: https://devblogs.microsoft.com/dotnet/system-io-pipelines-high-performance-io-in-net/ "System.IO.Pipelines: High performance IO in .NET"
-[3]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#configuring-endpoint-metadata "EndpointRouting in ASP.NET Core"
+[3]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#configuring-endpoint-metadata "EndpointRouting in ASP.NET Core"
 [4]: https://github.com/giraffe-fsharp/Giraffe "A native functional ASP.NET Core web framework for F# developers."
-[5]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#route-template-reference
+[5]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-template-reference
 [6]: https://github.com/pimbrouwers/Falco/tree/master/samples
 [7]: https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld
 [8]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
 [9]: https://en.wikipedia.org/wiki/Function_composition "Function composition"
-[10]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1 "ASP.NET Core Middlware"
+[10]: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/ "ASP.NET Core Middlware"
 [11]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/options "F# Options"
 [12]: https://wiki.haskell.org/Combinator "Combinator"
-[13]: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1 "Overview of ASP.NET Core authentication"
-[14]: https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1 "Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core"
-[15]: https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming "Large file uploads"
+[13]: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/ "Overview of ASP.NET Core authentication"
+[14]: https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery "Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core"
+[15]: https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming "Large file uploads"
 [16]: https://github.com/pimbrouwers/Falco/tree/master/src/Response.fs
 [17]: https://github.com/pimbrouwers/Falco/tree/master/samples/Blog
 [18]: https://github.com/pimbrouwers/Falco/tree/master/src/Request.fs
 [19]: https://github.com/pimbrouwers/Jay
-[20]: https://github.com/pimbrouwers/FalcoJournal
+[20]: https://github.com/pimbrouwers/Falco/tree/master/samples/Todo
 [21]: https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost
-[22]: https://github.com/pimbrouwers/Falco/tree/master/samples/ScribanExample
-[23]: https://github.com/scriban/scriban
+[22]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/#function-composition-and-pipelining

@@ -116,8 +116,8 @@ h2 > code, h3 > code, p > code { padding: 0 .25rem; }
     <h2 class="mt0 mb4 fw4 f4 f3-l">Falco is a toolkit for building secure, fast, functional-first and fault-tolerant web applications using F#.</h2>
 
     <div class="tc">
-      <a href="#getting-started" target="_blank" title="Learn how to get started using Falco" class="dib mh2 mb2 ph3 pv2 merlot bg-white ba b--white br2 no-underline">Get Started</a>
-      <a href="#falco" target="_blank" class="dib mh2 ph3 pv2 white ba b--white br2 no-underline">Learn More</a>
+      <a href="#getting-started" title="Learn how to get started using Falco" class="dib mh2 mb2 ph3 pv2 merlot bg-white ba b--white br2 no-underline">Get Started</a>
+      <a href="#falco" class="dib mh2 ph3 pv2 white ba b--white br2 no-underline">Learn More</a>
     </div>
 </div>
 
@@ -275,12 +275,8 @@ let main args =
 <td>A basic markdown (with YAML frontmatter) blog</td>
 </tr>
 <tr>
-<td><a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ScribanExample">Third-part View Engine</a></td>
-<td>Demonstrating how to render with an external view engine, specifically <a href="https://github.com/scriban/scriban">Scriban</a></td>
-</tr>
-<tr>
-<td><a href="https://github.com/pimbrouwers/FalcoJournal">Falco Journal</a></td>
-<td>A bullet journal built using Falco</td>
+<td><a href="https://github.com/pimbrouwers/Falco/tree/master/samples/Todo">Todo MVC</a></td>
+<td>A basic Todo app, following MVC style <em>(work in progress)</em></td>
 </tr>
 </tbody>
 </table>
@@ -295,13 +291,9 @@ let main args =
 <pre><code class="language-fsharp">let htmlHandler : HttpHandler =
     let doc =
         Elem.html [ Attr.lang &quot;en&quot; ] [
-            Elem.head [] [
-                Elem.title [] [ Text.raw &quot;Sample App&quot; ]
-            ]
+            Elem.head [] []
             Elem.body [] [
-                Elem.main [] [
-                    Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
-                ]
+                Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]                
             ]
         ]
 
@@ -320,42 +312,80 @@ let main args =
 <p>IMPORTANT: This handler uses the default <code>System.Text.Json.JsonSerializer</code>. See <a href="#json">JSON</a> section below for further information.</p>
 </blockquote>
 <pre><code class="language-fsharp">type Person =
-    {
-        First : string
-        Last  : string
-    }
+    { First : string
+      Last  : string }
 
 let jsonHandler : HttpHandler =
     { First = &quot;John&quot;; Last = &quot;Doe&quot; }
     |&gt; Response.ofJson
 </code></pre>
+<h3 id="redirect-301302-response">Redirect (301/302) Response</h3>
+<pre><code class="language-fsharp">let oldUrlHandler : HttpHandler =
+    Response.redirect &quot;/new-url&quot; true
+</code></pre>
+<blockquote>
+<p>Note: The trailing <code>bool</code> value is used to indicate permanency (i.e., true = 301 / false = 302)</p>
+</blockquote>
+<h2 id="accessing-request-data">Accessing Request Data</h2>
+<p>Falco exposes a <a href="#model-binding">uniform API</a> to obtain typed values from the various sources of request data. Note, the similarity in the various binders below.</p>
+<h3 id="route-collection">Route Collection</h3>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let routeBinder (route : RouteCollectionReader) =
+        let name = route.GetString &quot;name&quot; &quot;World&quot; 
+        sprintf &quot;Hello %s&quot; name
+        
+    Request.mapRoute routeBinder Response.ofPlainText
+</code></pre>
+<h3 id="query-parameters">Query Parameters</h3>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let queryBinder (query : QueryCollectionReader) =
+        let name = query.GetString &quot;name&quot; &quot;World&quot; 
+        sprintf &quot;Hello %s&quot; name
+        
+    Request.mapQuery queryBinder Response.ofPlainText
+</code></pre>
+<h3 id="form-data">Form Data</h3>
+<pre><code class="language-fsharp">let helloHandler : HttpHandler =
+    let formBinder (query : FormCollectionReader) =
+        let name = query.GetString &quot;name&quot; &quot;World&quot; 
+        sprintf &quot;Hello %s&quot; name
+        
+    Request.mapForm formBinder Response.ofPlainText
+</code></pre>
+<p>To prevent XSS attacks it is often advisable to use a <a href="#security">CSRF token</a> during form submissions. In these situations, you'll want to validate the token before processing the form input using the <code>Request.mapFormSecure</code> (or <code>Request.bindFormSecure</code>). These functions will automatically validate the token for you before consuming input.</p>
+<pre><code class="language-fsharp">let secureHelloHandler : HttpHandler =
+    let formBinder (query : FormCollectionReader) =
+        let name = query.GetString &quot;name&quot; &quot;World&quot; 
+        sprintf &quot;Hello %s&quot; name
+
+    let invalidTokenHandler : HttpHandler =
+        Response.withStatusCode 403
+        &gt;&gt; Resposne.ofEmpty
+        
+    Request.mapFormSecure formBinder Response.ofPlainText invalidTokenHandler
+</code></pre>
+<h2 id="response-modifiers">Response Modifiers</h2>
+<p>Response modifiers can be thought of as the in-and-out modification of the <code>HttpResponse</code>. A preamble to writing and returning. Since these functions receive the <code>Httpcontext</code> as input and return it as the only output, they can take advantage of <a href="22">function compoistion</a>.</p>
 <h3 id="set-the-status-code-of-the-response">Set the status code of the response</h3>
 <pre><code class="language-fsharp">let notFoundHandler : HttpHandler =
     Response.withStatusCode 404
     &gt;&gt; Response.ofPlainText &quot;Not found&quot;
 </code></pre>
-<h3 id="redirect-301302-response-boolean-param-to-indicate-permanency">Redirect (301/302) Response (boolean param to indicate permanency)</h3>
-<pre><code class="language-fsharp">let oldUrlHandler : HttpHandler =
-    Response.redirect &quot;/new-url&quot; true
+<h3 id="add-a-header-to-the-response">Add a header to the response</h3>
+<pre><code class="language-fsharp">let handlerWithHeader : HttpHandler =
+    Response.withHeader &quot;Content-Language&quot; &quot;en-us&quot;
+    &gt;&gt; Response.ofPlainText &quot;Hello world&quot;
 </code></pre>
-<h3 id="accessing-route-parameters">Accessing route parameters</h3>
-<pre><code class="language-fsharp">let helloHandler : HttpHandler =
-    let getMessage (route : RouteCollectionReader) =
-        route.GetString &quot;name&quot; &quot;World&quot; 
-        |&gt; sprintf &quot;Hello %s&quot;
-        
-    Request.mapRoute getMessage Response.ofPlainText
+<h3 id="add-a-cookie-to-the-response">Add a cookie to the response</h3>
+<pre><code class="language-fsharp">let handlerWithHeader : HttpHandler =
+    Response.withCookie &quot;greeted&quot; &quot;1&quot;
+    &gt;&gt; Response.ofPlainText &quot;Hello world&quot;
 </code></pre>
-<h3 id="accessing-query-parameters">Accessing query parameters</h3>
-<pre><code class="language-fsharp">let helloHandler : HttpHandler =
-    let getMessage (query : QueryCollectionReader) =
-        query.GetString &quot;name&quot; &quot;World&quot; 
-        |&gt; sprintf &quot;Hello %s&quot;
-        
-    Request.mapQuery getMessage Response.ofPlainText
-</code></pre>
+<blockquote>
+<p>IMPORTANT: <em>Do not</em> use this for authentication. Instead use the <code>Auth.signIn</code> and <code>Auth.signOut</code> functions found in the <a href="#authentication">Authentication</a> module.</p>
+</blockquote>
 <h2 id="routing">Routing</h2>
-<p>The breakdown of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#configuring-endpoint-metadata" title="EndpointRouting in ASP.NET Core">Endpoint Routing</a> is simple. Associate a specific <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-3.1#route-template-reference">route pattern</a> (and optionally an HTTP verb) to an <code>HttpHandler</code> which represents the ongoing processing (and eventual return) of a request.</p>
+<p>The breakdown of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#configuring-endpoint-metadata" title="EndpointRouting in ASP.NET Core">Endpoint Routing</a> is simple. Associate a specific <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-template-reference">route pattern</a> (and optionally an HTTP verb) to an <code>HttpHandler</code> which represents the ongoing processing (and eventual return) of a request.</p>
 <p>Bearing this in mind, routing can practically be represented by a list of these &quot;mappings&quot; known in Falco as an <code>HttpEndpoint</code> which bind together: a route, verb and handler.</p>
 <pre><code class="language-fsharp">let helloHandler : HttpHandler =
     let getMessage (route : RouteCollectionReader) =
@@ -382,192 +412,190 @@ let endpoints : HttpEndpoint list =
   ]
 </code></pre>
 <h2 id="host-builder">Host Builder</h2>
-<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using <code>Host.CreateDefaultBuilder(args)</code>, but it can grow verbose quickly. To make things more expressive, Falco exposes an optional computation expression. Below is an example using the builder taken from the <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost">Configure Host</a> sample.</p>
-<pre><code class="language-fsharp">[&lt;EntryPoint&gt;]
-let main args = 
+<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using <code>Host.CreateDefaultBuilder(args)</code>, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost">Configure Host</a> sample.</p>
+<pre><code class="language-fsharp">module ConfigureHost.Program
+
+open Falco
+open Falco.Markup
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
+
+// ... rest of startup code
+
+let configureHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
+    // definitions omitted for brevity
+    webhost.ConfigureLogging(configureLogging)
+           .ConfigureServices(configureServices)
+           .Configure(configureApp endpoints)
+
+[&lt;EntryPoint&gt;]
+let main args =
     webHost args {
-        use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
-        use_https
-        use_compression
-        use_static_files
-
-        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
-
-        endpoints [            
-            get &quot;/greet/{name:alpha}&quot; 
-                handleGreeting
-
-            get &quot;/json&quot; 
-                handleJson
-
-            get &quot;/html&quot; 
-                handleHtml
-                
-            get &quot;/&quot; 
-                handlePlainText
-        ]
+        configure configureHost
+        endpoints [
+                      get &quot;/&quot; (&quot;hello world&quot; |&gt; Response.ofPlainText)
+                  ]
     }
     0
 </code></pre>
-<h3 id="fully-customizing-the-host">Fully Customizing the Host</h3>
-<p>To assume full control over configuring your <code>IHost</code> use the <code>configure</code> custom operation. It expects a function with the signature of <code>HttpEndpoint list -&gt; IWebHostBuilder -&gt; IWebHostBuilder</code> and assumes you will register and activate Falco (i.e., <code>AddFalco()</code> and <code>UseFalco(endpoints)</code>).</p>
-<pre><code class="language-fsharp">[&lt;EntryPoint&gt;]
-let main args = 
-    let configureServices : IServiceCollection -&gt; unit = 
-      fun services -&gt; services.AddFalco() |&gt; ignore
-    
-    let configureApp : HttpEndpoint list -&gt; IApplicationBuilder -&gt; unit =
-       fun endpoints app -&gt; app.UseFalco(endpoints) |&gt; ignore
-
-    let configureWebHost : HttpEndpoint list -&gt; IWebHostBuilder =
-      fun endpoints webHost -&gt;
-          webHost.ConfigureLogging(configureLogging)
-                 .ConfigureServices(configureServices)
-                 .Configure(configureApp endpoints)
-
-    webHost args {
-      configure configureWebHost
-      endpoints []
-    }
-</code></pre>
 <h2 id="model-binding">Model Binding</h2>
-<p>Binding at IO boundaries is messy, error-prone and often verbose. Reflection-based abstractions tend to work well for simple use cases, but quickly become very complicated as the expected complexity of the input rises. This is especially true for an algebraic type system like F#'s. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for <code>[&lt;CLIMutable&gt;]</code> attributes.</p>
+<p>Reflection-based approaches to binding at IO boundaries work well for simple use cases. But as the complexity of the input rises it becomes error-prone and often involves tedious workarounds. This is especially true for an expressive, algebraic type system like F#. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for <code>[&lt;CLIMutable&gt;]</code> attributes.</p>
 <p>We can make this simpler by creating a succinct API to obtain typed values from <code>IFormCollection</code>, <code>IQueryCollection</code>, <code>RouteValueDictionary</code> and <code>IHeaderCollection</code>. <em>Readers</em> for all four exist as derivatives of <code>StringCollectionReader</code> which is an abstraction intended to make it easier to work with the string-based key/value collections.</p>
+<p>The built-in model binding handlers come in two flavors, both of which are continuation-style handlers:</p>
+<ol>
+<li><p><code>Request.mapXXX</code></p>
+<ul>
+<li>Signature: <code>(map: XXXCollectionReader -&gt; 'a) (next : 'a -&gt; HttpHandler) -&gt; HttpHandler</code></li>
+<li>The &quot;map&quot; family of handlers are more commonly used and assume that binding will always succeed in one manner or another, either via default values or <code>Option&lt;T&gt;</code>.</li>
+</ul>
+</li>
+<li><p><code>Request.bindXXX</code></p>
+<ul>
+<li>Signature: <code>(bind: XXXCollectionReader -&gt; Result&lt;'a, 'b&gt;) (handleOk : 'a -&gt; HttpHandler) -&gt; (handleError : 'b -&gt; HttpHandler) -&gt; HttpHandler</code></li>
+<li>The &quot;bind&quot; family of handlers are useful when you explicitly want to indicate errors during binding and return a different response when they occur.</li>
+</ul>
+</li>
+</ol>
 <h3 id="route-binding">Route Binding</h3>
-<p>Route binding is normally achieved through <code>Request.mapRoute</code> or <code>Request.bindRoute</code> if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from <code>RouteCollectionReader</code>, which itself has full access to the query string via <code>QueryCollectionReader</code>.</p>
 <pre><code class="language-fsharp">let mapRouteHandler : HttpHandler =
-    let routeMap (route : RouteCollectionReader) = route.GetString &quot;Name&quot; &quot;John Doe&quot;
+    let routeMap (r : RouteCollectionReader) = 
+        r.GetString &quot;Name&quot; &quot;John Doe&quot;
     
-    Request.mapRoute
-        routeMap
-        Response.ofJson
+    Request.mapRoute routeMap Response.ofJson
 
 let bindRouteHandler : HttpHandler = 
-    let routeBind (route : RouteCollectionReader) =
-        match route.TryGetString &quot;Name&quot; with
+    let routeBind (r : RouteCollectionReader) =
+        match r.TryGetString &quot;Name&quot; with
         | Some name -&gt; Ok name
         | _         -&gt; Error {| Message = &quot;Invalid route&quot; |}
     
-    Request.bindRoute
-        routeBind
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindRoute routeBind handleOk handleError
 
 let manualRouteHandler : HttpHandler =
     fun ctx -&gt;
-        let route = Request.getRoute ctx
-        let name = route.GetString &quot;Name&quot; &quot;John Doe&quot;
-        
-        // You also have access to the query string
-        let q = route.Query.GetString &quot;q&quot; &quot;{default value}&quot;
+        let r : RouteCollectionReader = Request.getRoute ctx
+        let name = r.GetString &quot;Name&quot; &quot;John Doe&quot;  
+
         Response.ofJson name ctx
 </code></pre>
 <h3 id="query-binding">Query Binding</h3>
-<p>Query binding is normally achieved through <code>Request.mapQuery</code> or <code>Request.bindQuery</code> if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from <code>QueryCollectionReader</code>.</p>
 <pre><code class="language-fsharp">type Person = { FirstName : string; LastName : string }
 
 let mapQueryHandler : HttpHandler =    
-    Request.mapQuery
-        (fun rd -&gt; { 
-            FirstName = rd.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
-            LastName = rd.GetString &quot;LastName&quot; &quot;Doe&quot; 
-        })
-        Response.ofJson 
+    let queryMap (q : QueryCollectionReader) =
+        let first = q.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+        let last = q.GetString &quot;LastName&quot; &quot;Doe&quot;
+        { FirstName = first; LastName = last }
+
+    Request.mapQuery queryMap Response.ofJson 
 
 let bindQueryHandler : HttpHandler = 
-    Request.bindQuery 
-        (fun rd -&gt; 
-            match rd.TryGetString &quot;FirstName&quot;, rd.TryGetString &quot;LastName&quot; with
-            | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
-            | _  -&gt; Error {| Message = &quot;Invalid query string&quot; |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
+    let queryBind (q : QueryCollectionReader) =
+        match q.TryGetString &quot;FirstName&quot;, q.TryGetString &quot;LastName&quot; with
+        | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
+        | _  -&gt; Error {| Message = &quot;Invalid query string&quot; |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindQuery queryBind handleOk handleError 
 
 let manualQueryHandler : HttpHandler =
     fun ctx -&gt;
-        let query = Request.getQuery ctx
+        let q : QueryCollectionReader = Request.getQuery ctx
         
         let person = 
-            { 
-                FirstName = query.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
-                LastName = query.GetString &quot;LastName&quot; &quot;Doe&quot; 
-            }
+            { FirstName = q.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+              LastName  = q.GetString &quot;LastName&quot; &quot;Doe&quot; }
 
         Response.ofJson person ctx
 </code></pre>
 <h3 id="form-binding">Form Binding</h3>
-<p>Form binding is normally achieved through <code>Request.mapForm</code> or <code>Request.bindForm</code> if you are concerned with handling bind failures explicitly. Both are continuation-style handlers that can project the values from <code>FormCollectionReader</code>, which itself has full access to the <code>IFormFilesCollection</code> via the <code>_.Files</code> member.</p>
+<p>The <code>FormCollectionReader</code> has full access to the <code>IFormFilesCollection</code> via the <code>_.Files</code> member.</p>
 <blockquote>
 <p>Note the addition of <code>Request.mapFormSecure</code> and <code>Request.bindFormSecure</code> which will automatically validate CSRF tokens for you.</p>
 </blockquote>
 <pre><code class="language-fsharp">type Person = { FirstName : string; LastName : string }
 
-let mapFormHandler : HttpHandler =    
-    Request.mapForm
-        (fun rd -&gt; { 
-            FirstName = rd.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
-            LastName = rd.GetString &quot;LastName&quot; &quot;Doe&quot; 
-        })
-        Response.ofJson 
+let mapFormHandler : HttpHandler =   
+    let formMap (f : FormCollectionReader) =
+        let first = f.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+        let last = f.GetString &quot;LastName&quot; &quot;Doe&quot;        
+        { FirstName = first; LastName = last }
+
+    Request.mapForm formMap Response.ofJson 
 
 let mapFormSecureHandler : HttpHandler =    
-    Request.mapFormSecure
-        (fun rd -&gt; { 
-            FirstName = rd.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
-            LastName = rd.GetString &quot;LastName&quot; &quot;Doe&quot; 
-        })
-        Response.ofJson 
-        (Response.withStatusCode 400 &gt;&gt; Response.ofEmpty)
+    let formMap (f : FormCollectionReader) =
+        let first = f.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+        let last = f.GetString &quot;LastName&quot; &quot;Doe&quot;        
+        { FirstName = first; LastName = last }
+
+    let handleInvalidCsrf : HttpHandler = 
+        Response.withStatusCode 400 &gt;&gt; Response.ofEmpty
+
+    Request.mapFormSecure formMap Response.ofJson handleInvalidCsrf
 
 let bindFormHandler : HttpHandler = 
-    Request.bindForm 
-        (fun rd -&gt; 
-            match rd.TryGetString &quot;FirstName&quot;, rd.TryGetString &quot;LastName&quot; with
-            | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
-            | _  -&gt; Error {| Message = &quot;Invalid form data&quot; |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
+    let formBind (f : FormCollectionReader) =
+        match f.TryGetString &quot;FirstName&quot;, f.TryGetString &quot;LastName&quot; with
+        | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
+        | _  -&gt; Error {| Message = &quot;Invalid form data&quot; |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+
+    Request.bindForm formBind handleOk handleError 
 
 let bindFormSecureHandler : HttpHandler = 
-    Request.bindFormSecure
-        (fun rd -&gt; 
-            match rd.TryGetString &quot;FirstName&quot;, rd.TryGetString &quot;LastName&quot; with
-            | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
-            | _  -&gt; Error {| Message = &quot;Invalid form data&quot; |})
-        Response.ofJson // handle Ok
-        Response.ofJson // handle Error
-        (Response.withStatusCode 400 &gt;&gt; Response.ofEmpty)
+    let formBind (f : FormCollectionReader) =
+        match f.TryGetString &quot;FirstName&quot;, f.TryGetString &quot;LastName&quot; with
+        | Some f, Some l -&gt; Ok { FirstName = f; LastName = l }
+        | _  -&gt; Error {| Message = &quot;Invalid form data&quot; |}
+
+    let handleOk = Response.ofJson
+    let handleError = Response.ofJson
+    let handleInvalidCsrf : HttpHandler = 
+        Response.withStatusCode 400 &gt;&gt; Response.ofEmpty
+
+    Request.bindForm formBind handleOk handleError handleInvalidCsrf
 
 let manualFormHandler : HttpHandler =
     fun ctx -&gt; task {
-        let! query = Request.getForm ctx
+        let! f : FormCollectionReader = Request.getForm ctx
         
         let person = 
-            { 
-                FirstName = query.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
-                LastName = query.GetString &quot;LastName&quot; &quot;Doe&quot; 
-            }
+            { FirstName = f.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+              LastName = f.GetString &quot;LastName&quot; &quot;Doe&quot; }
 
         return! Response.ofJson person ctx
     }        
 </code></pre>
 <h2 id="json">JSON</h2>
 <p>Included in Falco are basic JSON in/out handlers, <code>Request.bindJson</code> and <code>Response.ofJson</code> respectively. Both rely on <code>System.Text.Json</code> and thus have minimal support for F#'s algebraic types.</p>
-<pre><code class="language-fsharp">type Person =
-    {
-        First : string
-        Last  : string
-    }
+<pre><code class="language-fsharp">type Person = { FirstName : string; LastName : string }
 
 let jsonHandler : HttpHandler =
-    { First = &quot;John&quot;; Last = &quot;Doe&quot; }
+    { FirstName = &quot;John&quot;; LastName = &quot;Doe&quot; }
     |&gt; Response.ofJson
 
 let jsonBindHandler : HttpHandler =    
-    Request.bindJson
-        (fun person -&gt; Response.ofPlainText (sprintf &quot;hello %s %s&quot; person.First person.Last))
-        (fun error -&gt; Response.withStatusCode 400 &gt;&gt; Response.ofPlainText (sprintf &quot;Invalid JSON: %s&quot; error))
+    let handleOk person : HttpHandler = 
+        let message = sprintf &quot;hello %s %s&quot; person.First person.Last
+        Response.ofPlainText message
+
+    let handleError error : HttpHandler = 
+        let message = sprintf &quot;Invalid JSON: %s&quot; error
+        Response.withStatusCode 400 &gt;&gt; Response.ofPlainText message
+
+    Request.bindJson handleOk handleError
 </code></pre>
 <h2 id="markup">Markup</h2>
 <p>A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.).</p>
@@ -583,8 +611,8 @@ let path d = Elem.tag &quot;path&quot; [ Attr.create &quot;d&quot; d ] []
 
 let bars =
     svg 384.0 384.0 [
-            path &quot;M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0&quot;
-        ]
+        path &quot;M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0&quot;
+    ]
 </code></pre>
 <h3 id="html-view-engine">HTML View Engine</h3>
 <p>Most of the standard HTML tags &amp; attributes have been built into the markup module and produce objects to represent the HTML node. Nodes are either:</p>
@@ -605,33 +633,29 @@ let doc =
         [ Elem.h1 [] [ Text.raw &quot;Sample App&quot; ] ]    // &lt;body&gt;&lt;/body&gt;
 </code></pre>
 <p>Since views are plain F# they can easily be made strongly-typed:</p>
-<pre><code class="language-fsharp">type Person =
-    {
-        First : string
-        Last  : string
-    }
+<pre><code class="language-fsharp">type Person = { FirstName : string; LastName : string }
 
 let doc (person : Person) = 
     Elem.html [ Attr.lang &quot;en&quot; ] [
-            Elem.head [] [                    
-                    Elem.title [] [ Text.raw &quot;Sample App&quot; ]                                                            
-                ]
-            Elem.body [] [                     
-                    Elem.main [] [
-                            Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
-                            Elem.p  [] [ Text.rawf &quot;%s %s&quot; person.First person.Last ]
-                        ]
-                ]
+        Elem.head [] [                    
+            Elem.title [] [ Text.raw &quot;Sample App&quot; ]                                                            
         ]
+        Elem.body [] [                     
+            Elem.main [] [
+                Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
+                Elem.p  [] [ Text.rawf &quot;%s %s&quot; person.First person.Last ]
+            ]
+        ]
+    ]
 </code></pre>
 <p>Views can also be combined to create more complex views and share output:</p>
 <pre><code class="language-fsharp">let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang &quot;en&quot; ] [
-            Elem.head [] [                    
-                    Elem.title [] [ Text.raw &quot;Sample App&quot; ]                                                            
-                ]
-            Elem.body [] content
+        Elem.head [] [                    
+            Elem.title [] [ Text.raw &quot;Sample App&quot; ]                                                            
         ]
+        Elem.body [] content
+    ]
 
 let divider = 
     Elem.hr [ Attr.class' &quot;divider&quot; ]
@@ -653,7 +677,7 @@ let aboutView =
     |&gt; master &quot;About Us&quot;
 </code></pre>
 <h2 id="authentication">Authentication</h2>
-<p>ASP.NET Core has amazing built-in support for authentication. Review the <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication/?view=aspnetcore-3.1" title="Overview of ASP.NET Core authentication">docs</a> for specific implementation details. Falco optionally (<code>open Falco.Auth</code>) includes some authentication utilities.</p>
+<p>ASP.NET Core has amazing built-in support for authentication. Review the <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication/" title="Overview of ASP.NET Core authentication">docs</a> for specific implementation details. Falco optionally (<code>open Falco.Auth</code>) includes some authentication utilities.</p>
 <blockquote>
 <p>To use the authentication helpers, ensure the service has been registered (<code>AddAuthentication()</code>) with the <code>IServiceCollection</code> and activated (<code>UseAuthentication()</code>) using the <code>IApplicationBuilder</code>.</p>
 </blockquote>
@@ -726,7 +750,7 @@ let logOut : HttpHandler =
 </code></pre>
 <h2 id="security">Security</h2>
 <p>Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.</p>
-<p>The <a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1" title="Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core">Microsoft.AspNetCore.Antiforgery</a> package provides the required utilities to easily protect yourself against such attacks.</p>
+<p>The <a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery" title="Prevent Cross-Site Request Forgery (XSRF/CSRF) attacks in ASP.NET Core">Microsoft.AspNetCore.Antiforgery</a> package provides the required utilities to easily protect yourself against such attacks.</p>
 <p>Falco provides a few handlers via <code>Falco.Security.Xss</code>:</p>
 <blockquote>
 <p>To use the Xss helpers, ensure the service has been registered (<code>AddAntiforgery()</code>) with the <code>IServiceCollection</code> and activated (<code>UseAntiforgery()</code>) using the <code>IApplicationBuilder</code>.</p>
@@ -786,7 +810,7 @@ let password = &quot;5upe45ecure&quot;
 let hashedPassword = password |&gt; Crypto.sha256 iterations 32 salt
 </code></pre>
 <h2 id="handling-large-uploads">Handling Large Uploads</h2>
-<p>Microsoft defines <a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming" title="Large file uploads">large uploads</a> as anything <strong>&gt; 64KB</strong>, which well... is most uploads. Anything beyond this size, and they recommend streaming the multipart data to avoid excess memory consumption.</p>
+<p>Microsoft defines <a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming" title="Large file uploads">large uploads</a> as anything <strong>&gt; 64KB</strong>, which well... is most uploads. Anything beyond this size, and they recommend streaming the multipart data to avoid excess memory consumption.</p>
 <p>To make this process <strong>a lot</strong> easier Falco exposes an <code>HttpContext</code> extension method <code>TryStreamFormAsync()</code> that will attempt to stream multipart form data, or return an error message indicating the likely problem.</p>
 <pre><code class="language-fsharp">let imageUploadHandler : HttpHandler =
     fun ctx -&gt; task {
@@ -797,7 +821,7 @@ let hashedPassword = password |&gt; Crypto.sha256 iterations 32 salt
     }
 </code></pre>
 <h2 id="why-falco">Why &quot;Falco&quot;?</h2>
-<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> has been a game changer for the .NET web stack. In the animal kingdom, &quot;Kestrel&quot; is a name given to several members of the falcon genus. Also known as &quot;Falco&quot;.</p>
+<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel" title="Kestrel web server implementation in ASP.NET Core">Kestrel</a> has been a game changer for the .NET web stack. In the animal kingdom, &quot;Kestrel&quot; is a name given to several members of the falcon genus. Also known as &quot;Falco&quot;.</p>
 <h2 id="find-a-bug">Find a bug?</h2>
 <p>There's an <a href="https://github.com/pimbrouwers/Falco/issues">issue</a> for that.</p>
 <h2 id="license">License</h2>

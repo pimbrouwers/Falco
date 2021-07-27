@@ -1,4 +1,4 @@
-﻿[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess>]
 module Falco.Request
 
 open System
