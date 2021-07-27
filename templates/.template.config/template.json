@@ -22,15 +22,7 @@
             "choices": [
                 {
                     "choice": "basic",
-                    "description": "A basic Falco app"
-                },
-                {
-                    "choice": "mvc",
-                    "description": "An MVC-style Falco app"
-                },
-                {
-                    "choice": "rest",
-                    "description": "A RESTful JSON API implemented using Falco"
+                    "description": "A minimal Falco app"
                 }
             ]
         }
@@ -40,16 +32,6 @@
             "source": "./Basic/",
             "target": "./",
             "condition": "ProjectType== \"basic\""
-        },
-        {
-            "source": "./Mvc/",
-            "target": "./",
-            "condition": "ProjectType== \"mvc\""
-        },
-        {
-            "source": "./Rest/",
-            "target": "./",
-            "condition": "ProjectType== \"rest\""
-        },
+        }
     ]
 }

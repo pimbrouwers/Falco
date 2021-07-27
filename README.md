@@ -27,7 +27,7 @@ webHost [||] {
 - Simple and powerful [routing](#routing) API.
 - Fast, secure and configurable [web server](#host-builder).
 - Native F# [view engine](#markup).
-- Succinct API for [model binding](#model-binding).
+- Uniform API for [model binding](#model-binding).
 - [Authentication](#authentication) and [security](#security) utilities.
 - Built-in support for [large uploads](#handling-large-uploads).
 
@@ -43,16 +43,15 @@ webHost [||] {
 2. [Sample Applications](#sample-applications)
 3. [Request Handling](#request-handling)
 4. [Routing](#routing)
-5. [Host Builder](#host-builder)
-6. [Model Binding](#model-binding)
-7. [JSON](#json)
-8. [Markup](#markup)
+5. [Model Binding](#model-binding)
+6. [JSON](#json)
+7. [Markup](#markup)
+8. [Host Builder](#host-builder)
 9. [Authentication](#authentication)
 10. [Security](#security)
-11. [Handling Large Uploads](#handling-large-uploads)
-12. [Why "Falco"?](#why-falco)
-13. [Find a bug?](#find-a-bug)
-14. [License](#license)
+11. [Why "Falco"?](#why-falco)
+12. [Find a bug?](#find-a-bug)
+13. [License](#license)
 
 ## Getting Started
 
@@ -93,14 +92,12 @@ open Falco
 open Falco.Routing
 open Falco.HostBuilder
 
-let helloHandler : HttpHandler =
-    "Hello world"
-    |> Response.ofPlainText
-
 [<EntryPoint>]
 let main args =
     webHost args {
-        endpoints [ get "/" helloHandler ]
+        endpoints [ 
+            get "/" (Response.ofPlainText "Hello World")
+        ]
     }
     0
 ```
@@ -219,9 +216,6 @@ let helloHandler : HttpHandler =
     let formBinder (query : FormCollectionReader) =
         let name = query.GetString "name" "World" 
         sprintf "Hello %s" name
-        
-    Request.mapForm formBinder Response.ofPlainText
-```
 
 To prevent XSS attacks it is often advisable to use a [CSRF token](#security) during form submissions. In these situations, you'll want to validate the token before processing the form input using the `Request.mapFormSecure` (or `Request.bindFormSecure`). These functions will automatically validate the token for you before consuming input.
 
@@ -233,7 +227,7 @@ let secureHelloHandler : HttpHandler =
 
     let invalidTokenHandler : HttpHandler =
         Response.withStatusCode 403
-        >> Resposne.ofEmpty
+        >> Response.ofEmpty
         
     Request.mapFormSecure formBinder Response.ofPlainText invalidTokenHandler
 ```
@@ -299,41 +293,6 @@ let endpoints : HttpEndpoint list =
             GET,  loginHandler
         ]
   ]
-```
-
-## Host Builder
-
-[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. To make things a little cleaner, Falco exposes an optional computation expression. Below is an example using the builder, taken from the [Configure Host][21] sample.
-
-```fsharp
-module ConfigureHost.Program
-
-open Falco
-open Falco.Markup
-open Falco.Routing
-open Falco.HostBuilder
-open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Logging
-
-// ... rest of startup code
-
-let configureHost (endpoints : HttpEndpoint list) (webhost : IWebHostBuilder) =
-    // definitions omitted for brevity
-    webhost.ConfigureLogging(configureLogging)
-           .ConfigureServices(configureServices)
-           .Configure(configureApp endpoints)
-
-[<EntryPoint>]
-let main args =
-    webHost args {
-        configure configureHost
-        endpoints [
-                      get "/" ("hello world" |> Response.ofPlainText)
-                  ]
-    }
-    0
 ```
 
 ## Model Binding
@@ -465,7 +424,7 @@ let bindFormSecureHandler : HttpHandler =
     let handleInvalidCsrf : HttpHandler = 
         Response.withStatusCode 400 >> Response.ofEmpty
 
-    Request.bindForm formBind handleOk handleError handleInvalidCsrf
+    Request.bindFormSecure formBind handleOk handleError handleInvalidCsrf
 
 let manualFormHandler : HttpHandler =
     fun ctx -> task {
@@ -477,6 +436,26 @@ let manualFormHandler : HttpHandler =
 
         return! Response.ofJson person ctx
     }        
+```
+
+#### `multipart/form-data` Binding 
+
+Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
+
+To make this process **a lot** easier Falco provides a set of four `HttpHandler`'s analogous to the form handlers above, which utilize an `HttpContext` extension method called `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
+
+Below is an example demonstrating the insecure map variant:
+
+```fsharp
+let imageUploadHandler : HttpHandler =
+    let formBinder (f : FormCollectionReader) : IFormFile option =
+        f.TryGetFormFile "profile_image"
+    
+    let uploadImage (profileImage : IFormFile option) : HttpHandler = 
+        // Process the uploaded file ...
+
+    // Safely buffer the multipart form submission
+    Request.mapFormStream formBinder uploadImage
 ```
 
 ## JSON
@@ -564,6 +543,7 @@ let doc (person : Person) =
 ```
 
 Views can also be combined to create more complex views and share output:
+
 ```fsharp
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
@@ -593,9 +573,69 @@ let aboutView =
     |> master "About Us"
 ```
 
+## Host Builder
+
+[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. 
+
+To make things more expressive, Falco exposes an optional computation expression. Below is an example using the builder taken from the [Configure Host][21] sample.
+
+```fsharp
+[<EntryPoint>]
+let main args = 
+    webHost args {
+        use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
+        use_https
+        use_compression
+        use_static_files
+
+        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
+        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
+
+        endpoints [            
+            get "/greet/{name:alpha}" 
+                handleGreeting
+
+            get "/json" 
+                handleJson
+
+            get "/html" 
+                handleHtml
+                
+            get "/" 
+                handlePlainText
+        ]
+    }
+    0
+```
+
+### Fully Customizing the Host
+
+To assume full control over configuring your `IHost` use the `configure` custom operation. It expects a function with the signature of `HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder` and assumes you will register and activate Falco (i.e., `AddFalco()` and `UseFalco(endpoints)`).
+
+```fsharp
+[<EntryPoint>]
+let main args = 
+    let configureServices : IServiceCollection -> unit = 
+      fun services -> services.AddFalco() |> ignore
+    
+    let configureApp : HttpEndpoint list -> IApplicationBuilder -> unit =
+       fun endpoints app -> app.UseFalco(endpoints) |> ignore
+
+    let configureWebHost : HttpEndpoint list -> IWebHostBuilder =
+      fun endpoints webHost ->
+          webHost.ConfigureLogging(configureLogging)
+                 .ConfigureServices(configureServices)
+                 .Configure(configureApp endpoints)
+
+    webHost args {
+      configure configureWebHost
+      endpoints []
+    }
+```
+
 ## Authentication
 
-ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco optionally (`open Falco.Auth`) includes some authentication utilities.
+ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco includes some authentication utilities.
 
 > To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`.
 
@@ -619,8 +659,6 @@ let secureResourceHandler : HttpHandler =
 Prevent authenticated user from accessing anonymous-only end-point:
 
 ```fsharp
-open Falco.Security
- 
 let anonResourceOnlyHandler : HttpHandler =
     let handleAnon : HttpHandler = 
         Response.ofPlainText "hello anonymous"
@@ -635,8 +673,6 @@ let anonResourceOnlyHandler : HttpHandler =
 Allow only user's from a certain group to access endpoint"
 
 ```fsharp
-open Falco.Security
-
 let secureResourceHandler : HttpHandler =
     let handleAuthInRole : HttpHandler = 
         Response.ofPlainText "hello admin"
@@ -653,8 +689,6 @@ let secureResourceHandler : HttpHandler =
 Allow only user's with a certain scope to access endpoint"
 
 ```fsharp
-open Falco.Security
-
 let secureResourceHandler : HttpHandler =
     let handleAuthHasScope : HttpHandler = 
         Response.ofPlainText "user1, user2, user3"
@@ -672,8 +706,6 @@ let secureResourceHandler : HttpHandler =
 End user session (sign out):
 
 ```fsharp
-open Falco.Security
-
 let logOut : HttpHandler =         
     let authScheme = "..."
     let redirectTo = "/login"
@@ -683,7 +715,7 @@ let logOut : HttpHandler =
 
 ## Security
 
-Cross-site scripting attacks are extremely common, since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.
+Cross-site scripting attacks are extremely common since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.
 
 The [Microsoft.AspNetCore.Antiforgery][14] package provides the required utilities to easily protect yourself against such attacks.
 
@@ -692,9 +724,10 @@ Falco provides a few handlers via `Falco.Security.Xss`:
 > To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`.
 
 ```fsharp
+open Falco.Markup
 open Falco.Security 
 
-let formView (token : AntiforgeryTokenSet) =     
+let formView token =     
     Elem.html [] [
         Elem.body [] [
             Elem.form [ Attr.method "post" ] [
@@ -732,7 +765,7 @@ let mapFormSecureHandler : HttpHandler =
 
 ### Crytography
 
-Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is of critical importance.
+Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is important.
 
 Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
@@ -750,22 +783,6 @@ let iterations = Crypto.randomInt 10000 50000
 // Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
 let password = "5upe45ecure"
 let hashedPassword = password |> Crypto.sha256 iterations 32 salt
-```
-
-## Handling Large Uploads
-
-Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size, and they recommend streaming the multipart data to avoid excess memory consumption.
-
-To make this process **a lot** easier Falco exposes an `HttpContext` extension method `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
-
-```fsharp
-let imageUploadHandler : HttpHandler =
-    fun ctx -> task {
-        let! form = Request.tryStreamFormAsync()
-            
-        // Rest of code using `FormCollectionReader`
-        // ...
-    }
 ```
 
 ## Why "Falco"?

@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.IO
 open System.Text
 open System.Text.Json
+open System.Threading.Tasks
 open Falco
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
@@ -175,8 +176,8 @@ let ``Request.ifAuthenticatedWithScope should invoke handleOk if authenticated w
     ]
     ctx.User.Claims.Returns(claims) |> ignore
 
-    let handleOk = fun _ -> task { true |> should equal true }
-    let handleError = fun _ -> task { true |> should equal false }
+    let handleOk = fun _ -> task { true |> should equal true } :> Task
+    let handleError = fun _ -> task { true |> should equal false } :> Task
 
     task {
         do! Request.ifAuthenticatedWithScope "another-issuer" "create" handleOk handleError ctx
@@ -191,8 +192,8 @@ let ``Request.ifAuthenticatedWithScope should invoke handleError if not authenti
     ]
     ctx.User.Claims.Returns(claims) |> ignore
 
-    let handleOk = fun _ -> task { true |> should equal false }
-    let handleError = fun _ -> task { true |> should equal true }
+    let handleOk = fun _ -> task { true |> should equal false } :> Task
+    let handleError = fun _ -> task { true |> should equal true } :> Task
 
     task {
         do! Request.ifAuthenticatedWithScope "another-issuer" "create" handleOk handleError ctx
@@ -207,8 +208,8 @@ let ``Request.ifAuthenticatedWithScope should invoke handleError if authenticate
     ]
     ctx.User.Claims.Returns(claims) |> ignore
 
-    let handleOk = fun _ -> task { true |> should equal false }
-    let handleError = fun _ -> task { true |> should equal true }
+    let handleOk = fun _ -> task { true |> should equal false } :> Task
+    let handleError = fun _ -> task { true |> should equal true } :> Task
 
     task {
         do! Request.ifAuthenticatedWithScope "issuer" "create" handleOk handleError ctx

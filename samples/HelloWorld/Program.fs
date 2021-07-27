@@ -23,7 +23,7 @@ let handleHtml : HttpHandler =
 [<EntryPoint>]
 let main args =      
     webHost args {
-        endpoints [   
+        endpoints [
             get "/html" handleHtml 
 
             get "/json" handleJson
