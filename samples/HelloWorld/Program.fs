@@ -4,7 +4,6 @@ open Falco
 open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
-open Microsoft.Extensions.Logging
 
 // ------------
 // Handlers 
