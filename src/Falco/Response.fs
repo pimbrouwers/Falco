@@ -142,9 +142,7 @@ let ofHtmlCsrf (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
     withCsrfToken (fun token -> token |> view |> ofHtml)
 
 /// Returns an optioned "application/json; charset=utf-8" response with the serialized object provided to the client
-let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =        
-        
-    
+let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =          
     withContentType "application/json; charset=utf-8"
     >> fun ctx -> 
         use str = new MemoryStream()

@@ -1,4 +1,4 @@
-﻿module Falco.HostBuilder
+module Falco.HostBuilder
 
 open System
 open Microsoft.AspNetCore.Builder
@@ -298,4 +298,3 @@ type HostBuilder(args : string[]) =
 
 /// A computation expression to make IHost construction easier 
 let webHost args = HostBuilder(args)
-

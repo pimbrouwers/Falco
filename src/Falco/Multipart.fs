@@ -11,8 +11,10 @@ open Microsoft.Net.Http.Headers
 
 /// Represents the accumulation of form fields and binary data
 type MultipartFormData = 
-    { FormData : KeyValueAccumulator
-      FormFiles : FormFileCollection }
+    {
+        FormData : KeyValueAccumulator
+        FormFiles : FormFileCollection
+    }
 
 type MultipartSection with
     /// Attempt to obtain encoding from content type, default to UTF8
@@ -98,12 +100,11 @@ type HttpRequest with
             let multipartReader = new MultipartReader(boundary, this.Body)
             streamForm formAcc multipartReader
             |> continueWith continuation             
-
+            
         | _, None  -> Error "No boundary found" |> Task.FromResult
 
         | false, _ -> Error "Not a multipart request" |> Task.FromResult
         
-
     member this.StreamFormAsync() = 
         let continuation (formTask : Task<Result<FormCollectionReader, string>>) =
             match formTask.Result with
@@ -112,5 +113,3 @@ type HttpRequest with
         
         this.TryStreamFormAsync ()
         |> continueWith continuation
-        
-    

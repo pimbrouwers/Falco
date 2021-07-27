@@ -64,25 +64,6 @@ Invoke-Template {
     | Write-Verbose
 }
 
-# Write-Verbose "Creating pages"
-# Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath pages) -Exclude 404.md | ForEach-Object {
-#     Write-Verbose "Creating page: $($_.Name)"
-#     $markdown = Get-Content -Raw -Path $_.FullName | ConvertFrom-Markdown
-    
-#     Invoke-Template {
-
-#         if ($_.Name -eq "index.md") {
-#             $topHtmlContent = Render-Template $hero                        
-#         } 
-        
-#         $htmlContent = $markdown | Select-Object -ExpandProperty Html  
-    
-#         Render-Template $layout 
-#         | Out-File -Path (Join-Path -Path $outputDir -ChildPath $_.Name.Replace(".md", ".html"))
-#         | Write-Verbose
-#     }
-# }
-
 Write-Verbose "Creating index page"
 $readmePath = Join-Path -Path $PSScriptRoot -ChildPath "../README.md"
 $markdown = Get-Content -Raw -Path $readmePath | ConvertFrom-Markdown
