@@ -8,17 +8,23 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.FileProviders
 open Falco.StringUtils
 
-// ------------
-// TaskBuilder.fs overrides 
-// ------------
-#nowarn "44"
-type FSharp.Control.Tasks.TaskBuilder.TaskBuilderV2 with
-    /// A bolt-on member to automatically convert Task<unit> result to Task
-    member inline __.Run(f : unit -> FSharp.Control.Tasks.TaskBuilder.Step<unit>) = (FSharp.Control.Tasks.TaskBuilder.run f) :> Task
+let inline internal continueWith (continuation : Task<'a> -> 'b) (task : Task<'a>) =  
+    task.ContinueWith(continuation, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-type FSharp.Control.Tasks.TaskBuilder.TaskBuilder with
-    /// A bolt-on member to automatically convert Task<unit> result to Task
-    member inline __.Run(f : unit -> FSharp.Control.Tasks.TaskBuilder.Step<unit>) = (FSharp.Control.Tasks.TaskBuilder.run f) :> Task
+let inline internal continueWithTask (continuation : Task<'a> -> Task<'b>) (task : Task<'a>) =
+    let taskResult = task |> continueWith continuation
+    taskResult.Wait () 
+    taskResult.Result
+
+let inline internal onCompleteWithUnitTask (continuation : Task<'a> -> Task) (task : Task<'a>) =
+    let taskResult = task |> continueWith continuation
+    taskResult.Wait () 
+    taskResult.Result
+
+let inline internal onCompleteFromUnitTask (continuation : Task -> Task) (task : Task) =  
+    let taskResult = task.ContinueWith(continuation, TaskContinuationOptions.OnlyOnRanToCompletion)
+    taskResult.Wait ()
+    taskResult.Result
 
 // ------------
 // Constants
@@ -113,10 +119,3 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
 
     override _.Endpoints = endpoints :> _
     override _.GetChangeToken() = NullChangeToken.Singleton :> _
-
-// ------------
-// Workflows
-// ------------
-
-/// Work to be done that has input and will generate output or an error.
-type Workflow<'input, 'output, 'error> = 'input -> Result<'output, 'error>

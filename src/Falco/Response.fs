@@ -9,12 +9,8 @@ open System.Text.Json
 open System.Threading.Tasks
 open Falco.Markup
 open Falco.Security
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.AspNetCore.Antiforgery
-open Microsoft.AspNetCore.Connections
 open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
 
@@ -46,7 +42,7 @@ let withHeaders (headers : (string * string) list) : HttpResponseModifier =
         ctx
 
 /// Set ContentType header for response
-let withContentType (contentType : string) : HttpResponseModifier =
+let withContentType (contentType : string) : HttpResponseModifier =    
     withHeader HeaderNames.ContentType contentType
 
 /// Set StatusCode for response
@@ -146,16 +142,19 @@ let ofHtmlCsrf (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
     withCsrfToken (fun token -> token |> view |> ofHtml)
 
 /// Returns an optioned "application/json; charset=utf-8" response with the serialized object provided to the client
-let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
+let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =        
+        
+    
     withContentType "application/json; charset=utf-8"
-    >> fun ctx -> task {
+    >> fun ctx -> 
         use str = new MemoryStream()
-        do! JsonSerializer.SerializeAsync(str, obj, options = options)
-        str.Flush ()
-        do! writeBytes (str.ToArray ()) ctx
-        //return ()
-    }
+        let continuation (_ : Task) = 
+            str.Flush ()
+            writeBytes (str.ToArray ()) ctx
 
+        JsonSerializer.SerializeAsync(str, obj, options = options)
+        |> onCompleteFromUnitTask continuation
+        
 /// Returns a "application/json; charset=utf-8" response with the serialized object provided to the client
 let ofJson (obj : 'a) : HttpHandler =
     withContentType "application/json; charset=utf-8"
@@ -163,15 +162,21 @@ let ofJson (obj : 'a) : HttpHandler =
 
 
 /// Sign in claim principal for provided scheme, and responsd with a 301 redirect to provided URL
-let signInAndRedirect (authScheme : string) (claimsPrincipal : ClaimsPrincipal) (url : string) : HttpHandler =
-    fun ctx -> task {
-        do! Auth.signIn authScheme claimsPrincipal ctx
-        do! redirect url false ctx
-    }
+let signInAndRedirect 
+    (authScheme : string) 
+    (claimsPrincipal : ClaimsPrincipal) 
+    (url : string) : HttpHandler = fun ctx ->
+    let continuation (_ : Task) = redirect url false ctx
+    
+    Auth.signIn authScheme claimsPrincipal ctx 
+    |> onCompleteFromUnitTask continuation    
+    
 
 /// Terminates authenticated context for provided scheme, and respond with a 301 redirect to provided URL
-let signOutAndRedirect (authScheme : string) (url : string) : HttpHandler =
-    fun ctx -> task {
-        do! Auth.signOut authScheme ctx
-        do! redirect url false ctx
-    }
+let signOutAndRedirect 
+    (authScheme : string) 
+    (url : string) : HttpHandler = fun ctx -> 
+    let continuation (_ : Task) = redirect url false ctx
+
+    Auth.signOut authScheme ctx
+    |> onCompleteFromUnitTask continuation

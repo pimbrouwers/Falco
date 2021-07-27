@@ -1,13 +1,13 @@
 module Scriban.Program
 
+open System.IO
+open System.Threading.Tasks
 open Falco
 open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.FSharp.Reflection
-open System.IO
 open Scriban
 open Scriban.Runtime
-open FSharp.Control.Tasks
 
 // ------------
 // Define our views
@@ -26,12 +26,17 @@ let renderScriban (template : Template) (model : 'a) =
     context.PushGlobal scriptObject
     template.RenderAsync context
 
-let handleRenderScriban(template : Template) (model : 'a) : HttpHandler =
-    fun ctx -> task {        
-        let! html = renderScriban template model
-        return! Response.ofHtmlString html ctx
-    }
+let handleRenderScriban(template : Template) (model : 'a) : HttpHandler = fun ctx ->
+    let scribanTask = renderScriban template model
 
+    if scribanTask.IsCompletedSuccessfully then         
+        let continuation (htmlTask : Task<string>) : Task = Response.ofHtmlString htmlTask.Result ctx
+        let renderTask = scribanTask.AsTask().ContinueWith(continuation, TaskContinuationOptions.OnlyOnRanToCompletion)
+        renderTask.Wait ()
+        renderTask.Result
+    else 
+        Task.CompletedTask
+    
 // ------------
 // Handlers
 // ------------

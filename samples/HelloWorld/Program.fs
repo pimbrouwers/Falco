@@ -4,6 +4,7 @@ open Falco
 open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
+open Microsoft.Extensions.Logging
 
 // ------------
 // Handlers 
@@ -23,7 +24,9 @@ let handleHtml : HttpHandler =
 [<EntryPoint>]
 let main args =      
     webHost args {
-        endpoints [   
+        logging (fun log -> log.ClearProviders())
+
+        endpoints [               
             get "/html" handleHtml 
 
             get "/json" handleJson
