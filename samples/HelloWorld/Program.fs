@@ -24,8 +24,6 @@ let handleHtml : HttpHandler =
 [<EntryPoint>]
 let main args =      
     webHost args {
-        logging (fun log -> log.ClearProviders())
-
         endpoints [               
             get "/html" handleHtml 
 
