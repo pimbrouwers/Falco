@@ -4,6 +4,9 @@ module Falco.Core
 open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Routing
+open Microsoft.Extensions.FileProviders
+open Falco.StringUtils
 
 let inline internal continueWith (continuation : Task<'a> -> 'b) (task : Task<'a>) =  
     task.ContinueWith(continuation, TaskContinuationOptions.OnlyOnRanToCompletion)
@@ -56,6 +59,25 @@ type HttpVerb =
     | TRACE
     | ANY
 
+    override x.ToString() =
+        match x with
+        | GET     -> HttpMethods.Get
+        | HEAD    -> HttpMethods.Head
+        | POST    -> HttpMethods.Post
+        | PUT     -> HttpMethods.Put
+        | PATCH   -> HttpMethods.Patch
+        | DELETE  -> HttpMethods.Delete
+        | OPTIONS -> HttpMethods.Options
+        | TRACE   -> HttpMethods.Trace
+        | ANY     -> String.Empty
+ 
+module HttpVerb = 
+    let toHttpMethodMetadata verb = 
+        let verbStr = verb.ToString()
+        match verb with 
+        | ANY -> HttpMethodMetadata [||]
+        | _   -> HttpMethodMetadata [|verbStr|]       
+
 /// The eventual return of asynchronous HttpContext processing
 type HttpHandler = 
     HttpContext -> Task
@@ -70,10 +92,8 @@ type HttpResponseModifier = HttpContext -> HttpContext
 
 /// Specifies an association of a route pattern to a collection of HttpEndpointHandler
 type HttpEndpoint = 
-    {
-        Pattern  : string   
-        Handlers : (HttpVerb * HttpHandler) list
-    }
+    { Pattern  : string   
+      Handlers : (HttpVerb * HttpHandler) list }
 
 /// The process of associating a route and handler
 type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
