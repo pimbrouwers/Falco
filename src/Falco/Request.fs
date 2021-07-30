@@ -243,12 +243,13 @@ let bindFormStreamSecure
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
     (handleError : 'b -> HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler =
-        bindFormStream 
-            binder 
-            (fun x -> validateCsrfToken (handleOk x) handleInvalidToken) 
-            handleError
-        
+    (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
+    ctx.Request.EnableBuffering() // allow the request body to be read again
+
+    validateCsrfToken
+        (bindFormStream binder handleOk handleError)
+        handleInvalidToken
+        ctx
 
 /// Bind JSON request body onto 'a and provide to next
 /// Httphandler, throws exception if JsonException 
@@ -298,7 +299,7 @@ let mapForm
 /// onto 'a and provide to next HttpHandler
 let mapFormStream
     (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx -> 
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->     
     let continuation (mapTask : Task<FormCollectionReader>) = next (mapTask.Result |> map) ctx           
     streamForm ctx |> onCompleteWithUnitTask continuation
 
@@ -317,10 +318,12 @@ let mapFormSecure
 let mapFormStreamSecure
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler =
-        mapFormStream map 
-            (fun x -> validateCsrfToken (next x) handleInvalidToken)
-         
+    (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
+        ctx.Request.EnableBuffering()        
+        validateCsrfToken
+            (mapFormStream map next)
+            handleInvalidToken 
+            ctx
 
 /// Proceed if the authentication status of current IPrincipal is true
 let ifAuthenticated

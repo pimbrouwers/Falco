@@ -46,8 +46,9 @@ type HttpRequest with
             | b                              -> Some b
 
         let rec streamForm (form : MultipartFormData) (rd : MultipartReader) : Task<MultipartFormData> =
-            let continuation (sectionTask : Task<MultipartSection>) =
+            let continuation (sectionTask : Task<MultipartSection>) =                
                 let section = sectionTask.Result
+                
                 match section with
                 | null    -> Task.FromResult form
                 | section -> 
