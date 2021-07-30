@@ -244,9 +244,11 @@ let bindFormStreamSecure
     (handleOk : 'a -> HttpHandler)
     (handleError : 'b -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler =
-    validateCsrfToken
-        (bindFormStream binder handleOk handleError)
-        handleInvalidToken
+        bindFormStream 
+            binder 
+            (fun x -> validateCsrfToken (handleOk x) handleInvalidToken) 
+            handleError
+        
 
 /// Bind JSON request body onto 'a and provide to next
 /// Httphandler, throws exception if JsonException 
@@ -316,9 +318,9 @@ let mapFormStreamSecure
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler =
-        validateCsrfToken
-            (mapFormStream map next)
-            handleInvalidToken
+        mapFormStream map 
+            (fun x -> validateCsrfToken (next x) handleInvalidToken)
+         
 
 /// Proceed if the authentication status of current IPrincipal is true
 let ifAuthenticated
