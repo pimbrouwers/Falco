@@ -153,7 +153,7 @@ let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
             writeBytes (str.ToArray ()) ctx
 
         JsonSerializer.SerializeAsync(str, obj, options = options)
-        |> onCompleteFromUnitTask continuation
+        |> completeWithUnitTask continuation
         
 /// Returns a "application/json; charset=utf-8" response with the serialized object provided to the client
 let ofJson (obj : 'a) : HttpHandler =
@@ -169,7 +169,7 @@ let signInAndRedirect
     let continuation (_ : Task) = redirect url false ctx
     
     Auth.signIn authScheme claimsPrincipal ctx 
-    |> onCompleteFromUnitTask continuation    
+    |> completeWithUnitTask continuation    
     
 
 /// Terminates authenticated context for provided scheme, and respond with a 301 redirect to provided URL
@@ -179,4 +179,4 @@ let signOutAndRedirect
     let continuation (_ : Task) = redirect url false ctx
 
     Auth.signOut authScheme ctx
-    |> onCompleteFromUnitTask continuation
+    |> completeWithUnitTask continuation

@@ -131,7 +131,7 @@ let bindJson
 
         handler ctx
 
-    tryBindJson ctx |> onCompleteWithUnitTask continuation
+    tryBindJson ctx |> continueWithUnitTask continuation
     
 
 /// Attempt to bind the route values map onto 'a and provide
@@ -189,7 +189,7 @@ let validateCsrfToken
 
         respondWith ctx
 
-    Xss.validateToken ctx |> onCompleteWithUnitTask continuation    
+    Xss.validateToken ctx |> continueWithUnitTask continuation    
 
 /// Attempt to bind the FormCollectionReader onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
@@ -204,7 +204,7 @@ let bindForm
             | Ok form -> handleOk form
         respondWith ctx 
 
-    tryBindForm binder ctx |> onCompleteWithUnitTask continuation
+    tryBindForm binder ctx |> continueWithUnitTask continuation
 
 /// Attempt to bind a streamed (i.e., multipart/form-data) 
 /// FormCollectionReader  onto 'a and provide to handleOk, 
@@ -221,7 +221,7 @@ let bindFormStream
 
         respondWith ctx
 
-    tryBindFormStream binder ctx |> onCompleteWithUnitTask continuation
+    tryBindFormStream binder ctx |> continueWithUnitTask continuation
     
 /// Validate the CSRF of the current request attempt to bind the
 /// FormCollectionReader onto 'a and provide to handleOk,
@@ -263,7 +263,7 @@ let mapJson (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
 
         respondWith ctx 
 
-    tryBindJson ctx |> onCompleteWithUnitTask continuation
+    tryBindJson ctx |> continueWithUnitTask continuation
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler
@@ -292,7 +292,7 @@ let mapForm
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler = fun ctx -> 
     let continuation (mapTask : Task<FormCollectionReader>) = next (mapTask.Result |> map) ctx           
-    getForm ctx |> onCompleteWithUnitTask continuation
+    getForm ctx |> continueWithUnitTask continuation
     
 
 /// Project FormCollectionReader a streamed (i.e., multipart/form-data) 
@@ -301,7 +301,7 @@ let mapFormStream
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->     
     let continuation (mapTask : Task<FormCollectionReader>) = next (mapTask.Result |> map) ctx           
-    streamForm ctx |> onCompleteWithUnitTask continuation
+    streamForm ctx |> continueWithUnitTask continuation
 
 /// Project FormCollectionReader onto 'a and provide
 /// to next HttpHandler
