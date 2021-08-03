@@ -4,6 +4,7 @@ module Falco.Request
 open System
 open System.Text.Json
 open System.Threading.Tasks
+open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
 open Falco.Multipart
 open Falco.Security
@@ -325,6 +326,12 @@ let mapFormStreamSecure
             handleInvalidToken 
             ctx
 
+/// Attempt to authenticate the current request using the provided
+/// scheme and pass AuthenticateResult into next HttpHandler
+let authenticate (scheme : string) (next : AuthenticateResult -> HttpHandler) : HttpHandler = fun ctx ->
+    let continuation (authTask : Task<AuthenticateResult>) = next authTask.Result ctx
+    ctx.AuthenticateAsync(scheme) |> continueWithUnitTask continuation
+        
 /// Proceed if the authentication status of current IPrincipal is true
 let ifAuthenticated
     (handleOk : HttpHandler)
