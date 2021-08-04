@@ -8,24 +8,6 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.FileProviders
 open Falco.StringUtils
 
-let inline internal continueWith (continuation : Task<'a> -> 'b) (task : Task<'a>) =  
-    task.ContinueWith(continuation, TaskContinuationOptions.OnlyOnRanToCompletion)
-
-let inline internal continueWithTask (continuation : Task<'a> -> Task<'b>) (task : Task<'a>) =
-    let taskResult = task |> continueWith continuation
-    taskResult.Wait () 
-    taskResult.Result
-
-let inline internal onCompleteWithUnitTask (continuation : Task<'a> -> Task) (task : Task<'a>) =
-    let taskResult = task |> continueWith continuation
-    taskResult.Wait () 
-    taskResult.Result
-
-let inline internal onCompleteFromUnitTask (continuation : Task -> Task) (task : Task) =  
-    let taskResult = task.ContinueWith(continuation, TaskContinuationOptions.OnlyOnRanToCompletion)
-    taskResult.Wait ()
-    taskResult.Result
-
 // ------------
 // Constants
 // ------------

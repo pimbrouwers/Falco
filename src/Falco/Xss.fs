@@ -21,7 +21,7 @@ let getToken (ctx : HttpContext) : AntiforgeryTokenSet =
     antiFrg.GetAndStoreTokens ctx
 
 /// Validate the Antiforgery token within the provided HttpContext
-let validateToken (ctx : HttpContext) : Task<bool> =        
+let validateToken (ctx : HttpContext) : Task<bool> =            
     let antiFrg = ctx.GetService<IAntiforgery>()
     antiFrg.IsRequestValidAsync ctx
 
