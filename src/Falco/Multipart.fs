@@ -4,6 +4,7 @@ open System
 open System.IO
 open System.Net
 open System.Threading.Tasks
+open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.WebUtilities
 open Microsoft.Extensions.Primitives
@@ -31,10 +32,10 @@ type HttpRequest with
     /// Determines if the content type contains multipart
     member this.IsMultipart () =
         this.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
-    
+
     /// Attempt to stream the HttpRequest body into IFormCollection
     member this.TryStreamFormAsync() : Task<Result<FormCollectionReader, string>> =      
-        let getBoundary (request : HttpRequest) = 
+        let getBoundary(request : HttpRequest) =
             // Content-Type: multipart/form-data; boundary="----WebKitFormBoundarymx2fSWqWSd0OxQqq"
             // The spec at https://tools.ietf.org/html/rfc2046#section-5.1 states that 70 characters is a reasonable limit.
             let lengthLimit = 70 
@@ -44,74 +45,71 @@ type HttpRequest with
             | b when isNull b                -> None
             | b when b.Length > lengthLimit  -> None
             | b                              -> Some b
-
-        let rec streamForm (form : MultipartFormData) (rd : MultipartReader) : Task<MultipartFormData> =
-            let continuation (sectionTask : Task<MultipartSection>) =                
-                let section = sectionTask.Result
-                
+        
+        let rec streamForm (form : MultipartFormData) (rd : MultipartReader) =
+            task {  
+                let! section = rd.ReadNextSectionAsync()
                 match section with
-                | null    -> Task.FromResult form
+                | null    -> return form                            
                 | section -> 
                     match MultipartSection.TryGetContentDisposition(section) with
                     | None -> 
                         // Drain any remaining section body that hasn't been consumed and
                         // read the headers for the next section.
-                        streamForm form rd                                        
-
+                        return! streamForm form rd                
                     | Some cd when cd.IsFileDisposition() ->
-                        let str = new MemoryStream()
-                        section.Body.CopyToAsync(str) |> Async.AwaitTask |> Async.RunSynchronously
+                            let str = new MemoryStream()
+                            do! section.Body.CopyToAsync(str)
                     
-                        let safeFileName = WebUtility.HtmlEncode cd.FileName.Value                                
-                        let file = new FormFile(str, int64 0, str.Length, cd.Name.Value, safeFileName)
-                        file.Headers <- this.Headers
-                        file.ContentType <- section.ContentType
-                        file.ContentDisposition <- section.ContentDisposition                        
+                            let safeFileName = WebUtility.HtmlEncode cd.FileName.Value                                
+                            let file = new FormFile(str, int64 0, str.Length, cd.Name.Value, safeFileName)
+                            file.Headers <- this.Headers
+                            file.ContentType <- section.ContentType
+                            file.ContentDisposition <- section.ContentDisposition                        
                     
-                        form.FormFiles.Add(file)                        
-                            
-                        streamForm form rd
-
+                            form.FormFiles.Add(file)                        
+                    
+                            return! streamForm form rd
                     | Some cd when cd.IsFormDisposition() ->                        
-                        let key = HeaderUtilities.RemoveQuotes(cd.Name).Value
-                        let encoding = MultipartSection.GetEncondingFromContentType(section)
-                        use str = new StreamReader(section.Body, encoding, true, 1024, true)
-                        let formValue = str.ReadToEndAsync() |> Async.AwaitTask |> Async.RunSynchronously
+                            let key = HeaderUtilities.RemoveQuotes(cd.Name).Value
+                            let encoding = MultipartSection.GetEncondingFromContentType(section)
+                            use str = new StreamReader(section.Body, encoding, true, 1024, true)
+                            let formValue = str.ReadToEndAsync() |> Async.AwaitTask |> Async.RunSynchronously
                     
-                        form.FormData.Append(key, formValue)       
+                            form.FormData.Append(key, formValue)       
                     
-                        streamForm form rd                        
+                            return! streamForm form rd
+                    | _ -> return form
+            }
+    
+        task {
+            let isMultipart = this.IsMultipart ()
+            let boundary = this |> getBoundary
 
-                    | _ -> Task.FromResult form
+            match isMultipart, boundary with 
+            | true, Some boundary ->         
+                let formAcc = { FormData = new KeyValueAccumulator(); FormFiles = new FormFileCollection()  } 
+                let multipartReader = new MultipartReader(boundary, this.Body)
 
-            rd.ReadNextSectionAsync()
-            |> continueWithTask continuation
-            
-        match this.IsMultipart(), getBoundary this with 
-        | true, Some boundary ->                                
-            let continuation (formTask : Task<MultipartFormData>) = 
-                let form = formTask.Result
+                let! form = streamForm formAcc multipartReader
                 let formCollection = FormCollection(form.FormData.GetResults(), form.FormFiles)
                 let formReader = FormCollectionReader(formCollection, Some formCollection.Files)
-                Ok formReader
+                return Ok formReader
+                                
+            | _, None  -> return Error "No boundary found"
 
-            let formAcc = { FormData = new KeyValueAccumulator(); FormFiles = new FormFileCollection()  } 
-            let multipartReader = new MultipartReader(boundary, this.Body)
-            streamForm formAcc multipartReader
-            |> continueWith continuation             
-
-        | _, None  -> Error "No boundary found" |> Task.FromResult
-
-        | false, _ -> Error "Not a multipart request" |> Task.FromResult
+            | false, _ -> return Error "Not a multipart request"
+        }
         
 
-    member this.StreamFormAsync() = 
-        let continuation (formTask : Task<Result<FormCollectionReader, string>>) =
-            match formTask.Result with
-            | Error _ -> FormCollectionReader(FormCollection.Empty, None)
-            | Ok form -> form
-        
-        this.TryStreamFormAsync ()
-        |> continueWith continuation
+    member this.StreamFormAsync() : Task<FormCollectionReader> = 
+        task {
+            let! result = this.TryStreamFormAsync()
+            let form = 
+                match result with
+                | Error _ -> FormCollectionReader(FormCollection.Empty, None)
+                | Ok form -> form
+            return form 
+        }        
         
     

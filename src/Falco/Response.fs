@@ -9,6 +9,7 @@ open System.Text.Json
 open System.Threading.Tasks
 open Falco.Markup
 open Falco.Security
+open FSharp.Control.Tasks
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
@@ -142,18 +143,21 @@ let ofHtmlCsrf (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
     withCsrfToken (fun token -> token |> view |> ofHtml)
 
 /// Returns an optioned "application/json; charset=utf-8" response with the serialized object provided to the client
-let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =        
-        
-    
-    withContentType "application/json; charset=utf-8"
-    >> fun ctx -> 
-        use str = new MemoryStream()
-        let continuation (_ : Task) = 
+let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =                
+    let jsonHandler : HttpHandler = fun ctx ->
+        unitTask {
+            use str = new MemoryStream()
+            do! JsonSerializer.SerializeAsync(str, obj, options = options)
             str.Flush ()
-            writeBytes (str.ToArray ()) ctx
+            let bytes = str.ToArray ()
+            let byteLen = bytes.Length
+            ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)    
+            let! _ = ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes))
+            return ()
+        }
 
-        JsonSerializer.SerializeAsync(str, obj, options = options)
-        |> completeWithUnitTask continuation
+    withContentType "application/json; charset=utf-8"
+    >> jsonHandler
         
 /// Returns a "application/json; charset=utf-8" response with the serialized object provided to the client
 let ofJson (obj : 'a) : HttpHandler =
@@ -166,17 +170,17 @@ let signInAndRedirect
     (authScheme : string) 
     (claimsPrincipal : ClaimsPrincipal) 
     (url : string) : HttpHandler = fun ctx ->
-    let continuation (_ : Task) = redirect url false ctx
-    
-    Auth.signIn authScheme claimsPrincipal ctx 
-    |> completeWithUnitTask continuation    
+    unitTask {
+        do! Auth.signIn authScheme claimsPrincipal ctx
+        do! redirect url false ctx
+    }
     
 
 /// Terminates authenticated context for provided scheme, and respond with a 301 redirect to provided URL
 let signOutAndRedirect 
     (authScheme : string) 
     (url : string) : HttpHandler = fun ctx -> 
-    let continuation (_ : Task) = redirect url false ctx
-
-    Auth.signOut authScheme ctx
-    |> completeWithUnitTask continuation
+    unitTask {
+        do! Auth.signOut authScheme ctx
+        do! redirect url false ctx
+    }

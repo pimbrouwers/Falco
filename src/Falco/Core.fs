@@ -9,51 +9,6 @@ open Microsoft.Extensions.FileProviders
 open Falco.StringUtils
 
 // ------------
-// TPL
-// ------------
-let internal continueWith (continuation : Task<'a> -> 'b) (task : Task<'a>) : Task<'b> =          
-    let wrappedContinuation (t : Task<'a>) =
-        if t.IsFaulted then 
-            let mutable ex = t.Exception.Flatten () :> exn
-            while not (isNull ex.InnerException) do
-                ex <- ex.InnerException
-            raise ex 
-        else 
-            continuation t
-
-    task.ContinueWith wrappedContinuation
-
-let internal continueWithTask (continuation : Task<'a> -> Task<'b>) (task : Task<'a>) : Task<'b> =               
-    let continuationTask = task |> continueWith continuation
-    let tcs = TaskCompletionSource<'b>()
-    let x (t : Task<Task<'b>>) = tcs.SetResult(t.Result.Result)
-    continuationTask |> continueWith x |> ignore
-    tcs.Task
-
-let internal continueWithUnitTask (continuation : Task<'a> -> Task) (task : Task<'a>) : Task =
-    let continuationTask = task |> continueWith continuation
-    let tcs = TaskCompletionSource<Task>()
-    let x (t : Task<Task>) = tcs.SetResult(t.Result)
-    continuationTask |> continueWith x |> ignore
-    tcs.Task.Result
-
-let internal completeWithUnitTask (continuation : Task -> Task) (task : Task) : Task =  
-    let wrappedContinuation (t : Task) =
-        if t.IsFaulted then 
-            let mutable ex = t.Exception.Flatten () :> exn
-            while not (isNull ex.InnerException) do
-                ex <- ex.InnerException
-            raise ex 
-        else 
-            continuation t
-
-    let continuationTask = task.ContinueWith wrappedContinuation
-    let tcs = TaskCompletionSource<Task>()
-    let x (t : Task<Task>) = tcs.SetResult(t.Result)
-    continuationTask.ContinueWith x :> Task |> ignore
-    tcs.Task.Result
-
-// ------------
 // Constants
 // ------------
 module Constants =
