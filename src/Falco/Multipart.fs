@@ -30,11 +30,11 @@ type MultipartSection with
 
 type HttpRequest with     
     /// Determines if the content type contains multipart
-    member this.IsMultipart () =
+    member this.IsMultipart () : bool =
         this.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
 
     /// Attempt to stream the HttpRequest body into IFormCollection
-    member this.TryStreamFormAsync() : Task<Result<FormCollectionReader, string>> =      
+    member this.TryStreamFormAsync () : Task<Result<FormCollectionReader, string>> =      
         let getBoundary(request : HttpRequest) =
             // Content-Type: multipart/form-data; boundary="----WebKitFormBoundarymx2fSWqWSd0OxQqq"
             // The spec at https://tools.ietf.org/html/rfc2046#section-5.1 states that 70 characters is a reasonable limit.
