@@ -1,6 +1,8 @@
 ﻿module Falco.Markup
 
 open System
+open System.Globalization
+open System.IO
 open System.Net
 open Falco.StringUtils
 
@@ -19,60 +21,68 @@ type XmlNode =
     | SelfClosingNode of XmlElement                
     | TextNode        of string   
 
-/// Render XmlNode recursively to string representation
-let renderNode (tag : XmlNode) =       
-    let createKeyValue key value =
-        strConcat [| key; "=\""; value ; "\"" |]
+type internal XmlNodeSerializer (xml : XmlNode) =
+    let OPEN_ELEM = "<"
+    let CLOSE_ELEM = ">"
+    let TERM_OPEN = "</"
+    let TERM_ELEM = "/>"
+    let SPACE = " "
 
-    let createAttr (attr : XmlAttribute) = 
-        match attr with 
-        | KeyValueAttr (key, value) -> createKeyValue key value
-        | NonValueAttr key          -> key
+    member _.Serialize (w : StringWriter) =
+        let writeAttributes attrs = 
+            for attr in (attrs : XmlAttribute[]) do
+                if attrs.Length > 0 then
+                    w.Write SPACE
 
-    let createAttrs (attrs : XmlAttribute[]) =
-        attrs
-        |> Array.map createAttr
-        |> strJoin " "   
+                match attr with 
+                | NonValueAttr attrName -> w.Write attrName
+                | KeyValueAttr (attrName, attrValue) ->
+                    w.Write attrName
+                    w.Write "=\""
+                    w.Write attrValue
+                    w.Write "\""
 
-    let createSelfClosingTag (tag : string) (attrs : XmlAttribute[]) =
-        if attrs.Length > 0 then
-            strConcat [| "<"; tag; " "; (createAttrs attrs); " />" |] 
-        else 
-            strConcat [| "<"; tag; " />" |]
+        let rec buildXml tag =   
+            match tag with 
+            | TextNode text                       -> w.Write text
+            | SelfClosingNode (tag, attrs)        -> 
+                w.Write OPEN_ELEM
+                w.Write tag
+                writeAttributes attrs
+                w.Write SPACE
+                w.Write TERM_ELEM
 
-    let createTag (children : string) (tag : string) (attrs : XmlAttribute[]) =
-        if attrs.Length > 0 then
-            strConcat [| "<"; tag; " "; (createAttrs attrs); ">"; children; "</"; tag; ">" |]
-        else 
-            strConcat [| "<"; tag; ">"; children; "</"; tag; ">" |]
+            | ParentNode ((tag, attrs), children) ->                 
+                w.Write OPEN_ELEM
+                w.Write tag
+                writeAttributes attrs
+                w.Write CLOSE_ELEM
 
-    let rec buildXml doc tag =   
-        let buildChildXml (children : XmlNode list) =
-            [|
                 for c in children do 
-                    buildXml [] c 
-                    |> List.toArray 
-                    |> strConcat
-            |]
-            |> strConcat
+                    buildXml c
 
-        match tag with 
-        | TextNode text                       -> text
-        | SelfClosingNode (tag, attrs)        -> createSelfClosingTag tag attrs
-        | ParentNode ((tag, attrs), children) -> createTag (buildChildXml children) tag attrs 
-        :: doc            
-    
-    buildXml [] tag
-    |> List.toArray
-    |> strConcat
+                w.Write TERM_OPEN
+                w.Write tag
+                w.Write CLOSE_ELEM
+        
+        buildXml xml
+
+        w.GetStringBuilder().ToString()
+        
+
+/// Render XmlNode recursively to string representation
+let renderNode (tag : XmlNode) =  
+    let w = new StringWriter(CultureInfo.InvariantCulture)
+    let xmlSerializer = XmlNodeSerializer(tag)
+    xmlSerializer.Serialize w
 
 /// Render XmlNode as HTML string
 let renderHtml tag =
-    [|
-        "<!DOCTYPE html>"
-        renderNode tag
-    |]
-    |> strConcat
+    let w = new StringWriter(CultureInfo.InvariantCulture)
+    let xmlSerializer = XmlNodeSerializer(tag)
+    w.Write "<!DOCTYPE html>"
+    let xmlSerializer = XmlNodeSerializer(tag)
+    xmlSerializer.Serialize w
 
 module Text =       
     /// Empty Text node

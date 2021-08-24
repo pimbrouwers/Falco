@@ -31,6 +31,11 @@ let ``Text.comment should equal HTML comment`` () =
 
 [<Fact>]
 let ``Self-closing tag should render with trailing slash`` () =
+    let t = Elem.selfClosingTag "hr" []
+    renderNode t |> should equal "<hr />"
+
+[<Fact>]
+let ``Self-closing tag with attrs should render with trailing slash`` () =
     let t = Elem.selfClosingTag "hr" [ Attr.class' "my-class" ]
     renderNode t |> should equal "<hr class=\"my-class\" />"
 
