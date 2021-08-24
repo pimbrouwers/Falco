@@ -22,64 +22,68 @@ type XmlNode =
     | TextNode        of string   
 
 type internal XmlNodeSerializer (xml : XmlNode) =
-    let OPEN_ELEM = "<"
-    let CLOSE_ELEM = ">"
-    let TERM_OPEN = "</"
-    let TERM_ELEM = "/>"
-    let SPACE = " "
+    let _openChar = '<'
+    let _closeChar = '>'
+    let _term = '/'    
+    let _space = ' '
+    let _equals = '='
+    let _quote = '"'
 
     member _.Serialize (w : StringWriter) =
         let writeAttributes attrs = 
             for attr in (attrs : XmlAttribute[]) do
                 if attrs.Length > 0 then
-                    w.Write SPACE
+                    w.Write _space
 
                 match attr with 
                 | NonValueAttr attrName -> w.Write attrName
                 | KeyValueAttr (attrName, attrValue) ->
                     w.Write attrName
-                    w.Write "=\""
+                    w.Write _equals
+                    w.Write _quote                    
                     w.Write attrValue
-                    w.Write "\""
+                    w.Write _quote                    
 
         let rec buildXml tag =   
             match tag with 
             | TextNode text                       -> w.Write text
             | SelfClosingNode (tag, attrs)        -> 
-                w.Write OPEN_ELEM
+                w.Write _openChar
                 w.Write tag
                 writeAttributes attrs
-                w.Write SPACE
-                w.Write TERM_ELEM
+                w.Write _space
+                w.Write _term
+                w.Write _closeChar
 
             | ParentNode ((tag, attrs), children) ->                 
-                w.Write OPEN_ELEM
+                w.Write _openChar
                 w.Write tag
                 writeAttributes attrs
-                w.Write CLOSE_ELEM
+                w.Write _closeChar
 
                 for c in children do 
                     buildXml c
 
-                w.Write TERM_OPEN
+                w.Write _openChar
+                w.Write _term
                 w.Write tag
-                w.Write CLOSE_ELEM
+                w.Write _closeChar
         
         buildXml xml
 
         w.GetStringBuilder().ToString()
-        
 
 /// Render XmlNode recursively to string representation
-let renderNode (tag : XmlNode) =  
-    let w = new StringWriter(CultureInfo.InvariantCulture)
+let renderNode (tag : XmlNode) =    
+    let sb = Text.StringBuilder(5000)
+    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
     let xmlSerializer = XmlNodeSerializer(tag)
     xmlSerializer.Serialize w
 
 /// Render XmlNode as HTML string
 let renderHtml tag =
-    let w = new StringWriter(CultureInfo.InvariantCulture)
-    let xmlSerializer = XmlNodeSerializer(tag)
+    let sb = Text.StringBuilder(5000)
+    let w = new StringWriter(sb, CultureInfo.InvariantCulture)    
     w.Write "<!DOCTYPE html>"
     let xmlSerializer = XmlNodeSerializer(tag)
     xmlSerializer.Serialize w

@@ -6,6 +6,20 @@ open FsUnit.Xunit
 open Xunit
         
 [<Fact>]
+let ``Attr.merge should combine two XmlAttribute lists`` () =
+    Attr.merge
+        [ KeyValueAttr("class", "ma2") ] 
+        [ KeyValueAttr("id", "some-el"); KeyValueAttr("class", "bg-red"); NonValueAttr("readonly") ]
+    |> should equal [ KeyValueAttr("class", "ma2 bg-red"); KeyValueAttr("id", "some-el"); NonValueAttr("readonly") ]
+
+[<Fact>]
+let ``Attr.merge should work with bogus "class" NonValeAttr`` () =
+    Attr.merge
+        [ KeyValueAttr("class", "ma2") ] 
+        [ KeyValueAttr("id", "some-el"); KeyValueAttr("class", "bg-red"); NonValueAttr("class") ]
+    |> should equal [ KeyValueAttr("class", "ma2 bg-red"); KeyValueAttr("id", "some-el") ]
+
+[<Fact>]
 let ``Text.empty should be empty`` () =    
     renderNode Text.empty |> should equal String.Empty
 
@@ -48,26 +62,41 @@ let ``Standard tag should render with multiple attributes`` () =
 let ``Should produce valid html doc`` () =
     let doc = 
         Elem.html [] [
-                Elem.body [] [
-                        Elem.div [ Attr.class' "my-class" ] [
-                                Elem.h1 [] [ Text.raw "hello" ]
-                            ]
-                    ]
-            ]
+            Elem.body [] [
+                Elem.div [ Attr.class' "my-class" ] [
+                    Elem.h1 [] [ Text.raw "hello" ] ] ] ]
     renderHtml doc |> should equal "<!DOCTYPE html><html><body><div class=\"my-class\"><h1>hello</h1></div></body></html>"
-
-[<Fact>]
-let ``Attr.merge should combine two XmlAttribute lists`` () =
-    Attr.merge
-        [ KeyValueAttr("class", "ma2") ] 
-        [ KeyValueAttr("id", "some-el"); KeyValueAttr("class", "bg-red"); NonValueAttr("readonly") ]
-    |> should equal [ KeyValueAttr("class", "ma2 bg-red"); KeyValueAttr("id", "some-el"); NonValueAttr("readonly") ]
-
-[<Fact>]
-let ``Attr.merge should work with bogus "class" NonValeAttr`` () =
-    Attr.merge
-        [ KeyValueAttr("class", "ma2") ] 
-        [ KeyValueAttr("id", "some-el"); KeyValueAttr("class", "bg-red"); NonValueAttr("class") ]
-    |> should equal [ KeyValueAttr("class", "ma2 bg-red"); KeyValueAttr("id", "some-el") ]
-
     
+type Product =
+    { Name : string 
+      Price : float 
+      Description : string }
+
+
+[<Fact>]
+let ``Should produce valid html doc for large result`` () =
+    let lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum";
+
+    let products = 
+        [ 1..25000 ]
+        |> List.map (fun i -> { Name = sprintf "Name %i" i; Price = i |> float; Description = lorem})
+
+    let elem product =                
+        Elem.li [] [ 
+            Elem.h2 [] [ Text.raw product.Name ] 
+            Text.rawf "Only %f" product.Price
+            Text.raw product.Description ]
+
+    let productElems = 
+        products
+        |> List.map elem
+        |> Elem.ul [ Attr.id "products" ]     
+
+    let doc = 
+        Elem.html [] [
+            Elem.body [] [
+                Elem.div [ Attr.class' "my-class" ] [ productElems ] ] ]
+
+    let render = renderHtml doc
+    render |> fun s -> s.Substring(0, 27) |> should equal "<!DOCTYPE html><html><body>"
+    render |> fun s -> s.Substring(s.Length - 14, 14) |> should equal "</body></html>"
