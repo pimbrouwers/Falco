@@ -15,8 +15,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Markdig" Version="0.20.0" />
-    <PackageReference Include="YamlDotNet" Version="8.1.0" />
+    <PackageReference Include="Markdig" Version="0.20.*" />
+    <PackageReference Include="YamlDotNet" Version="8.1.*" />
   </ItemGroup>
 
   <ItemGroup>
