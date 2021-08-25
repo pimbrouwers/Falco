@@ -21,15 +21,15 @@ type XmlNode =
     | SelfClosingNode of XmlElement                
     | TextNode        of string   
 
-type internal XmlNodeSerializer (xml : XmlNode) =
-    let _openChar = '<'
-    let _closeChar = '>'
-    let _term = '/'    
-    let _space = ' '
-    let _equals = '='
-    let _quote = '"'
-
-    member _.Serialize (w : StringWriter) =
+module internal XmlNode = 
+    let serialize (w : StringWriter) (xml : XmlNode) =
+        let _openChar = '<'
+        let _closeChar = '>'
+        let _term = '/'    
+        let _space = ' '
+        let _equals = '='
+        let _quote = '"'
+        
         let writeAttributes attrs = 
             for attr in (attrs : XmlAttribute[]) do
                 if attrs.Length > 0 then
@@ -76,17 +76,15 @@ type internal XmlNodeSerializer (xml : XmlNode) =
 /// Render XmlNode recursively to string representation
 let renderNode (tag : XmlNode) =    
     let sb = Text.StringBuilder(5000)
-    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
-    let xmlSerializer = XmlNodeSerializer(tag)
-    xmlSerializer.Serialize w
+    let w = new StringWriter(sb, CultureInfo.InvariantCulture)    
+    XmlNode.serialize w tag
 
 /// Render XmlNode as HTML string
 let renderHtml tag =
     let sb = Text.StringBuilder(5000)
     let w = new StringWriter(sb, CultureInfo.InvariantCulture)    
     w.Write "<!DOCTYPE html>"
-    let xmlSerializer = XmlNodeSerializer(tag)
-    xmlSerializer.Serialize w
+    XmlNode.serialize w tag
 
 module Text =       
     /// Empty Text node

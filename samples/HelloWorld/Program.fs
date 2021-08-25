@@ -18,7 +18,7 @@ let handleJson : HttpHandler =
 
 let handleHtml : HttpHandler =
     Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello world" ] ]
-    |> Response.ofHtml
+    |> Response.ofHtml    
 
 [<EntryPoint>]
 let main args =      
