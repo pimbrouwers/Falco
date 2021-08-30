@@ -12,42 +12,46 @@ type XmlAttribute =
     | NonValueAttr of string
 
 /// Represents an XML-style element containing attributes
-type XmlElement = 
+type XmlElement =
     string * XmlAttribute[]
 
 /// Describes the different XML-style node patterns
 type XmlNode =
-    | ParentNode      of XmlElement * XmlNode list 
-    | SelfClosingNode of XmlElement                
-    | TextNode        of string   
+    | ParentNode      of XmlElement * XmlNode list
+    | SelfClosingNode of XmlElement
+    | TextNode        of string
 
-module internal XmlNode = 
+module internal XmlNode =
     let serialize (w : StringWriter) (xml : XmlNode) =
         let _openChar = '<'
         let _closeChar = '>'
-        let _term = '/'    
+        let _term = '/'
         let _space = ' '
         let _equals = '='
         let _quote = '"'
-        
-        let writeAttributes attrs = 
+
+        let writeAttributes attrs =
             for attr in (attrs : XmlAttribute[]) do
                 if attrs.Length > 0 then
                     w.Write _space
 
-                match attr with 
-                | NonValueAttr attrName -> w.Write attrName
+                match attr with
+                | NonValueAttr attrName ->
+                    w.Write attrName
+
                 | KeyValueAttr (attrName, attrValue) ->
                     w.Write attrName
                     w.Write _equals
-                    w.Write _quote                    
+                    w.Write _quote
                     w.Write attrValue
-                    w.Write _quote                    
+                    w.Write _quote
 
-        let rec buildXml tag =   
-            match tag with 
-            | TextNode text                       -> w.Write text
-            | SelfClosingNode (tag, attrs)        -> 
+        let rec buildXml tag =
+            match tag with
+            | TextNode text ->
+                w.Write text
+
+            | SelfClosingNode (tag, attrs) ->
                 w.Write _openChar
                 w.Write tag
                 writeAttributes attrs
@@ -55,38 +59,38 @@ module internal XmlNode =
                 w.Write _term
                 w.Write _closeChar
 
-            | ParentNode ((tag, attrs), children) ->                 
+            | ParentNode ((tag, attrs), children) ->
                 w.Write _openChar
                 w.Write tag
                 writeAttributes attrs
                 w.Write _closeChar
 
-                for c in children do 
+                for c in children do
                     buildXml c
 
                 w.Write _openChar
                 w.Write _term
                 w.Write tag
                 w.Write _closeChar
-        
+
         buildXml xml
 
         w.GetStringBuilder().ToString()
 
 /// Render XmlNode recursively to string representation
-let renderNode (tag : XmlNode) =    
+let renderNode (tag : XmlNode) =
     let sb = Text.StringBuilder(5000)
-    let w = new StringWriter(sb, CultureInfo.InvariantCulture)    
+    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
     XmlNode.serialize w tag
 
 /// Render XmlNode as HTML string
 let renderHtml tag =
     let sb = Text.StringBuilder(5000)
-    let w = new StringWriter(sb, CultureInfo.InvariantCulture)    
+    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
     w.Write "<!DOCTYPE html>"
     XmlNode.serialize w tag
 
-module Text =       
+module Text =
     /// Empty Text node
     let empty = TextNode String.Empty
 
@@ -95,10 +99,10 @@ module Text =
 
     /// Text XmlNode constructor
     let raw content = TextNode content
-    
+
     /// Text XmlNode constructor that will invoke "sprintf template"
     let rawf template = Printf.kprintf raw template
-    
+
     /// HTML Comment Text XmlNode construction
     let comment = rawf "<!-- %s -->"
 
@@ -106,7 +110,7 @@ module Elem =
     /// Standard XmlNode constructor
     let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
         ((tag, List.toArray attr), children)
-        |> ParentNode 
+        |> ParentNode
 
     /// Self-closing XmlNode constructor
     let selfClosingTag (tag : string) (attr : XmlAttribute list) =
@@ -323,27 +327,27 @@ module Elem =
     /// HTML TAG <script></script>
     let script = tag "script"
 
-module Attr = 
+module Attr =
     /// XmlAttribute KeyValueAttr constructor
     let create key value = KeyValueAttr (key, value)
-    
+
     /// XmlAttribute NonValueAttr constructor
-    let createBool key = NonValueAttr key 
-    
+    let createBool key = NonValueAttr key
+
     /// Merge two XmlAttribute lists
     let merge attrs1 attrs2 =
         // TODO replace the append with recursion and cons
         attrs1 @ attrs2
-        |> List.map (fun attr -> match attr with KeyValueAttr(k, v) -> k, Some v | NonValueAttr(k) -> k, None)    
-        |> List.groupBy (fun (k, _) -> k)    
-        |> List.map (fun (g, attrs) -> 
-            let attrValue : string option = 
-                attrs 
-                |> List.fold (fun acc (_, v) -> 
-                    match acc, v with 
-                    | None, _          -> v 
+        |> List.map (fun attr -> match attr with KeyValueAttr(k, v) -> k, Some v | NonValueAttr(k) -> k, None)
+        |> List.groupBy (fun (k, _) -> k)
+        |> List.map (fun (g, attrs) ->
+            let attrValue : string option =
+                attrs
+                |> List.fold (fun acc (_, v) ->
+                    match acc, v with
+                    | None, _          -> v
                     | Some _, None     -> acc
-                    | Some acc, Some v -> Some (strJoin " " [| acc; v |])) None        
+                    | Some acc, Some v -> Some (strJoin " " [| acc; v |])) None
             match attrValue with
             | None   -> NonValueAttr(g)
             | Some v -> KeyValueAttr(g, v))
@@ -397,7 +401,7 @@ module Attr =
     let style v = create "style" v
 
     /// HTML Attribute "novalidate"
-    let novalidate = createBool "novalidate" 
+    let novalidate = createBool "novalidate"
 
     /// HTML Attribute "action"
     let action v = create "action" v
@@ -418,7 +422,7 @@ module Attr =
     let autofocus = createBool "autofocus"
 
     /// HTML Attribute "checked"
-    let checked' = createBool "checked" 
+    let checked' = createBool "checked"
 
     /// HTML Attribute "disabled"
     let disabled = createBool "disabled"
@@ -473,14 +477,14 @@ module Attr =
 
 module Templates =
     /// HTML 5 template with customizable <head> and <body>
-    let html5 (langCode : string) (head : XmlNode list) (body : XmlNode list) = 
+    let html5 (langCode : string) (head : XmlNode list) (body : XmlNode list) =
         let defaultHead = [
             Elem.meta  [ Attr.charset "UTF-8" ]
             Elem.meta  [ Attr.httpEquiv "X-UA-Compatible"; Attr.content "IE=edge, chrome=1" ]
-            Elem.meta  [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]                
+            Elem.meta  [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
         ]
 
         Elem.html [ Attr.lang langCode; ] [
             Elem.head [] (defaultHead @ head)
             Elem.body [] body
-        ] 
+        ]

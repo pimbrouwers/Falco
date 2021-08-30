@@ -19,13 +19,13 @@ open Microsoft.Net.Http.Headers
 // Modifiers
 // ------------
 
-let private setHeader (name : string) (content : string) (ctx : HttpContext) = 
+let private setHeader (name : string) (content : string) (ctx : HttpContext) =
     if not(ctx.Response.Headers.ContainsKey(name)) then
         ctx.Response.Headers.Add(name, StringValues(content))
 
 /// Set ContentLength for response
 let withContentLength (contentLength : int64) : HttpResponseModifier =
-    fun ctx -> 
+    fun ctx ->
         ctx.Response.ContentLength <- Nullable(contentLength)
         ctx
 
@@ -34,35 +34,35 @@ let withHeader (name : string) (content : string) : HttpResponseModifier =
     fun ctx ->
         setHeader name content ctx
         ctx
-    
+
 /// Set multiple headers for response
 let withHeaders (headers : (string * string) list) : HttpResponseModifier =
-    fun ctx -> 
-        headers 
+    fun ctx ->
+        headers
         |> List.iter (fun (name, content) -> setHeader name content ctx)
         ctx
 
 /// Set ContentType header for response
-let withContentType (contentType : string) : HttpResponseModifier =    
+let withContentType (contentType : string) : HttpResponseModifier =
     withHeader HeaderNames.ContentType contentType
 
 /// Set StatusCode for response
-let withStatusCode (statusCode : int) : HttpResponseModifier =    
-    fun ctx -> 
+let withStatusCode (statusCode : int) : HttpResponseModifier =
+    fun ctx ->
         ctx.Response.StatusCode <- statusCode
         ctx
     //modify (fun ctx -> ctx.Response.SetStatusCode statusCode)
 
 /// Add cookie to response
 let withCookie (key : string) (value : string) : HttpResponseModifier =
-    fun ctx -> 
-        ctx.Response.Cookies.Append(key, value) 
+    fun ctx ->
+        ctx.Response.Cookies.Append(key, value)
         ctx
 
 /// Add a configured cookie to response, via CookieOptions
 let withCookieOptions (key : string) (value : string) (options : CookieOptions) : HttpResponseModifier =
-    fun ctx -> 
-        ctx.Response.Cookies.Append(key, value, options) 
+    fun ctx ->
+        ctx.Response.Cookies.Append(key, value, options)
         ctx
 
 // ------------
@@ -70,10 +70,10 @@ let withCookieOptions (key : string) (value : string) (options : CookieOptions) 
 // ------------
 
 /// Write bytes to HttpResponse body
-let private writeBytes (bytes : byte[]) (ctx : HttpContext) =   
+let private writeBytes (bytes : byte[]) (ctx : HttpContext) =
     let byteLen = bytes.Length
-    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)    
-    ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes)).AsTask() :> Task    
+    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
+    ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes)).AsTask() :> Task
 
 /// Write UTF8 string to HttpResponse body
 let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : HttpContext) =
@@ -89,9 +89,9 @@ let redirect (url : string) (permanent : bool) : HttpHandler =
 /// Returns an inline binary (i.e., Byte[]) response with the specified Content-Type
 ///
 /// Note: Automatically sets "content-disposition: inline"
-let ofBinary (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =     
+let ofBinary (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =
     let headers = (HeaderNames.ContentDisposition, "inline") :: headers
-    
+
     withContentType contentType
     >> withHeaders headers
     >> writeBytes bytes
@@ -100,7 +100,7 @@ let ofBinary (contentType : string) (headers : (string * string) list) (bytes : 
 ///
 /// Note: Automatically sets "content-disposition: attachment" and includes filename if provided
 let ofAttachment (filename : string) (contentType : string) (headers : (string * string) list) (bytes : Byte[]) : HttpHandler =
-    let contentDisposition = 
+    let contentDisposition =
         if StringUtils.strNotEmpty filename then sprintf "attachment; filename=\"%s\"" filename
         else "attachment"
 
@@ -143,7 +143,7 @@ let ofHtmlCsrf (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
     withCsrfToken (fun token -> token |> view |> ofHtml)
 
 /// Returns an optioned "application/json; charset=utf-8" response with the serialized object provided to the client
-let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =                
+let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
     let jsonHandler : HttpHandler = fun ctx ->
         unitTask {
             use str = new MemoryStream()
@@ -151,14 +151,14 @@ let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
             str.Flush ()
             let bytes = str.ToArray ()
             let byteLen = bytes.Length
-            ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)    
+            ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
             let! _ = ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes))
             return ()
         }
 
     withContentType "application/json; charset=utf-8"
     >> jsonHandler
-        
+
 /// Returns a "application/json; charset=utf-8" response with the serialized object provided to the client
 let ofJson (obj : 'a) : HttpHandler =
     withContentType "application/json; charset=utf-8"
@@ -166,20 +166,20 @@ let ofJson (obj : 'a) : HttpHandler =
 
 
 /// Sign in claim principal for provided scheme, and responsd with a 301 redirect to provided URL
-let signInAndRedirect 
-    (authScheme : string) 
-    (claimsPrincipal : ClaimsPrincipal) 
+let signInAndRedirect
+    (authScheme : string)
+    (claimsPrincipal : ClaimsPrincipal)
     (url : string) : HttpHandler = fun ctx ->
     unitTask {
         do! Auth.signIn authScheme claimsPrincipal ctx
         do! redirect url false ctx
     }
-    
+
 
 /// Terminates authenticated context for provided scheme, and respond with a 301 redirect to provided URL
-let signOutAndRedirect 
-    (authScheme : string) 
-    (url : string) : HttpHandler = fun ctx -> 
+let signOutAndRedirect
+    (authScheme : string)
+    (url : string) : HttpHandler = fun ctx ->
     unitTask {
         do! Auth.signOut authScheme ctx
         do! redirect url false ctx

@@ -14,14 +14,14 @@ open Microsoft.Extensions.Logging
 
 // Config Builder
 // ------------
-type ConfigurationSpec = 
+type ConfigurationSpec =
     { BasePath     : string
       RequiredJson : string list
       OptionalJson : string list
       AddEnvVars   : bool }
 
-    static member Empty = 
-        { BasePath     = IO.Directory.GetCurrentDirectory() 
+    static member Empty =
+        { BasePath     = IO.Directory.GetCurrentDirectory()
           RequiredJson = []
           OptionalJson = []
           AddEnvVars   = false }
@@ -34,7 +34,7 @@ type ConfigBuilder (args : string[]) =
 
         bldr <- bldr.AddCommandLine (args)
 
-        if conf.AddEnvVars then 
+        if conf.AddEnvVars then
             bldr <- bldr.AddEnvironmentVariables()
 
         for json in conf.RequiredJson do
@@ -72,22 +72,22 @@ let configuration args = ConfigBuilder(args)
 // ------------
 
 /// Represents the eventual existence of a runnable IWebhost
-type HostConfig = 
-    { WebHost    : IWebHostBuilder -> IWebHostBuilder              
+type HostConfig =
+    { WebHost    : IWebHostBuilder -> IWebHostBuilder
       Logging    : ILoggingBuilder -> ILoggingBuilder
       Services   : IServiceCollection -> IServiceCollection
-      Middleware : IApplicationBuilder -> IApplicationBuilder 
+      Middleware : IApplicationBuilder -> IApplicationBuilder
       NotFound   : HttpHandler option
-      Endpoints  : HttpEndpoint list 
+      Endpoints  : HttpEndpoint list
       Builder    : HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder
       IsCustom   : bool }
 
-    static member Empty = 
+    static member Empty =
         let defaultBuilder (endpoints : HttpEndpoint list) (webHost : IWebHostBuilder) =
             let configureServices (services : IServiceCollection) =
                 services.AddFalco() |> ignore
 
-            let configureApp (app : IApplicationBuilder) =                
+            let configureApp (app : IApplicationBuilder) =
                 app.UseDeveloperExceptionPage()
                    .UseFalco(endpoints) |> ignore
 
@@ -98,43 +98,43 @@ type HostConfig =
           Services   = id
           Middleware = id
           NotFound   = None
-          Endpoints  = [] 
+          Endpoints  = []
           Builder    = defaultBuilder
           IsCustom   = false }
 
 /// Computation expression to allow for elegant IHost construction
-type HostBuilder(args : string[]) =    
+type HostBuilder(args : string[]) =
     member _.Yield(_) = HostConfig.Empty
 
-    member _.Run(conf : HostConfig) =              
-        let configure = 
-            if conf.IsCustom then 
+    member _.Run(conf : HostConfig) =
+        let configure =
+            if conf.IsCustom then
                 let wrappedBuilder = fun bldr -> conf.Builder conf.Endpoints bldr |> ignore
                 Action<IWebHostBuilder>(wrappedBuilder)
-            else 
+            else
                 let addFalco = fun (services : IServiceCollection) -> services.AddFalco ()
 
                 let useFalco = fun (app : IApplicationBuilder) -> app.UseFalco (conf.Endpoints)
 
-                let includeNotFound = fun (app : IApplicationBuilder) -> 
+                let includeNotFound = fun (app : IApplicationBuilder) ->
                     match conf.NotFound with
                     | Some handler -> app.Run(HttpHandler.toRequestDelegate handler)
                     | None -> ()
 
-                let wrappedBuilder = fun bldr -> 
-                    conf.WebHost(bldr)                             
+                let wrappedBuilder = fun bldr ->
+                    conf.WebHost(bldr)
                         .ConfigureLogging(conf.Logging >> ignore)
                         .ConfigureServices(addFalco >> conf.Services >> ignore)
                         .Configure(conf.Middleware >> useFalco >> includeNotFound)
                     |> ignore
-                                            
+
                 Action<IWebHostBuilder>(wrappedBuilder)
-                    
+
         Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(configure)
             .Build()
-            .Run()   
-    
+            .Run()
+
     /// Fully customize the IWebHost, when specified will overide all
     /// "use" and "add" operations.
     [<CustomOperation("configure")>]
@@ -154,7 +154,7 @@ type HostBuilder(args : string[]) =
 
     // Service Collection
     // ------------
-    
+
     /// Configure logging via ILogger
     [<CustomOperation("logging")>]
     member _.Logging (conf : HostConfig, fn : ILoggingBuilder -> ILoggingBuilder) =
@@ -169,21 +169,21 @@ type HostBuilder(args : string[]) =
     [<CustomOperation("add_antiforgery")>]
     member x.AddAntiforgery (conf : HostConfig) =
         x.AddService (conf, fun s -> s.AddAntiforgery())
-        
+
     /// Add default cookie authentication into the IServiceCollection.
     [<CustomOperation("add_cookie")>]
-    member x.AddCookie (conf : HostConfig) =        
+    member x.AddCookie (conf : HostConfig) =
         x.AddService (conf, fun s -> s.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie() |> ignore; s)
 
     /// Add configured cookie(s) authentication into the IServiceCollection.
     [<CustomOperation("add_conf_cookies")>]
     member x.AddConfiguredCookies (conf : HostConfig, configure : AuthenticationOptions -> unit, cookieConfig : (string * (CookieAuthenticationOptions -> unit)) list) =
-        let addAuthentication (s : IServiceCollection) =    
-            let x = s.AddAuthentication(Action<AuthenticationOptions>(configure))              
+        let addAuthentication (s : IServiceCollection) =
+            let x = s.AddAuthentication(Action<AuthenticationOptions>(configure))
 
-            for (scheme, config) in cookieConfig do                   
+            for (scheme, config) in cookieConfig do
                 x.AddCookie(scheme, Action<CookieAuthenticationOptions>(config)) |> ignore
-            
+
             s
 
         x.AddService (conf, addAuthentication)
@@ -227,9 +227,9 @@ type HostBuilder(args : string[]) =
     member _.UseIfNot (conf : HostConfig, pred : IApplicationBuilder -> bool, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = fun app -> if not(pred app) then conf.Middleware(app) |> fn else conf.Middleware(app) }
 
-    /// Use authorization middleware. Call before 
-    /// any middleware that depends on users being 
-    /// authenticated.    
+    /// Use authorization middleware. Call before
+    /// any middleware that depends on users being
+    /// authenticated.
     [<CustomOperation("use_authentication")>]
     member x.UseAuthentication (conf : HostConfig) =
         x.Use (conf, fun app -> app.UseAuthentication())
@@ -242,7 +242,7 @@ type HostBuilder(args : string[]) =
                Middleware = conf.Middleware >> fun app -> app.UseAuthorization() }
 
     /// Register HTTP Response caching service and enable middleware.
-    member x.UseCaching(conf : HostConfig) =        
+    member x.UseCaching(conf : HostConfig) =
         { conf with
                Services = conf.Services >> fun s -> s.AddResponseCaching()
                Middleware = conf.Middleware >> fun app -> app.UseResponseCaching() }
@@ -250,38 +250,38 @@ type HostBuilder(args : string[]) =
     /// Register Brotli + GZip HTTP Compression service and enable middleware.
     [<CustomOperation("use_compression")>]
     member _.UseCompression (conf : HostConfig) =
-        let configureCompression (s : IServiceCollection) = 
-            let mimeTypes = 
+        let configureCompression (s : IServiceCollection) =
+            let mimeTypes =
                 let additionalMimeTypes = [|
                     "image/jpeg"
                     "image/png"
                     "image/svg+xml"
                     "font/woff"
-                    "font/woff2"                       
+                    "font/woff2"
                 |]
 
                 ResponseCompressionDefaults.MimeTypes
                 |> Seq.append additionalMimeTypes
-                
+
             s.AddResponseCompression(fun o ->
                 o.Providers.Add<BrotliCompressionProvider>()
                 o.Providers.Add<GzipCompressionProvider>()
                 o.MimeTypes <- mimeTypes)
 
 
-        { conf with 
+        { conf with
                Services = conf.Services >> configureCompression
                Middleware = conf.Middleware >> fun app -> app.UseResponseCompression() }
 
     /// Use automatic HSTS middleware (adds strict-transport-policy header).
     [<CustomOperation("use_hsts")>]
     member x.UseHsts (conf : HostConfig) =
-        x.Use (conf, fun app -> app.UseHsts())       
+        x.Use (conf, fun app -> app.UseHsts())
 
     /// Use automatic HTTPS redirection.
     [<CustomOperation("use_https")>]
     member x.UseHttps (conf : HostConfig) =
-        x.Use (conf, fun app -> app.UseHttpsRedirection())       
+        x.Use (conf, fun app -> app.UseHttpsRedirection())
 
     /// Use Static File middleware.
     [<CustomOperation("use_static_files")>]
@@ -290,12 +290,12 @@ type HostBuilder(args : string[]) =
 
     // Errors
     // ------------
-    
+
     /// Include a catch-all (i.e., Not Found) HttpHandler (must be added last).
     [<CustomOperation("not_found")>]
     member _.NotFound (conf : HostConfig, handler : HttpHandler) =
         { conf with NotFound = Some handler }
 
-/// A computation expression to make IHost construction easier 
+/// A computation expression to make IHost construction easier
 let webHost args = HostBuilder(args)
 

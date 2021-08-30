@@ -50,22 +50,22 @@ let tryBindQuery
     |> binder
 
 /// Retrieve the form collection from the request as an instance of FormCollectionReader
-let getForm (ctx : HttpContext) : Task<FormCollectionReader> = 
+let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
         let! form = ctx.Request.ReadFormAsync ()
         let files = if isNull(form.Files) then None else Some form.Files
         return FormCollectionReader(form, files)
     }
-    
+
 /// Attempt to bind the form collection
-let tryBindForm 
+let tryBindForm
     (binder : FormCollectionReader -> Result<'a, 'b>)
-    (ctx : HttpContext) : Task<Result<'a, 'b>> =         
+    (ctx : HttpContext) : Task<Result<'a, 'b>> =
     task {
         let! form = getForm ctx
         return binder form
     }
-    
+
 /// Attempt to stream the form collection for multipart form submissions
 let tryStreamForm
     (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> =
@@ -79,12 +79,12 @@ let streamForm
 /// Attempt to bind the form collection
 let tryBindFormStream
     (binder : FormCollectionReader -> Result<'a, 'b>)
-    (ctx : HttpContext) : Task<Result<'a, 'b>> =   
+    (ctx : HttpContext) : Task<Result<'a, 'b>> =
     task {
         let! form = streamForm ctx
         return binder form
     }
-    
+
 /// Retrieve the cookie from the request as an instance of CookieCollectionReader
 let getCookie (ctx : HttpContext) : CookieCollectionReader =
     CookieCollectionReader(ctx.Request.Cookies)
@@ -99,7 +99,7 @@ let tryBindCookie
 /// Attempt to bind request body using System.Text.Json and provided JsonSerializerOptions
 let tryBindJsonOptions<'a>
     (options : JsonSerializerOptions)
-    (ctx : HttpContext) : Task<Result<'a, string>> = 
+    (ctx : HttpContext) : Task<Result<'a, string>> =
     task {
         try
             let! result = JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
@@ -107,7 +107,7 @@ let tryBindJsonOptions<'a>
         with
         :? JsonException as ex -> return Error ex.Message
     }
-    
+
 /// Attempt to bind request body using System.Text.Json
 let tryBindJson<'a>
     (ctx : HttpContext) : Task<Result<'a, string>> =
@@ -121,7 +121,7 @@ let tryBindJson<'a>
 /// to handleOk, otherwise provide handleError with error string
 let bindJson
     (handleOk : 'a -> HttpHandler)
-    (handleError : string -> HttpHandler) : HttpHandler = fun ctx ->                
+    (handleError : string -> HttpHandler) : HttpHandler = fun ctx ->
     unitTask {
         let! json = tryBindJson ctx
         let respondWith =
@@ -131,7 +131,7 @@ let bindJson
 
         return! respondWith ctx
     }
-    
+
 
 /// Attempt to bind the route values map onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
@@ -189,14 +189,14 @@ let validateCsrfToken
             | false -> handleInvalidToken
 
         return! respondWith ctx
-    }   
+    }
 
 /// Attempt to bind the FormCollectionReader onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
 let bindForm
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
-    (handleError : 'b -> HttpHandler) : HttpHandler = fun ctx -> 
+    (handleError : 'b -> HttpHandler) : HttpHandler = fun ctx ->
     unitTask {
         let! form = tryBindForm binder ctx
         let respondWith =
@@ -207,14 +207,14 @@ let bindForm
         return! respondWith ctx
     }
 
-/// Attempt to bind a streamed (i.e., multipart/form-data) 
-/// FormCollectionReader  onto 'a and provide to handleOk, 
+/// Attempt to bind a streamed (i.e., multipart/form-data)
+/// FormCollectionReader  onto 'a and provide to handleOk,
 /// otherwise provide handleError with 'b
 let bindFormStream
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
-    (handleError : 'b -> HttpHandler) : HttpHandler = fun ctx -> 
-    unitTask {        
+    (handleError : 'b -> HttpHandler) : HttpHandler = fun ctx ->
+    unitTask {
         let! form = tryBindFormStream binder ctx
         let respondWith =
             match form with
@@ -223,7 +223,7 @@ let bindFormStream
 
         return! respondWith ctx
     }
-    
+
 /// Validate the CSRF of the current request attempt to bind the
 /// FormCollectionReader onto 'a and provide to handleOk,
 /// otherwise provide handleError with 'b
@@ -236,9 +236,9 @@ let bindFormSecure
         (bindForm binder handleOk handleError)
         handleInvalidToken
 
-/// Validate the CSRF of the current request then atempt 
-/// to bind a streamed (i.e., multipart/form-data) 
-/// FormCollectionReader onto 'a and provide to handleOk, 
+/// Validate the CSRF of the current request then atempt
+/// to bind a streamed (i.e., multipart/form-data)
+/// FormCollectionReader onto 'a and provide to handleOk,
 /// otherwise provide handleError with 'b
 let bindFormStreamSecure
     (binder : FormCollectionReader -> Result<'a, 'b>)
@@ -253,9 +253,9 @@ let bindFormStreamSecure
         ctx
 
 /// Bind JSON request body onto 'a and provide to next
-/// Httphandler, throws exception if JsonException 
+/// Httphandler, throws exception if JsonException
 /// occurs during deserialization.
-let mapJson (next : 'a -> HttpHandler) : HttpHandler = fun ctx -> 
+let mapJson (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     unitTask {
         let! json = tryBindJson ctx
         let respondWith =
@@ -270,39 +270,39 @@ let mapJson (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
 /// to next HttpHandler
 let mapRoute
     (map : RouteCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx -> 
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     next (getRoute ctx |> map) ctx
 
 /// Project QueryCollectionReader onto 'a and provide
 /// to next HttpHandler
 let mapQuery
     (map : QueryCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx -> 
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     next (getQuery ctx |> map) ctx
 
 /// Project CookieCollectionReader onto 'a and provide
 /// to next HttpHandler
 let mapCookie
     (map : CookieCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx -> 
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     next (getCookie ctx |> map) ctx
 
 /// Project FormCollectionReader onto 'a and provide
 /// to next HttpHandler
 let mapForm
     (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx -> 
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     unitTask {
         let! form = getForm ctx
         return! next (form |> map) ctx
     }
-    
 
-/// Project FormCollectionReader a streamed (i.e., multipart/form-data) 
+
+/// Project FormCollectionReader a streamed (i.e., multipart/form-data)
 /// onto 'a and provide to next HttpHandler
 let mapFormStream
     (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->     
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     unitTask {
         let! form = streamForm ctx
         return! next (form |> map) ctx
@@ -318,16 +318,16 @@ let mapFormSecure
             (mapForm map next)
             handleInvalidToken
 
-/// Project FormCollectionReader a streamed (i.e., multipart/form-data) 
+/// Project FormCollectionReader a streamed (i.e., multipart/form-data)
 /// onto 'a and provide to next HttpHandler
 let mapFormStreamSecure
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
-        ctx.Request.EnableBuffering()        
+        ctx.Request.EnableBuffering()
         validateCsrfToken
             (mapFormStream map next)
-            handleInvalidToken 
+            handleInvalidToken
             ctx
 
 /// Attempt to authenticate the current request using the provided
@@ -337,7 +337,7 @@ let authenticate (scheme : string) (next : AuthenticateResult -> HttpHandler) : 
         let! auth = ctx.AuthenticateAsync(scheme)
         return! next auth ctx
     }
-            
+
 /// Proceed if the authentication status of current IPrincipal is true
 let ifAuthenticated
     (handleOk : HttpHandler)
@@ -359,7 +359,7 @@ let ifAuthenticatedInRole
         match isAuthenticated, isInRole with
         | true, true -> handleOk ctx
         | _          -> handleError ctx
-        
+
 /// Proceed if the authentication status of current IPrincipal is true
 /// and has a specific scope
 let ifAuthenticatedWithScope
@@ -370,7 +370,7 @@ let ifAuthenticatedWithScope
     fun ctx ->
         let isAuthenticated = Auth.isAuthenticated ctx
         let hasScope = Auth.hasScope issuer scope ctx
-        
+
         match isAuthenticated, hasScope with
         | true, true -> handleOk ctx
         | _          -> handleError ctx

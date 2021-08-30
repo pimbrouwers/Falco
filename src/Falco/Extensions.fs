@@ -9,6 +9,7 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
+open Falco.Routing
 
 /// HttpContext extension methods
 type HttpContext with

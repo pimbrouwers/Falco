@@ -8,7 +8,7 @@ let inline stringf format (x : ^a) =
     (^a : (member ToString : string -> string) (x, format))
 
 /// Check if string is null or whitespace
-let strEmpty str =
+let strEmpty str =    
     String.IsNullOrWhiteSpace(str)
 
 /// Check if string is not null or whitespace

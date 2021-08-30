@@ -26,7 +26,7 @@ let isAuthenticated (ctx : HttpContext) : bool =
     | Some user -> isAuthenciated user
 
 /// Returns bool if IPrincipal is in list of roles, false on None
-let isInRole 
+let isInRole
     (roles : string list)
     (ctx : HttpContext) : bool =
     match getUser ctx with
@@ -46,7 +46,7 @@ let tryFindClaim
     (ctx : HttpContext) : Claim option =
     match getUser ctx with
     | None      -> None
-    | Some user ->         
+    | Some user ->
         match user.Claims |> Seq.tryFind predicate with
         | None   -> None
         | Some claim -> Some claim
@@ -61,7 +61,7 @@ let getClaim
 let getClaimValue
     (claimType : string)
     (ctx : HttpContext) : string option =
-    getClaim claimType ctx |> function 
+    getClaim claimType ctx |> function
     | Some c -> Some c.Value
     | None -> None
 
@@ -71,7 +71,7 @@ let hasScope
     (scope : string)
     (ctx : HttpContext) : bool =
     let predicate (claim : Claim) = (strEquals claim.Issuer issuer) && (strEquals claim.Type "scope")
-    
+
     tryFindClaim predicate ctx |> function
     | None       -> false
     | Some claim -> Array.contains scope (strSplit [|' '|] claim.Value)
@@ -86,5 +86,5 @@ let signIn
 /// Terminate authenticated context for provided scheme
 let signOut
     (authScheme : string)
-    (ctx : HttpContext) : Task = 
+    (ctx : HttpContext) : Task =
     ctx.SignOutAsync(authScheme)

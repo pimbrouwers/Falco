@@ -3,16 +3,16 @@
 open System.Threading.Tasks
 open Falco.Extensions
 open Falco.Markup
-open Microsoft.AspNetCore.Antiforgery    
+open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 
 /// Output an antiforgery <input type="hidden" />
-let antiforgeryInput 
+let antiforgeryInput
     (token : AntiforgeryTokenSet) =
-    Elem.input [ 
+    Elem.input [
             Attr.type' "hidden"
             Attr.name token.FormFieldName
-            Attr.value token.RequestToken 
+            Attr.value token.RequestToken
         ]
 
 /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package
@@ -21,7 +21,6 @@ let getToken (ctx : HttpContext) : AntiforgeryTokenSet =
     antiFrg.GetAndStoreTokens ctx
 
 /// Validate the Antiforgery token within the provided HttpContext
-let validateToken (ctx : HttpContext) : Task<bool> =            
+let validateToken (ctx : HttpContext) : Task<bool> =
     let antiFrg = ctx.GetService<IAntiforgery>()
     antiFrg.IsRequestValidAsync ctx
-

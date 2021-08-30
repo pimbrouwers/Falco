@@ -5,8 +5,6 @@ open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Routing
-open Microsoft.Extensions.FileProviders
-open Falco.StringUtils
 
 // ------------
 // Constants
@@ -15,7 +13,7 @@ module Constants =
     let defaultJsonOptions =
         let options = Text.Json.JsonSerializerOptions()
         options.AllowTrailingCommas <- true
-        options.PropertyNameCaseInsensitive <- true 
+        options.PropertyNameCaseInsensitive <- true
         options
 
 // ------------
@@ -30,13 +28,13 @@ exception InvalidDependencyException of string
 // ------------
 
 /// Http verb
-type HttpVerb = 
-    | GET 
+type HttpVerb =
+    | GET
     | HEAD
-    | POST 
-    | PUT 
+    | POST
+    | PUT
     | PATCH
-    | DELETE 
+    | DELETE
     | OPTIONS
     | TRACE
     | ANY
@@ -52,52 +50,27 @@ type HttpVerb =
         | OPTIONS -> HttpMethods.Options
         | TRACE   -> HttpMethods.Trace
         | ANY     -> String.Empty
- 
-module HttpVerb = 
-    let toHttpMethodMetadata verb = 
+
+module HttpVerb =
+    let toHttpMethodMetadata verb =
         let verbStr = verb.ToString()
-        match verb with 
+        match verb with
         | ANY -> HttpMethodMetadata [||]
-        | _   -> HttpMethodMetadata [|verbStr|]       
+        | _   -> HttpMethodMetadata [|verbStr|]
 
 /// The eventual return of asynchronous HttpContext processing
-type HttpHandler = 
+type HttpHandler =
     HttpContext -> Task
 
 module HttpHandler =
     /// Convert HttpHandler to a RequestDelegate
-    let toRequestDelegate (handler : HttpHandler) =        
+    let toRequestDelegate (handler : HttpHandler) =
         new RequestDelegate(handler)
 
 /// In-and-out processing of a HttpContext
 type HttpResponseModifier = HttpContext -> HttpContext
 
 /// Specifies an association of a route pattern to a collection of HttpEndpointHandler
-type HttpEndpoint = 
-    { Pattern  : string   
+type HttpEndpoint =
+    { Pattern  : string
       Handlers : (HttpVerb * HttpHandler) list }
-
-/// The process of associating a route and handler
-type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
-
-[<Sealed>]
-type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
-    inherit EndpointDataSource()
-
-    [<Literal>]
-    let defaultOrder = 0
-
-    let endpoints = 
-        [| for endpoint in httpEndpoints do            
-            let routePattern = Patterns.RoutePatternFactory.Parse endpoint.Pattern
-
-            for (verb, handler) in endpoint.Handlers do                   
-                let requestDelegate = HttpHandler.toRequestDelegate handler 
-                let verbStr = verb.ToString()           
-                let displayName = if strEmpty verbStr then endpoint.Pattern else strConcat [|verbStr; " "; endpoint.Pattern|]                
-                let httpMethod = HttpVerb.toHttpMethodMetadata verb                                       
-                let metadata = EndpointMetadataCollection(httpMethod)                
-                RouteEndpoint(requestDelegate, routePattern, defaultOrder, metadata, displayName) :> Endpoint |]
-
-    override _.Endpoints = endpoints :> _
-    override _.GetChangeToken() = NullChangeToken.Singleton :> _

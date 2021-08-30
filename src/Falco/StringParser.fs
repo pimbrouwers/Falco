@@ -3,11 +3,11 @@
 open System
 
 /// Helper to wrap .NET tryParser's
-let tryParseWith (tryParseFunc: string -> bool * _) = 
+let tryParseWith (tryParseFunc: string -> bool * _) =
     tryParseFunc >> function
     | true, v    -> Some v
     | false, _   -> None
-  
+
 let parseInt            = tryParseWith Int32.TryParse
 let parseInt16          = tryParseWith Int16.TryParse
 let parseInt32          = parseInt
@@ -22,7 +22,7 @@ let parseGuid           = tryParseWith Guid.TryParse
 
 /// Attempt to parse, or failwith message
 let parseOrFail parser msg v =
-    match parser v with 
+    match parser v with
     | Some v -> v
     | None   -> failwith msg
 
@@ -33,6 +33,6 @@ let tryParseArray parser ary =
     |> Seq.fold (fun acc i ->
         match (i, acc) with
         | Some i, Some acc -> Some (Array.append acc [|i|])
-        | _ -> None) (Some [||])    
-    
+        | _ -> None) (Some [||])
+
 
