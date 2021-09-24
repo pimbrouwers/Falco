@@ -338,14 +338,6 @@ let authenticate (scheme : string) (next : AuthenticateResult -> HttpHandler) : 
         return! next auth ctx
     }
 
-/// Sign out the current principal using the provided 
-/// scheme and invoice next HttpHandler
-let signOut (scheme : string) (next : HttpHandler) : HttpHandler = fun ctx ->
-    unitTask {
-        do! Auth.signOut scheme ctx
-        return! next ctx
-    }
-
 /// Proceed if the authentication status of current IPrincipal is true
 let ifAuthenticated
     (handleOk : HttpHandler)
