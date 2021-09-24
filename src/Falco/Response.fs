@@ -77,8 +77,11 @@ let private writeBytes (bytes : byte[]) (ctx : HttpContext) =
 
 /// Write UTF8 string to HttpResponse body
 let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : HttpContext) =
-    let httpBodyBytes = encoding.GetBytes httpBodyStr
-    writeBytes httpBodyBytes ctx
+    if isNull httpBodyStr then 
+        writeBytes [||] ctx
+    else 
+        let httpBodyBytes = encoding.GetBytes httpBodyStr
+        writeBytes httpBodyBytes ctx
 
 /// Returns a redirect (301 or 302) to client
 let redirect (url : string) (permanent : bool) : HttpHandler =

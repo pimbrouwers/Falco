@@ -51,13 +51,6 @@ type HttpVerb =
         | TRACE   -> HttpMethods.Trace
         | ANY     -> String.Empty
 
-module HttpVerb =
-    let toHttpMethodMetadata verb =
-        let verbStr = verb.ToString()
-        match verb with
-        | ANY -> HttpMethodMetadata [||]
-        | _   -> HttpMethodMetadata [|verbStr|]
-
 /// The eventual return of asynchronous HttpContext processing
 type HttpHandler =
     HttpContext -> Task

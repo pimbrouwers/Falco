@@ -13,26 +13,31 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
     inherit EndpointDataSource()
 
     [<Literal>]
-    let defaultOrder = 0
+    let DefaultOrder = 0
 
     let endpoints =
         [| for endpoint in httpEndpoints do
             let routePattern = Patterns.RoutePatternFactory.Parse endpoint.Pattern
 
             for (verb, handler) in endpoint.Handlers do
-                let requestDelegate = HttpHandler.toRequestDelegate handler
+                let routeNameMetadata = RouteNameMetadata(endpoint.Pattern)
+                
                 let verbStr = verb.ToString()
-                let displayName = if strEmpty verbStr then endpoint.Pattern else strConcat [|verbStr; " "; endpoint.Pattern|]
-                let httpMethod = HttpVerb.toHttpMethodMetadata verb
-                let metadata = EndpointMetadataCollection(httpMethod)
-                RouteEndpoint(requestDelegate, routePattern, defaultOrder, metadata, displayName) :> Endpoint |]
+                let displayName = if strEmpty verbStr then endpoint.Pattern else strConcat [|verbStr; " "; endpoint.Pattern|]                
+                let httpMethodMetadata = HttpMethodMetadata([|verbStr|])
+                
+                let metadata = EndpointMetadataCollection(routeNameMetadata, httpMethodMetadata)
+                
+                let requestDelegate = HttpHandler.toRequestDelegate handler
+                
+                RouteEndpoint(requestDelegate, routePattern, DefaultOrder, metadata, displayName) :> Endpoint |]
 
     override _.Endpoints = endpoints :> _
     override _.GetChangeToken() = NullChangeToken.Singleton :> _
 
 /// Constructor for multi-method HttpEndpoint
 let all (pattern : string) (handlers : (HttpVerb * HttpHandler) list) : HttpEndpoint =
-    { Pattern  = pattern; Handlers = handlers  }
+    { Pattern  = pattern; Handlers = handlers }
 
 /// Constructor for a singular HttpEndpoint
 let route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) : HttpEndpoint =
