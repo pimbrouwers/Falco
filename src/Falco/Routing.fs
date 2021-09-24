@@ -8,6 +8,13 @@ open Falco.StringUtils
 /// The process of associating a route and handler
 type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
 
+module HttpVerb =
+    let toHttpMethodMetadata verb =
+        let verbStr = verb.ToString()
+        match verb with
+        | ANY -> HttpMethodMetadata [||]
+        | _   -> HttpMethodMetadata [|verbStr|]
+
 [<Sealed>]
 type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
     inherit EndpointDataSource()
@@ -24,7 +31,7 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
                 
                 let verbStr = verb.ToString()
                 let displayName = if strEmpty verbStr then endpoint.Pattern else strConcat [|verbStr; " "; endpoint.Pattern|]                
-                let httpMethodMetadata = HttpMethodMetadata([|verbStr|])
+                let httpMethodMetadata = HttpVerb.toHttpMethodMetadata verb
                 
                 let metadata = EndpointMetadataCollection(routeNameMetadata, httpMethodMetadata)
                 

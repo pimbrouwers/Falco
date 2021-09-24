@@ -28,7 +28,7 @@ let main args =
 
             get "/json" handleJson
 
-            get "/" handlePlainText
+            any "/" handlePlainText
         ]
     }        
     0    
