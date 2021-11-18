@@ -361,7 +361,7 @@ let jsonHandler : HttpHandler =
 
     let invalidTokenHandler : HttpHandler =
         Response.withStatusCode 403
-        &gt;&gt; Resposne.ofEmpty
+        &gt;&gt; Response.ofEmpty
         
     Request.mapFormSecure formBinder Response.ofPlainText invalidTokenHandler
 </code></pre>
