@@ -11,7 +11,7 @@
         
     <!-- Build config -->
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
-    <DebugType>portable</DebugType>
+    <DebugType>embedded</DebugType>
     <OutputType>Library</OutputType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
