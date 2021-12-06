@@ -41,17 +41,17 @@ let ``StringCollectionReader value lookups are case-insensitive`` () =
     let scr = QueryCollectionReader(QueryCollection(values))
 
     // single values
-    scr.TryGet "FSTRING"   |> Option.iter (should equal "John Doe")
-    scr.TryGet "FString"   |> Option.iter (should equal "John Doe")
-    scr.TryGet "fstriNG"   |> Option.iter (should equal "John Doe")
+    scr.TryGet "FSTRING" |> shouldBeSome (should equal "John Doe")
+    scr.TryGet "FString" |> shouldBeSome (should equal "John Doe")
+    scr.TryGet "fstriNG" |> shouldBeSome (should equal "John Doe")
 
     // arrays
-    scr.TryArrayString "FSTRING" |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
-    scr.TryArrayString "fString" |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
-    scr.TryArrayString "fstriNG" |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
+    scr.TryArrayString "FSTRING" |> should equal [|"John Doe";"Jane Doe"|]
+    scr.TryArrayString "fString" |> should equal [|"John Doe";"Jane Doe"|]
+    scr.TryArrayString "fstriNG" |> should equal [|"John Doe";"Jane Doe"|]
 
 [<Fact>] 
-let ``Inline StringCollectionReader from query collection should resolve primitives`` () =
+let ``Inline StringCollectionReader from form collection should resolve primitives`` () =
     let now = DateTime.Now.ToString()
     let offsetNow = DateTimeOffset.Now.ToString()
     let timespan = TimeSpan.FromSeconds(1.0).ToString()
@@ -59,40 +59,44 @@ let ``Inline StringCollectionReader from query collection should resolve primiti
      
     let values = 
         [ 
-            "fstring", [|"John Doe"; "Jane Doe"|] |> StringValues
-            "fint16", [|"16";"17"|] |> StringValues
-            "fint32", [|"32";"33"|] |> StringValues
-            "fint64", [|"64";"65"|] |> StringValues
-            "fbool", [|"true";"false"|] |> StringValues
-            "ffloat", [|"1.234";"1.235"|] |> StringValues
-            "fdecimal", [|"4.567";"4.568"|] |> StringValues
-            "fdatetime", [|now|] |> StringValues
-            "fdatetimeoffset", [|offsetNow|] |> StringValues
-            "ftimespan", [|timespan|] |> StringValues
-            "fguid", [|guid|] |> StringValues
+            "emptystring", [|""|]
+            "fstring", [|"John Doe"; "Jane Doe"|]
+            "fint16", [|"16";"17"|]
+            "fint32", [|"32";"33"|]
+            "fint64", [|"64";"65"|]
+            "fbool", [|"true";"false"|]
+            "ffloat", [|"1.234";"1.235"|]
+            "fdecimal", [|"4.567";"4.568"|]
+            "fdatetime", [|now|]
+            "fdatetimeoffset", [|offsetNow|]
+            "ftimespan", [|timespan|]
+            "fguid", [|guid|]
         ]
+        |> List.map (fun (k, v) -> k, v |> StringValues)
         |> Map.ofList
         |> fun m -> Dictionary(m)
 
-    let scr = QueryCollectionReader(QueryCollection(values))
 
+    let scr = FormCollectionReader(FormCollection(values), Some (FormFileCollection() :> IFormFileCollection))        
+    
     // single values
-    scr.TryGetString "fstring"                   |> Option.iter (should equal "John Doe")
-    scr.TryGetStringNonEmpty "fstring"           |> Option.iter (should equal "John Doe")
-    scr.TryGetInt16 "fint16"                     |> Option.iter (should equal 16s)
-    scr.TryGetInt32 "fint32"                     |> Option.iter (should equal 32)
-    scr.TryGetInt "fint32"                       |> Option.iter (should equal 32)
-    scr.TryGetInt64 "fint64"                     |> Option.iter (should equal 64L)
-    scr.TryGetBoolean "fbool"                    |> Option.iter (should equal true)
-    scr.TryGetFloat "ffloat"                     |> Option.iter (should equal 1.234)
-    scr.TryGetDecimal "fdecimal"                 |> Option.iter (should equal 4.567M)
-    scr.TryGetDateTime "fdatetime"               |> Option.iter (should equal (DateTime.Parse(now)))
-    scr.TryGetDateTimeOffset "fdatetimeoffset"   |> Option.iter (should equal (DateTimeOffset.Parse(offsetNow)))
-    scr.TryGetTimeSpan "ftimespan"               |> Option.iter (should equal (TimeSpan.Parse(timespan)))
-    scr.TryGetGuid "fguid"                       |> Option.iter (should equal (Guid.Parse(guid)))
+    scr.TryGetString "_fstring"                  |> shouldBeNone
+    scr.TryGetString "fstring"                   |> shouldBeSome (should equal "John Doe")
+    scr.TryGetStringNonEmpty "fstring"           |> shouldBeSome (should equal "John Doe")
+    scr.TryGetInt16 "fint16"                     |> shouldBeSome (should equal 16s)
+    scr.TryGetInt32 "fint32"                     |> shouldBeSome (should equal 32)
+    scr.TryGetInt "fint32"                       |> shouldBeSome (should equal 32)
+    scr.TryGetInt64 "fint64"                     |> shouldBeSome (should equal 64L)
+    scr.TryGetBoolean "fbool"                    |> shouldBeSome (should equal true)
+    scr.TryGetFloat "ffloat"                     |> shouldBeSome (should equal 1.234)
+    scr.TryGetDecimal "fdecimal"                 |> shouldBeSome (should equal 4.567M)
+    scr.TryGetDateTime "fdatetime"               |> shouldBeSome (should equal (DateTime.Parse(now)))
+    scr.TryGetDateTimeOffset "fdatetimeoffset"   |> shouldBeSome (should equal (DateTimeOffset.Parse(offsetNow)))
+    scr.TryGetTimeSpan "ftimespan"               |> shouldBeSome (should equal (TimeSpan.Parse(timespan)))
+    scr.TryGetGuid "fguid"                       |> shouldBeSome (should equal (Guid.Parse(guid)))
 
     scr.GetString "fstring" "default_value"                         |> should equal "John Doe"
-    scr.GetStringNonEmpty "fstring" "default_value"                 |> should equal "John Doe"
+    scr.GetStringNonEmpty "emptystring" "default_value"             |> should equal "default_value"
     scr.GetInt16 "fint16" -1s                                       |> should equal 16s
     scr.GetInt32 "fint32" -1                                        |> should equal 32
     scr.GetInt "fint32" -1                                          |> should equal 32
@@ -120,16 +124,16 @@ let ``Inline StringCollectionReader from query collection should resolve primiti
     scr.GetGuid "_fguid" Guid.Empty                             |> should equal  Guid.Empty                             
     
     // array values
-    scr.TryArrayString "_fstring"                |> Option.iter (should equal [||])
-    scr.TryArrayString "fstring"                 |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
-    scr.TryArrayInt16 "fint16"                   |> Option.iter (should equal [|16s;17s|])
-    scr.TryArrayInt32 "fint32"                   |> Option.iter (should equal [|32;33|])
-    scr.TryArrayInt "fint32"                     |> Option.iter (should equal [|32;33|])
-    scr.TryArrayInt64 "fint64"                   |> Option.iter (should equal [|64L;65L|])
-    scr.TryArrayBoolean "fbool"                  |> Option.iter (should equal [|true;false|])
-    scr.TryArrayFloat "ffloat"                   |> Option.iter (should equal [|1.234;1.235|])
-    scr.TryArrayDecimal "fdecimal"               |> Option.iter (should equal [|4.567M;4.568M|])
-    scr.TryArrayDateTime "fdatetime"             |> Option.iter (should equal [|DateTime.Parse(now)|])
-    scr.TryArrayDateTimeOffset "fdatetimeoffset" |> Option.iter (should equal [|DateTimeOffset.Parse(offsetNow)|])
-    scr.TryArrayTimeSpan "ftimespan"             |> Option.iter (should equal [|TimeSpan.Parse(timespan)|])
-    scr.TryArrayGuid "fguid"                     |> Option.iter (should equal [|Guid.Parse(guid)|])
+    scr.TryArrayString "_fstring"                |> should equal [||]
+    scr.TryArrayString "fstring"                 |> should equal [|"John Doe";"Jane Doe"|]
+    scr.TryArrayInt16 "fint16"                   |> should equal [|16s;17s|]
+    scr.TryArrayInt32 "fint32"                   |> should equal [|32;33|]
+    scr.TryArrayInt "fint32"                     |> should equal [|32;33|]
+    scr.TryArrayInt64 "fint64"                   |> should equal [|64L;65L|]
+    scr.TryArrayBoolean "fbool"                  |> should equal [|true;false|]
+    scr.TryArrayFloat "ffloat"                   |> should equal [|1.234;1.235|]
+    scr.TryArrayDecimal "fdecimal"               |> should equal [|4.567M;4.568M|]
+    scr.TryArrayDateTime "fdatetime"             |> should equal [|DateTime.Parse(now)|]
+    scr.TryArrayDateTimeOffset "fdatetimeoffset" |> should equal [|DateTimeOffset.Parse(offsetNow)|]
+    scr.TryArrayTimeSpan "ftimespan"             |> should equal [|TimeSpan.Parse(timespan)|]
+    scr.TryArrayGuid "fguid"                     |> should equal [|Guid.Parse(guid)|]

@@ -6,9 +6,20 @@ open System.IO
 open System.IO.Pipelines
 open System.Security.Claims
 open FSharp.Control.Tasks.V2.ContextInsensitive
+open FsUnit.Xunit
 open Microsoft.AspNetCore.Http
 open NSubstitute
 open System.Collections.Generic
+
+let shouldBeSome pred (option : Option<'a>) =    
+    match option with
+    | Some o -> pred o
+    | None   -> sprintf "Should not be None" |> should equal false
+
+let shouldBeNone (option : Option<'a>) =    
+    match option with
+    | Some o -> sprintf "Should not be Some" |> should equal false
+    | None   -> ()
 
 [<CLIMutable>]
 type FakeRecord = { Name : string }

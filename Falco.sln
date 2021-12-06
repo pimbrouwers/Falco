@@ -3,13 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{ADFAEB9E-1A6B-409C-B942-68C20F8713DC}"
-EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Falco", "src\Falco\Falco.fsproj", "{1FF347F1-A730-4B6F-8F43-7EBE58076EEA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{2BCDD04D-DD6A-4371-A30A-E0864EE00FF4}"
-EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Falco.Tests", "src\Falco.Tests\Falco.Tests.fsproj", "{C9F8A003-1FF1-4479-9E3A-418C383A88EE}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Falco.Tests", "test\Falco.Tests\Falco.Tests.fsproj", "{C9F8A003-1FF1-4479-9E3A-418C383A88EE}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "HelloWorld", "samples\HelloWorld\HelloWorld.fsproj", "{7294B896-8992-4A5B-AC3D-F149506F42FF}"
 EndProject
@@ -17,17 +13,15 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Blog", "samples\Blog\Blog.f
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Todo", "samples\Todo\Todo.fsproj", "{43CEC988-EBB3-4FBC-A596-D9AD2727B03E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EA4EBE21-2122-4FA2-849C-A5B113695BDA}"
-	ProjectSection(SolutionItems) = preProject
-		.travis.yml = .travis.yml
-		README.md = README.md
-	EndProjectSection
-EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ConfigureHost", "samples\ConfigureHost\ConfigureHost.fsproj", "{7441FAC2-C186-4015-AC3E-5658198CB8F3}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ScribanExample", "samples\ScribanExample\ScribanExample.fsproj", "{6C5D318D-1A9A-4002-A2C4-6275E9B9F62F}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "AuthExample", "samples\AuthExample\AuthExample.fsproj", "{03DCA821-AB4D-407B-8529-D8DFBA52DE34}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{B575A7C2-CA0D-4D16-A727-B74001BB10D1}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FormInputs", "samples\FormInputs\FormInputs.fsproj", "{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,21 +129,38 @@ Global
 		{03DCA821-AB4D-407B-8529-D8DFBA52DE34}.Release|x64.Build.0 = Release|Any CPU
 		{03DCA821-AB4D-407B-8529-D8DFBA52DE34}.Release|x86.ActiveCfg = Release|Any CPU
 		{03DCA821-AB4D-407B-8529-D8DFBA52DE34}.Release|x86.Build.0 = Release|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Debug|x64.Build.0 = Debug|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Debug|x86.Build.0 = Debug|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Release|x64.ActiveCfg = Release|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Release|x64.Build.0 = Release|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Release|x86.ActiveCfg = Release|Any CPU
+		{4861503E-DF83-406E-9584-145D0A732E3F}.Release|x86.Build.0 = Release|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Debug|x64.Build.0 = Debug|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Debug|x86.Build.0 = Debug|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Release|x64.ActiveCfg = Release|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Release|x64.Build.0 = Release|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Release|x86.ActiveCfg = Release|Any CPU
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{1FF347F1-A730-4B6F-8F43-7EBE58076EEA} = {ADFAEB9E-1A6B-409C-B942-68C20F8713DC}
-		{C9F8A003-1FF1-4479-9E3A-418C383A88EE} = {ADFAEB9E-1A6B-409C-B942-68C20F8713DC}
-		{7294B896-8992-4A5B-AC3D-F149506F42FF} = {2BCDD04D-DD6A-4371-A30A-E0864EE00FF4}
-		{77F0D7B3-554F-4406-AFA9-ECEDF163D998} = {2BCDD04D-DD6A-4371-A30A-E0864EE00FF4}
-		{43CEC988-EBB3-4FBC-A596-D9AD2727B03E} = {2BCDD04D-DD6A-4371-A30A-E0864EE00FF4}
-		{7441FAC2-C186-4015-AC3E-5658198CB8F3} = {2BCDD04D-DD6A-4371-A30A-E0864EE00FF4}
-		{6C5D318D-1A9A-4002-A2C4-6275E9B9F62F} = {2BCDD04D-DD6A-4371-A30A-E0864EE00FF4}
-		{03DCA821-AB4D-407B-8529-D8DFBA52DE34} = {2BCDD04D-DD6A-4371-A30A-E0864EE00FF4}
-	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6B5BA478-98F6-4F36-9804-0359C63B98BB}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D57149E3-DE04-4E9B-B3E5-8C5E59D3F9D7} = {B575A7C2-CA0D-4D16-A727-B74001BB10D1}
 	EndGlobalSection
 EndGlobal

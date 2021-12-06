@@ -30,11 +30,11 @@ type MultipartSection with
 
 type HttpRequest with     
     /// Determines if the content type contains multipart
-    member this.IsMultipart () : bool =
-        this.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
+    member x.IsMultipart () : bool =
+        x.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
 
     /// Attempt to stream the HttpRequest body into IFormCollection
-    member this.TryStreamFormAsync () : Task<Result<FormCollectionReader, string>> =      
+    member x.TryStreamFormAsync () : Task<Result<FormCollectionReader, string>> =      
         let getBoundary(request : HttpRequest) =
             // Content-Type: multipart/form-data; boundary="----WebKitFormBoundarymx2fSWqWSd0OxQqq"
             // The spec at https://tools.ietf.org/html/rfc2046#section-5.1 states that 70 characters is a reasonable limit.
@@ -63,7 +63,7 @@ type HttpRequest with
                     
                             let safeFileName = WebUtility.HtmlEncode cd.FileName.Value                                
                             let file = new FormFile(str, int64 0, str.Length, cd.Name.Value, safeFileName)
-                            file.Headers <- this.Headers
+                            file.Headers <- x.Headers
                             file.ContentType <- section.ContentType
                             file.ContentDisposition <- section.ContentDisposition                        
                     
@@ -83,13 +83,13 @@ type HttpRequest with
             }
     
         task {
-            let isMultipart = this.IsMultipart ()
-            let boundary = this |> getBoundary
+            let isMultipart = x.IsMultipart ()
+            let boundary = x |> getBoundary
 
             match isMultipart, boundary with 
             | true, Some boundary ->         
                 let formAcc = { FormData = new KeyValueAccumulator(); FormFiles = new FormFileCollection()  } 
-                let multipartReader = new MultipartReader(boundary, this.Body)
+                let multipartReader = new MultipartReader(boundary, x.Body)
 
                 let! form = streamForm formAcc multipartReader
                 let formCollection = FormCollection(form.FormData.GetResults(), form.FormFiles)
@@ -102,9 +102,9 @@ type HttpRequest with
         }
         
 
-    member this.StreamFormAsync() : Task<FormCollectionReader> = 
+    member x.StreamFormAsync() : Task<FormCollectionReader> = 
         task {
-            let! result = this.TryStreamFormAsync()
+            let! result = x.TryStreamFormAsync()
             let form = 
                 match result with
                 | Error _ -> FormCollectionReader(FormCollection.Empty, None)
