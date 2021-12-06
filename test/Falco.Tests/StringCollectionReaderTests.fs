@@ -120,6 +120,7 @@ let ``Inline StringCollectionReader from query collection should resolve primiti
     scr.GetGuid "_fguid" Guid.Empty                             |> should equal  Guid.Empty                             
     
     // array values
+    scr.TryArrayString "_fstring"                |> Option.iter (should equal [||])
     scr.TryArrayString "fstring"                 |> Option.iter (should equal [|"John Doe";"Jane Doe"|])
     scr.TryArrayInt16 "fint16"                   |> Option.iter (should equal [|16s;17s|])
     scr.TryArrayInt32 "fint32"                   |> Option.iter (should equal [|32;33|])

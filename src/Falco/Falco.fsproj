@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <AssemblyName>Falco</AssemblyName>
+    <Version>3.1.9</Version>
     
     <!-- General info -->
     <Description>A functional-first toolkit for building brilliant ASP.NET Core applications using F#.</Description>
-    <Copyright>Copyright 2020 Pim Brouwers</Copyright>
+    <Copyright>Copyright 2021 Pim Brouwers</Copyright>
     <Authors>Pim Brouwers and contributors</Authors>
     <NeutralLanguage>en-CA</NeutralLanguage>
         
@@ -19,8 +20,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     
     <!-- NuGet config -->
-    <PackageId>Falco</PackageId>
-    <PackageVersion>3.1.8</PackageVersion>
+    <PackageId>Falco</PackageId>    
     <PackageTags>fsharp;functional;asp.net core;asp.net;.net core;routing;view engine;web;falco;falco-sharp;</PackageTags>        
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -32,8 +32,7 @@
     <!-- SourceLink settings -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSymbols>true</IncludeSymbols>    
   </PropertyGroup>
    
   <ItemGroup>

@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.IO
 open System.Text
 open System.Text.Json
+open System.Text.Json.Serialization
 open System.Threading.Tasks
 open Falco
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -154,7 +155,7 @@ let ``Request.tryBindJsonOptions should return empty record `` () =
 
     task {
         let jsonOptions = JsonSerializerOptions()
-        jsonOptions.IgnoreNullValues <- true
+        jsonOptions.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
         jsonOptions.PropertyNameCaseInsensitive <- false
 
         let! boundRecord = Request.tryBindJsonOptions<FakeRecord> jsonOptions ctx

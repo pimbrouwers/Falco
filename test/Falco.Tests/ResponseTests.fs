@@ -2,6 +2,7 @@
 
 open System.Text
 open System.Text.Json
+open System.Text.Json.Serialization
 open Falco
 open Falco.Markup
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -68,7 +69,7 @@ let ``Response.redirect temporary should invoke HttpResponse Redirect with provi
 let ``Response.ofBinary produces valid inline result from Byte[]`` () =
     let ctx = getHttpContextWriteable false
     let expected = "falco"
-    let contentType = "text/plain; charset=utf-8"    
+    let contentType = "text/plain; charset=utf-8"
 
     task {
         do! ctx
@@ -79,7 +80,7 @@ let ``Response.ofBinary produces valid inline result from Byte[]`` () =
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
         let contentDisposition = ctx.Response.Headers.[HeaderNames.ContentDisposition]
 
-        body               |> should equal expected        
+        body               |> should equal expected
         contentType        |> should equal contentType
         contentDisposition |> should equal "inline"
     }
@@ -88,7 +89,7 @@ let ``Response.ofBinary produces valid inline result from Byte[]`` () =
 let ``Response.ofAttachment produces valid attachment result from Byte[]`` () =
     let ctx = getHttpContextWriteable false
     let expected = "falco"
-    let contentType = "text/plain; charset=utf-8"    
+    let contentType = "text/plain; charset=utf-8"
 
     task {
         do! ctx
@@ -99,7 +100,7 @@ let ``Response.ofAttachment produces valid attachment result from Byte[]`` () =
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
         let contentDisposition = ctx.Response.Headers.[HeaderNames.ContentDisposition]
 
-        body               |> should equal expected        
+        body               |> should equal expected
         contentType        |> should equal contentType
         contentDisposition |> should equal "attachment; filename=\"falco.txt\""
     }
@@ -150,7 +151,7 @@ let ``Response.ofJsonOptions produces applicaiton/json result ignoring nulls`` (
 
     task {
         let jsonOptions = JsonSerializerOptions()
-        jsonOptions.IgnoreNullValues <- true
+        jsonOptions.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
 
         do! ctx
             |> Response.ofJsonOptions jsonOptions { Name = null }

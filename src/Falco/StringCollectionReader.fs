@@ -220,15 +220,6 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
 type FormCollectionReader (form : IFormCollection, files : IFormFileCollection option) =
     inherit StringCollectionReader (form)
 
-    /// Safely retrieve the named checkbox input as a boolean value
-    member this.GetCheckbox (name : string) defaultValue = 
-        match this.TryGetStringNonEmpty name with
-        | None -> defaultValue
-        | Some x -> 
-            // IFormCollection posts "on"/"off" for checked/unchecked states
-            if String.Equals("on", x, StringComparison.OrdinalIgnoreCase) then true
-            else false
-
     /// The IFormFileCollection submitted in the request.
     ///
     /// Note: Only present if form enctype="multipart/form-data".

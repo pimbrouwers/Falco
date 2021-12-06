@@ -64,6 +64,12 @@ module StringParser =
     [<Theory>]
     [<InlineData("true", true)>]
     [<InlineData("false", false)>]
+    [<InlineData("on", true)>]
+    [<InlineData("off", false)>]
+    [<InlineData("yes", true)>]
+    [<InlineData("no", false)>]
+    [<InlineData("1", true)>]
+    [<InlineData("0", false)>]
     let ``parseBool should be some`` toParse result =
         toParse
         |> parseBoolean
