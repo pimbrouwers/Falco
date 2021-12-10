@@ -4,7 +4,9 @@ module Falco.Request
 open System
 open System.Text.Json
 open System.Threading.Tasks
-open FSharp.Control.Tasks
+#if NETCOREAPP3_1 || NET5_0
+    open FSharp.Control.Tasks
+#endif
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
 open Falco.Multipart
@@ -122,7 +124,11 @@ let tryBindJson<'a>
 let bindJson
     (handleOk : 'a -> HttpHandler)
     (handleError : string -> HttpHandler) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         let! json = tryBindJson ctx
         let respondWith =
             match json with
@@ -180,7 +186,11 @@ let bindCookie
 let validateCsrfToken
     (handleOk : HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         let! isValid = Xss.validateToken ctx
 
         let respondWith =
@@ -197,7 +207,11 @@ let bindForm
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
     (handleError : 'b -> HttpHandler) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         let! form = tryBindForm binder ctx
         let respondWith =
             match form with
@@ -214,7 +228,11 @@ let bindFormStream
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
     (handleError : 'b -> HttpHandler) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         let! form = tryBindFormStream binder ctx
         let respondWith =
             match form with
@@ -256,7 +274,11 @@ let bindFormStreamSecure
 /// Httphandler, throws exception if JsonException
 /// occurs during deserialization.
 let mapJson (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         let! json = tryBindJson ctx
         let respondWith =
             match json with
@@ -292,7 +314,11 @@ let mapCookie
 let mapForm
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         let! form = getForm ctx
         return! next (form |> map) ctx
     }
@@ -303,7 +329,11 @@ let mapForm
 let mapFormStream
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         let! form = streamForm ctx
         return! next (form |> map) ctx
     }
@@ -333,7 +363,11 @@ let mapFormStreamSecure
 /// Attempt to authenticate the current request using the provided
 /// scheme and pass AuthenticateResult into next HttpHandler
 let authenticate (scheme : string) (next : AuthenticateResult -> HttpHandler) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         let! auth = ctx.AuthenticateAsync(scheme)
         return! next auth ctx
     }

@@ -9,7 +9,9 @@ open System.Text.Json
 open System.Threading.Tasks
 open Falco.Markup
 open Falco.Security
-open FSharp.Control.Tasks
+#if NETCOREAPP3_1 || NET5_0
+    open FSharp.Control.Tasks
+#endif
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
@@ -148,7 +150,11 @@ let ofHtmlCsrf (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
 /// Returns an optioned "application/json; charset=utf-8" response with the serialized object provided to the client
 let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
     let jsonHandler : HttpHandler = fun ctx ->
+        #if NETCOREAPP3_1 || NET5_0
         unitTask {
+        #else
+        task {
+        #endif
             use str = new MemoryStream()
             do! JsonSerializer.SerializeAsync(str, obj, options = options)
             str.Flush ()
@@ -173,7 +179,11 @@ let signInAndRedirect
     (authScheme : string)
     (claimsPrincipal : ClaimsPrincipal)
     (url : string) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         do! Auth.signIn authScheme claimsPrincipal ctx
         do! redirect url false ctx
     }
@@ -183,7 +193,11 @@ let signInAndRedirect
 let signOutAndRedirect
     (authScheme : string)
     (url : string) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
     unitTask {
+    #else
+    task {
+    #endif
         do! Auth.signOut authScheme ctx
         do! redirect url false ctx
     }

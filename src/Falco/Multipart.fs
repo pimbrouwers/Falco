@@ -4,7 +4,9 @@ open System
 open System.IO
 open System.Net
 open System.Threading.Tasks
-open FSharp.Control.Tasks
+#if NETCOREAPP3_1 || NET5_0
+    open FSharp.Control.Tasks
+#endif
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.WebUtilities
 open Microsoft.Extensions.Primitives
