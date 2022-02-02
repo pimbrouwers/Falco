@@ -4,19 +4,24 @@ module Falco.Tests.Common
 open System
 open System.IO
 open System.IO.Pipelines
+open System.Runtime.InteropServices
 open System.Security.Claims
+open System.Threading.Tasks
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
+open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Net.Http.Headers
 open NSubstitute
 open System.Collections.Generic
 
-let shouldBeSome pred (option : Option<'a>) =    
+let shouldBeSome pred (option : Option<'a>) =
     match option with
     | Some o -> pred o
     | None   -> sprintf "Should not be None" |> should equal false
 
-let shouldBeNone (option : Option<'a>) =    
+let shouldBeNone (option : Option<'a>) =
     match option with
     | Some o -> sprintf "Should not be Some" |> should equal false
     | None   -> ()
@@ -31,6 +36,26 @@ let getResponseBody (ctx : HttpContext) =
         return! reader.ReadToEndAsync()
     }
 
+open type HeaderNames
+[<Literal>]
+let AuthScheme = "Testing"
+
+type TestingHandlerOptions() =
+  inherit AuthenticationSchemeOptions()
+
+type TestingHandler(options, logger, encoder, clock) =
+  inherit AuthenticationHandler<TestingHandlerOptions>(options, logger, encoder, clock)
+
+  override _.HandleAuthenticateAsync() =
+      Task.FromResult(AuthenticateResult.NoResult())
+
+  override me.HandleChallengeAsync(properties) =
+      me.Context.Response.StatusCode <- 401
+      me.Context.Response.Headers.SetCommaSeparatedValues(WWWAuthenticate, AuthScheme)
+      me.Context.Response.Headers.Add(Location, properties.RedirectUri)
+      Task.CompletedTask
+
+
 let getHttpContextWriteable (authenticated : bool) =
     let req = Substitute.For<HttpRequest>()
     req.Headers.Returns(Substitute.For<HeaderDictionary>()) |> ignore
@@ -42,7 +67,13 @@ let getHttpContextWriteable (authenticated : bool) =
     resp.Body <- respBody
     resp.StatusCode <- 200
 
-    let services = Substitute.For<IServiceProvider>()
+    let services = ServiceCollection()
+    services
+        .AddLogging()
+        .AddAuthentication()
+        .AddScheme<TestingHandlerOptions, TestingHandler>(AuthScheme, ignore)
+        |> ignore
+    let provider = services.BuildServiceProvider()
 
     let identity = Substitute.For<ClaimsIdentity>()
     identity.IsAuthenticated.Returns(authenticated) |> ignore
@@ -53,7 +84,7 @@ let getHttpContextWriteable (authenticated : bool) =
     let ctx = Substitute.For<HttpContext>()
     ctx.Request.Returns(req) |> ignore
     ctx.Response.Returns(resp) |> ignore
-    ctx.RequestServices.Returns(services) |> ignore
+    ctx.RequestServices.Returns(provider) |> ignore
     ctx.User.Returns(user) |> ignore
 
     ctx

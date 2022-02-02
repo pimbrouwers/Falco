@@ -13,6 +13,7 @@ open Falco.Security
     open FSharp.Control.Tasks
 #endif
 open Microsoft.AspNetCore.Antiforgery
+open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
@@ -79,9 +80,9 @@ let private writeBytes (bytes : byte[]) (ctx : HttpContext) =
 
 /// Write UTF8 string to HttpResponse body
 let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : HttpContext) =
-    if isNull httpBodyStr then 
+    if isNull httpBodyStr then
         writeBytes [||] ctx
-    else 
+    else
         let httpBodyBytes = encoding.GetBytes httpBodyStr
         writeBytes httpBodyBytes ctx
 
@@ -173,8 +174,7 @@ let ofJson (obj : 'a) : HttpHandler =
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Constants.defaultJsonOptions obj
 
-
-/// Sign in claim principal for provided scheme, and responsd with a 301 redirect to provided URL
+/// Sign in claim principal for provided scheme, and respond with a 301 redirect to provided URL
 let signInAndRedirect
     (authScheme : string)
     (claimsPrincipal : ClaimsPrincipal)
@@ -188,7 +188,6 @@ let signInAndRedirect
         do! redirect url false ctx
     }
 
-
 /// Terminates authenticated context for provided scheme, and respond with a 301 redirect to provided URL
 let signOutAndRedirect
     (authScheme : string)
@@ -200,4 +199,19 @@ let signOutAndRedirect
     #endif
         do! Auth.signOut authScheme ctx
         do! redirect url false ctx
+    }
+
+/// Challenge the specified authentication scheme.
+/// An authentication challenge can be issued when an unauthenticated user requests an endpoint that requires authentication.
+/// Then given redirectUri is forwarded to the authentication handler for use after authentication succeeds.
+let challengeWithRedirect
+    (authScheme : string)
+    (redirectUri : string) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
+    unitTask {
+    #else
+    task {
+    #endif
+        let properties = AuthenticationProperties(RedirectUri = redirectUri)
+        do! Auth.challenge authScheme properties ctx
     }
