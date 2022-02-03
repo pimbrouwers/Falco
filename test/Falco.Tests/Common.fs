@@ -4,7 +4,6 @@ module Falco.Tests.Common
 open System
 open System.IO
 open System.IO.Pipelines
-open System.Runtime.InteropServices
 open System.Security.Claims
 open System.Threading.Tasks
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -15,6 +14,8 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Net.Http.Headers
 open NSubstitute
 open System.Collections.Generic
+
+open type HeaderNames
 
 let shouldBeSome pred (option : Option<'a>) =
     match option with
@@ -36,7 +37,7 @@ let getResponseBody (ctx : HttpContext) =
         return! reader.ReadToEndAsync()
     }
 
-open type HeaderNames
+
 [<Literal>]
 let AuthScheme = "Testing"
 
