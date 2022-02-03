@@ -7,6 +7,7 @@ open Falco
 open Falco.Markup
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
+open Microsoft.AspNetCore.Authentication
 open Microsoft.Net.Http.Headers
 open NSubstitute
 open Xunit
@@ -208,4 +209,21 @@ let ``Response.ofHtmlString produces text/html result`` () =
         body          |> should equal expected
         contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
         contentType   |> should equal "text/html; charset=utf-8"
+    }
+
+
+[<Fact>]
+let ``Are you looking for a CHALLENGE?!`` () =
+    let ctx = getHttpContextWriteable false
+
+    task {
+        do! ctx
+            |> Response.challengeWithRedirect AuthScheme "/"
+        //NOTE this assertions are a bit dodgy...
+        // they are based on implicit knowledge of the registered authentication handler
+        // _but_
+        // they are enough to conclude that the correct auth handler was asked to challenge
+        ctx.Response.StatusCode |> should equal 401
+        ctx.Response.Headers.WWWAuthenticate.ToArray() |> should contain AuthScheme
+        ctx.Response.Headers.Location.ToArray() |> should contain "/"
     }

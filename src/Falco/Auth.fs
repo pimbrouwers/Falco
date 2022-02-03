@@ -88,3 +88,12 @@ let signOut
     (authScheme : string)
     (ctx : HttpContext) : Task =
     ctx.SignOutAsync(authScheme)
+
+/// Challenge the specified authentication scheme.
+/// An authentication challenge can be issued when an unauthenticated user requests an endpoint that requires authentication.
+/// Additional context may be provided via the given authentication properties.
+let challenge
+    (authScheme : string)
+    (properties : AuthenticationProperties)
+    (ctx : HttpContext) : Task =
+    ctx.ChallengeAsync(authScheme, properties)
