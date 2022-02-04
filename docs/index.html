@@ -72,12 +72,6 @@ pre { overflow-x: auto; overflow-wrap: normal; white-space: pre; font-size: .875
 code { vertical-align: middle; font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; background-color: var(--washed-purple); }
 pre > code { background-color: inherit; }
 h2 > code, h3 > code, p > code { padding: 0 .25rem; }
-
-@media screen and (min-width: 640px) {      
-  main { font-size: 1.125em; }  
-  code[class*="language-"], pre[class*="language-"] { font-size: 1rem; }
-} 
-
 </style>
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script>
@@ -194,9 +188,9 @@ webHost [||] {
 </ul>
 <h2 id="design-goals">Design Goals</h2>
 <ul>
-<li>Aim to be very small and easily learnable.</li>
+<li>Provide a toolset to build a working full-stack web application.</li>
+<li>Can be easily learned.</li>
 <li>Should be extensible.</li>
-<li>Should provide a toolset to build a working end-to-end web application.</li>
 </ul>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ol>
@@ -290,7 +284,7 @@ let main args =
 </code></pre>
 <h3 id="html-responses">HTML responses</h3>
 <pre><code class="language-fsharp">let htmlHandler : HttpHandler =
-    let doc =
+    let html =
         Elem.html [ Attr.lang &quot;en&quot; ] [
             Elem.head [] []
             Elem.body [] [
@@ -298,15 +292,11 @@ let main args =
             ]
         ]
 
-    doc
-    |&gt; Response.ofHtml
+    Response.ofHtml html
 </code></pre>
 <p>Alternatively, if you're using an external view engine and want to return an HTML response from a string literal, then you can use <code>Response.ofHtmlString</code>.</p>
 <pre><code class="language-fsharp">let htmlHandler : HttpHandler = 
-    let html = &quot;&lt;html&gt;...&lt;/html&gt;&quot;
-
-    html
-    |&gt; Response.ofHtmlString
+    Response.ofHtmlString &quot;&lt;html&gt;...&lt;/html&gt;&quot;
 </code></pre>
 <h3 id="json-responses">JSON responses</h3>
 <blockquote>
@@ -317,8 +307,8 @@ let main args =
       Last  : string }
 
 let jsonHandler : HttpHandler =
-    { First = &quot;John&quot;; Last = &quot;Doe&quot; }
-    |&gt; Response.ofJson
+    let name = { First = &quot;John&quot;; Last = &quot;Doe&quot; }
+    Response.ofJson name
 </code></pre>
 <h3 id="redirect-301302-response">Redirect (301/302) Response</h3>
 <pre><code class="language-fsharp">let oldUrlHandler : HttpHandler =
@@ -331,31 +321,31 @@ let jsonHandler : HttpHandler =
 <p>Falco exposes a <a href="#model-binding">uniform API</a> to obtain typed values from the various sources of request data. Note, the similarity in the various binders below.</p>
 <h3 id="route-collection">Route Collection</h3>
 <pre><code class="language-fsharp">let helloHandler : HttpHandler =
-    let routeBinder (route : RouteCollectionReader) =
+    let routeMap (route : RouteCollectionReader) =
         let name = route.GetString &quot;name&quot; &quot;World&quot; 
         sprintf &quot;Hello %s&quot; name
         
-    Request.mapRoute routeBinder Response.ofPlainText
+    Request.mapRoute routeMap Response.ofPlainText
 </code></pre>
 <h3 id="query-parameters">Query Parameters</h3>
 <pre><code class="language-fsharp">let helloHandler : HttpHandler =
-    let queryBinder (query : QueryCollectionReader) =
+    let queryMap (query : QueryCollectionReader) =
         let name = query.GetString &quot;name&quot; &quot;World&quot; 
         sprintf &quot;Hello %s&quot; name
         
-    Request.mapQuery queryBinder Response.ofPlainText
+    Request.mapQuery queryMap Response.ofPlainText
 </code></pre>
 <h3 id="form-data">Form Data</h3>
 <pre><code class="language-fsharp">let helloHandler : HttpHandler =
-    let formBinder (query : FormCollectionReader) =
+    let formMap (query : FormCollectionReader) =
         let name = query.GetString &quot;name&quot; &quot;World&quot; 
         sprintf &quot;Hello %s&quot; name
         
-    Request.mapForm formBinder Response.ofPlainText
+    Request.mapForm formMap Response.ofPlainText
 </code></pre>
 <p>To prevent XSS attacks it is often advisable to use a <a href="#security">CSRF token</a> during form submissions. In these situations, you'll want to validate the token before processing the form input using the <code>Request.mapFormSecure</code> (or <code>Request.bindFormSecure</code>). These functions will automatically validate the token for you before consuming input.</p>
 <pre><code class="language-fsharp">let secureHelloHandler : HttpHandler =
-    let formBinder (query : FormCollectionReader) =
+    let formMap (query : FormCollectionReader) =
         let name = query.GetString &quot;name&quot; &quot;World&quot; 
         sprintf &quot;Hello %s&quot; name
 
@@ -363,7 +353,7 @@ let jsonHandler : HttpHandler =
         Response.withStatusCode 403
         &gt;&gt; Resposne.ofEmpty
         
-    Request.mapFormSecure formBinder Response.ofPlainText invalidTokenHandler
+    Request.mapFormSecure formMap Response.ofPlainText invalidTokenHandler
 </code></pre>
 <h2 id="response-modifiers">Response Modifiers</h2>
 <p>Response modifiers can be thought of as the in-and-out modification of the <code>HttpResponse</code>. A preamble to writing and returning. Since these functions receive the <code>Httpcontext</code> as input and return it as the only output, they can take advantage of <a href="22">function compoistion</a>.</p>
@@ -406,17 +396,15 @@ let endpoints : HttpEndpoint list =
 
     // multi-method endpoint
     all &quot;/login&quot;
-        [
-            POST, loginSubmitHandler
-            GET,  loginHandler
-        ]
+        [ POST, loginSubmitHandler
+          GET,  loginHandler ]
   ]
 </code></pre>
 <h2 id="model-binding">Model Binding</h2>
 <p>Reflection-based approaches to binding at IO boundaries work well for simple use cases. But as the complexity of the input rises it becomes error-prone and often involves tedious workarounds. This is especially true for an expressive, algebraic type system like F#. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for <code>[&lt;CLIMutable&gt;]</code> attributes.</p>
 <p>We can make this simpler by creating a succinct API to obtain typed values from <code>IFormCollection</code>, <code>IQueryCollection</code>, <code>RouteValueDictionary</code> and <code>IHeaderCollection</code>. <em>Readers</em> for all four exist as derivatives of <code>StringCollectionReader</code> which is an abstraction intended to make it easier to work with the string-based key/value collections.</p>
 <p>The built-in model binding handlers come in two flavors, both of which are continuation-style handlers:</p>
-<ol>
+<ul>
 <li><p><code>Request.mapXXX</code></p>
 <ul>
 <li>Signature: <code>(map: XXXCollectionReader -&gt; 'a) (next : 'a -&gt; HttpHandler) -&gt; HttpHandler</code></li>
@@ -429,7 +417,7 @@ let endpoints : HttpEndpoint list =
 <li>The &quot;bind&quot; family of handlers are useful when you explicitly want to indicate errors during binding and return a different response when they occur.</li>
 </ul>
 </li>
-</ol>
+</ul>
 <h3 id="route-binding">Route Binding</h3>
 <pre><code class="language-fsharp">let mapRouteHandler : HttpHandler =
     let routeMap (r : RouteCollectionReader) = 
@@ -448,12 +436,11 @@ let bindRouteHandler : HttpHandler =
 
     Request.bindRoute routeBind handleOk handleError
 
-let manualRouteHandler : HttpHandler =
-    fun ctx -&gt;
-        let r : RouteCollectionReader = Request.getRoute ctx
-        let name = r.GetString &quot;Name&quot; &quot;John Doe&quot;  
+let manualRouteHandler : HttpHandler = fun ctx -&gt;
+    let r : RouteCollectionReader = Request.getRoute ctx
+    let name = r.GetString &quot;Name&quot; &quot;John Doe&quot;  
 
-        Response.ofJson name ctx
+    Response.ofJson name ctx
 </code></pre>
 <h3 id="query-binding">Query Binding</h3>
 <pre><code class="language-fsharp">type Person = { FirstName : string; LastName : string }
@@ -477,15 +464,14 @@ let bindQueryHandler : HttpHandler =
 
     Request.bindQuery queryBind handleOk handleError 
 
-let manualQueryHandler : HttpHandler =
-    fun ctx -&gt;
-        let q : QueryCollectionReader = Request.getQuery ctx
-        
-        let person = 
-            { FirstName = q.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
-              LastName  = q.GetString &quot;LastName&quot; &quot;Doe&quot; }
+let manualQueryHandler : HttpHandler = fun ctx -&gt;
+    let q : QueryCollectionReader = Request.getQuery ctx
+    
+    let person = 
+        { FirstName = q.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+          LastName  = q.GetString &quot;LastName&quot; &quot;Doe&quot; }
 
-        Response.ofJson person ctx
+    Response.ofJson person ctx
 </code></pre>
 <h3 id="form-binding">Form Binding</h3>
 <p>The <code>FormCollectionReader</code> has full access to the <code>IFormFilesCollection</code> via the <code>_.Files</code> member.</p>
@@ -537,16 +523,15 @@ let bindFormSecureHandler : HttpHandler =
 
     Request.bindFormSecure formBind handleOk handleError handleInvalidCsrf
 
-let manualFormHandler : HttpHandler =
-    fun ctx -&gt; task {
-        let! f : FormCollectionReader = Request.getForm ctx
-        
-        let person = 
-            { FirstName = f.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
-              LastName = f.GetString &quot;LastName&quot; &quot;Doe&quot; }
+let manualFormHandler : HttpHandler = fun ctx -&gt; task {
+    let! f : FormCollectionReader = Request.getForm ctx
+    
+    let person = 
+        { FirstName = f.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value
+          LastName = f.GetString &quot;LastName&quot; &quot;Doe&quot; }
 
-        return! Response.ofJson person ctx
-    }        
+    return! Response.ofJson person ctx
+}        
 </code></pre>
 <h4 id="multipartform-data-binding"><code>multipart/form-data</code> Binding</h4>
 <p>Microsoft defines <a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-3.1#upload-large-files-with-streaming" title="Large file uploads">large uploads</a> as anything <strong>&gt; 64KB</strong>, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.</p>
@@ -848,7 +833,7 @@ let hashedPassword = password |&gt; Crypto.sha256 iterations 32 salt
 </div>
 <!-- /body/footer -->
 <footer class="tc ph3 pv4"> 
-  <div class="f6 white-90">&copy; 2020-2021 Pim Brouwers</div>
+  <div class="f6 white-90">&copy; 2020-2022 Pim Brouwers</div>
 </footer>
 <!-- /body/script -->
 <script src="/prism.js"></script>

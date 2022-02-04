@@ -59,7 +59,7 @@ Invoke-Template {
   
     $topHtmlContent = Render-Template $pageHeading
 
-    Render-Template $layout 
+    Render-Template $layout
     | Out-File -Path (Join-Path -Path $outputDir -ChildPath "404.html")
     | Write-Verbose
 }
