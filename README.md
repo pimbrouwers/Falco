@@ -33,9 +33,9 @@ webHost [||] {
 
 ## Design Goals
 
-- Aim to be very small and easily learnable.
+- Provide a toolset to build a working full-stack web application.
+- Can be easily learned.
 - Should be extensible.
-- Should provide a toolset to build a working end-to-end web application.
 
 ## Table of Contents
 
@@ -139,7 +139,7 @@ let textHandler : HttpHandler =
 
 ```fsharp
 let htmlHandler : HttpHandler =
-    let doc =
+    let html =
         Elem.html [ Attr.lang "en" ] [
             Elem.head [] []
             Elem.body [] [
@@ -147,18 +147,14 @@ let htmlHandler : HttpHandler =
             ]
         ]
 
-    doc
-    |> Response.ofHtml
+    Response.ofHtml html
 ```
 
 Alternatively, if you're using an external view engine and want to return an HTML response from a string literal, then you can use `Response.ofHtmlString`.
 
 ```fsharp
 let htmlHandler : HttpHandler = 
-    let html = "<html>...</html>"
-
-    html
-    |> Response.ofHtmlString
+    Response.ofHtmlString "<html>...</html>"
 ```
 
 ### JSON responses
@@ -171,8 +167,8 @@ type Person =
       Last  : string }
 
 let jsonHandler : HttpHandler =
-    { First = "John"; Last = "Doe" }
-    |> Response.ofJson
+    let name = { First = "John"; Last = "Doe" }
+    Response.ofJson name
 ```
 
 ### Redirect (301/302) Response
@@ -192,40 +188,40 @@ Falco exposes a [uniform API](#model-binding) to obtain typed values from the va
 
 ```fsharp
 let helloHandler : HttpHandler =
-    let routeBinder (route : RouteCollectionReader) =
+    let routeMap (route : RouteCollectionReader) =
         let name = route.GetString "name" "World" 
         sprintf "Hello %s" name
         
-    Request.mapRoute routeBinder Response.ofPlainText
+    Request.mapRoute routeMap Response.ofPlainText
 ```
 
 ### Query Parameters
 
 ```fsharp
 let helloHandler : HttpHandler =
-    let queryBinder (query : QueryCollectionReader) =
+    let queryMap (query : QueryCollectionReader) =
         let name = query.GetString "name" "World" 
         sprintf "Hello %s" name
         
-    Request.mapQuery queryBinder Response.ofPlainText
+    Request.mapQuery queryMap Response.ofPlainText
 ```
 
 ### Form Data
 
 ```fsharp
 let helloHandler : HttpHandler =
-    let formBinder (query : FormCollectionReader) =
+    let formMap (query : FormCollectionReader) =
         let name = query.GetString "name" "World" 
         sprintf "Hello %s" name
         
-    Request.mapForm formBinder Response.ofPlainText
+    Request.mapForm formMap Response.ofPlainText
 ```
 
 To prevent XSS attacks it is often advisable to use a [CSRF token](#security) during form submissions. In these situations, you'll want to validate the token before processing the form input using the `Request.mapFormSecure` (or `Request.bindFormSecure`). These functions will automatically validate the token for you before consuming input.
 
 ```fsharp
 let secureHelloHandler : HttpHandler =
-    let formBinder (query : FormCollectionReader) =
+    let formMap (query : FormCollectionReader) =
         let name = query.GetString "name" "World" 
         sprintf "Hello %s" name
 
@@ -233,7 +229,7 @@ let secureHelloHandler : HttpHandler =
         Response.withStatusCode 403
         >> Resposne.ofEmpty
         
-    Request.mapFormSecure formBinder Response.ofPlainText invalidTokenHandler
+    Request.mapFormSecure formMap Response.ofPlainText invalidTokenHandler
 ```
 
 ## Response Modifiers
@@ -292,10 +288,8 @@ let endpoints : HttpEndpoint list =
 
     // multi-method endpoint
     all "/login"
-        [
-            POST, loginSubmitHandler
-            GET,  loginHandler
-        ]
+        [ POST, loginSubmitHandler
+          GET,  loginHandler ]
   ]
 ```
 
@@ -307,11 +301,11 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 
 The built-in model binding handlers come in two flavors, both of which are continuation-style handlers:
 
-1. `Request.mapXXX` 
+- `Request.mapXXX` 
     - Signature: `(map: XXXCollectionReader -> 'a) (next : 'a -> HttpHandler) -> HttpHandler`
     - The "map" family of handlers are more commonly used and assume that binding will always succeed in one manner or another, either via default values or `Option<T>`.
 
-2. `Request.bindXXX`
+- `Request.bindXXX`
     - Signature: `(bind: XXXCollectionReader -> Result<'a, 'b>) (handleOk : 'a -> HttpHandler) -> (handleError : 'b -> HttpHandler) -> HttpHandler`
     - The "bind" family of handlers are useful when you explicitly want to indicate errors during binding and return a different response when they occur.
 
@@ -335,12 +329,11 @@ let bindRouteHandler : HttpHandler =
 
     Request.bindRoute routeBind handleOk handleError
 
-let manualRouteHandler : HttpHandler =
-    fun ctx ->
-        let r : RouteCollectionReader = Request.getRoute ctx
-        let name = r.GetString "Name" "John Doe"  
+let manualRouteHandler : HttpHandler = fun ctx ->
+    let r : RouteCollectionReader = Request.getRoute ctx
+    let name = r.GetString "Name" "John Doe"  
 
-        Response.ofJson name ctx
+    Response.ofJson name ctx
 ```
 
 ### Query Binding
@@ -367,15 +360,14 @@ let bindQueryHandler : HttpHandler =
 
     Request.bindQuery queryBind handleOk handleError 
 
-let manualQueryHandler : HttpHandler =
-    fun ctx ->
-        let q : QueryCollectionReader = Request.getQuery ctx
-        
-        let person = 
-            { FirstName = q.GetString "FirstName" "John" // Get value or return default value
-              LastName  = q.GetString "LastName" "Doe" }
+let manualQueryHandler : HttpHandler = fun ctx ->
+    let q : QueryCollectionReader = Request.getQuery ctx
+    
+    let person = 
+        { FirstName = q.GetString "FirstName" "John" // Get value or return default value
+          LastName  = q.GetString "LastName" "Doe" }
 
-        Response.ofJson person ctx
+    Response.ofJson person ctx
 ```
 
 ### Form Binding
@@ -430,16 +422,15 @@ let bindFormSecureHandler : HttpHandler =
 
     Request.bindFormSecure formBind handleOk handleError handleInvalidCsrf
 
-let manualFormHandler : HttpHandler =
-    fun ctx -> task {
-        let! f : FormCollectionReader = Request.getForm ctx
-        
-        let person = 
-            { FirstName = f.GetString "FirstName" "John" // Get value or return default value
-              LastName = f.GetString "LastName" "Doe" }
+let manualFormHandler : HttpHandler = fun ctx -> task {
+    let! f : FormCollectionReader = Request.getForm ctx
+    
+    let person = 
+        { FirstName = f.GetString "FirstName" "John" // Get value or return default value
+          LastName = f.GetString "LastName" "Doe" }
 
-        return! Response.ofJson person ctx
-    }        
+    return! Response.ofJson person ctx
+}        
 ```
 
 #### `multipart/form-data` Binding 
