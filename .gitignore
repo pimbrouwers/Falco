@@ -350,3 +350,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 .DS_Store
+
+# Rider (JetBrain's cross-platform .NET IDE) working folder
+.idea/
