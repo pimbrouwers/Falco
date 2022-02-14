@@ -474,6 +474,9 @@ module Attr =
 
     /// HTML Attribute "colspan"
     let colspan v = create "colspan" v
+    
+    /// HTML Attribute "open"
+    let open' = createBool "open"
 
 module Templates =
     /// HTML 5 template with customizable <head> and <body>
