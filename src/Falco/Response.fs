@@ -158,7 +158,6 @@ let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
         #endif
             use str = new MemoryStream()
             do! JsonSerializer.SerializeAsync(str, obj, options = options)
-            str.Flush ()
             let bytes = str.ToArray ()
             let byteLen = bytes.Length
             ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
