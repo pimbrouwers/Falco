@@ -92,7 +92,7 @@ let ``Auth.getClaimValue returns none claim if does not exist`` () =
     claim.IsNone |> should equal true
 
 [<Fact>]
-let ``Auth.hasSCope should return true if scope claim from issuer is found and has specific value`` () =
+let ``Auth.hasScope should return true if scope claim from issuer is found and has specific value`` () =
     let ctx = getHttpContextWriteable true
     let claims = [
         Claim("sub", "123", "str", "issuer1");
@@ -104,7 +104,7 @@ let ``Auth.hasSCope should return true if scope claim from issuer is found and h
     |> should equal true
 
 [<Fact>]
-let ``Auth.hasSCope should return false if no claim from issuer is found`` () =
+let ``Auth.hasScope should return false if no claim from issuer is found`` () =
     let ctx = getHttpContextWriteable true
     let claims = [
         Claim("sub", "123", "str", "issuer1");
@@ -116,7 +116,7 @@ let ``Auth.hasSCope should return false if no claim from issuer is found`` () =
     |> should equal false
 
 [<Fact>]
-let ``Auth.hasSCope should return false if scope claim from issuer is not found`` () =
+let ``Auth.hasScope should return false if scope claim from issuer is not found`` () =
     let ctx = getHttpContextWriteable true
     let claims = [
         Claim("sub", "123", "str", "issuer1");
@@ -128,7 +128,7 @@ let ``Auth.hasSCope should return false if scope claim from issuer is not found`
     |> should equal false
 
 [<Fact>]
-let ``Auth.hasSCope should return false if scope claim from issuer has not specific value`` () =
+let ``Auth.hasScope should return false if scope claim from issuer has not specific value`` () =
     let ctx = getHttpContextWriteable true
     let claims = [
         Claim("sub", "123", "str", "issuer1");
