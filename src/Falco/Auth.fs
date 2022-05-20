@@ -83,6 +83,14 @@ let signIn
     (ctx : HttpContext) : Task =
     ctx.SignInAsync(authScheme, claimsPrincipal)
 
+/// Establish an authenticated context for the provide scheme, options and principal
+let signInOptions
+    (authScheme : string)
+    (claimsPrincipal : ClaimsPrincipal)
+    (options : AuthenticationProperties)
+    (ctx : HttpContext) : Task =
+    ctx.SignInAsync(authScheme, claimsPrincipal, options)
+
 /// Terminate authenticated context for provided scheme
 let signOut
     (authScheme : string)

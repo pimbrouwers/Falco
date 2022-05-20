@@ -174,7 +174,7 @@ let ofJson (obj : 'a) : HttpHandler =
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Constants.defaultJsonOptions obj
 
-/// Sign in claim principal for provided scheme, and respond with a 301 redirect to provided URL
+/// Sign in claim principal for provided scheme then respond with a 301 redirect to provided URL
 let signInAndRedirect
     (authScheme : string)
     (claimsPrincipal : ClaimsPrincipal)
@@ -188,7 +188,22 @@ let signInAndRedirect
         do! redirect url false ctx
     }
 
-/// Terminates authenticated context for provided scheme, and respond with a 301 redirect to provided URL
+/// Sign in claim principal for provided scheme and options then respond with a 301 redirect to provided URL
+let signInOptionsAndRedirect
+    (authScheme : string)
+    (claimsPrincipal : ClaimsPrincipal)
+    (options : AuthenticationProperties)
+    (url : string) : HttpHandler = fun ctx ->
+    #if NETCOREAPP3_1 || NET5_0
+    unitTask {
+    #else
+    task {
+    #endif
+        do! Auth.signInOptions authScheme claimsPrincipal options ctx
+        do! redirect url false ctx
+    }
+
+/// Terminates authenticated context for provided scheme then respond with a 301 redirect to provided URL
 let signOutAndRedirect
     (authScheme : string)
     (url : string) : HttpHandler = fun ctx ->
