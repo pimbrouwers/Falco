@@ -352,8 +352,8 @@ module Attr =
             | None   -> NonValueAttr(g)
             | Some v -> KeyValueAttr(g, v))
 
-   /// HTML Attribute "http-equiv"
-    let httpEquiv v = create "http-equip" v
+    /// HTML Attribute "http-equiv"
+    let httpEquiv v = create "http-equiv" v
 
     /// HTML Attribute "lang"
     let lang v = create "lang" v
@@ -474,7 +474,7 @@ module Attr =
 
     /// HTML Attribute "colspan"
     let colspan v = create "colspan" v
-    
+
     /// HTML Attribute "open"
     let open' = createBool "open"
 
