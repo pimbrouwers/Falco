@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Falco\Falco.fsproj" />
+    <ProjectReference Include="..\src\Falco.Markup\Falco.Markup.fsproj" />
   </ItemGroup>
 
 </Project>
