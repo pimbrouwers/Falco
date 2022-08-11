@@ -408,16 +408,12 @@ let jsonHandler : HttpHandler =
     { FirstName = "John"; LastName = "Doe" }
     |> Response.ofJson
 
-let jsonBindHandler : HttpHandler =    
+let mapJsonHandler : HttpHandler =    
     let handleOk person : HttpHandler = 
         let message = sprintf "hello %s %s" person.First person.Last
         Response.ofPlainText message
 
-    let handleError error : HttpHandler = 
-        let message = sprintf "Invalid JSON: %s" error
-        Response.withStatusCode 400 >> Response.ofPlainText message
-
-    Request.mapJson handleOk handleError
+    Request.mapJson handleOk
 ```
 
 ## Markup
