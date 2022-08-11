@@ -72,13 +72,9 @@ module Controller =
                     |> Response.ofHtml
 
             let respondWith =
-                Request.bindRoute 
-                    (fun route -> 
-                        match route.TryGet "slug" with
-                        | None      -> Error None
-                        | Some slug -> Ok slug)
-                    handlePost
-                    handleNotFound                       
+                Request.mapRoute 
+                    (fun route -> route.GetStringNonEmpty "slug" "")
+                    handlePost              
 
             respondWith ctx
                         

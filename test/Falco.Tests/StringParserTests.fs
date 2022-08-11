@@ -177,4 +177,24 @@ module StringParser =
         |> parseGuid
         |> should equal None
 
+    [<Fact>]
+    let ``tryParsreArray should work for complete list`` () =
+        tryParseArray parseNonEmptyString [|"1";"2";"3"|]
+        |> should equal [|"1";"2";"3"|]
+    
+        tryParseArray parseInt [|"1";"2";"3"|]
+        |> should equal [|1;2;3|]
 
+    [<Fact>]
+    let ``tryParsreArray should work for incomplete list`` () =
+        tryParseArray parseNonEmptyString [|"";"1";"";"";"2";"";"3"|]
+        |> should equal [|"1";"2";"3"|]
+
+        tryParseArray parseInt [|"";"1";"";"";"2";"";"3"|]
+        |> should equal [|1;2;3|]
+
+        tryParseArray parseNonEmptyString [||]
+        |> should equal [||]
+
+        tryParseArray parseInt [||]
+        |> should equal [||]
