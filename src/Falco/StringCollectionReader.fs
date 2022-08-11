@@ -37,7 +37,7 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
         StringCollectionReader(map)
 
     /// Safely retrieve string array value from collection
-    member _.TryGetValue (name : string) =
+    member private _.TryGetValue (name : string) =
         let found = 
             values 
             |> Map.tryPick (fun key value -> 
@@ -48,68 +48,64 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
         | _                        -> None
     
     /// Retrieve value from StringCollectionReader
-    member x.GetValue (name : string) =        
+    member private x.GetValue (name : string) =        
         match x.TryGetValue name with
         | Some v -> v
         | None -> failwith (sprintf "Could not find %s" name)
 
     /// Safely retrieve string array value from collection and apply binder
-    member x.TryGetBind (binder : string array -> 'a option) (name : string) =
-        x.TryGetValue name |> Option.bind binder
+    member private x.TryGetBind (binder : string -> 'a option) (name : string) =
+        x.TryGetValue name |> Option.bind (fun ary -> binder ary.[0])
 
     /// Safely retrieve string array value from collection and apply binder
-    member x.TryGetBindArray (binder : string -> 'a option) (name : string) =
-        x.TryGetBind (tryParseArray binder) name |> Option.defaultValue [||]
+    member private x.TryGetBindArray (binder : string -> 'a option) (name : string) =
+        x.TryGetValue name |> Option.map (tryParseArray binder) |> Option.defaultValue [||]
         
     // ------------
     // Primitives
     // ------------
 
     /// Safely retrieve String option
-    member x.TryGetString (name : string) = x.TryGetBind (fun v -> Some v.[0]) name
+    member x.TryGetString (name : string) = x.TryGetBind (fun v -> Some v) name
 
     /// Safely retrieve String option (alias for StringCollectionReader.TryGetString)
     member x.TryGet (name : string) = x.TryGetString name
 
     /// Safely retrieve non-empty String option
-    member x.TryGetStringNonEmpty (name : string) =        
-        let strOption = x.TryGetString name 
-        match strOption with
-        | Some x when StringUtils.strNotEmpty x -> Some x
-        | _  -> None
+    member x.TryGetStringNonEmpty (name : string) = x.TryGetBind (fun v -> parseNonEmptyString v) name
 
     /// Safely retrieve Int16 option
-    member x.TryGetInt16 (name : string) = x.TryGetBind (fun v -> parseInt16 v.[0]) name
+    member x.TryGetInt16 (name : string) = x.TryGetBind (fun v -> parseInt16 v) name
 
     /// Safely retrieve Int32 option
-    member x.TryGetInt32 (name : string) = x.TryGetBind (fun v -> parseInt32 v.[0]) name
+    member x.TryGetInt32 (name : string) = x.TryGetBind (fun v -> parseInt32 v) name
 
     /// Safely retrieve Int option
     member x.TryGetInt (name : string) = x.TryGetInt32 name
 
     /// Safely retrieve Int64 option
-    member x.TryGetInt64 (name : string) = x.TryGetBind (fun v -> parseInt64 v.[0]) name
+    member x.TryGetInt64 (name : string) = x.TryGetBind (fun v -> parseInt64 v) name
 
     /// Safely retrieve Boolean option
-    member x.TryGetBoolean (name : string) = x.TryGetBind (fun v -> parseBoolean v.[0]) name
+    member x.TryGetBoolean (name : string) = x.TryGetBind (fun v -> parseBoolean v) name
 
     /// Safely retrieve Float option
-    member x.TryGetFloat (name : string) = x.TryGetBind (fun v -> parseFloat v.[0]) name
+    member x.TryGetFloat (name : string) = x.TryGetBind (fun v -> parseFloat v) name
 
     /// Safely retrieve Decimal option
-    member x.TryGetDecimal (name : string) = x.TryGetBind (fun v -> parseDecimal v.[0]) name
+    member x.TryGetDecimal (name : string) = x.TryGetBind (fun v -> parseDecimal v) name
 
     /// Safely retrieve DateTime option
-    member x.TryGetDateTime (name : string) = x.TryGetBind (fun v -> parseDateTime v.[0]) name
+    member x.TryGetDateTime (name : string) = x.TryGetBind (fun v -> parseDateTime v) name
 
     /// Safely retrieve DateTimeOffset option
-    member x.TryGetDateTimeOffset (name : string) = x.TryGetBind (fun v -> parseDateTimeOffset v.[0]) name
+    member x.TryGetDateTimeOffset (name : string) = x.TryGetBind (fun v -> parseDateTimeOffset v) name
 
     /// Safely retrieve Guid option
-    member x.TryGetGuid (name : string) = x.TryGetBind (fun v -> parseGuid v.[0]) name
+    member x.TryGetGuid (name : string) = x.TryGetBind (fun v -> parseGuid v) name
 
     /// Safely retrieve TimeSpan option
-    member x.TryGetTimeSpan (name : string) = x.TryGetBind (fun v -> parseTimeSpan v.[0]) name
+    member x.TryGetTimeSpan (name : string) = x.TryGetBind (fun v -> parseTimeSpan v) name
 
     // ------------
     // Primitives - Get or Default
@@ -162,7 +158,7 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
     // ------------
 
     /// Safely retrieve the named String[]
-    member x.TryArrayString (name : string) = x.TryGetBindArray (fun v -> Some v) name
+    member x.TryArrayString (name : string) = x.TryGetBindArray parseNonEmptyString name
 
     /// Safely retrieve the named Int16[]
     member x.TryArrayInt16 (name : string) = x.TryGetBindArray parseInt16 name
@@ -196,7 +192,6 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
 
     /// Safely retrieve the named TimeSpan[]
     member x.TryArrayTimeSpan (name : string) = x.TryGetBindArray parseTimeSpan name
-
 
 /// Represents a readable collection of parsed form value
 type FormCollectionReader (form : IFormCollection, files : IFormFileCollection option) =

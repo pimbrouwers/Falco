@@ -60,10 +60,10 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
     let values = 
         [ 
             "emptystring", [|""|]
-            "fstring", [|"John Doe"; "Jane Doe"|]
-            "fint16", [|"16";"17"|]
-            "fint32", [|"32";"33"|]
-            "fint64", [|"64";"65"|]
+            "fstring", [|"John Doe"; "";""; "Jane Doe";""|]
+            "fint16", [|"16";"";"17"|]
+            "fint32", [|"32";"";"";"";"";"33"|]
+            "fint64", [|"64";"65";"";""|]
             "fbool", [|"true";"false"|]
             "ffloat", [|"1.234";"1.235"|]
             "fdecimal", [|"4.567";"4.568"|]

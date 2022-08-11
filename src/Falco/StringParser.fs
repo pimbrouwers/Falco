@@ -8,6 +8,8 @@ let tryParseWith (tryParseFunc: string -> bool * _) =
     | true, v    -> Some v
     | false, _   -> None
 
+let parseNonEmptyString x = if StringUtils.strEmpty x then None else Some x
+
 let parseInt            = tryParseWith Int32.TryParse
 let parseInt16          = tryParseWith Int16.TryParse
 let parseInt32          = parseInt
@@ -39,10 +41,12 @@ let parseOrFail parser msg v =
 /// Attempt to parse array, returns none for failure
 let tryParseArray parser ary =
     ary
-    |> Seq.map parser
-    |> Seq.fold (fun acc i ->
-        match (i, acc) with
-        | Some i, Some acc -> Some (Array.append acc [|i|])
-        | _ -> None) (Some [||])
+    |> List.ofArray
+    |> List.fold (fun acc i ->
+        match (parser i, acc) with
+        | Some i, acc -> i :: acc
+        | None, acc -> acc) []
+    |> List.rev
+    |> Array.ofList
 
 

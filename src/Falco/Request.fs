@@ -121,6 +121,7 @@ let tryBindJson<'a>
 
 /// Attempt to bind JSON request body onto 'a and provide
 /// to handleOk, otherwise provide handleError with error string
+[<Obsolete("Request.bindJson is obsolete, please use Request.mapJson.")>]
 let bindJson
     (handleOk : 'a -> HttpHandler)
     (handleError : string -> HttpHandler) : HttpHandler = fun ctx ->
@@ -141,6 +142,7 @@ let bindJson
 
 /// Attempt to bind the route values map onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
+[<Obsolete("Request.bindRoute is obsolete, please use Request.mapRoute.")>]
 let bindRoute
     (binder : RouteCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
@@ -155,6 +157,7 @@ let bindRoute
 
 /// Attempt to bind the QueryCollectionReader onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
+[<Obsolete("Request.bindQuery is obsolete, please use Request.mapQuery.")>]
 let bindQuery
     (binder : QueryCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
@@ -170,6 +173,7 @@ let bindQuery
 
 /// Attempt to bind the CookieCollectionReader onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
+[<Obsolete("Request.bindCookie is obsolete, please use Request.mapCookie.")>]
 let bindCookie
     (binder : CookieCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
@@ -203,6 +207,7 @@ let validateCsrfToken
 
 /// Attempt to bind the FormCollectionReader onto 'a and provide
 /// to handleOk, otherwise provide handleError with 'b
+[<Obsolete("Request.bindForm is obsolete, please use Request.mapForm.")>]
 let bindForm
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
@@ -224,6 +229,7 @@ let bindForm
 /// Attempt to bind a streamed (i.e., multipart/form-data)
 /// FormCollectionReader  onto 'a and provide to handleOk,
 /// otherwise provide handleError with 'b
+[<Obsolete("Request.bindFormStream is obsolete, please use Request.mapFormStream.")>]
 let bindFormStream
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
@@ -245,6 +251,7 @@ let bindFormStream
 /// Validate the CSRF of the current request attempt to bind the
 /// FormCollectionReader onto 'a and provide to handleOk,
 /// otherwise provide handleError with 'b
+[<Obsolete("Request.bindFormSecure is obsolete, please use Request.mapFormSecure.")>]
 let bindFormSecure
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
@@ -258,6 +265,7 @@ let bindFormSecure
 /// to bind a streamed (i.e., multipart/form-data)
 /// FormCollectionReader onto 'a and provide to handleOk,
 /// otherwise provide handleError with 'b
+[<Obsolete("Request.bindFormStreamSecure is obsolete, please use Request.mapFormStreamSecure.")>]
 let bindFormStreamSecure
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (handleOk : 'a -> HttpHandler)
@@ -279,13 +287,14 @@ let mapJson (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     #else
     task {
     #endif
-        let! json = tryBindJson ctx
-        let respondWith =
-            match json with
-            | Error error -> failwith "Could not bind JSON"
-            | Ok json -> next json
+        // let! json = tryBindJson ctx
+        // let respondWith =
+        //     match json with
+        //     | Error error -> failwith "Could not bind JSON"
+        //     | Ok json -> next json
+        // return! respondWith ctx
 
-        return! respondWith ctx
+        return! JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, Constants.defaultJsonOptions).AsTask()
     }
 
 /// Project RouteCollectionReader onto 'a and provide

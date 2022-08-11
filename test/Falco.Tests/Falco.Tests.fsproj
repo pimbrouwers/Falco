@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <NoWarn>44</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

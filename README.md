@@ -217,7 +217,7 @@ let helloHandler : HttpHandler =
     Request.mapForm formMap Response.ofPlainText
 ```
 
-To prevent XSS attacks it is often advisable to use a [CSRF token](#security) during form submissions. In these situations, you'll want to validate the token before processing the form input using the `Request.mapFormSecure` (or `Request.bindFormSecure`). These functions will automatically validate the token for you before consuming input.
+To prevent XSS attacks it is often advisable to use a [CSRF token](#security) during form submissions. In these situations, you'll want to validate the token before processing the form input using `Request.mapFormSecure`, which will automatically validate the token for you before consuming input.
 
 ```fsharp
 let secureHelloHandler : HttpHandler =
@@ -299,16 +299,6 @@ Reflection-based approaches to binding at IO boundaries work well for simple use
 
 We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary` and `IHeaderCollection`. _Readers_ for all four exist as derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
 
-The built-in model binding handlers come in two flavors, both of which are continuation-style handlers:
-
-- `Request.mapXXX` 
-    - Signature: `(map: XXXCollectionReader -> 'a) (next : 'a -> HttpHandler) -> HttpHandler`
-    - The "map" family of handlers are more commonly used and assume that binding will always succeed in one manner or another, either via default values or `Option<T>`.
-
-- `Request.bindXXX`
-    - Signature: `(bind: XXXCollectionReader -> Result<'a, 'b>) (handleOk : 'a -> HttpHandler) -> (handleError : 'b -> HttpHandler) -> HttpHandler`
-    - The "bind" family of handlers are useful when you explicitly want to indicate errors during binding and return a different response when they occur.
-
 ### Route Binding
 
 ```fsharp
@@ -317,17 +307,6 @@ let mapRouteHandler : HttpHandler =
         r.GetString "Name" "John Doe"
     
     Request.mapRoute routeMap Response.ofJson
-
-let bindRouteHandler : HttpHandler = 
-    let routeBind (r : RouteCollectionReader) =
-        match r.TryGetString "Name" with
-        | Some name -> Ok name
-        | _         -> Error {| Message = "Invalid route" |}
-    
-    let handleOk = Response.ofJson
-    let handleError = Response.ofJson
-
-    Request.bindRoute routeBind handleOk handleError
 
 let manualRouteHandler : HttpHandler = fun ctx ->
     let r : RouteCollectionReader = Request.getRoute ctx
@@ -349,17 +328,6 @@ let mapQueryHandler : HttpHandler =
 
     Request.mapQuery queryMap Response.ofJson 
 
-let bindQueryHandler : HttpHandler = 
-    let queryBind (q : QueryCollectionReader) =
-        match q.TryGetString "FirstName", q.TryGetString "LastName" with
-        | Some f, Some l -> Ok { FirstName = f; LastName = l }
-        | _  -> Error {| Message = "Invalid query string" |}
-
-    let handleOk = Response.ofJson
-    let handleError = Response.ofJson
-
-    Request.bindQuery queryBind handleOk handleError 
-
 let manualQueryHandler : HttpHandler = fun ctx ->
     let q : QueryCollectionReader = Request.getQuery ctx
     
@@ -374,7 +342,7 @@ let manualQueryHandler : HttpHandler = fun ctx ->
 
 The `FormCollectionReader` has full access to the `IFormFilesCollection` via the `_.Files` member.
 
-> Note the addition of `Request.mapFormSecure` and `Request.bindFormSecure` which will automatically validate CSRF tokens for you.
+> Note the addition of `Request.mapFormSecure`, which will automatically validate CSRF token for you.
 
 ```fsharp
 type Person = { FirstName : string; LastName : string }
@@ -397,30 +365,6 @@ let mapFormSecureHandler : HttpHandler =
         Response.withStatusCode 400 >> Response.ofEmpty
 
     Request.mapFormSecure formMap Response.ofJson handleInvalidCsrf
-
-let bindFormHandler : HttpHandler = 
-    let formBind (f : FormCollectionReader) =
-        match f.TryGetString "FirstName", f.TryGetString "LastName" with
-        | Some f, Some l -> Ok { FirstName = f; LastName = l }
-        | _  -> Error {| Message = "Invalid form data" |}
-
-    let handleOk = Response.ofJson
-    let handleError = Response.ofJson
-
-    Request.bindForm formBind handleOk handleError 
-
-let bindFormSecureHandler : HttpHandler = 
-    let formBind (f : FormCollectionReader) =
-        match f.TryGetString "FirstName", f.TryGetString "LastName" with
-        | Some f, Some l -> Ok { FirstName = f; LastName = l }
-        | _  -> Error {| Message = "Invalid form data" |}
-
-    let handleOk = Response.ofJson
-    let handleError = Response.ofJson
-    let handleInvalidCsrf : HttpHandler = 
-        Response.withStatusCode 400 >> Response.ofEmpty
-
-    Request.bindFormSecure formBind handleOk handleError handleInvalidCsrf
 
 let manualFormHandler : HttpHandler = fun ctx -> task {
     let! f : FormCollectionReader = Request.getForm ctx
@@ -455,7 +399,7 @@ let imageUploadHandler : HttpHandler =
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `Request.bindJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have minimal support for F#'s algebraic types.
+Included in Falco are basic JSON in/out handlers, `Request.mapJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have minimal support for F#'s algebraic types.
 
 ```fsharp
 type Person = { FirstName : string; LastName : string }
@@ -464,16 +408,12 @@ let jsonHandler : HttpHandler =
     { FirstName = "John"; LastName = "Doe" }
     |> Response.ofJson
 
-let jsonBindHandler : HttpHandler =    
+let mapJsonHandler : HttpHandler =    
     let handleOk person : HttpHandler = 
         let message = sprintf "hello %s %s" person.First person.Last
         Response.ofPlainText message
 
-    let handleError error : HttpHandler = 
-        let message = sprintf "Invalid JSON: %s" error
-        Response.withStatusCode 400 >> Response.ofPlainText message
-
-    Request.bindJson handleOk handleError
+    Request.mapJson handleOk
 ```
 
 ## Markup
