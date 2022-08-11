@@ -27,7 +27,7 @@ let handleError _ =
         Response.ofEmpty ctx
 
 [<Fact>]
-let ``Request.bindJson`` () =
+let ``Request.mapJson`` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))
     ctx.Request.Body.Returns(ms) |> ignore
@@ -35,61 +35,7 @@ let ``Request.bindJson`` () =
     let predicates j =
         j.Name |> should equal "falco"
 
-    Request.bindJson (handleOk predicates)  handleError
-
-[<Fact>]
-let ``Request.bindRoute`` () =
-    let ctx = getHttpContextWriteable false
-    ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
-
-    let predicates name =
-        name |> should equal "falco"
-
-    Request.bindRoute (fun r -> r.GetString "name" "" |> Ok) (handleOk predicates) handleError
-
-let ``Request.bindQuery`` () =
-    let ctx = getHttpContextWriteable false
-    let query = Dictionary<string, StringValues>()
-    query.Add("name", StringValues("falco"))
-    ctx.Request.Query <- QueryCollection(query)
-
-    let predicates name =
-        name |> should equal "falco"
-
-    Request.bindQuery (fun q -> q.GetString "name" "" |> Ok) (handleOk predicates) handleError
-
-let ``Request.bindCookie`` () =
-    let ctx = getHttpContextWriteable false
-    ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
-
-    let predicates name =
-        name |> should equal "falco"
-
-    Request.bindCookie (fun c -> c.GetString "name" "" |> Ok) (handleOk predicates) handleError
-
-[<Fact>]
-let ``Request.bindForm`` () =
-    let ctx = getHttpContextWriteable false
-    let form = Dictionary<string, StringValues>()
-    form.Add("name", StringValues("falco"))
-    ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
-
-    let predicates name =
-        name |> should equal "falco"
-
-    Request.bindForm (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates) handleError
-
-[<Fact>]
-let ``Request.bindFormStream`` () =
-    let ctx = getHttpContextWriteable false
-    let form = Dictionary<string, StringValues>()
-    form.Add("name", StringValues("falco"))
-    ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
-
-    let predicates name =
-        name |> should equal "falco"
-
-    Request.bindFormStream (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates) handleError
+    Request.mapJson (handleOk predicates)
 
 [<Fact>]
 let ``Request.mapRoute`` () =

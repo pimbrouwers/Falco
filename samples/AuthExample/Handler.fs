@@ -45,12 +45,11 @@ let handleIndex : HttpHandler =
     |> Response.ofPlainText
 
 let handleCreateUser : HttpHandler =
-    Request.bindJson
+    Request.mapJson
         (fun (userDto : UserDto) -> 
             createUserWithStorage userDto
             |> handleResult)
-        (fun _ -> handleBadRequest)
-
+        
 let handleReadUsers : HttpHandler =
     Request.mapRoute
         (ignore)
@@ -59,28 +58,18 @@ let handleReadUsers : HttpHandler =
             |> handleResult)
     
 let handleUpdateUser : HttpHandler =
-    Request.bindRoute
-        (fun routeCollection -> 
-            routeCollection.TryGetString "id"
-            |> function 
-                | Some id -> Result.Ok id
-                | None    -> Result.Error "No user id provided")
+    Request.mapRoute
+        (fun routeCollection -> routeCollection.GetString "id" "")
         (fun id ->
-            Request.bindJson
+            Request.mapJson
                 (fun (userDto : UserDto) -> 
                     updateUserWithStorage id userDto
-                    |> handleResult)
-                (fun _ -> handleBadRequest))
-        (fun _ -> handleBadRequest)
-    
+                    |> handleResult))                
+            
 let handleDeleteUser : HttpHandler =
-    Request.bindRoute
-        (fun routeCollection -> 
-            routeCollection.TryGetString "id"
-            |> function 
-                | Some id -> Result.Ok id
-                | None    -> Result.Error "No user id provided")
+    Request.mapRoute
+        (fun routeCollection -> routeCollection.GetString "id" "")
         (fun id ->
             deleteUserWithStorage id
             |> handleResult)
-        (fun _ -> handleBadRequest)
+        
