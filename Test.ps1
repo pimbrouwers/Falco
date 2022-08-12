@@ -15,7 +15,7 @@ function RunCommand {
 
 $assemblyName = "Falco.Tests"
 
-if ($Assembly = "Markup")
+if ($Assembly -eq "Markup")
 { 
     $assemblyName = "Falco.Markup.Tests"
 }
