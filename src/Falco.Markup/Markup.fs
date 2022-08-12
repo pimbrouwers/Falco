@@ -1,100 +1,31 @@
-﻿module Falco.Markup
+﻿namespace Falco.Markup
 
 open System
 open System.Globalization
 open System.IO
 open System.Net
 
-/// Specifies an XML-style attribute
-type XmlAttribute =
-    | KeyValueAttr of string * string
-    | NonValueAttr of string
+[<AutoOpen>]
+module Renderer = 
+    /// Render XmlNode recursively to string representation
+    let renderNode (tag : XmlNode) =
+        let sb = Text.StringBuilder()
+        let w = new StringWriter(sb, CultureInfo.InvariantCulture)
+        XmlNode.serialize(w, tag)
 
-/// Represents an XML-style element containing attributes
-type XmlElement =
-    string * XmlAttribute[]
+    /// Render XmlNode as HTML string
+    let renderHtml (tag : XmlNode) =
+        let sb = Text.StringBuilder()
+        let w = new StringWriter(sb, CultureInfo.InvariantCulture)
+        w.Write "<!DOCTYPE html>"
+        XmlNode.serialize(w, tag)
 
-/// Describes the different XML-style node patterns
-type XmlNode =
-    | ParentNode      of XmlElement * XmlNode list
-    | SelfClosingNode of XmlElement
-    | TextNode        of string
-
-module internal XmlNode =
-    let serialize (w : StringWriter, xml : XmlNode) =
-        let _openChar = '<'
-        let _closeChar = '>'
-        let _term = '/'
-        let _space = ' '
-        let _equals = '='
-        let _quote = '"'
-
-        let writeAttributes attrs =
-            for attr in (attrs : XmlAttribute[]) do
-                if attrs.Length > 0 then
-                    w.Write _space
-
-                match attr with
-                | NonValueAttr attrName ->
-                    w.Write attrName
-
-                | KeyValueAttr (attrName, attrValue) ->
-                    w.Write attrName
-                    w.Write _equals
-                    w.Write _quote
-                    w.Write attrValue
-                    w.Write _quote
-
-        let rec buildXml tag =
-            match tag with
-            | TextNode text ->
-                w.Write text
-
-            | SelfClosingNode (tag, attrs) ->
-                w.Write _openChar
-                w.Write tag
-                writeAttributes attrs
-                w.Write _space
-                w.Write _term
-                w.Write _closeChar
-
-            | ParentNode ((tag, attrs), children) ->
-                w.Write _openChar
-                w.Write tag
-                writeAttributes attrs
-                w.Write _closeChar
-
-                for c in children do
-                    buildXml c
-
-                w.Write _openChar
-                w.Write _term
-                w.Write tag
-                w.Write _closeChar
-
-        buildXml xml
-
-        w.GetStringBuilder().ToString()
-
-/// Render XmlNode recursively to string representation
-let renderNode (tag : XmlNode) =
-    let sb = Text.StringBuilder()
-    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
-    XmlNode.serialize(w, tag)
-
-/// Render XmlNode as HTML string
-let renderHtml (tag : XmlNode) =
-    let sb = Text.StringBuilder()
-    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
-    w.Write "<!DOCTYPE html>"
-    XmlNode.serialize(w, tag)
-
-/// Render XmlNode as XML string
-let renderXml (tag : XmlNode) =
-    let sb = Text.StringBuilder()
-    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
-    w.Write "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-    XmlNode.serialize(w, tag)
+    /// Render XmlNode as XML string
+    let renderXml (tag : XmlNode) =
+        let sb = Text.StringBuilder()
+        let w = new StringWriter(sb, CultureInfo.InvariantCulture)
+        w.Write "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        XmlNode.serialize(w, tag)
 
 module Text =
     /// Empty Text node
@@ -114,157 +45,157 @@ module Text =
 
 module Elem =
     /// Standard XmlNode constructor
-    let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
+    let create (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
         ((tag, List.toArray attr), children)
         |> ParentNode
 
     /// Self-closing XmlNode constructor
-    let selfClosingTag (tag : string) (attr : XmlAttribute list) =
+    let createSelfClosing (tag : string) (attr : XmlAttribute list) =
         (tag, List.toArray attr)
         |> SelfClosingNode
 
     // Main root
-    let html = tag "html"
+    let html = create "html"
 
     // Document metadata
-    let base' = selfClosingTag "base"
-    let head = tag "head"
-    let link = selfClosingTag "link"
-    let meta = selfClosingTag "meta"
-    let style = tag "style"
-    let title = tag "title"
+    let base' = createSelfClosing "base"
+    let head = create "head"
+    let link = createSelfClosing "link"
+    let meta = createSelfClosing "meta"
+    let style = create "style"
+    let title = create "title"
 
     // Sectioning root
-    let body = tag "body"
+    let body = create "body"
 
     // Content sectioning
-    let address = tag "address"
-    let article = tag "article"
-    let aside = tag "aside"
-    let footer = tag "footer"
-    let header = tag "header"
-    let h1 = tag "h1"
-    let h2 = tag "h2"
-    let h3 = tag "h3"
-    let h4 = tag "h4"
-    let h5 = tag "h5"
-    let h6 = tag "h6"
-    let main = tag "main"
-    let nav = tag "nav"
-    let section = tag "section"
+    let address = create "address"
+    let article = create "article"
+    let aside = create "aside"
+    let footer = create "footer"
+    let header = create "header"
+    let h1 = create "h1"
+    let h2 = create "h2"
+    let h3 = create "h3"
+    let h4 = create "h4"
+    let h5 = create "h5"
+    let h6 = create "h6"
+    let main = create "main"
+    let nav = create "nav"
+    let section = create "section"
 
     // Text content
-    let blockquote = tag "blockquote"
-    let dd = tag "dd"
-    let div = tag "div"
-    let dl = tag "dl"
-    let dt = tag "dt"
-    let figcaption = tag "figcaption"
-    let figure = tag "figure"
-    let hr = selfClosingTag "hr"
-    let li = tag "li"
-    let menu = tag "menu"
-    let ol = tag "ol"
-    let p = tag "p"
-    let pre = tag "pre"
-    let ul = tag "ul"
+    let blockquote = create "blockquote"
+    let dd = create "dd"
+    let div = create "div"
+    let dl = create "dl"
+    let dt = create "dt"
+    let figcaption = create "figcaption"
+    let figure = create "figure"
+    let hr = createSelfClosing "hr"
+    let li = create "li"
+    let menu = create "menu"
+    let ol = create "ol"
+    let p = create "p"
+    let pre = create "pre"
+    let ul = create "ul"
 
     // Inline text semantics
-    let a = tag "a"
-    let abbr = tag "abbr"
-    let b = tag "b"
-    let bdi = tag "bdi"
-    let bdo = tag "bdo"
-    let br = selfClosingTag "br"
-    let cite = tag "cite"
-    let code = tag "code"
-    let data = tag "data"
-    let dfn = tag "dfn"
-    let em = tag "em"
-    let i = tag "i"
-    let kbd = tag "kbd"
-    let mark = tag "mark"
-    let q = tag "q"
-    let rp = tag "rp"
-    let rt = tag "rt"
-    let ruby = tag "ruby"
-    let s = tag "s"
-    let samp = tag "samp"
-    let small = tag "small"
-    let span = tag "span"
-    let strong = tag "strong"
-    let sub = tag "sub"
-    let sup = tag "sup"
-    let time = tag "time"
-    let u = tag "u"
-    let var = tag "var"
-    let wbr = selfClosingTag "wbr"
+    let a = create "a"
+    let abbr = create "abbr"
+    let b = create "b"
+    let bdi = create "bdi"
+    let bdo = create "bdo"
+    let br = createSelfClosing "br"
+    let cite = create "cite"
+    let code = create "code"
+    let data = create "data"
+    let dfn = create "dfn"
+    let em = create "em"
+    let i = create "i"
+    let kbd = create "kbd"
+    let mark = create "mark"
+    let q = create "q"
+    let rp = create "rp"
+    let rt = create "rt"
+    let ruby = create "ruby"
+    let s = create "s"
+    let samp = create "samp"
+    let small = create "small"
+    let span = create "span"
+    let strong = create "strong"
+    let sub = create "sub"
+    let sup = create "sup"
+    let time = create "time"
+    let u = create "u"
+    let var = create "var"
+    let wbr = createSelfClosing "wbr"
 
     // Image and multimedia
-    let area = tag "area"
-    let audio = tag "audio"
-    let img = selfClosingTag "img"
-    let map = tag "map"
-    let track = selfClosingTag "track"
-    let video = tag "video"
+    let area = create "area"
+    let audio = create "audio"
+    let img = createSelfClosing "img"
+    let map = create "map"
+    let track = createSelfClosing "track"
+    let video = create "video"
 
     // Embedded content
-    let embed = selfClosingTag "embed"
-    let iframe = tag "iframe"
-    let object = tag "object"
-    let picture = tag "picture"
-    let portal = tag "portal"
-    let source = selfClosingTag "source"
+    let embed = createSelfClosing "embed"
+    let iframe = create "iframe"
+    let object = create "object"
+    let picture = create "picture"
+    let portal = create "portal"
+    let source = createSelfClosing "source"
 
     // SVG and MathML
-    let svg = tag "svg"
-    let math = tag "math"
+    let svg = create "svg"
+    let math = create "math"
 
     // Scripting
-    let canvas = tag "canvas"
-    let noscript = tag "noscript"
-    let script = tag "script"
+    let canvas = create "canvas"
+    let noscript = create "noscript"
+    let script = create "script"
 
     // Demarcating edits
-    let del = tag "del"
-    let ins = tag "ins"
+    let del = create "del"
+    let ins = create "ins"
 
     // Table content
-    let caption = tag "caption"
-    let col = selfClosingTag "col"
-    let colgroup = tag "colgroup"
-    let table = tag "table"
-    let tbody = tag "tbody"
-    let td = tag "td"
-    let tfoot = tag "tfoot"
-    let th = tag "th"
-    let thead = tag "thead"
-    let tr = tag "tr"
+    let caption = create "caption"
+    let col = createSelfClosing "col"
+    let colgroup = create "colgroup"
+    let table = create "table"
+    let tbody = create "tbody"
+    let td = create "td"
+    let tfoot = create "tfoot"
+    let th = create "th"
+    let thead = create "thead"
+    let tr = create "tr"
 
     // Forms
-    let button = tag "button"
-    let datalist = tag "datalist"
-    let fieldset = tag "fieldset"
-    let form = tag "form"
-    let input = selfClosingTag "input"
-    let label = tag "label"
-    let legend = tag "legend"
-    let meter = tag "meter"
-    let optgroup = tag "optgroup"
-    let option = tag "option"
-    let output = tag "output"
-    let progress = tag "progress"
-    let select = tag "select"
-    let textarea = tag "textarea"
+    let button = create "button"
+    let datalist = create "datalist"
+    let fieldset = create "fieldset"
+    let form = create "form"
+    let input = createSelfClosing "input"
+    let label = create "label"
+    let legend = create "legend"
+    let meter = create "meter"
+    let optgroup = create "optgroup"
+    let option = create "option"
+    let output = create "output"
+    let progress = create "progress"
+    let select = create "select"
+    let textarea = create "textarea"
 
     // Interactive elements
-    let details = tag "details"
-    let dialog = tag "dialog"
-    let summary = tag "summary"
+    let details = create "details"
+    let dialog = create "dialog"
+    let summary = create "summary"
 
     // Web Components
-    let slot = tag "slot"
-    let template = tag "template"
+    let slot = create "slot"
+    let template = create "template"
 
 module Attr =
     /// XmlAttribute KeyValueAttr constructor
@@ -506,6 +437,74 @@ module Attr =
     let onwaiting = create "waiting"
     let onwheel = create "wheel"
 
+module Svg = 
+    let a = Elem.create "a"
+    let animate = Elem.create "animate"
+    let animateMotion = Elem.create "animateMotion"
+    let animateTransform = Elem.create "animateTransform"
+    let circle = Elem.create "circle"
+    let clipPath = Elem.create "clipPath"
+    let defs = Elem.create "defs"
+    let desc = Elem.create "desc"
+    let discard = Elem.create "discard"
+    let ellipse = Elem.create "ellipse"
+    let feBlend = Elem.create "feBlend"
+    let feColorMatrix = Elem.create "feColorMatrix"
+    let feComponentTransfer = Elem.create "feComponentTransfer"
+    let feComposite = Elem.create "feComposite"
+    let feConvolveMatrix = Elem.create "feConvolveMatrix"
+    let feDiffuseLighting = Elem.create "feDiffuseLighting"
+    let feDisplacementMap = Elem.create "feDisplacementMap"
+    let feDistantLight = Elem.create "feDistantLight"
+    let feDropShadow = Elem.create "feDropShadow"
+    let feFlood = Elem.create "feFlood"
+    let feFuncA = Elem.create "feFuncA"
+    let feFuncB = Elem.create "feFuncB"
+    let feFuncG = Elem.create "feFuncG"
+    let feFuncR = Elem.create "feFuncR"
+    let feGaussianBlur = Elem.create "feGaussianBlur"
+    let feImage = Elem.create "feImage"
+    let feMerge = Elem.create "feMerge"
+    let feMergeNode = Elem.create "feMergeNode"
+    let feMorphology = Elem.create "feMorphology"
+    let feOffset = Elem.create "feOffset"
+    let fePointLight = Elem.create "fePointLight"
+    let feSpecularLighting = Elem.create "feSpecularLighting"
+    let feSpotLight = Elem.create "feSpotLight"
+    let feTile = Elem.create "feTile"
+    let feTurbulence = Elem.create "feTurbulence"
+    let filter = Elem.create "filter"
+    let foreignObject = Elem.create "foreignObject"
+    let g = Elem.create "g"
+    let hatch = Elem.create "hatch"
+    let hatchpath = Elem.create "hatchpath"
+    let image = Elem.create "image"
+    let line = Elem.create "line"
+    let linearGradient = Elem.create "linearGradient"
+    let marker = Elem.create "marker"
+    let mask = Elem.create "mask"
+    let metadata = Elem.create "metadata"
+    let mpath = Elem.create "mpath"
+    let path = Elem.create "path"
+    let pattern = Elem.create "pattern"
+    let polygon = Elem.create "polygon"
+    let polyline = Elem.create "polyline"
+    let radialGradient = Elem.create "radialGradient"
+    let rect = Elem.create "rect"
+    let script = Elem.create "script"
+    let set = Elem.create "set"
+    let stop = Elem.create "stop"
+    let style = Elem.create "style"
+    let svg = Elem.create "svg"
+    let switch = Elem.create "switch"
+    let symbol = Elem.create "symbol"
+    let text = Elem.create "text"
+    let textPath = Elem.create "textPath"
+    let title = Elem.create "title"
+    let tspan = Elem.create "tspan"
+    let use' = Elem.create "use"
+    let view = Elem.create "view"
+
 module Templates =
     /// HTML 5 template with customizable <head> and <body>
     let html5 (langCode : string) (head : XmlNode list) (body : XmlNode list) =
@@ -521,9 +520,8 @@ module Templates =
         ]
 
     /// SVG Version 1.0 template with customizable viewBox width/height
-    let svg (width : float) (height : float) =
-        Elem.tag "svg" [
-            Attr.create "version" "1.0"
+    let svg (x : int, y : int, w : int, h : int) (content : XmlNode list) =
+        Elem.svg [            
+            Attr.create "viewBox" (sprintf "%i %i %i %i" x y w h)
             Attr.create "xmlns" "http://www.w3.org/2000/svg"
-            Attr.create "viewBox" (sprintf "0 0 %f %f" width height)
-        ]
+        ] content

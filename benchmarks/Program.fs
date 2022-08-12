@@ -83,9 +83,9 @@ module Markup =
             |> giraffeTemplate
             |> RenderView.AsString.htmlNode
 
-        [<Benchmark>]
-        member _.Scriban() =             
-            scribanTemplate.Render(products)
+        // [<Benchmark>]
+        // member _.Scriban() =             
+        //     scribanTemplate.Render(products)
 
 [<EntryPoint>]
 let main argv =        
