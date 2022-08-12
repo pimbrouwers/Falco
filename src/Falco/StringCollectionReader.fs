@@ -158,40 +158,46 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
     // ------------
 
     /// Safely retrieve the named String[]
-    member x.TryArrayString (name : string) = x.TryGetBindArray parseNonEmptyString name
+    member x.GetStringArray (name : string) = x.TryGetBindArray Some name    
+
+    /// Safely retrieve the named String[]
+    member x.GetArray (name : string) = x.TryGetBindArray Some name    
+
+    /// Safely retrieve the named String[] excluding empty & null values
+    member x.GetStringNonEmptyArray (name : string) = x.TryGetBindArray parseNonEmptyString name
 
     /// Safely retrieve the named Int16[]
-    member x.TryArrayInt16 (name : string) = x.TryGetBindArray parseInt16 name
+    member x.GetInt16Array (name : string) = x.TryGetBindArray parseInt16 name
 
     /// Safely retrieve the named Int32[]
-    member x.TryArrayInt32 (name : string) = x.TryGetBindArray parseInt32 name
+    member x.GetInt32Array (name : string) = x.TryGetBindArray parseInt32 name
 
     /// Safely retrieve the named Int[] (alias for StringCollectionReader.TryArrayInt32)
-    member x.TryArrayInt (name : string) = x.TryArrayInt32 name
+    member x.GetIntArray (name : string) = x.GetInt32Array name
 
     /// Safely retrieve the named Int64[]
-    member x.TryArrayInt64 (name : string) = x.TryGetBindArray parseInt64 name
+    member x.GetInt64Array (name : string) = x.TryGetBindArray parseInt64 name
 
     /// Safely retrieve the named Boolean[]
-    member x.TryArrayBoolean (name : string) = x.TryGetBindArray parseBoolean name
+    member x.GetBooleanArray (name : string) = x.TryGetBindArray parseBoolean name
 
     /// Safely retrieve the named Float[]
-    member x.TryArrayFloat (name : string) = x.TryGetBindArray parseFloat name
+    member x.GetFloatArray (name : string) = x.TryGetBindArray parseFloat name
 
     /// Safely retrieve the named Decimal[]
-    member x.TryArrayDecimal (name : string) = x.TryGetBindArray parseDecimal name
+    member x.GetDecimalArray (name : string) = x.TryGetBindArray parseDecimal name
 
     /// Safely retrieve the named DateTime[]
-    member x.TryArrayDateTime (name : string) = x.TryGetBindArray parseDateTime name
+    member x.GetDateTimeArray (name : string) = x.TryGetBindArray parseDateTime name
 
     /// Safely retrieve the named DateTimeOffset[]
-    member x.TryArrayDateTimeOffset (name : string) = x.TryGetBindArray parseDateTimeOffset name
+    member x.GetDateTimeOffsetArray (name : string) = x.TryGetBindArray parseDateTimeOffset name
 
     /// Safely retrieve the named Guid[]
-    member x.TryArrayGuid (name : string) = x.TryGetBindArray parseGuid name
+    member x.GetGuidArray (name : string) = x.TryGetBindArray parseGuid name
 
     /// Safely retrieve the named TimeSpan[]
-    member x.TryArrayTimeSpan (name : string) = x.TryGetBindArray parseTimeSpan name
+    member x.GetTimeSpanArray (name : string) = x.TryGetBindArray parseTimeSpan name
 
 /// Represents a readable collection of parsed form value
 type FormCollectionReader (form : IFormCollection, files : IFormFileCollection option) =

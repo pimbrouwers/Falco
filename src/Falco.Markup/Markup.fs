@@ -79,16 +79,22 @@ module internal XmlNode =
 /// Render XmlNode recursively to string representation
 let renderNode (tag : XmlNode) =
     let sb = Text.StringBuilder()
-    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
+    let w = new StringWriter(sb, CultureInfo.InvariantCulture)    
     XmlNode.serialize w tag
 
 /// Render XmlNode as HTML string
-let renderHtml tag =
+let renderHtml (tag : XmlNode) =
     let sb = Text.StringBuilder()
     let w = new StringWriter(sb, CultureInfo.InvariantCulture)
     w.Write "<!DOCTYPE html>"
     XmlNode.serialize w tag
 
+let renderXml (tag : XmlNode) = 
+    let sb = Text.StringBuilder()
+    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
+    w.Write "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    XmlNode.serialize w tag
+    
 module Text =
     /// Empty Text node
     let empty = TextNode String.Empty
@@ -116,214 +122,75 @@ module Elem =
         (tag, List.toArray attr)
         |> SelfClosingNode
 
-    /// HTML Tag <html></html>
     let html = tag "html"
-
-    /// HTML Tag <head></head>
     let head = tag "head"
-
-    /// HTML Tag <title></title>
     let title = tag "title"
-
-    /// HTML Tag <style></style>
     let style = tag "style"
-
-    /// HTML Tag <base></base>
     let ``base`` = tag "base"
-
-    /// HTML Tag <body></body>
     let body = tag "body"
-
-    /// HTML Tag <div></div>
     let div = tag "div"
-
-    /// HTML Tag <a></a>
     let a = tag "a"
-
-    /// HTML Tag <h1></h1>
     let h1 = tag "h1"
-
-    /// HTML Tag <h2></h2>
     let h2 = tag "h2"
-
-    /// HTML Tag <h3></h3>
     let h3 = tag "h3"
-
-    /// HTML Tag <h4></h4>
     let h4 = tag "h4"
-
-    /// HTML Tag <h5></h5>
     let h5 = tag "h5"
-
-    /// HTML Tag <h6></h6>
     let h6 = tag "h6"
-
-    /// HTML Tag <p></p>
     let p = tag "p"
-
-    /// HTML Tag <span></span>
     let span = tag "span"
-
-    /// HTML Tag <em></em>
     let em = tag "em"
-
-    /// HTML Tag <strong></strong>
     let strong = tag "strong"
-
-    /// HTML Tag <b></b>
     let b = tag "b"
-
-    /// HTML Tag <u></u>
     let u = tag "u"
-
-    /// HTML Tag <i></i>
     let i = tag "i"
-
-    /// HTML Tag <blockquote></blockquote>
     let blockquote = tag "blockquote"
-
-    /// HTML Tag <pre></pre>
     let pre = tag "pre"
-
-    /// HTML Tag <code></code>
     let code = tag "code"
-
-    /// HTML Tag <small></small>
     let small = tag "small"
-
-    /// HTML Tag <sub></sub>
     let sub = tag "sub"
-
-    /// HTML Tag <sup></sup>
     let sup = tag "sup"
-
-    /// HTML Tag <dl></dl>
     let dl = tag "dl"
-
-    /// HTML Tag <dt></dt>
     let dt = tag "dt"
-
-    /// HTML Tag <dd></dd>
     let dd = tag "dd"
-
-    /// HTML Tag <ol></ol>
     let ol = tag "ol"
-
-    /// HTML Tag <ul></ul>
     let ul = tag "ul"
-
-    /// HTML Tag <li></li>
     let li = tag "li"
-
-    /// HTML Tag <button></button>
     let button = tag "button"
-
-    /// HTML Tag <fieldset></fieldset>
     let fieldset = tag "fieldset"
-
-    /// HTML Tag <form></form>
     let form = tag "form"
-
-    /// HTML Tag <label></label>
     let label = tag "label"
-
-    /// HTML Tag <legend></legend>
     let legend = tag "legend"
-
-    /// HTML Tag <input />
     let input = selfClosingTag "input"
-
-    /// HTML Tag <textarea></textarea>
     let textarea = tag "textarea"
-
-    /// HTML Tag <select></select>
     let select = tag "select"
-
-    /// HTML Tag <option></option>
     let option = tag "option"
-
-    /// HTML Tag <optgroup></optgroup>
     let optgroup = tag "optgroup"
-
-    /// HTML Tag <table></table>
     let table = tag "table"
-
-    /// HTML Tag HTML Tag <tbody></tbody>
     let tbody = tag "tbody"
-
-    /// HTML Tag <tfoot></tfoot>
     let tfoot = tag "tfoot"
-
-    /// HTML Tag <thead></thead>
     let thead = tag "thead"
-
-    /// HTML Tag <tr></tr>
     let tr = tag "tr"
-
-    /// HTML Tag <th></th>
     let th = tag "th"
-
-    /// HTML Tag <td></td>
     let td = tag "td"
-
-    /// HTML Tag <iframe></iframe>
     let iframe = tag "iframe"
-
-    /// HTML Tag <figure></figure>
     let figure = tag "figure"
-
-    /// HTML Tag <figcaption></figcaption>
     let figcaption = tag "figcaption"
-
-    /// HTML Tag <article></article>
     let article = tag "article"
-
-    /// HTML Tag <aside></aside>
     let aside = tag "aside"
-
-    /// HTML Tag <canvas></canvas>
     let canvas = tag "canvas"
-
-    /// HTML Tag <details></details>
     let details = tag "details"
-
-    /// HTML Tag <footer></footer>
     let footer = tag "footer"
-
-    /// HTML Tag <hroup></hroup>
     let hgroup = tag "hroup"
-
-    /// HTML Tag <header></header>
     let header = tag "header"
-
-    /// HTML Tag <main></main>
     let main = tag "main"
-
-    /// HTML Tag <nav></nav>
     let nav = tag "nav"
-
-    /// HTML Tag <section></section>
     let section = tag "section"
-
-    /// HTML Tag <summary></summary>
     let summary = tag "summary"
-
-    /// HTML Tag <meta />
     let meta = selfClosingTag "meta"
-
-    /// HTML Tag <link />
     let link = selfClosingTag "link"
-
-    /// HTML Tag <img />
     let img = selfClosingTag "img"
-
-    /// HTML Tag <hr />
     let hr = selfClosingTag "hr"
-
-    /// HTML Tag <br />
-    let br = selfClosingTag "br"
-
-    /// HTML TAG <script></script>
+    let br = selfClosingTag "br"    
     let script = tag "script"
 
 module Attr =
@@ -351,130 +218,47 @@ module Attr =
             | None   -> NonValueAttr(g)
             | Some v -> KeyValueAttr(g, v))
 
-    /// HTML Attribute "http-equiv"
     let httpEquiv v = create "http-equiv" v
-
-    /// HTML Attribute "lang"
     let lang v = create "lang" v
-
-    /// HTML Attribute "charset"
     let charset v = create "charset" v
-
-    /// HTML Attribute "content"
     let content v = create "content" v
-
-    /// HTML Attribute "id"
     let id v = create "id" v
-
-    /// HTML Attribute "class"
     let class' v = create "class" v
-
-    /// HTML Attribute "name"
     let name v = create "name" v
-
-    /// HTML Attribute "alt"
     let alt v = create "alt" v
-
-    /// HTML Attribute "title"
     let title v = create "title" v
-
-    /// HTML Attribute "rel"
     let rel v = create "rel" v
-
-    /// HTML Attribute "href"
     let href v = create "href" v
-
-    /// HTML Attribute "target"
     let target v = create "target" v
-
-    /// HTML Attribute "src"
     let src v = create "src" v
-
-    /// HTML Attribute "width"
     let width v = create "width" v
-
-    /// HTML Attribute "height"
     let height v = create "height" v
-
-    /// HTML Attribute "style"
     let style v = create "style" v
-
-    /// HTML Attribute "novalidate"
     let novalidate = createBool "novalidate"
-
-    /// HTML Attribute "action"
     let action v = create "action" v
-
-    /// HTML Attribute "method"
     let method v = create "method" v
-
-    /// HTML Attribute "enctype"
     let enctype v = create "enctype" v
-
-    /// HTML Attribute "accept"
     let accept v = create "accept" v
-
-    /// HTML Attribute "autocomplete"
     let autocomplete v = create "autocomplete" v
-
-    /// HTML Attribute "autofocus"
     let autofocus = createBool "autofocus"
-
-    /// HTML Attribute "checked"
     let checked' = createBool "checked"
-
-    /// HTML Attribute "disabled"
     let disabled = createBool "disabled"
-
-    /// HTML Attribute "for"
     let for' v = create "for" v
-
-    /// HTML Attribute "form"
     let form v = create "form" v
-
-    /// HTML Attribute "max"
     let max v = create "max" v
-
-    /// HTML Attribute "maxlength"
     let maxlength v = create "maxlength" v
-
-    /// HTML Attribute "min"
     let min v = create "min" v
-
-    /// HTML Attribute "multiple"
     let multiple = createBool "multiple"
-
-    /// HTML Attribute "pattern"
     let pattern v = create "pattern" v
-
-    /// HTML Attribute "placeholder"
     let placeholder v = create "placeholder" v
-
-    /// HTML Attribute "readonly"
     let readonly = createBool "readonly"
-
-    /// HTML Attribute "required"
     let required = createBool "required"
-
-    /// HTML Attribute "rows"
     let rows v = create "rows" v
-
-    /// HTML Attribute "selected"
     let selected = createBool "selected"
-
-    /// HTML Attribute "step"
     let step v = create "step" v
-
-    /// HTML Attribute "type"
     let type' v = create "type" v
-
-    /// HTML Attribute "value"
     let value v = create "value" v
-
-    /// HTML Attribute "colspan"
     let colspan v = create "colspan" v
-
-    /// HTML Attribute "open"
     let open' = createBool "open"
 
 module Templates =
@@ -489,4 +273,12 @@ module Templates =
         Elem.html [ Attr.lang langCode; ] [
             Elem.head [] (defaultHead @ head)
             Elem.body [] body
+        ]
+
+    /// SVG Version 1.0 template with customizable viewBox width/height
+    let svg (width : float) (height : float) =
+        Elem.tag "svg" [
+            Attr.create "version" "1.0"
+            Attr.create "xmlns" "http://www.w3.org/2000/svg"
+            Attr.create "viewBox" (sprintf "0 0 %f %f" width height)
         ]

@@ -46,9 +46,9 @@ let ``StringCollectionReader value lookups are case-insensitive`` () =
     scr.TryGet "fstriNG" |> shouldBeSome (should equal "John Doe")
 
     // arrays
-    scr.TryArrayString "FSTRING" |> should equal [|"John Doe";"Jane Doe"|]
-    scr.TryArrayString "fString" |> should equal [|"John Doe";"Jane Doe"|]
-    scr.TryArrayString "fstriNG" |> should equal [|"John Doe";"Jane Doe"|]
+    scr.GetArrayString "FSTRING" |> should equal [|"John Doe";"Jane Doe"|]
+    scr.GetArrayString "fString" |> should equal [|"John Doe";"Jane Doe"|]
+    scr.GetArrayString "fstriNG" |> should equal [|"John Doe";"Jane Doe"|]
 
 [<Fact>] 
 let ``Inline StringCollectionReader from form collection should resolve primitives`` () =
@@ -124,16 +124,18 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
     scr.GetGuid "_fguid" Guid.Empty                             |> should equal  Guid.Empty                             
     
     // array values
-    scr.TryArrayString "_fstring"                |> should equal [||]
-    scr.TryArrayString "fstring"                 |> should equal [|"John Doe";"Jane Doe"|]
-    scr.TryArrayInt16 "fint16"                   |> should equal [|16s;17s|]
-    scr.TryArrayInt32 "fint32"                   |> should equal [|32;33|]
-    scr.TryArrayInt "fint32"                     |> should equal [|32;33|]
-    scr.TryArrayInt64 "fint64"                   |> should equal [|64L;65L|]
-    scr.TryArrayBoolean "fbool"                  |> should equal [|true;false|]
-    scr.TryArrayFloat "ffloat"                   |> should equal [|1.234;1.235|]
-    scr.TryArrayDecimal "fdecimal"               |> should equal [|4.567M;4.568M|]
-    scr.TryArrayDateTime "fdatetime"             |> should equal [|DateTime.Parse(now)|]
-    scr.TryArrayDateTimeOffset "fdatetimeoffset" |> should equal [|DateTimeOffset.Parse(offsetNow)|]
-    scr.TryArrayTimeSpan "ftimespan"             |> should equal [|TimeSpan.Parse(timespan)|]
-    scr.TryArrayGuid "fguid"                     |> should equal [|Guid.Parse(guid)|]
+    scr.GetStringArray "_fstring"                |> should equal [||]
+    scr.GetStringArray "fstring"                 |> should equal [|"John Doe"; "";""; "Jane Doe";""|]
+    scr.Get "fstringArray"                       |> should equal [|"John Doe"; "";""; "Jane Doe";""|]
+    scr.GetStringNonEmptyArray "fstring"         |> should equal [|"John Doe";"Jane Doe"|]
+    scr.GetInt16Array "fint16"                   |> should equal [|16s;17s|]
+    scr.GetInt32Array "fint32"                   |> should equal [|32;33|]
+    scr.GetIntArray "fint32"                     |> should equal [|32;33|]
+    scr.GetInt64Array "fint64"                   |> should equal [|64L;65L|]
+    scr.GetBooleanArray "fbool"                  |> should equal [|true;false|]
+    scr.GetFloatArray "ffloat"                   |> should equal [|1.234;1.235|]
+    scr.GetDecimalArray "fdecimal"               |> should equal [|4.567M;4.568M|]
+    scr.GetDateTimeArray "fdatetime"             |> should equal [|DateTime.Parse(now)|]
+    scr.GetDateTimeOffsetArray "fdatetimeoffset" |> should equal [|DateTimeOffset.Parse(offsetNow)|]
+    scr.GetTimeSpanArray "ftimespan"             |> should equal [|TimeSpan.Parse(timespan)|]
+    scr.GetGuidArray "fguid"                     |> should equal [|Guid.Parse(guid)|]
