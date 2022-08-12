@@ -59,6 +59,11 @@ let ``Standard tag should render with multiple attributes`` () =
     renderNode t |> should equal "<div class=\"my-class\" autofocus data-bind=\"slider\"></div>"
 
 [<Fact>]
+let ``Script should contain src, lang and async`` () =
+    let t = Elem.script [ Attr.src "http://example.org/example.js";  Attr.lang "javascript"; Attr.async ] []
+    renderNode t |> should equal "<script src=\"http://example.org/example.js\" lang=\"javascript\" async></script>"
+
+[<Fact>]
 let ``Should produce valid html doc`` () =
     let doc = 
         Elem.html [] [
@@ -71,7 +76,6 @@ type Product =
     { Name : string 
       Price : float 
       Description : string }
-
 
 [<Fact>]
 let ``Should produce valid html doc for large result`` () =

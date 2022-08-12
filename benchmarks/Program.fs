@@ -56,6 +56,22 @@ module Markup =
     [<MemoryDiagnoser>]
     type Bench() =
         [<Benchmark>]
+        member _.StringBuilder() = 
+            let sb = new Text.StringBuilder() 
+            sb.Append("<ul id='products'>")
+            
+            for p in products do
+                sb.Append("<li><h2>")
+                sb.Append(p.Name)
+                sb.Append("</h2>Only ")
+                sb.Append(sprintf "%f" p.Price)
+                sb.Append(p.Description)
+                sb.Append("</li>")
+
+            sb.Append("</ul>")
+            sb.ToString ()
+
+        [<Benchmark>]
         member _.Falco() =
             products
             |> falcoTemplate

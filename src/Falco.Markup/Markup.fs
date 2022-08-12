@@ -21,7 +21,7 @@ type XmlNode =
     | TextNode        of string
 
 module internal XmlNode =
-    let serialize (w : StringWriter) (xml : XmlNode) =
+    let serialize (w : StringWriter, xml : XmlNode) =
         let _openChar = '<'
         let _closeChar = '>'
         let _term = '/'
@@ -79,22 +79,23 @@ module internal XmlNode =
 /// Render XmlNode recursively to string representation
 let renderNode (tag : XmlNode) =
     let sb = Text.StringBuilder()
-    let w = new StringWriter(sb, CultureInfo.InvariantCulture)    
-    XmlNode.serialize w tag
+    let w = new StringWriter(sb, CultureInfo.InvariantCulture)
+    XmlNode.serialize(w, tag)
 
 /// Render XmlNode as HTML string
 let renderHtml (tag : XmlNode) =
     let sb = Text.StringBuilder()
     let w = new StringWriter(sb, CultureInfo.InvariantCulture)
     w.Write "<!DOCTYPE html>"
-    XmlNode.serialize w tag
+    XmlNode.serialize(w, tag)
 
-let renderXml (tag : XmlNode) = 
+/// Render XmlNode as XML string
+let renderXml (tag : XmlNode) =
     let sb = Text.StringBuilder()
     let w = new StringWriter(sb, CultureInfo.InvariantCulture)
     w.Write "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-    XmlNode.serialize w tag
-    
+    XmlNode.serialize(w, tag)
+
 module Text =
     /// Empty Text node
     let empty = TextNode String.Empty
@@ -122,76 +123,148 @@ module Elem =
         (tag, List.toArray attr)
         |> SelfClosingNode
 
+    // Main root
     let html = tag "html"
+
+    // Document metadata
+    let base' = selfClosingTag "base"
     let head = tag "head"
-    let title = tag "title"
+    let link = selfClosingTag "link"
+    let meta = selfClosingTag "meta"
     let style = tag "style"
-    let ``base`` = tag "base"
+    let title = tag "title"
+
+    // Sectioning root
     let body = tag "body"
-    let div = tag "div"
-    let a = tag "a"
+
+    // Content sectioning
+    let address = tag "address"
+    let article = tag "article"
+    let aside = tag "aside"
+    let footer = tag "footer"
+    let header = tag "header"
     let h1 = tag "h1"
     let h2 = tag "h2"
     let h3 = tag "h3"
     let h4 = tag "h4"
     let h5 = tag "h5"
     let h6 = tag "h6"
-    let p = tag "p"
-    let span = tag "span"
-    let em = tag "em"
-    let strong = tag "strong"
-    let b = tag "b"
-    let u = tag "u"
-    let i = tag "i"
-    let blockquote = tag "blockquote"
-    let pre = tag "pre"
-    let code = tag "code"
-    let small = tag "small"
-    let sub = tag "sub"
-    let sup = tag "sup"
-    let dl = tag "dl"
-    let dt = tag "dt"
-    let dd = tag "dd"
-    let ol = tag "ol"
-    let ul = tag "ul"
-    let li = tag "li"
-    let button = tag "button"
-    let fieldset = tag "fieldset"
-    let form = tag "form"
-    let label = tag "label"
-    let legend = tag "legend"
-    let input = selfClosingTag "input"
-    let textarea = tag "textarea"
-    let select = tag "select"
-    let option = tag "option"
-    let optgroup = tag "optgroup"
-    let table = tag "table"
-    let tbody = tag "tbody"
-    let tfoot = tag "tfoot"
-    let thead = tag "thead"
-    let tr = tag "tr"
-    let th = tag "th"
-    let td = tag "td"
-    let iframe = tag "iframe"
-    let figure = tag "figure"
-    let figcaption = tag "figcaption"
-    let article = tag "article"
-    let aside = tag "aside"
-    let canvas = tag "canvas"
-    let details = tag "details"
-    let footer = tag "footer"
-    let hgroup = tag "hroup"
-    let header = tag "header"
     let main = tag "main"
     let nav = tag "nav"
     let section = tag "section"
-    let summary = tag "summary"
-    let meta = selfClosingTag "meta"
-    let link = selfClosingTag "link"
-    let img = selfClosingTag "img"
+
+    // Text content
+    let blockquote = tag "blockquote"
+    let dd = tag "dd"
+    let div = tag "div"
+    let dl = tag "dl"
+    let dt = tag "dt"
+    let figcaption = tag "figcaption"
+    let figure = tag "figure"
     let hr = selfClosingTag "hr"
-    let br = selfClosingTag "br"    
+    let li = tag "li"
+    let menu = tag "menu"
+    let ol = tag "ol"
+    let p = tag "p"
+    let pre = tag "pre"
+    let ul = tag "ul"
+
+    // Inline text semantics
+    let a = tag "a"
+    let abbr = tag "abbr"
+    let b = tag "b"
+    let bdi = tag "bdi"
+    let bdo = tag "bdo"
+    let br = selfClosingTag "br"
+    let cite = tag "cite"
+    let code = tag "code"
+    let data = tag "data"
+    let dfn = tag "dfn"
+    let em = tag "em"
+    let i = tag "i"
+    let kbd = tag "kbd"
+    let mark = tag "mark"
+    let q = tag "q"
+    let rp = tag "rp"
+    let rt = tag "rt"
+    let ruby = tag "ruby"
+    let s = tag "s"
+    let samp = tag "samp"
+    let small = tag "small"
+    let span = tag "span"
+    let strong = tag "strong"
+    let sub = tag "sub"
+    let sup = tag "sup"
+    let time = tag "time"
+    let u = tag "u"
+    let var = tag "var"
+    let wbr = selfClosingTag "wbr"
+
+    // Image and multimedia
+    let area = tag "area"
+    let audio = tag "audio"
+    let img = selfClosingTag "img"
+    let map = tag "map"
+    let track = selfClosingTag "track"
+    let video = tag "video"
+
+    // Embedded content
+    let embed = selfClosingTag "embed"
+    let iframe = tag "iframe"
+    let object = tag "object"
+    let picture = tag "picture"
+    let portal = tag "portal"
+    let source = selfClosingTag "source"
+
+    // SVG and MathML
+    let svg = tag "svg"
+    let math = tag "math"
+
+    // Scripting
+    let canvas = tag "canvas"
+    let noscript = tag "noscript"
     let script = tag "script"
+
+    // Demarcating edits
+    let del = tag "del"
+    let ins = tag "ins"
+
+    // Table content
+    let caption = tag "caption"
+    let col = selfClosingTag "col"
+    let colgroup = tag "colgroup"
+    let table = tag "table"
+    let tbody = tag "tbody"
+    let td = tag "td"
+    let tfoot = tag "tfoot"
+    let th = tag "th"
+    let thead = tag "thead"
+    let tr = tag "tr"
+
+    // Forms
+    let button = tag "button"
+    let datalist = tag "datalist"
+    let fieldset = tag "fieldset"
+    let form = tag "form"
+    let input = selfClosingTag "input"
+    let label = tag "label"
+    let legend = tag "legend"
+    let meter = tag "meter"
+    let optgroup = tag "optgroup"
+    let option = tag "option"
+    let output = tag "output"
+    let progress = tag "progress"
+    let select = tag "select"
+    let textarea = tag "textarea"
+
+    // Interactive elements
+    let details = tag "details"
+    let dialog = tag "dialog"
+    let summary = tag "summary"
+
+    // Web Components
+    let slot = tag "slot"
+    let template = tag "template"
 
 module Attr =
     /// XmlAttribute KeyValueAttr constructor
@@ -218,48 +291,220 @@ module Attr =
             | None   -> NonValueAttr(g)
             | Some v -> KeyValueAttr(g, v))
 
-    let httpEquiv v = create "http-equiv" v
-    let lang v = create "lang" v
-    let charset v = create "charset" v
-    let content v = create "content" v
-    let id v = create "id" v
-    let class' v = create "class" v
-    let name v = create "name" v
-    let alt v = create "alt" v
-    let title v = create "title" v
-    let rel v = create "rel" v
-    let href v = create "href" v
-    let target v = create "target" v
-    let src v = create "src" v
-    let width v = create "width" v
-    let height v = create "height" v
-    let style v = create "style" v
-    let novalidate = createBool "novalidate"
-    let action v = create "action" v
-    let method v = create "method" v
-    let enctype v = create "enctype" v
-    let accept v = create "accept" v
-    let autocomplete v = create "autocomplete" v
+    let accept = create "accept"
+    let acceptCharset = create "accept-charset"
+    let accesskey = create "accesskey"
+    let action = create "action"
+    let align = create "align"
+    let allow = create "allow"
+    let alt = create "alt"
+    let async = createBool "async"
+    let autocapitalize = create "autocapitalize"
+    let autocomplete = create "autocomplete"
     let autofocus = createBool "autofocus"
+    let autoplay = createBool "autoplay"
+    let background = create "background"
+    let bgcolor = create "bgcolor"
+    let border = create "border"
+    let buffered = create "buffered"
+    let capture = create "capture"
+    let challenge = create "challenge"
+    let charset = create "charset"
     let checked' = createBool "checked"
+    let cite = create "cite"
+    let class' = create "class"
+    let code = create "code"
+    let codebase = create "codebase"
+    let color = create "color"
+    let cols = create "cols"
+    let colspan = create "colspan"
+    let content = create "content"
+    let contenteditable = create "contenteditable"
+    let contextmenu = create "contextmenu"
+    let controls = createBool "controls"
+    let coords = create "coords"
+    let crossorigin = create "crossorigin"
+    let csp = create "csp"
+    let data = create "data"
+    let dataAttr name = create (sprintf "data-%s" name)
+    let datetime = create "datetime"
+    let decoding = create "decoding"
+    let default' = createBool "default"
+    let defer = createBool "defer"
+    let dir = create "dir"
+    let dirname = create "dirname"
     let disabled = createBool "disabled"
-    let for' v = create "for" v
-    let form v = create "form" v
-    let max v = create "max" v
-    let maxlength v = create "maxlength" v
-    let min v = create "min" v
+    let download = create "download"
+    let draggable = create "draggable"
+    let enctype = create "enctype"
+    let enterkeyhint = create "enterkeyhint"
+    let for' = create "for"
+    let form = create "form"
+    let formaction = create "formaction"
+    let formenctype = create "formenctype"
+    let formmethod = create "formmethod"
+    let formnovalidate = createBool "formnovalidate"
+    let formtarget = create "formtarget"
+    let headers = create "headers"
+    let height = create "height"
+    let hidden = createBool "hidden"
+    let high = create "high"
+    let href = create "href"
+    let hreflang = create "hreflang"
+    let httpEquiv = create "http-equiv"
+    let icon = create "icon"
+    let id = create "id"
+    let importance = create "importance"
+    let integrity = create "integrity"
+    let inputmode = create "inputmode"
+    let ismap = createBool "ismap"
+    let itemprop = create "itemprop"
+    let keytype = create "keytype"
+    let kind = create "kind"
+    let label = create "label"
+    let lang = create "lang"
+    let loading = create "loading"
+    let list = create "list"
+    let loop = createBool "loop"
+    let low = create "low"
+    let max = create "max"
+    let maxlength = create "maxlength"
+    let minlength = create "minlength"
+    let media = create "media"
+    let method = create "method"
+    let min = create "min"
     let multiple = createBool "multiple"
-    let pattern v = create "pattern" v
-    let placeholder v = create "placeholder" v
+    let muted = createBool "muted"
+    let name = create "name"
+    let novalidate = createBool "novalidate"
+    let open' = create "open"
+    let optimum = create "optimum"
+    let pattern = create "pattern"
+    let ping = create "ping"
+    let placeholder = create "placeholder"
+    let poster = create "poster"
+    let preload = create "preload"
+    let radiogroup = create "radiogroup"
     let readonly = createBool "readonly"
+    let referrerpolicy = create "referrerpolicy"
+    let rel = create "rel"
     let required = createBool "required"
-    let rows v = create "rows" v
+    let reversed = createBool "reversed"
+    let role = create "role"
+    let rows = create "rows"
+    let rowspan = create "rowspan"
+    let sandbox = create "sandbox"
+    let scope = create "scope"
     let selected = createBool "selected"
-    let step v = create "step" v
-    let type' v = create "type" v
-    let value v = create "value" v
-    let colspan v = create "colspan" v
-    let open' = createBool "open"
+    let shape = create "shape"
+    let size = create "size"
+    let sizes = create "sizes"
+    let slot = create "slot"
+    let span = create "span"
+    let spellcheck = create "spellcheck"
+    let src = create "src"
+    let srcdoc = create "srcdoc"
+    let srclang = create "srclang"
+    let srcset = create "srcset"
+    let start = create "start"
+    let step = create "step"
+    let style = create "style"
+    let tabindex = create "tabindex"
+    let target = create "target"
+    let title = create "title"
+    let translate = create "translate"
+    let type' = create "type"
+    let usemap = create "usemap"
+    let value = create "value"
+    let width = create "width"
+    let wrap = create "wrap"
+
+    // Events
+    let onabort = create "abort"
+    let onafterprint = create "afterprint"
+    let onanimationend = create "animationend"
+    let onanimationiteration = create "animationiteration"
+    let onanimationstart = create "animationstart"
+    let onbeforeprint = create "beforeprint"
+    let onbeforeunload = create "beforeunload"
+    let onblur = create "blur"
+    let oncanplay = create "canplay"
+    let oncanplaythrough = create "canplaythrough"
+    let onchange = create "change"
+    let onclick = create "click"
+    let oncontextmenu = create "contextmenu"
+    let oncopy = create "copy"
+    let oncut = create "cut"
+    let ondblclick = create "dblclick"
+    let ondrag = create "drag"
+    let ondragend = create "dragend"
+    let ondragenter = create "dragenter"
+    let ondragleave = create "dragleave"
+    let ondragover = create "dragover"
+    let ondragstart = create "dragstart"
+    let ondrop = create "drop"
+    let ondurationchange = create "durationchange"
+    let onended = create "ended"
+    let onerror = create "error"
+    let onfocus = create "focus"
+    let onfocusin = create "focusin"
+    let onfocusout = create "focusout"
+    let onfullscreenchange = create "fullscreenchange"
+    let onfullscreenerror = create "fullscreenerror"
+    let onhashchange = create "hashchange"
+    let oninput = create "input"
+    let oninvalid = create "invalid"
+    let onkeydown = create "keydown"
+    let onkeypress = create "keypress"
+    let onkeyup = create "keyup"
+    let onload = create "load"
+    let onloadeddata = create "loadeddata"
+    let onloadedmetadata = create "loadedmetadata"
+    let onloadstart = create "loadstart"
+    let onmessage = create "message"
+    let onmousedown = create "mousedown"
+    let onmouseenter = create "mouseenter"
+    let onmouseleave = create "mouseleave"
+    let onmousemove = create "mousemove"
+    let onmouseover = create "mouseover"
+    let onmouseout = create "mouseout"
+    let onmouseup = create "mouseup"
+    let onmousewheel = create "mousewheel"
+    let onoffline = create "offline"
+    let ononline = create "online"
+    let onopen = create "open"
+    let onpagehide = create "pagehide"
+    let onpageshow = create "pageshow"
+    let onpaste = create "paste"
+    let onpause = create "pause"
+    let onplay = create "play"
+    let onplaying = create "playing"
+    let onpopstate = create "popstate"
+    let onprogress = create "progress"
+    let onratechange = create "ratechange"
+    let onresize = create "resize"
+    let onreset = create "reset"
+    let onscroll = create "scroll"
+    let onsearch = create "search"
+    let onseeked = create "seeked"
+    let onseeking = create "seeking"
+    let onselect = create "select"
+    let onshow = create "show"
+    let onstalled = create "stalled"
+    let onstorage = create "storage"
+    let onsubmit = create "submit"
+    let onsuspend = create "suspend"
+    let ontimeupdate = create "timeupdate"
+    let ontoggle = create "toggle"
+    let ontouchcancel = create "touchcancel"
+    let ontouchend = create "touchend"
+    let ontouchmove = create "touchmove"
+    let ontouchstart = create "touchstart"
+    let ontransitionend = create "transitionend"
+    let onunload = create "unload"
+    let onvolumechange = create "volumechange"
+    let onwaiting = create "waiting"
+    let onwheel = create "wheel"
 
 module Templates =
     /// HTML 5 template with customizable <head> and <body>
