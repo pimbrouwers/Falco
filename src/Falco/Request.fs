@@ -26,6 +26,10 @@ let getVerb (ctx : HttpContext) : HttpVerb =
     | m when strEquals m HttpMethods.Trace   -> TRACE
     | _ -> ANY
 
+/// Retrieve the cookie from the request as an instance of CookieCollectionReader
+let getCookie (ctx : HttpContext) : CookieCollectionReader =
+    CookieCollectionReader(ctx.Request.Cookies)
+
 /// Retrieve a specific header from the request
 let getHeaders (ctx : HttpContext) : HeaderCollectionReader  =
     HeaderCollectionReader(ctx.Request.Headers)
@@ -33,23 +37,10 @@ let getHeaders (ctx : HttpContext) : HeaderCollectionReader  =
 /// Retrieve all route values from the request as RouteCollectionReader
 let getRoute (ctx : HttpContext) : RouteCollectionReader =
     RouteCollectionReader(ctx.Request.RouteValues, ctx.Request.Query)
-
-let tryBindRoute
-    (binder : RouteCollectionReader -> Result<'a, 'b>)
-    (ctx : HttpContext) : Result<'a, 'b> =
-    getRoute ctx
-    |> binder
-
+ 
 /// Retrieve the query string from the request as an instance of QueryCollectionReader
 let getQuery (ctx : HttpContext) : QueryCollectionReader =
     QueryCollectionReader(ctx.Request.Query)
-
-/// Attempt to bind query collection
-let tryBindQuery
-    (binder : QueryCollectionReader -> Result<'a, 'b>)
-    (ctx : HttpContext) : Result<'a, 'b> =
-    getQuery ctx
-    |> binder
 
 /// Retrieve the form collection from the request as an instance of FormCollectionReader
 let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
@@ -59,61 +50,26 @@ let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
         return FormCollectionReader(form, files)
     }
 
-/// Attempt to bind the form collection
-let tryBindForm
-    (binder : FormCollectionReader -> Result<'a, 'b>)
-    (ctx : HttpContext) : Task<Result<'a, 'b>> =
-    task {
-        let! form = getForm ctx
-        return binder form
-    }
+/// Attempt to bind request body using System.Text.Json and provided JsonSerializerOptions
+let getJsonOptions<'a>
+    (options : JsonSerializerOptions)
+    (ctx : HttpContext) : Task<'a> =
+    JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
 
-/// Attempt to stream the form collection for multipart form submissions
-let tryStreamForm
-    (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> =
-    ctx.Request.TryStreamFormAsync()
+/// Attempt to bind request body using System.Text.Json
+let getJson<'a>
+    (ctx : HttpContext) : Task<'a> =
+    getJsonOptions Constants.defaultJsonOptions ctx
 
 /// Stream the form collection for multipart form submissions
 let streamForm
     (ctx : HttpContext) : Task<FormCollectionReader> =
     ctx.Request.StreamFormAsync()
 
-/// Attempt to bind the form collection
-let tryBindFormStream
-    (binder : FormCollectionReader -> Result<'a, 'b>)
-    (ctx : HttpContext) : Task<Result<'a, 'b>> =
-    task {
-        let! form = streamForm ctx
-        return binder form
-    }
-
-/// Retrieve the cookie from the request as an instance of CookieCollectionReader
-let getCookie (ctx : HttpContext) : CookieCollectionReader =
-    CookieCollectionReader(ctx.Request.Cookies)
-
-/// Attempt to bind cookie collection
-let tryBindCookie
-    (binder : CookieCollectionReader -> Result<'a, 'b>)
-    (ctx : HttpContext) : Result<'a, 'b> =
-    getCookie ctx
-    |> binder
-
-/// Attempt to bind request body using System.Text.Json and provided JsonSerializerOptions
-let tryBindJsonOptions<'a>
-    (options : JsonSerializerOptions)
-    (ctx : HttpContext) : Task<Result<'a, string>> =
-    task {
-        try
-            let! result = JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
-            return Ok result
-        with
-        :? JsonException as ex -> return Error ex.Message
-    }
-
-/// Attempt to bind request body using System.Text.Json
-let tryBindJson<'a>
-    (ctx : HttpContext) : Task<Result<'a, string>> =
-    tryBindJsonOptions Constants.defaultJsonOptions ctx
+/// Attempt to stream the form collection for multipart form submissions
+let tryStreamForm
+    (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> =
+    ctx.Request.TryStreamFormAsync()
 
 // ------------
 // Handlers
@@ -138,24 +94,34 @@ let validateCsrfToken
         return! respondWith ctx
     }
 
-/// Bind JSON request body onto 'a and provide to next
-/// Httphandler, throws exception if JsonException
+/// Project JSON onto 'a and provide to next
+/// Httphandler, throws JsonException if errors
 /// occurs during deserialization.
-let mapJson (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
+let mapJson 
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->    
     #if NETCOREAPP3_1 || NET5_0
     unitTask {
     #else
     task {
     #endif
-        // let! json = tryBindJson ctx
-        // let respondWith =
-        //     match json with
-        //     | Error error -> failwith "Could not bind JSON"
-        //     | Ok json -> next json
-        // return! respondWith ctx
-
-        return! JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, Constants.defaultJsonOptions).AsTask()
+        let! json = getJson ctx
+        return next json
     }
+
+/// Project JSON using custom JsonSerializerOptions 
+/// onto 'a and provide to next Httphandler, throws 
+/// JsonException if errors occurs during deserialization.
+let mapJsonOption 
+    (options : JsonSerializerOptions) 
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->    
+    #if NETCOREAPP3_1 || NET5_0
+    unitTask {
+    #else
+    task {
+    #endif
+        let! json = getJsonOptions options ctx
+        return next json
+    }   
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler

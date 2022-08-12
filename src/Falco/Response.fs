@@ -81,7 +81,7 @@ let private writeBytes (bytes : byte[]) (ctx : HttpContext) =
 /// Write UTF8 string to HttpResponse body
 let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : HttpContext) =
     if isNull httpBodyStr then
-        writeBytes [||] ctx
+        Task.CompletedTask
     else
         let httpBodyBytes = encoding.GetBytes httpBodyStr
         writeBytes httpBodyBytes ctx
@@ -157,8 +157,7 @@ let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
         task {
         #endif
             use str = new MemoryStream()
-            do! JsonSerializer.SerializeAsync(str, obj, options = options)
-            str.Flush ()
+            do! JsonSerializer.SerializeAsync(str, obj, options = options)            
             let bytes = str.ToArray ()
             let byteLen = bytes.Length
             ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)

@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param ()
+param (
+    [Switch]
+    $NoClean
+)
 
 function RunCommand {
     param ([string] $CommandExpr)
@@ -7,7 +10,10 @@ function RunCommand {
     Invoke-Expression $CommandExpr
 }
 
-RunCommand -CommandExpr "dotnet clean -c Debug --nologo --verbosity quiet"
+if(!$NoClean)
+{
+    RunCommand -CommandExpr "dotnet clean -c Debug --nologo --verbosity quiet"
+}
 
 $assemblies = "Falco.Tests", "Falco.Markup.Tests"
 

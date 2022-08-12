@@ -46,9 +46,9 @@ let ``StringCollectionReader value lookups are case-insensitive`` () =
     scr.TryGet "fstriNG" |> shouldBeSome (should equal "John Doe")
 
     // arrays
-    scr.GetArrayString "FSTRING" |> should equal [|"John Doe";"Jane Doe"|]
-    scr.GetArrayString "fString" |> should equal [|"John Doe";"Jane Doe"|]
-    scr.GetArrayString "fstriNG" |> should equal [|"John Doe";"Jane Doe"|]
+    scr.GetArray "FSTRING" |> should equal [|"John Doe";"Jane Doe"|]
+    scr.GetArray "fString" |> should equal [|"John Doe";"Jane Doe"|]
+    scr.GetArray "fstriNG" |> should equal [|"John Doe";"Jane Doe"|]
 
 [<Fact>] 
 let ``Inline StringCollectionReader from form collection should resolve primitives`` () =
@@ -109,24 +109,24 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
     scr.GetTimeSpan "ftimespan" TimeSpan.MinValue                   |> should equal (TimeSpan.Parse(timespan))
     scr.GetGuid "fguid" Guid.Empty                                  |> should equal (Guid.Parse(guid))
 
-    scr.GetString "_fstring" "default_value"                    |> should equal  "default_value"                    
-    scr.GetStringNonEmpty "_fstring" "default_value"            |> should equal  "default_value"            
-    scr.GetInt16 "_fint16" -1s                                  |> should equal  -1s                                  
-    scr.GetInt32 "_fint32" -1                                   |> should equal  -1                                   
-    scr.GetInt "_fint32" -1                                     |> should equal  -1                                     
-    scr.GetInt64 "_fint64" 1L                                   |> should equal  1L                                   
-    scr.GetBoolean "_fbool" false                               |> should equal  false                               
-    scr.GetFloat "_ffloat" 0.0                                  |> should equal  0.0                                  
-    scr.GetDecimal "_fdecimal" 0.0M                             |> should equal  0.0M                             
-    scr.GetDateTime "_fdatetime" DateTime.MinValue              |> should equal  DateTime.MinValue   
+    scr.GetString "_fstring" "default_value"                         |> should equal  "default_value"                    
+    scr.GetStringNonEmpty "_fstring" "default_value"                 |> should equal  "default_value"            
+    scr.GetInt16 "_fint16" -1s                                       |> should equal  -1s                                  
+    scr.GetInt32 "_fint32" -1                                        |> should equal  -1                                   
+    scr.GetInt "_fint32" -1                                          |> should equal  -1                                     
+    scr.GetInt64 "_fint64" 1L                                        |> should equal  1L                                   
+    scr.GetBoolean "_fbool" false                                    |> should equal  false                               
+    scr.GetFloat "_ffloat" 0.0                                       |> should equal  0.0                                  
+    scr.GetDecimal "_fdecimal" 0.0M                                  |> should equal  0.0M                             
+    scr.GetDateTime "_fdatetime" DateTime.MinValue                   |> should equal  DateTime.MinValue   
     scr.GetDateTimeOffset "_fdatetimeoffset" DateTimeOffset.MinValue |> should equal  DateTimeOffset.MinValue
-    scr.GetTimeSpan "_ftimespan" TimeSpan.MinValue              |> should equal  TimeSpan.MinValue              
-    scr.GetGuid "_fguid" Guid.Empty                             |> should equal  Guid.Empty                             
+    scr.GetTimeSpan "_ftimespan" TimeSpan.MinValue                   |> should equal  TimeSpan.MinValue              
+    scr.GetGuid "_fguid" Guid.Empty                                  |> should equal  Guid.Empty                             
     
     // array values
     scr.GetStringArray "_fstring"                |> should equal [||]
     scr.GetStringArray "fstring"                 |> should equal [|"John Doe"; "";""; "Jane Doe";""|]
-    scr.Get "fstringArray"                       |> should equal [|"John Doe"; "";""; "Jane Doe";""|]
+    scr.GetArray "fstring"                       |> should equal [|"John Doe"; "";""; "Jane Doe";""|]
     scr.GetStringNonEmptyArray "fstring"         |> should equal [|"John Doe";"Jane Doe"|]
     scr.GetInt16Array "fint16"                   |> should equal [|16s;17s|]
     scr.GetInt32Array "fint32"                   |> should equal [|32;33|]
