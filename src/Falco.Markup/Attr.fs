@@ -241,3 +241,143 @@ module Attr =
     let onvolumechange = create "volumechange"
     let onwaiting = create "waiting"
     let onwheel = create "wheel"
+
+    // SVG
+    // Generic attributes
+    let xmlBase = create "xml:base"
+    let xmlLang = create "xml:lang"
+    let xmlSpace = create "xml:space"
+
+    // Conditional processing attributes
+    let requiredExtensions = create "requiredExtensions"
+    let requiredFeatures = create "requiredFeatures"
+    let systemLanguage = create "systemLanguage."
+
+    // XLink attributes
+    let xlinkHref = create "xlink:href"
+    let xlinkType = create "xlink:type"
+    let xlinkRole = create "xlink:role"
+    let xlinkArcrole = create "xlink:arcrole"
+    let xlinkTitle = create "xlink:title"
+    let xlinkShow = create "xlink:show"
+    let xlinkActuate = create "xlink:actuate"
+
+    // Presentation attributes (Note: All SVG presentation attributes can be used as CSS properties.)
+    let alignmentBaseline = create "alignment-baseline"
+    let baselineShift = create "baseline-shift"
+    let clip = create "clip"
+    let clipPath = create "clip-path"
+    let clipRule = create "clip-rule"    
+    let colorInterpolation = create "color-interpolation"
+    let colorInterpolationFilters = create "color-interpolation-filters"
+    let colorProfile = create "color-profile"
+    let colorRendering = create "color-rendering"
+    let cursor = create "cursor"
+    let direction = create "direction"
+    let display = create "display"
+    let dominantBaseline = create "dominant-baseline"
+    let enableBackground = create "enable-background"
+    let fill = create "fill"
+    let fillOpacity = create "fill-opacity"
+    let fillRule = create "fill-rule"
+    let filter = create "filter"
+    let floodColor = create "flood-color"
+    let floodOpacity = create "flood-opacity"
+    let fontFamily = create "font-family"
+    let fontSize = create "font-size"
+    let fontSizeAdjust = create "font-size-adjust"
+    let fontStretch = create "font-stretch"
+    let fontStyle = create "font-style"
+    let fontVariant = create "font-variant"
+    let fontWeight = create "font-weight"
+    let glyphOrientationHorizontal = create "glyph-orientation-horizontal"
+    let glyphOrientationVertical = create "glyph-orientation-vertical"
+    let imageRendering = create "image-rendering"
+    let kerning = create "kerning"
+    let letterSpacing = create "letter-spacing"
+    let lightingColor = create "lighting-color"
+    let markerEnd = create "marker-end"
+    let markerMid = create "marker-mid"
+    let markerStart = create "marker-start"
+    let mask = create "mask"
+    let opacity = create "opacity"
+    let overflow = create "overflow"
+    let pointerEvents = create "pointer-events"
+    let shapeRendering = create "shape-rendering"
+    let stopColor = create "stop-color"
+    let stopOpacity = create "stop-opacity"
+    let stroke = create "stroke"
+    let strokeDasharray = create "stroke-dasharray"
+    let strokeDashoffset = create "stroke-dashoffset"
+    let strokeLinecap = create "stroke-linecap"
+    let strokeLinejoin = create "stroke-linejoin"
+    let strokeMiterlimit = create "stroke-miterlimit"
+    let strokeOpacity = create "stroke-opacity"
+    let strokeWidth = create "stroke-width"
+    let textAnchor = create "text-anchor"
+    let textDecoration = create "text-decoration"
+    let textRendering = create "text-rendering"
+    let transform = create "transform"
+    let transformOrigin = create "transform-origin"
+    let unicodeBidi = create "unicode-bidi"
+    let vectorEffect = create "vector-effect"
+    let visibility = create "visibility"
+    let wordSpacing = create "word-spacing"
+    let writingMode = create "writing-mode"
+
+    // Filter primitive attributes    
+    let result = create "result"    
+    let x = create "x"
+    let y = create "y"
+
+    // Transfer function attributes    
+    let tableValues = create "tableValues"
+    let slope = create "slope"
+    let intercept = create "intercept"
+    let amplitude = create "amplitude"
+    let exponent = create "exponent"
+    let offset = create "offset"
+
+    // Animation attribute target attributes
+    let attributeType = create "attributeType"
+    let attributeName = create "attributeName"
+
+    // Animation timing attributes
+    let begin' = create "begin"
+    let dur' = create "dur"
+    let end' = create "end"    
+    let restart = create "restart"
+    let repeatCount = create "repeatCount"
+    let repeatDur = create "repeatDur"
+    let fill' = create "fill"
+
+    // Animation value attributes
+    let calcMode = create "calcMode"
+    let values = create "values"
+    let keyTimes = create "keyTimes"
+    let keySplines = create "keySplines"
+    let from = create "from"
+    let to' = create "to"
+    let by = create "by"
+    let autoReverse = create "autoReverse"
+    let accelerate = create "accelerate"
+    let decelerate = create "decelerate"
+
+    // Animation addition attributes
+    let additive = create "additive"
+    let accumulate = create "accumulate"
+
+    // Animation event attributes
+    let onbegin = create "onbegin"
+    let onend = create "onend"
+    let onrepeat = create "onrepeat"
+
+    // Global event attributes
+    let oncancel = create "oncancel"
+    let onclose = create "onclose"
+    let oncuechange = create "oncuechange"    
+    let onemptied = create "onemptied"    
+    let onerror' = create "onerror"
+
+    // Graphical event attributes
+    let onactivate = create "onactivate"    
