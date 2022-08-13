@@ -32,9 +32,9 @@ let pbkdf2
     (salt : byte[])
     (input : byte[]) =
     let pbkdf2 = new Rfc2898DeriveBytes(input, salt, iterations, algo)
-    pbkdf2.GetBytes numBytesRequested
-    |> bytesToBase64
-
+    let bytes = pbkdf2.GetBytes numBytesRequested
+    bytesToBase64 bytes
+    
 /// Perform PBKDF2 key derivation using HMACSHA256
 let sha256
     (iterations : int)

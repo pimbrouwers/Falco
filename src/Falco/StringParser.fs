@@ -24,14 +24,14 @@ let parseGuid           = tryParseWith Guid.TryParse
 /// Attempt to parse boolean from string. 
 /// Returns None on failure, Some x on success. 
 /// Case-insensitive comparison, and special cases for "yes", "no", "on", "off", "1", "0".
-let parseBoolean (v : string) = 
-    let v = v.ToUpperInvariant ()
-    match v with 
-    | "ON" | "YES" | "1" -> Boolean.TrueString
-    | "OFF" | "NO" | "0" -> Boolean.FalseString
-    | _ -> v
-    |> tryParseWith Boolean.TryParse
+let parseBoolean (value : string) = 
+    let v = value.ToUpperInvariant ()
 
+    match v with 
+    | "ON" | "YES" | "1" -> Some true 
+    | "OFF" | "NO" | "0" -> Some false
+    | v -> tryParseWith Boolean.TryParse v
+    
 /// Attempt to parse, or failwith message
 let parseOrFail parser msg v =
     match parser v with
@@ -43,6 +43,7 @@ let tryParseArray parser ary =
     ary
     |> List.ofArray
     |> List.fold (fun acc i ->
+        // accumulate successful parses
         match (parser i, acc) with
         | Some i, acc -> i :: acc
         | None, acc -> acc) []

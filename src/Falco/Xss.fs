@@ -10,10 +10,9 @@ open Microsoft.AspNetCore.Http
 let antiforgeryInput
     (token : AntiforgeryTokenSet) =
     Elem.input [
-            Attr.type' "hidden"
-            Attr.name token.FormFieldName
-            Attr.value token.RequestToken
-        ]
+        Attr.type' "hidden"
+        Attr.name token.FormFieldName
+        Attr.value token.RequestToken ]
 
 /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery package
 let getToken (ctx : HttpContext) : AntiforgeryTokenSet =
