@@ -3,7 +3,6 @@ namespace Falco.Markup
 open System
 open System.Globalization
 open System.IO
-open System.Net
 
 /// Specifies an XML-style attribute
 type XmlAttribute =
@@ -12,7 +11,7 @@ type XmlAttribute =
 
 /// Represents an XML-style element containing attributes
 type XmlElement =
-    string * XmlAttribute[]
+    string * XmlAttribute list
 
 /// Describes the different XML-style node patterns
 type XmlNode =
@@ -29,8 +28,10 @@ module internal XmlNode =
     let [<Literal>] _quote = "\""
 
     let serialize (w : StringWriter, xml : XmlNode) =
+        // Concatenating constants can be optimized by the compiler if
+        // combined using the "+"
         let writeAttributes attrs =
-            for attr in (attrs : XmlAttribute[]) do
+            for attr in (attrs : XmlAttribute list) do
                 if attrs.Length > 0 then
                     w.Write _space
 
@@ -40,8 +41,6 @@ module internal XmlNode =
 
                 | KeyValueAttr (attrName, attrValue) ->
                     w.Write attrName
-                    // w.Write _equals
-                    // w.Write _quote
                     w.Write (_equals + _quote)
                     w.Write attrValue
                     w.Write _quote
@@ -56,9 +55,6 @@ module internal XmlNode =
                 w.Write tag
                 writeAttributes attrs
                 w.Write (_space + _term + _closeChar)
-                // w.Write _space
-                // w.Write _term
-                // w.Write _closeChar
 
             | ParentNode ((tag, attrs), children) ->
                 w.Write _openChar
@@ -69,9 +65,7 @@ module internal XmlNode =
                 for c in children do
                     buildXml c
 
-                w.Write (_openChar + _term)
-                // w.Write _openChar
-                // w.Write _term
+                w.Write (_openChar + _term)                
                 w.Write tag
                 w.Write _closeChar
 

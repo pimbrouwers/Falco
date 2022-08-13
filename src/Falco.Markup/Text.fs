@@ -5,16 +5,21 @@ open System.Net
 
 module Text =
     /// Empty Text node
-    let empty = TextNode String.Empty
+    let empty = 
+        TextNode String.Empty
 
     /// Encoded-text XmlNode constructor
-    let enc content = TextNode (WebUtility.HtmlEncode content)
+    let enc (content : string) = 
+        TextNode (WebUtility.HtmlEncode content)
 
     /// Text XmlNode constructor
-    let raw content = TextNode content
+    let raw (content : string) = 
+        TextNode content
 
     /// Text XmlNode constructor that will invoke "sprintf template"
-    let rawf template = Printf.kprintf raw template
+    let rawf (template : Printf.StringFormat<'a, XmlNode>) = 
+        Printf.kprintf raw template
 
     /// HTML Comment Text XmlNode construction
-    let comment = rawf "<!-- %s -->"
+    let comment (content : string) = 
+        rawf "<!-- %s -->" content

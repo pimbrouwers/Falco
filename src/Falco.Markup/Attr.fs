@@ -4,10 +4,12 @@ open System
 
 module Attr =
     /// XmlAttribute KeyValueAttr constructor
-    let create key value = KeyValueAttr (key, value)
+    let create (key : string) (value : string) = 
+        KeyValueAttr (key, value)
 
     /// XmlAttribute NonValueAttr constructor
-    let createBool key = NonValueAttr key
+    let createBool (key : string) = 
+        NonValueAttr key
 
     /// Merge two XmlAttribute lists
     let merge attrs1 attrs2 =

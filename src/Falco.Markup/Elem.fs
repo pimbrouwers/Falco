@@ -1,18 +1,14 @@
 namespace Falco.Markup
 
-open System
-
 module Elem =
     /// Standard XmlNode constructor
     let create (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
-        ((tag, List.toArray attr), children)
-        |> ParentNode
+        ParentNode ((tag, attr), children)
 
     /// Self-closing XmlNode constructor
     let createSelfClosing (tag : string) (attr : XmlAttribute list) =
-        (tag, List.toArray attr)
-        |> SelfClosingNode
-
+        SelfClosingNode (tag, attr)
+        
     // Main root
     let html = create "html"
 

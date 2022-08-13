@@ -1,10 +1,5 @@
 namespace Falco.Markup
 
-open System
-open System.Globalization
-open System.IO
-open System.Net
-
 module Templates =
     /// HTML 5 template with customizable <head> and <body>
     let html5 (langCode : string) (head : XmlNode list) (body : XmlNode list) =
