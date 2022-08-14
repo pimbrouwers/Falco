@@ -234,7 +234,7 @@ let secureHelloHandler : HttpHandler =
 
 ## Response Modifiers
 
-Response modifiers can be thought of as the in-and-out modification of the `HttpResponse`. A preamble to writing and returning. Since these functions receive the `Httpcontext` as input and return it as the only output, they can take advantage of [function composition](22).
+Response modifiers can be thought of as the in-and-out modification of the `HttpResponse`. A preamble to writing and returning. Since these functions receive the `Httpcontext` as input and return it as the only output, they can take advantage of [function composition](9).
 
 ### Set the status code of the response
 
