@@ -29,7 +29,7 @@ webHost [||] {
 - Native F# [view engine](#markup).
 - Uniform API for [model binding](#model-binding).
 - [Authentication](#authentication) and [security](#security) utilities.
-- Built-in support for [large uploads](#handling-large-uploads).
+- Built-in support for [large uploads](#multipartform-data-binding-handling-large-uploads).
 
 ## Design Goals
 
@@ -377,7 +377,7 @@ let manualFormHandler : HttpHandler = fun ctx -> task {
 }        
 ```
 
-#### `multipart/form-data` Binding 
+#### `multipart/form-data` Binding (handling large uploads)
 
 Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
 
