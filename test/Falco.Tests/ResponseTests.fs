@@ -5,7 +5,7 @@ open System.Text.Json
 open System.Text.Json.Serialization
 open Falco
 open Falco.Markup
-open Falco.Tests.Response.Extensions
+open Falco.Tests.Extensions.Response
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Microsoft.Net.Http.Headers
