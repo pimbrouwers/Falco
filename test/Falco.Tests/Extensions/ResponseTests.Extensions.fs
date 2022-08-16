@@ -1,6 +1,6 @@
-namespace Falco.Tests.Response
+namespace Falco.Tests.Extensions
 
-module Extensions =
+module Response =
     open NSubstitute
     open Microsoft.AspNetCore.Http
 
