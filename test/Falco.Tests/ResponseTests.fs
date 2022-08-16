@@ -5,9 +5,9 @@ open System.Text.Json
 open System.Text.Json.Serialization
 open Falco
 open Falco.Markup
+open Falco.Tests.Response.Extensions
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
-open Microsoft.AspNetCore.Authentication
 open Microsoft.Net.Http.Headers
 open NSubstitute
 open Xunit
@@ -63,6 +63,24 @@ let ``Response.redirect temporary should invoke HttpResponse Redirect with provi
             |> Response.redirect "/" permanent
 
         ctx.Response.Received().Redirect("/", permanent)
+    }
+
+[<Fact>]
+let ``Response.redirectPermanentlyTo invokes HttpRedirect with permanently moved resource`` () =
+    let ctx = getHttpContextWriteable false
+    task {
+        do! ctx
+            |> Response.redirectPermanentlyTo "/"
+        ctx.Response.ReceivedPermanentRedirectTo("/")
+    }
+
+[<Fact>]
+let ``Response.redirectPermanentlyTo invokes HttpRedirect with temporarily moved resource`` () =
+    let ctx = getHttpContextWriteable false
+    task {
+        do! ctx
+            |> Response.redirectTemporarilyTo "/"
+        ctx.Response.ReceivedTemporaryRedirectTo("/")
     }
 
 
