@@ -92,6 +92,24 @@ let redirect (url : string) (permanent : bool) : HttpHandler =
         ctx.Response.Redirect(url, permanent)
         ctx.Response.CompleteAsync ()
 
+type private RedirectType =
+    | PermanentlyTo of url: string
+    | TemporarilyTo of url: string
+
+let private redirect' (redirectType: RedirectType): HttpHandler =
+    fun ctx ->
+        let (permament, url) =
+            match redirectType with
+            | PermanentlyTo url -> (true, url)
+            | TemporarilyTo url -> (false, url)
+        ctx.Response.Redirect(url, permament)
+        ctx.Response.CompleteAsync()
+        
+/// Returns a redirect (301 or 302) to client
+let redirectPermanentlyTo (url: string) = redirect' (PermanentlyTo url)
+/// Returns a redirect (301 or 302) to client
+let redirectTemporarilyTo (url: string) = redirect' (TemporarilyTo url)
+
 /// Returns an inline binary (i.e., Byte[]) response with the specified Content-Type
 ///
 /// Note: Automatically sets "content-disposition: inline"
