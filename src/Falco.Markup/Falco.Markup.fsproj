@@ -4,7 +4,7 @@
     <AssemblyName>Falco.Markup</AssemblyName>
     <RootNamespace>Falco</RootNamespace>
     <Version>1.0.0-alpha</Version>
-    
+
     <!-- General info -->
     <Description>An F# DSL for generating markup, including HTML, SVG and XML.</Description>
     <Copyright>Copyright 2022 Pim Brouwers</Copyright>
@@ -12,7 +12,7 @@
     <NeutralLanguage>en-CA</NeutralLanguage>
 
     <!-- Build config -->
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>    
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <DebugType>embedded</DebugType>
     <OutputType>Library</OutputType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -50,11 +50,12 @@
     <Compile Include="XmlNode.fs" />
     <Compile Include="Text.fs" />
     <Compile Include="Elem.fs" />
-    <Compile Include="Attr.fs" />    
+    <Compile Include="Attr.fs" />
+    <Compile Include="Svg.fs" />
     <Compile Include="Templates.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.6.2" />      
+    <PackageReference Update="FSharp.Core" Version="4.6.2" />
   </ItemGroup>
 </Project>
