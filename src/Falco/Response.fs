@@ -99,11 +99,11 @@ type private RedirectType =
 
 let private redirect' (redirectType: RedirectType): HttpHandler =
     fun ctx ->
-        let (permament, url) =
+        let (permanent, url) =
             match redirectType with
             | PermanentlyTo url -> (true, url)
             | TemporarilyTo url -> (false, url)
-        ctx.Response.Redirect(url, permament)
+        ctx.Response.Redirect(url, permanent)
         ctx.Response.CompleteAsync()
         
 /// Returns a redirect (301 or 302) to client
