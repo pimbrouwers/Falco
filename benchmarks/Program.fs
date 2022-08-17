@@ -40,8 +40,8 @@ module Markup =
         |> List.map elem
         |> ul [ _id "products "]
 
-    let scribanTemplateStr = "
-        <ul id='products'>
+    let scribanTemplate =
+        "<ul id='products'>
             {{ for product in products; with product }}
             <li>
                 <h2>{{ name }}</h2>
@@ -50,6 +50,7 @@ module Markup =
             </li>
             {{ end; end }}
         </ul>"
+        |> fun str -> Template.Parse(str)
 
     [<MemoryDiagnoser>]
     type Bench() =
@@ -83,7 +84,6 @@ module Markup =
 
         [<Benchmark>]
         member _.Scriban() =
-            let scribanTemplate = Template.Parse(scribanTemplateStr)
             scribanTemplate.Render(products)
 
 [<EntryPoint>]
