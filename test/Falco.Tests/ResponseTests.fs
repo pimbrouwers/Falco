@@ -75,7 +75,7 @@ let ``Response.redirectPermanentlyTo invokes HttpRedirect with permanently moved
     }
 
 [<Fact>]
-let ``Response.redirectPermanentlyTo invokes HttpRedirect with temporarily moved resource`` () =
+let ``Response.redirectTemporarilyTo invokes HttpRedirect with temporarily moved resource`` () =
     let ctx = getHttpContextWriteable false
     task {
         do! ctx
