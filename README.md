@@ -1,6 +1,7 @@
 # Falco
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
+[![NuGet Version](https://img.shields.io/nuget/v/Falco.Markup.svg)](https://www.nuget.org/packages/Falco.Markup)
 [![Build Status](https://travis-ci.org/pimbrouwers/Falco.svg?branch=master)](https://travis-ci.org/pimbrouwers/Falco)
 
 ```fsharp
@@ -9,7 +10,7 @@ open Falco.Routing
 open Falco.HostBuilder
 
 webHost [||] {
-    endpoints [                    
+    endpoints [
         get "/" (Response.ofPlainText "Hello World")
     ]
 }
@@ -95,7 +96,7 @@ open Falco.HostBuilder
 [<EntryPoint>]
 let main args =
     webHost args {
-        endpoints [ 
+        endpoints [
             get "/" (Response.ofPlainText "Hello World")
         ]
     }
@@ -143,7 +144,7 @@ let htmlHandler : HttpHandler =
         Elem.html [ Attr.lang "en" ] [
             Elem.head [] []
             Elem.body [] [
-                Elem.h1 [] [ Text.raw "Sample App" ]                
+                Elem.h1 [] [ Text.raw "Sample App" ]
             ]
         ]
 
@@ -153,7 +154,7 @@ let htmlHandler : HttpHandler =
 Alternatively, if you're using an external view engine and want to return an HTML response from a string literal, then you can use `Response.ofHtmlString`.
 
 ```fsharp
-let htmlHandler : HttpHandler = 
+let htmlHandler : HttpHandler =
     Response.ofHtmlString "<html>...</html>"
 ```
 
@@ -182,16 +183,16 @@ let oldUrlHandler : HttpHandler =
 
 ## Accessing Request Data
 
-Falco exposes a [uniform API](#model-binding) to obtain typed values from the various sources of request data. Note, the similarity in the various binders below. 
+Falco exposes a [uniform API](#model-binding) to obtain typed values from the various sources of request data. Note, the similarity in the various binders below.
 
 ### Route Collection
 
 ```fsharp
 let helloHandler : HttpHandler =
     let routeMap (route : RouteCollectionReader) =
-        let name = route.GetString "name" "World" 
+        let name = route.GetString "name" "World"
         sprintf "Hello %s" name
-        
+
     Request.mapRoute routeMap Response.ofPlainText
 ```
 
@@ -200,9 +201,9 @@ let helloHandler : HttpHandler =
 ```fsharp
 let helloHandler : HttpHandler =
     let queryMap (query : QueryCollectionReader) =
-        let name = query.GetString "name" "World" 
+        let name = query.GetString "name" "World"
         sprintf "Hello %s" name
-        
+
     Request.mapQuery queryMap Response.ofPlainText
 ```
 
@@ -211,9 +212,9 @@ let helloHandler : HttpHandler =
 ```fsharp
 let helloHandler : HttpHandler =
     let formMap (query : FormCollectionReader) =
-        let name = query.GetString "name" "World" 
+        let name = query.GetString "name" "World"
         sprintf "Hello %s" name
-        
+
     Request.mapForm formMap Response.ofPlainText
 ```
 
@@ -222,13 +223,13 @@ To prevent XSS attacks it is often advisable to use a [CSRF token](#security) du
 ```fsharp
 let secureHelloHandler : HttpHandler =
     let formMap (query : FormCollectionReader) =
-        let name = query.GetString "name" "World" 
+        let name = query.GetString "name" "World"
         sprintf "Hello %s" name
 
     let invalidTokenHandler : HttpHandler =
         Response.withStatusCode 403
         >> Resposne.ofEmpty
-        
+
     Request.mapFormSecure formMap Response.ofPlainText invalidTokenHandler
 ```
 
@@ -253,7 +254,7 @@ let handlerWithHeader : HttpHandler =
 ```
 
 
-### Add a cookie to the response 
+### Add a cookie to the response
 
 ```fsharp
 let handlerWithHeader : HttpHandler =
@@ -272,14 +273,14 @@ Bearing this in mind, routing can practically be represented by a list of these 
 ```fsharp
 let helloHandler : HttpHandler =
     let getMessage (route : RouteCollectionReader) =
-        route.GetString "name" "World" 
+        route.GetString "name" "World"
         |> sprintf "Hello %s"
-        
+
     Request.mapRoute getMessage Response.ofPlainText
 
 let loginHandler : HttpHandler = // ...
 
-let loginSubmitHandler : HttpHandler = // ...  
+let loginSubmitHandler : HttpHandler = // ...
 
 let endpoints : HttpEndpoint list =
   [
@@ -303,14 +304,14 @@ We can make this simpler by creating a succinct API to obtain typed values from 
 
 ```fsharp
 let mapRouteHandler : HttpHandler =
-    let routeMap (r : RouteCollectionReader) = 
+    let routeMap (r : RouteCollectionReader) =
         r.GetString "Name" "John Doe"
-    
+
     Request.mapRoute routeMap Response.ofJson
 
 let manualRouteHandler : HttpHandler = fun ctx ->
     let r : RouteCollectionReader = Request.getRoute ctx
-    let name = r.GetString "Name" "John Doe"  
+    let name = r.GetString "Name" "John Doe"
 
     Response.ofJson name ctx
 ```
@@ -320,18 +321,18 @@ let manualRouteHandler : HttpHandler = fun ctx ->
 ```fsharp
 type Person = { FirstName : string; LastName : string }
 
-let mapQueryHandler : HttpHandler =    
+let mapQueryHandler : HttpHandler =
     let queryMap (q : QueryCollectionReader) =
         let first = q.GetString "FirstName" "John" // Get value or return default value
         let last = q.GetString "LastName" "Doe"
         { FirstName = first; LastName = last }
 
-    Request.mapQuery queryMap Response.ofJson 
+    Request.mapQuery queryMap Response.ofJson
 
 let manualQueryHandler : HttpHandler = fun ctx ->
     let q : QueryCollectionReader = Request.getQuery ctx
-    
-    let person = 
+
+    let person =
         { FirstName = q.GetString "FirstName" "John" // Get value or return default value
           LastName  = q.GetString "LastName" "Doe" }
 
@@ -347,37 +348,37 @@ The `FormCollectionReader` has full access to the `IFormFilesCollection` via the
 ```fsharp
 type Person = { FirstName : string; LastName : string }
 
-let mapFormHandler : HttpHandler =   
+let mapFormHandler : HttpHandler =
     let formMap (f : FormCollectionReader) =
         let first = f.GetString "FirstName" "John" // Get value or return default value
-        let last = f.GetString "LastName" "Doe"        
+        let last = f.GetString "LastName" "Doe"
         { FirstName = first; LastName = last }
 
-    Request.mapForm formMap Response.ofJson 
+    Request.mapForm formMap Response.ofJson
 
-let mapFormSecureHandler : HttpHandler =    
+let mapFormSecureHandler : HttpHandler =
     let formMap (f : FormCollectionReader) =
         let first = f.GetString "FirstName" "John" // Get value or return default value
-        let last = f.GetString "LastName" "Doe"        
+        let last = f.GetString "LastName" "Doe"
         { FirstName = first; LastName = last }
 
-    let handleInvalidCsrf : HttpHandler = 
+    let handleInvalidCsrf : HttpHandler =
         Response.withStatusCode 400 >> Response.ofEmpty
 
     Request.mapFormSecure formMap Response.ofJson handleInvalidCsrf
 
 let manualFormHandler : HttpHandler = fun ctx -> task {
     let! f : FormCollectionReader = Request.getForm ctx
-    
-    let person = 
+
+    let person =
         { FirstName = f.GetString "FirstName" "John" // Get value or return default value
           LastName = f.GetString "LastName" "Doe" }
 
     return! Response.ofJson person ctx
-}        
+}
 ```
 
-#### `multipart/form-data` Binding 
+#### `multipart/form-data` Binding
 
 Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
 
@@ -389,8 +390,8 @@ Below is an example demonstrating the insecure map variant:
 let imageUploadHandler : HttpHandler =
     let formBinder (f : FormCollectionReader) : IFormFile option =
         f.TryGetFormFile "profile_image"
-    
-    let uploadImage (profileImage : IFormFile option) : HttpHandler = 
+
+    let uploadImage (profileImage : IFormFile option) : HttpHandler =
         // Process the uploaded file ...
 
     // Safely buffer the multipart form submission
@@ -408,8 +409,8 @@ let jsonHandler : HttpHandler =
     { FirstName = "John"; LastName = "Doe" }
     |> Response.ofJson
 
-let mapJsonHandler : HttpHandler =    
-    let handleOk person : HttpHandler = 
+let mapJsonHandler : HttpHandler =
+    let handleOk person : HttpHandler =
         let message = sprintf "hello %s %s" person.First person.Last
         Response.ofPlainText message
 
@@ -453,7 +454,7 @@ The benefits of using the Falco markup module as an HTML engine include:
 
 ```fsharp
 // Create an HTML5 document using built-in template
-let doc = 
+let doc =
     Templates.html5 "en"
         [ Elem.title [] [ Text.raw "Sample App" ] ] // <head></head>
         [ Elem.h1 [] [ Text.raw "Sample App" ] ]    // <body></body>
@@ -463,12 +464,12 @@ Since views are plain F# they can easily be made strongly-typed:
 ```fsharp
 type Person = { FirstName : string; LastName : string }
 
-let doc (person : Person) = 
+let doc (person : Person) =
     Elem.html [ Attr.lang "en" ] [
-        Elem.head [] [                    
-            Elem.title [] [ Text.raw "Sample App" ]                                                            
+        Elem.head [] [
+            Elem.title [] [ Text.raw "Sample App" ]
         ]
-        Elem.body [] [                     
+        Elem.body [] [
             Elem.main [] [
                 Elem.h1 [] [ Text.raw "Sample App" ]
                 Elem.p  [] [ Text.rawf "%s %s" person.First person.Last ]
@@ -482,13 +483,13 @@ Views can also be combined to create more complex views and share output:
 ```fsharp
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
-        Elem.head [] [                    
-            Elem.title [] [ Text.raw "Sample App" ]                                                            
+        Elem.head [] [
+            Elem.title [] [ Text.raw "Sample App" ]
         ]
         Elem.body [] content
     ]
 
-let divider = 
+let divider =
     Elem.hr [ Attr.class' "divider" ]
 
 let homeView =
@@ -497,7 +498,7 @@ let homeView =
         divider
         Elem.p  [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
     ]
-    |> master "Homepage" 
+    |> master "Homepage"
 
 let aboutView =
     [
@@ -510,13 +511,13 @@ let aboutView =
 
 ## Host Builder
 
-[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly. 
+[Kestrel][1] is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. Getting it up and running is usually done using `Host.CreateDefaultBuilder(args)`, but it can grow verbose quickly.
 
 To make things more expressive, Falco exposes an optional computation expression. Below is an example using the builder taken from the [Configure Host][21] sample.
 
 ```fsharp
 [<EntryPoint>]
-let main args = 
+let main args =
     webHost args {
         use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
         use_https
@@ -526,17 +527,17 @@ let main args =
         use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
         use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
 
-        endpoints [            
-            get "/greet/{name:alpha}" 
+        endpoints [
+            get "/greet/{name:alpha}"
                 handleGreeting
 
-            get "/json" 
+            get "/json"
                 handleJson
 
-            get "/html" 
+            get "/html"
                 handleHtml
-                
-            get "/" 
+
+            get "/"
                 handlePlainText
         ]
     }
@@ -549,10 +550,10 @@ To assume full control over configuring your `IHost` use the `configure` custom 
 
 ```fsharp
 [<EntryPoint>]
-let main args = 
-    let configureServices : IServiceCollection -> unit = 
+let main args =
+    let configureServices : IServiceCollection -> unit =
       fun services -> services.AddFalco() |> ignore
-    
+
     let configureApp : HttpEndpoint list -> IApplicationBuilder -> unit =
        fun endpoints app -> app.UseFalco(endpoints) |> ignore
 
@@ -580,12 +581,12 @@ Prevent user from accessing secure endpoint:
 open Falco.Security
 
 let secureResourceHandler : HttpHandler =
-    let handleAuth : HttpHandler = 
+    let handleAuth : HttpHandler =
         "hello authenticated user"
-        |> Response.ofPlainText 
+        |> Response.ofPlainText
 
     let handleInvalid : HttpHandler =
-        Response.withStatusCode 403 
+        Response.withStatusCode 403
         >> Response.ofPlainText "Forbidden"
 
     Request.ifAuthenticated handleAuth handleInvalid
@@ -595,11 +596,11 @@ Prevent authenticated user from accessing anonymous-only end-point:
 
 ```fsharp
 let anonResourceOnlyHandler : HttpHandler =
-    let handleAnon : HttpHandler = 
+    let handleAnon : HttpHandler =
         Response.ofPlainText "hello anonymous"
 
-    let handleInvalid : HttpHandler = 
-        Response.withStatusCode 403 
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403
         >> Response.ofPlainText "Forbidden"
 
     Request.ifNotAuthenticated handleAnon handleInvalid
@@ -609,11 +610,11 @@ Allow only user's from a certain group to access endpoint"
 
 ```fsharp
 let secureResourceHandler : HttpHandler =
-    let handleAuthInRole : HttpHandler = 
+    let handleAuthInRole : HttpHandler =
         Response.ofPlainText "hello admin"
 
-    let handleInvalid : HttpHandler = 
-        Response.withStatusCode 403 
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403
         >> Response.ofPlainText "Forbidden"
 
     let rolesAllowed = [ "Admin" ]
@@ -625,11 +626,11 @@ Allow only user's with a certain scope to access endpoint"
 
 ```fsharp
 let secureResourceHandler : HttpHandler =
-    let handleAuthHasScope : HttpHandler = 
+    let handleAuthHasScope : HttpHandler =
         Response.ofPlainText "user1, user2, user3"
 
-    let handleInvalid : HttpHandler = 
-        Response.withStatusCode 403 
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403
         >> Response.ofPlainText "Forbidden"
 
     let issuer = "https://oauth2issuer.com"
@@ -641,7 +642,7 @@ let secureResourceHandler : HttpHandler =
 End user session (sign out):
 
 ```fsharp
-let logOut : HttpHandler =         
+let logOut : HttpHandler =
     let authScheme = "..."
     let redirectTo = "/login"
 
@@ -660,9 +661,9 @@ Falco provides a few handlers via `Falco.Security.Xss`:
 
 ```fsharp
 open Falco.Markup
-open Falco.Security 
+open Falco.Security
 
-let formView token =     
+let formView token =
     Elem.html [] [
         Elem.body [] [
             Elem.form [ Attr.method "post" ] [
@@ -674,25 +675,25 @@ let formView token =
                 Xss.antiforgeryInput token
 
                 Elem.input [ Attr.type' "submit"; Attr.value "Submit" ]
-            ]                                
+            ]
         ]
     ]
-    
+
 // A handler that demonstrates obtaining a
 // CSRF token and applying it to a view
-let csrfViewHandler : HttpHandler = 
+let csrfViewHandler : HttpHandler =
     formView
     |> Response.ofHtmlCsrf
-    
+
 // A handler that demonstrates validating
 // the request's CSRF token
-let mapFormSecureHandler : HttpHandler =    
+let mapFormSecureHandler : HttpHandler =
     let mapPerson (form : FormCollectionReader) =
         { FirstName = form.GetString "first_name" "John" // Get value or return default value
           LastName = form.GetString "first_name" "Doe" }
 
-    let handleInvalid : HttpHandler = 
-        Response.withStatusCode 400 
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 400
         >> Response.ofEmpty
 
     Request.mapFormSecure mapPerson Response.ofJson handleInvalid
@@ -710,7 +711,7 @@ open Falco.Security
 // Generating salt,
 // using System.Security.Cryptography.RandomNumberGenerator,
 // create a random 16 byte salt and base 64 encode
-let salt = Crypto.createSalt 16 
+let salt = Crypto.createSalt 16
 
 // Generate random int for iterations
 let iterations = Crypto.randomInt 10000 50000

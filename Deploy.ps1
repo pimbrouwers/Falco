@@ -1,18 +1,32 @@
 [CmdletBinding()]
 param (
-  [Parameter(Mandatory=$True, HelpMessage="The NuGet API Key.")]	
-	[string] $ApiKey,
+    [ValidateSet("Core", "Markup")]
+    [string] $Assembly,
 
-  [Parameter(Mandatory=$True, HelpMessage="The NuGet Package Version.")]	
-	[string] $PackageVersion
+    [Parameter(Mandatory = $True, HelpMessage = "The NuGet API Key.")]
+    [string] $ApiKey,
+
+    [Parameter(Mandatory = $True, HelpMessage = "The NuGet Package Version.")]
+    [string] $PackageVersion
 )
 
 $assemblyName = "Falco"
+
+if ($Assembly -eq "Markup")
+{
+    $assemblyName = "Falco.Markup"
+}
+
 $assemblyPath = Join-Path -Path $PSScriptRoot -ChildPath "src\$assemblyName\"
+
+if (!(Test-Path -Path $assemblyPath))
+{
+    throw "Invalid project"
+}
+
 $nugetPath = Join-Path -Path $assemblyPath -ChildPath "bin\Release\$assemblyName.$PackageVersion.nupkg"
 
-if(!(Test-Path -Path $assemblyPath))
-{
+if (!(Test-Path -Path $assemblyPath)) {
     throw "Invalid project"
 }
 
