@@ -68,19 +68,21 @@ let ``Response.redirect temporary should invoke HttpResponse Redirect with provi
 [<Fact>]
 let ``Response.redirectPermanentlyTo invokes HttpRedirect with permanently moved resource`` () =
     let ctx = getHttpContextWriteable false
+    let permanentRedirect = true
     task {
         do! ctx
             |> Response.redirectPermanentlyTo "/"
-        ctx.Response.ReceivedPermanentRedirectTo("/")
+        ctx.Response.Received().Redirect("/", permanentRedirect)
     }
 
 [<Fact>]
 let ``Response.redirectTemporarilyTo invokes HttpRedirect with temporarily moved resource`` () =
     let ctx = getHttpContextWriteable false
+    let permanentRedirect = false
     task {
         do! ctx
             |> Response.redirectTemporarilyTo "/"
-        ctx.Response.ReceivedTemporaryRedirectTo("/")
+        ctx.Response.Received().Redirect("/", permanentRedirect)
     }
 
 
