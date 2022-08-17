@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <AssemblyName>Falco</AssemblyName>
-    <Version>4.0.0-alpha</Version>
-    
+    <Version>4.0.0-alpha1</Version>
+
     <!-- General info -->
     <Description>A functional-first toolkit for building brilliant ASP.NET Core applications using F#.</Description>
     <Copyright>Copyright 2022 Pim Brouwers</Copyright>
@@ -55,7 +55,7 @@
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="Routing.fs" />
-    <Compile Include="Extensions.fs" />    
+    <Compile Include="Extensions.fs" />
     <Compile Include="Crypto.fs" />
     <Compile Include="Xss.fs" />
     <Compile Include="Auth.fs" />
@@ -65,8 +65,12 @@
     <Compile Include="HostBuilder.fs" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ProjectReference Include="..\Falco.Markup\Falco.Markup.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='Release'">
+    <PackageReference Include="Falco.Markup" Version="1.0.0-alpha1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net5.0'">
