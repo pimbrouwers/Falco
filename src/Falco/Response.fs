@@ -86,7 +86,6 @@ let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : Http
         let httpBodyBytes = encoding.GetBytes httpBodyStr
         writeBytes httpBodyBytes ctx
 
-[<Obsolete("Response.redirect is deprecated, please use Request.redirectPermanentlyTo or Request.redirectTemporarilyTo respectively")>]
 /// Returns a redirect (301 or 302) to client
 let redirect (url : string) (permanent : bool) : HttpHandler =
     fun ctx ->
