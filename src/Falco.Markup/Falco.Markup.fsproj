@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Falco.Markup</AssemblyName>
+    <RootNamespace>Falco</RootNamespace>
+    <Version>1.0.0-alpha1</Version>
+
+    <!-- General info -->
+    <Description>An F# DSL for generating markup, including HTML, SVG and XML.</Description>
+    <Copyright>Copyright 2022 Pim Brouwers</Copyright>
+    <Authors>Pim Brouwers and contributors</Authors>
+    <NeutralLanguage>en-CA</NeutralLanguage>
+
+    <!-- Build config -->
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <DebugType>embedded</DebugType>
+    <OutputType>Library</OutputType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- NuGet config -->
+    <PackageId>Falco.Markup</PackageId>
+    <PackageTags>fsharp;markup;html;svg;xml;view engine;web;falco;falco-sharp;</PackageTags>
+    <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/pimbrouwers/Falco</RepositoryUrl>
+
+    <!-- SourceLink settings -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../assets/icon.png">
+      <Pack>true</Pack>
+      <PackagePath>$(PackageIconUrl)</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="XmlNode.fs" />
+    <Compile Include="Text.fs" />
+    <Compile Include="Elem.fs" />
+    <Compile Include="Attr.fs" />
+    <Compile Include="Svg.fs" />
+    <Compile Include="Templates.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.6.2" />
+  </ItemGroup>
+</Project>

@@ -6,29 +6,28 @@ open Falco.Routing
 open Falco.HostBuilder
 
 // ------------
-// Handlers 
+// Handlers
 // ------------
 let handlePlainText : HttpHandler =
-    "Hello world"
-    |> Response.ofPlainText 
+    Response.ofPlainText "Hello world"
 
 let handleJson : HttpHandler =
-    {| Message = "Hello world" |}
-    |> Response.ofJson 
+    let message = {| Message = "Hello world" |}
+    Response.ofJson message
 
 let handleHtml : HttpHandler =
-    Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello world" ] ]
-    |> Response.ofHtml    
+    let html = Templates.html5 "en" [] [ Elem.h1 [] [ Text.raw "Hello world" ] ]
+    Response.ofHtml html
 
 [<EntryPoint>]
-let main args =      
+let main args =
     webHost args {
-        endpoints [               
-            get "/html" handleHtml 
+        endpoints [
+            get "/html" handleHtml
 
             get "/json" handleJson
 
             any "/" handlePlainText
         ]
-    }        
-    0    
+    }
+    0

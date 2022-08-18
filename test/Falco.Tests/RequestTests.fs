@@ -47,126 +47,126 @@ let ``Request.getRouteValues should return Map<string, string> from HttpContext`
     route.GetString "name" ""
     |> should equal "falco"
 
-[<Fact>]
-let ``Request.tryBindQuery should bind record successfully`` () =
-    let ctx = getHttpContextWriteable false
-    let query = Dictionary<string, StringValues>()
-    query.Add("name", StringValues("falco"))
-    ctx.Request.Query <- QueryCollection(query)
+// [<Fact>]
+// let ``Request.tryBindQuery should bind record successfully`` () =
+//     let ctx = getHttpContextWriteable false
+//     let query = Dictionary<string, StringValues>()
+//     query.Add("name", StringValues("falco"))
+//     ctx.Request.Query <- QueryCollection(query)
 
-    let bind =
-        fun (rd : StringCollectionReader) ->
-            match rd.TryGetString "name" with
-            | None -> Error "name not found"
-            | Some name -> Ok { Name = name }
+//     let bind =
+//         fun (rd : StringCollectionReader) ->
+//             match rd.TryGetString "name" with
+//             | None -> Error "name not found"
+//             | Some name -> Ok { Name = name }
 
-    let boundRecord = Request.tryBindQuery bind ctx
+//     let boundRecord = Request.tryBindQuery bind ctx
 
-    match boundRecord with
-    | Error _    -> false
-                   |> should equal true
+//     match boundRecord with
+//     | Error _    -> false
+//                    |> should equal true
 
-    | Ok record -> record.Name
-                   |> should equal "falco"
+//     | Ok record -> record.Name
+//                    |> should equal "falco"
 
-[<Fact>]
-let ``Request.tryBindCookie should bind record successfully`` () =
-    let ctx = getHttpContextWriteable false
-    ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
+// [<Fact>]
+// let ``Request.tryBindCookie should bind record successfully`` () =
+//     let ctx = getHttpContextWriteable false
+//     ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
 
-    let bind =
-        fun (rd : StringCollectionReader) ->
-            match rd.TryGetString "name" with
-            | None -> Error "name not found"
-            | Some name -> Ok { Name = name }
+//     let bind =
+//         fun (rd : StringCollectionReader) ->
+//             match rd.TryGetString "name" with
+//             | None -> Error "name not found"
+//             | Some name -> Ok { Name = name }
 
-    let boundRecord = Request.tryBindCookie bind ctx
+//     let boundRecord = Request.tryBindCookie bind ctx
 
-    match boundRecord with
-    | Error _    -> false
-                   |> should equal true
+//     match boundRecord with
+//     | Error _    -> false
+//                    |> should equal true
 
-    | Ok record -> record.Name
-                   |> should equal "falco"
+//     | Ok record -> record.Name
+//                    |> should equal "falco"
 
-[<Fact>]
-let ``Request.tryBindForm should return a FormCollectionReader instance`` () =
-    let ctx = getHttpContextWriteable false
-    let form = Dictionary<string, StringValues>()
-    form.Add("name", StringValues("falco"))
-    ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
+// [<Fact>]
+// let ``Request.tryBindForm should return a FormCollectionReader instance`` () =
+//     let ctx = getHttpContextWriteable false
+//     let form = Dictionary<string, StringValues>()
+//     form.Add("name", StringValues("falco"))
+//     ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
 
-    let bind =
-        fun (rd : FormCollectionReader) ->
-            match rd.TryGetString "name" with
-            | None -> Error "name not found"
-            | Some name -> Ok { Name = name }
+//     let bind =
+//         fun (rd : FormCollectionReader) ->
+//             match rd.TryGetString "name" with
+//             | None -> Error "name not found"
+//             | Some name -> Ok { Name = name }
 
-    task {
-        let! boundRecord = Request.tryBindForm bind ctx
+//     task {
+//         let! boundRecord = Request.tryBindForm bind ctx
 
-        match boundRecord with
-        | Error _   -> false
-                       |> should equal true
+//         match boundRecord with
+//         | Error _   -> false
+//                        |> should equal true
 
-        | Ok record -> record.Name
-                       |> should equal "falco"
-    }
+//         | Ok record -> record.Name
+//                        |> should equal "falco"
+//     }
 
-[<Fact>]
-let ``Request.tryBindJson should return deserialzed FakeRecord record `` () =
-    let ctx = getHttpContextWriteable false
-    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
-    ctx.Request.Body.Returns(ms) |> ignore
+// [<Fact>]
+// let ``Request.tryBindJson should return deserialzed FakeRecord record `` () =
+//     let ctx = getHttpContextWriteable false
+//     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
+//     ctx.Request.Body.Returns(ms) |> ignore
 
-    task {
-        let! boundRecord = Request.tryBindJson<FakeRecord> ctx
+//     task {
+//         let! boundRecord = Request.tryBindJson<FakeRecord> ctx
 
-        match boundRecord with
-        | Error _   -> false
-                       |> should equal true
+//         match boundRecord with
+//         | Error _   -> false
+//                        |> should equal true
 
-        | Ok record -> record.Name
-                       |> should equal "falco"
-    }
+//         | Ok record -> record.Name
+//                        |> should equal "falco"
+//     }
 
-[<Fact>]
-let ``Request.tryBindJson should return Error on failure`` () =
-    let ctx = getHttpContextWriteable false
-    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))
-    ctx.Request.Body.Returns(ms) |> ignore
+// [<Fact>]
+// let ``Request.tryBindJson should return Error on failure`` () =
+//     let ctx = getHttpContextWriteable false
+//     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))
+//     ctx.Request.Body.Returns(ms) |> ignore
 
-    task {
-        let! boundRecord = Request.tryBindJson<FakeRecord> ctx
+//     task {
+//         let! boundRecord = Request.tryBindJson<FakeRecord> ctx
 
-        match boundRecord with
-        | Error error -> String.IsNullOrWhiteSpace(error)
-                         |> should equal false
+//         match boundRecord with
+//         | Error error -> String.IsNullOrWhiteSpace(error)
+//                          |> should equal false
 
-        | Ok _        -> false
-                         |> should equal true
-    }
+//         | Ok _        -> false
+//                          |> should equal true
+//     }
 
-[<Fact>]
-let ``Request.tryBindJsonOptions should return empty record `` () =
-    let ctx = getHttpContextWriteable false
-    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":null}"))
-    ctx.Request.Body.Returns(ms) |> ignore
+// [<Fact>]
+// let ``Request.tryBindJsonOptions should return empty record `` () =
+//     let ctx = getHttpContextWriteable false
+//     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":null}"))
+//     ctx.Request.Body.Returns(ms) |> ignore
 
-    task {
-        let jsonOptions = JsonSerializerOptions()
-        jsonOptions.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
-        jsonOptions.PropertyNameCaseInsensitive <- false
+//     task {
+//         let jsonOptions = JsonSerializerOptions()
+//         jsonOptions.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
+//         jsonOptions.PropertyNameCaseInsensitive <- false
 
-        let! boundRecord = Request.tryBindJsonOptions<FakeRecord> jsonOptions ctx
+//         let! boundRecord = Request.tryBindJsonOptions<FakeRecord> jsonOptions ctx
 
-        match boundRecord with
-        | Error _   -> false
-                       |> should equal true
+//         match boundRecord with
+//         | Error _   -> false
+//                        |> should equal true
 
-        | Ok record -> record.Name
-                       |> should be null
-    }
+//         | Ok record -> record.Name
+//                        |> should be null
+//     }
 
 [<Fact>]
 let ``Request.ifAuthenticatedWithScope should invoke handleOk if authenticated with scope claim from issuer`` () =

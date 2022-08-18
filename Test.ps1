@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param (    
+param (
+    [ValidateSet("Core", "Markup")]
+    [string] $Assembly,
+    [Switch] $NoClean,
     [switch] $Watch
 )
 
@@ -9,20 +12,31 @@ function RunCommand {
     Invoke-Expression $CommandExpr
 }
 
+
 $assemblyName = "Falco.Tests"
+
+if ($Assembly -eq "Markup")
+{ 
+    $assemblyName = "Falco.Markup.Tests"
+}
+
 $assemblyPath = Join-Path -Path $PSScriptRoot -ChildPath "test\$assemblyName\"
 
-if(!(Test-Path -Path $assemblyPath))
+if (!(Test-Path -Path $assemblyPath))
 {
     throw "Invalid project"
 }
 
-RunCommand -CommandExpr "dotnet clean $assemblyPath -c Debug --nologo --verbosity quiet"
+if(!$NoClean)
+{
+    RunCommand -CommandExpr "dotnet clean --nologo --verbosity quiet"
+}
 
-
-if($Watch) {
+if ($Watch) 
+{
     RunCommand -CommandExpr "dotnet watch --project $assemblyPath -- test"
 }
-else {
+else 
+{ 
     RunCommand -CommandExpr "dotnet test $assemblyPath"
 }

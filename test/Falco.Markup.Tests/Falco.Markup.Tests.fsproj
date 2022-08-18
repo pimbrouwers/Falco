@@ -6,19 +6,8 @@
     <GenerateProgramFile>false</GenerateProgramFile>    
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="Common.fs" />
-    <Compile Include="StringParserTests.fs" />
-    <Compile Include="StringUtilsTests.fs" />
-    <Compile Include="StringCollectionReaderTests.fs" />
-    <Compile Include="CoreTests.fs" />
-    <Compile Include="RoutingTests.fs" />    
-    <Compile Include="CryptoTests.fs" />
-    <Compile Include="XssTests.fs" />
-    <Compile Include="AuthTests.fs" />
-    <Compile Include="RequestTests.fs" />
-    <Compile Include="RequestHandlersTests.fs" />
-    <Compile Include="ResponseTests.fs" />
+  <ItemGroup>        
+    <Compile Include="MarkupTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -39,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
+    <ProjectReference Include="..\..\src\Falco.Markup\Falco.Markup.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
