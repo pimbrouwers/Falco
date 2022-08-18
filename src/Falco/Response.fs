@@ -203,7 +203,7 @@ let signInAndRedirect
     task {
     #endif
         do! Auth.signIn authScheme claimsPrincipal ctx
-        do! redirect url false ctx
+        do! redirectTemporarilyTo url ctx
     }
 
 /// Sign in claim principal for provided scheme and options then respond with a 301 redirect to provided URL
@@ -218,7 +218,7 @@ let signInOptionsAndRedirect
     task {
     #endif
         do! Auth.signInOptions authScheme claimsPrincipal options ctx
-        do! redirect url false ctx
+        do! redirectTemporarilyTo url ctx
     }
 
 /// Terminates authenticated context for provided scheme then respond with a 301 redirect to provided URL
@@ -231,7 +231,7 @@ let signOutAndRedirect
     task {
     #endif
         do! Auth.signOut authScheme ctx
-        do! redirect url false ctx
+        do! redirectTemporarilyTo url ctx
     }
 
 /// Challenge the specified authentication scheme.
