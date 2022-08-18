@@ -29,7 +29,7 @@ webHost [||] {
 - Native F# [view engine](#markup).
 - Uniform API for [model binding](#model-binding).
 - [Authentication](#authentication) and [security](#security) utilities.
-- Built-in support for [large uploads](#handling-large-uploads).
+- Built-in support for [large uploads](#multipartform-data-binding-handling-large-uploads).
 
 ## Design Goals
 
@@ -234,7 +234,7 @@ let secureHelloHandler : HttpHandler =
 
 ## Response Modifiers
 
-Response modifiers can be thought of as the in-and-out modification of the `HttpResponse`. A preamble to writing and returning. Since these functions receive the `Httpcontext` as input and return it as the only output, they can take advantage of [function compoistion](22).
+Response modifiers can be thought of as the in-and-out modification of the `HttpResponse`. A preamble to writing and returning. Since these functions receive the `Httpcontext` as input and return it as the only output, they can take advantage of [function composition][9].
 
 ### Set the status code of the response
 
@@ -377,7 +377,7 @@ let manualFormHandler : HttpHandler = fun ctx -> task {
 }        
 ```
 
-#### `multipart/form-data` Binding 
+#### `multipart/form-data` Binding (handling large uploads)
 
 Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
 
