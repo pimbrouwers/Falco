@@ -57,7 +57,7 @@ let ``Response.redirectPermanentlyTo invokes HttpRedirect with permanently moved
     let permanentRedirect = true
     task {
         do! ctx
-            |> Response.redirectPermanentlyTo "/"
+            |> Response.redirectPermanently "/"
         ctx.Response.Received().Redirect("/", permanentRedirect)
     }
 
@@ -67,7 +67,7 @@ let ``Response.redirectTemporarilyTo invokes HttpRedirect with temporarily moved
     let permanentRedirect = false
     task {
         do! ctx
-            |> Response.redirectTemporarilyTo "/"
+            |> Response.redirectTemporarily "/"
         ctx.Response.Received().Redirect("/", permanentRedirect)
     }
 

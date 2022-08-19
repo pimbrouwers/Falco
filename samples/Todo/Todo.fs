@@ -186,7 +186,7 @@ module Controller =
             |> Response.ofHtmlCsrf
 
         let handleOk () =
-            Response.redirect ``/`` false
+            Response.redirectTemporarily ``/``
 
         let handleService input = 
             Service.run
