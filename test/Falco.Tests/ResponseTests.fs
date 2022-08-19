@@ -51,19 +51,6 @@ let ``Response.withContentType should set header`` () =
         |> should equal contentType
     }
 
-[<Theory>]
-[<InlineData(false)>]
-[<InlineData(true)>]
-let ``Response.redirect temporary should invoke HttpResponse Redirect with provided bool`` (permanent : bool) =
-    let ctx = getHttpContextWriteable false
-
-    task {
-        do! ctx
-            |> Response.redirect "/" permanent
-
-        ctx.Response.Received().Redirect("/", permanent)
-    }
-
 [<Fact>]
 let ``Response.redirectPermanentlyTo invokes HttpRedirect with permanently moved resource`` () =
     let ctx = getHttpContextWriteable false

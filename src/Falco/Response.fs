@@ -87,10 +87,6 @@ let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : Http
         writeBytes httpBodyBytes ctx
 
 /// Returns a redirect (301 or 302) to client
-let redirect (url : string) (permanent : bool) : HttpHandler =
-    fun ctx ->
-        ctx.Response.Redirect(url, permanent)
-        ctx.Response.CompleteAsync ()
 
 type private RedirectType =
     | PermanentlyTo of url: string
