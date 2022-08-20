@@ -90,7 +90,7 @@ let manualFormHandler : HttpHandler = fun ctx -> task {
 }
 ```
 
-#### `multipart/form-data` Binding
+### `multipart/form-data` Binding
 
 Microsoft defines [large upload](https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming) as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
 
@@ -123,7 +123,7 @@ let secureImageUploadHandler : HttpHandler =
     Request.mapFormStreamSecure formBinder uploadImage handleInvalidCsrf
 ```
 
-## JSON
+### JSON
 
 > IMPORTANT: These handlers uses the default `System.Text.Json.JsonSerializer`.
 
