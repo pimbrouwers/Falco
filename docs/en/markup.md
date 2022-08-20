@@ -22,6 +22,8 @@ The benefits of using the Falco markup module as an HTML engine include:
 ### Strongly-typed views
 
 ```fsharp
+open Falco.Markup
+
 type Person =
     { FirstName : string
       LastName : string }
@@ -47,6 +49,8 @@ Rumor has it that the Falco [creator](https://twitter.com/pim_brouwers) makes a 
 ### Combining views to create complex output
 
 ```fsharp
+open Falco.Markup
+
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
         Elem.head [] [
@@ -75,6 +79,10 @@ let aboutView =
 
 ## SVG
 
+```fsharp
+open Falco.Markup
+open Falco.Markup.Svg
+```
 
 ## Merging Attributes
 
@@ -83,6 +91,8 @@ The markup module allows you to easily create components, an excellent way to re
 This means that you will inevitably end up needing to combine your predefined `XmlAttribute list` with a list provided at runtime. To facilitate this, the `Attr.merge` function will group attributes by key, and concat the values in the case of `KeyValueAttribute`.
 
 ```fsharp
+open Falco.Markup
+
 // Components
 let heading (attrs : XmlAttribute list) (content : XmlNode list) =
     // safely combine the default XmlAttribute list with those provided
