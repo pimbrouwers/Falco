@@ -105,7 +105,7 @@ let master (title : string) (content : XmlNode list) =
 
 // Views
 let homepage =
-    master "Home" [
+    master "Homepage" [
         heading "Welcome to the homepage" [ Attr.class' "red" ]
         Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
     ]
