@@ -9,16 +9,16 @@ open Xunit
 [<Fact>]
 let ``Attr.merge should combine two XmlAttribute lists`` () =
     Attr.merge
-        [ KeyValueAttr("class", "ma2") ]
-        [ KeyValueAttr("id", "some-el"); KeyValueAttr("class", "bg-red"); NonValueAttr("readonly") ]
-    |> should equal [ KeyValueAttr("class", "ma2 bg-red"); KeyValueAttr("id", "some-el"); NonValueAttr("readonly") ]
+        [ Attr.class' "ma2" ]
+        [ Attr.id "some-el"; Attr.class' "bg-red"; Attr.readonly ]
+    |> should equal [ Attr.class' "ma2 bg-red"; Attr.id "some-el"; Attr.readonly ]
 
 [<Fact>]
 let ``Attr.merge should work with bogus "class" NonValeAttr`` () =
     Attr.merge
-        [ KeyValueAttr("class", "ma2") ]
-        [ KeyValueAttr("id", "some-el"); KeyValueAttr("class", "bg-red"); NonValueAttr("class") ]
-    |> should equal [ KeyValueAttr("class", "ma2 bg-red"); KeyValueAttr("id", "some-el") ]
+        [ Attr.class' "ma2" ]
+        [ Attr.id "some-el"; Attr.class' "bg-red"; NonValueAttr("class") ]
+    |> should equal [ Attr.class' "ma2 bg-red"; Attr.id "some-el" ]
 
 [<Fact>]
 let ``Text.empty should be empty`` () =

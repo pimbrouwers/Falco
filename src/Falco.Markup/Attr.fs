@@ -13,9 +13,12 @@ module Attr =
 
     /// Merge two XmlAttribute lists
     let merge attrs1 attrs2 =
-        // TODO replace the append with recursion and cons
-        attrs1 @ attrs2
-        |> List.map (fun attr -> match attr with KeyValueAttr(k, v) -> k, Some v | NonValueAttr(k) -> k, None)
+        (attrs2, attrs1)
+        ||> List.fold (fun acc elem -> elem :: acc)
+        |> List.map (fun attr ->
+            match attr with
+            | KeyValueAttr(k, v) -> k, Some v
+            | NonValueAttr(k) -> k, None)
         |> List.groupBy (fun (k, _) -> k)
         |> List.map (fun (g, attrs) ->
             let attrValue : string option =
@@ -25,6 +28,7 @@ module Attr =
                     | None, _          -> v
                     | Some _, None     -> acc
                     | Some acc, Some v -> Some (String.Join(" ", [| acc; v |]))) None
+
             match attrValue with
             | None   -> NonValueAttr(g)
             | Some v -> KeyValueAttr(g, v))
