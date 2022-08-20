@@ -92,9 +92,7 @@ let manualFormHandler : HttpHandler = fun ctx -> task {
 
 Microsoft defines [large upload](https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming) as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
 
-To make this process **a lot** easier Falco provides a set of four `HttpHandler`'s analogous to the form handlers above, which utilize an `HttpContext` extension method called `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
-
-Below is an example demonstrating the insecure map variant:
+To make this process **a lot** easier Falco provides a set of `HttpHandler`'s analogous to the form handlers above, which utilize an `HttpContext` extension method called `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
 
 ```fsharp
 let imageUploadHandler : HttpHandler =
@@ -123,7 +121,7 @@ let secureImageUploadHandler : HttpHandler =
 
 ## JSON
 
-These handlers uses the .NET built-in `System.Text.Json.JsonSerializer`.
+These handlers use the .NET built-in `System.Text.Json.JsonSerializer`.
 
 ```fsharp
 type Person =
