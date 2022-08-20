@@ -17,7 +17,7 @@ webHost [||] {
 
 [Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast, functional-first and fault-tolerant web applications using F#.
 
-- Built upon the high-performance primitives of ASP.NET Core.
+- Built upon the high-performance components of ASP.NET Core.
 - Optimized for building HTTP applications quickly.
 - Seamlessly integrates with existing .NET Core middleware and frameworks.
 
