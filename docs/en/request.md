@@ -27,7 +27,9 @@ let manualRouteHandler : HttpHandler = fun ctx ->
 ### Query Binding
 
 ```fsharp
-type Person = { FirstName : string; LastName : string }
+type Person =
+    { FirstName : string
+      LastName : string }
 
 let mapQueryHandler : HttpHandler =
     let queryMap (q : QueryCollectionReader) =
@@ -54,7 +56,9 @@ The `FormCollectionReader` has full access to the `IFormFilesCollection` via the
 > Note the addition of `Request.mapFormSecure`, which will automatically validate CSRF token for you.
 
 ```fsharp
-type Person = { FirstName : string; LastName : string }
+type Person =
+    { FirstName : string
+      LastName : string }
 
 let mapFormHandler : HttpHandler =
     let formMap (f : FormCollectionReader) =
@@ -124,7 +128,9 @@ let secureImageUploadHandler : HttpHandler =
 > IMPORTANT: These handlers uses the default `System.Text.Json.JsonSerializer`.
 
 ```fsharp
-type Person = { FirstName : string; LastName : string }
+type Person =
+    { FirstName : string
+      LastName : string }
 
 let jsonHandler : HttpHandler =
     { FirstName = "John"; LastName = "Doe" }
