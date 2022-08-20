@@ -2,11 +2,9 @@
 
 The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion and processing of an HTTP request, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally [response writing](response.md). With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
 
-## Accessing Request Data
-
 Falco exposes a __uniform API__ to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary`, `IHeaderCollection`, and `IRequestCookieCollection`. All implementations are derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
 
-### Route Binding
+## Route Binding
 
 ```fsharp
 // Assuming a route pattern of /{Name}
@@ -24,7 +22,7 @@ let manualRouteHandler : HttpHandler = fun ctx ->
     Response.ofJson name ctx
 ```
 
-### Query Binding
+## Query Binding
 
 ```fsharp
 type Person =
@@ -49,7 +47,7 @@ let manualQueryHandler : HttpHandler = fun ctx ->
     Response.ofJson person ctx
 ```
 
-### Form Binding
+## Form Binding
 
 The `FormCollectionReader` has full access to the `IFormFilesCollection` via the `_.Files` member.
 
@@ -90,7 +88,7 @@ let manualFormHandler : HttpHandler = fun ctx -> task {
 }
 ```
 
-### `multipart/form-data` Binding
+## `multipart/form-data` Binding
 
 Microsoft defines [large upload](https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming) as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
 
@@ -123,9 +121,9 @@ let secureImageUploadHandler : HttpHandler =
     Request.mapFormStreamSecure formBinder uploadImage handleInvalidCsrf
 ```
 
-### JSON
+## JSON
 
-> IMPORTANT: These handlers uses the default `System.Text.Json.JsonSerializer`.
+These handlers uses the .NET built-in `System.Text.Json.JsonSerializer`.
 
 ```fsharp
 type Person =
