@@ -11,7 +11,9 @@ let textHandler : HttpHandler =
 
 ## HTML responses
 
-Writing your views in plain F#, directly in your assembly, using the [`Markup`](markup.md) module. A performant F# DSL capable of generating any angle-bracket markup. Also available directly as a standalone [NuGet](https://www.nuget.org/packages/Falco.Markup) package.
+Write your views in plain F#, directly in your assembly, using the [`Markup`](markup.md) module. A performant F# DSL capable of generating any angle-bracket markup. 
+
+Also available directly as a standalone [NuGet](https://www.nuget.org/packages/Falco.Markup) package.
 
 ```fsharp
 let htmlHandler : HttpHandler =
@@ -55,7 +57,7 @@ let htmlHandler : HttpHandler =
 
 ## JSON responses
 
-These handlers uses the .NET built-in `System.Text.Json.JsonSerializer`.
+These handlers use the .NET built-in `System.Text.Json.JsonSerializer`.
 
 ```fsharp
 type Person =
