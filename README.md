@@ -41,9 +41,9 @@ webHost [||] {
 
 The best way to get started is by visiting the [documentation](https://falcoframework.com). For questions and support please use [discussions](https://github.com/pimbrouwers/Falco/discussions). The issue list of this repo is **exclusively** for bug reports and feature requests.
 
-If you want to stay in touch, feel free to reach out on [Twitter][https://twitter.com/falco_framework].
+If you want to stay in touch, feel free to reach out on [Twitter](https://twitter.com/falco_framework).
 
-> If you have an article or video that you want to share, we'd love to hear from you! To add, fork and submit a [pull request](https://github.com/pimbrouwers/Falco/pulls).
+Have an article or video that you want to share? We'd love to hear from you! To add your content, fork and submit a [pull request](https://github.com/pimbrouwers/Falco/pulls).
 
 ### Articles
 
@@ -66,7 +66,7 @@ The develop branch is the main and only branch which should be used for all pull
 
 Only pull requests which pass all build checks and comply with the general coding guidelines can be approved.
 
-If you have any further questions, submit an [issue](https://github.com/pimbrouwers/Falco/issues) or open a [discussion](https://github.com/pimbrouwers/Falco/discussions) or reach out on [Twitter][https://twitter.com/falco_framework].
+If you have any further questions, submit an [issue](https://github.com/pimbrouwers/Falco/issues) or open a [discussion](https://github.com/pimbrouwers/Falco/discussions) or reach out on [Twitter](https://twitter.com/falco_framework).
 
 ## Why "Falco"?
 
