@@ -51,6 +51,11 @@ Rumor has it that the Falco [creator](https://twitter.com/pim_brouwers) makes a 
 ```fsharp
 open Falco.Markup
 
+// Components
+let divider =
+    Elem.hr [ Attr.class' "divider" ]
+
+// Template
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
         Elem.head [] [
@@ -59,9 +64,7 @@ let master (title : string) (content : XmlNode list) =
         Elem.body [] content
     ]
 
-let divider =
-    Elem.hr [ Attr.class' "divider" ]
-
+// Views
 let homeView =
     master "Homepage" [
         Elem.h1 [] [ Text.raw "Homepage" ]
@@ -79,9 +82,26 @@ let aboutView =
 
 ## SVG
 
+The vast majority of the SVG spec has been mapped to element and attributes functions.
+
 ```fsharp
 open Falco.Markup
 open Falco.Markup.Svg
+
+let svgDrawing =
+    Templates.svg (0, 0, 240, 80) [
+        Elem.style [] [
+            Text.raw ".small { font: italic 13px sans-serif; }"
+            Text.raw ".heavy { font: bold 30px sans-serif; }"
+            Text.raw ".Rrrrr { font: italic 40px serif; fill: red; }"
+        ]
+        Elem.text [ Attr.x "20"; Attr.y "35"; Attr.class' "small" ] [ Text.raw "My" ]
+        Elem.text [ Attr.x "40"; Attr.y "35"; Attr.class' "heavy" ] [ Text.raw "cat" ]
+        Elem.text [ Attr.x "55"; Attr.y "55"; Attr.class' "small" ] [ Text.raw "is" ]
+        Elem.text [ Attr.x "65"; Attr.y "55"; Attr.class' "Rrrrr" ] [ Text.raw "Grumpy!" ]
+    ]
+
+let svg = renderNode svgDrawing
 ```
 
 ## Merging Attributes
