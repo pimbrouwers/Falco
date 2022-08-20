@@ -47,15 +47,15 @@ Have an article or video that you want to share? We'd love to hear from you! To 
 
 ### Articles
 
-Istvan - [Running ASP.Net web application with Falco on AWS Lambda](https://dev.l1x.be/posts/2020/12/18/running-asp.net-web-application-with-falco-on-aws-lambda/)
+- Istvan - [Running ASP.Net web application with Falco on AWS Lambda](https://dev.l1x.be/posts/2020/12/18/running-asp.net-web-application-with-falco-on-aws-lambda/)
 
 ### Videos
 
-Ben Gobeil - [Why I'm Using Falco Instead Of Saturn | How To Switch Your Backend In SAFE Stack | StonkWatch Ep.13](https://youtu.be/DTy5gIUWvpo)
+- Ben Gobeil - [Why I'm Using Falco Instead Of Saturn | How To Switch Your Backend In SAFE Stack | StonkWatch Ep.13](https://youtu.be/DTy5gIUWvpo)
 
 ## Contribute
 
-Thank you for considering to contribute to Falco, and to those who have already contributed! We appreciate (and actively resolve) PRs of all shapes and sizes.
+Thank you for considering contributing to Falco, and to those who have already contributed! We appreciate (and actively resolve) PRs of all shapes and sizes.
 
 We kindly ask that before submitting a pull request, you first submit an [issue](https://github.com/pimbrouwers/Falco/issues) or open a [discussion](https://github.com/pimbrouwers/Falco/discussions).
 
