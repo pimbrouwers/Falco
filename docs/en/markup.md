@@ -82,7 +82,7 @@ let aboutView =
 
 ## SVG
 
-The vast majority of the SVG spec has been mapped to element and attributes functions.
+The vast majority of the SVG spec has been mapped to element and attributes functions. There is also an SVG template to help initialize a new drawing with a valid viewbox.
 
 ```fsharp
 open Falco.Markup
