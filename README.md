@@ -43,7 +43,7 @@ The best way to get started is by visiting the [documentation](https://falcofram
 
 If you want to stay in touch, feel free to reach out on [Twitter](https://twitter.com/falco_framework).
 
-Have an article or video that you want to share? We'd love to hear from you! To add your content, fork and submit a [pull request](https://github.com/pimbrouwers/Falco/pulls).
+Have an article or video that you want to share? We'd love to hear from you! To add your content, visit this [discussion](https://github.com/pimbrouwers/Falco/discussions/82).
 
 ### Articles
 
@@ -62,7 +62,7 @@ We kindly ask that before submitting a pull request, you first submit an [issue]
 
 If functionality is added to the API, or changed, please kindly update the relevent [document](https://github.com/pimbrouwers/Falco/tree/master/docs). Unit tests must also be added and/or updated before a pull request can be successfully merged.
 
-The develop branch is the main and only branch which should be used for all pull requests. A merge into develop means that your changes are scheduled to go live with the very next release, which could happen any time from the same day up to a couple weeks (depending on priorities and urgency).
+All pull requests should originate from the `develop` branch. A merge into this branch means that your changes are scheduled to go into production with the very next release, which could happen any time from the same day up to a couple weeks (depending on priorities and urgency).
 
 Only pull requests which pass all build checks and comply with the general coding guidelines can be approved.
 
