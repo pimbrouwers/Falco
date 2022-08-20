@@ -1,6 +1,7 @@
 namespace Falco.Markup
 
 open System
+open System.Collections.Generic
 
 module Attr =
     /// XmlAttribute KeyValueAttr constructor
@@ -12,26 +13,39 @@ module Attr =
         NonValueAttr key
 
     /// Merge two XmlAttribute lists
-    let merge attrs1 attrs2 =
-        (attrs2, attrs1)
-        ||> List.fold (fun acc elem -> elem :: acc)
-        |> List.map (fun attr ->
-            match attr with
-            | KeyValueAttr(k, v) -> k, Some v
-            | NonValueAttr(k) -> k, None)
-        |> List.groupBy (fun (k, _) -> k)
-        |> List.map (fun (g, attrs) ->
-            let attrValue : string option =
-                attrs
-                |> List.fold (fun acc (_, v) ->
-                    match acc, v with
-                    | None, _          -> v
-                    | Some _, None     -> acc
-                    | Some acc, Some v -> Some (String.Join(" ", [| acc; v |]))) None
+    let merge (attrs1 : XmlAttribute list) (attrs2 : XmlAttribute list) =
+        // convert left list into dictionary
+        let merged =
+            Dictionary (dict [
+                for attr in attrs1 do
+                  match attr with
+                  | NonValueAttr  name         -> (name, None)
+                  | KeyValueAttr (name, value) -> (name, Some value)
+            ])
 
-            match attrValue with
-            | None   -> NonValueAttr(g)
-            | Some v -> KeyValueAttr(g, v))
+        // check right list against dictionary, updating as appropriate
+        for attr in attrs2 do
+            match attr with
+            | NonValueAttr name ->
+                if not (merged.ContainsKey name) then merged.Add(name, None)
+                //NOTE nothing to do if attr is already in the dictionary
+
+            | KeyValueAttr (name, value) ->
+                match merged.TryGetValue(name) with
+                // combine left and right values
+                | true, Some value' ->
+                    merged[name] <- Some (value' + " " + value)
+                // right value is brand new
+                | true,  _
+                | false, _ -> merged.Add(name, Some value)
+
+        // inputs are now merged, convert dictionary back into list
+        [
+            for KeyValue (name, value) in merged do
+                match value with
+                | None        -> NonValueAttr name
+                | Some value' -> KeyValueAttr (name, value')
+        ]
 
     let accept = create "accept"
     let acceptCharset = create "accept-charset"
