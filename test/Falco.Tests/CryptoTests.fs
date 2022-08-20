@@ -4,30 +4,14 @@ open FsUnit.Xunit
 open Xunit
 open Falco.Security
 
-[<Fact>]
-let ``bytesFromBase64 should return bytes for base64 string`` () =
-    let expected = [|102uy; 97uy; 108uy; 99uy; 111uy|]
-    let base64 = "ZmFsY28="
-    base64
-    |> Crypto.bytesFromBase64
-    |> should equal expected
-        
-[<Fact>]
-let ``bytesToBase64 should return base64 string for bytes`` () =
-    let expected = "ZmFsY28="
-    let bytes = [|102uy; 97uy; 108uy; 99uy; 111uy|]
-    bytes
-    |> Crypto.bytesToBase64
-    |> should equal expected
-
 [<Theory>]
 [<InlineData(0, 10000)>]
 [<InlineData(100000, 150000)>]
-let ``randomInt should produce int between min & max`` 
-    (min : int) 
+let ``randomInt should produce int between min & max``
+    (min : int)
     (max : int) =
     Crypto.randomInt min max
-    |> fun i -> 
+    |> fun i ->
         (i >= min && i <= max)
         |> should equal true
 
@@ -36,7 +20,6 @@ let ``createSalt should generate a random salt of specified length`` () =
     let salt = Crypto.createSalt 16
     salt
     |> fun s -> s.Length |> should equal 24
-
 
 let salt = "8BSBv62T/qi2Yf10QBN4Zw=="
 let iterations = 150000

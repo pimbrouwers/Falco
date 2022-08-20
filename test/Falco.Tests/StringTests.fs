@@ -4,11 +4,70 @@ open System
 open Xunit
 open FsUnit.Xunit
 
-module StringParser = 
+module StringUtils =
+    open Falco.StringUtils
+
+    [<Fact>]
+    let ``strJoin should combine strings`` () =
+        [|"the";"man";"jumped";"high"|]
+        |> strJoin " "
+        |> should equal "the man jumped high"
+
+    [<Theory>]
+    [<InlineData("")>]
+    [<InlineData(null)>]
+    let ``strEmpty should be true`` str =
+        str
+        |> strEmpty
+        |> should equal true
+
+    [<Fact>]
+    let ``strEmpty should be false`` () =
+        "falco"
+        |> strEmpty
+        |> should equal false
+
+    [<Theory>]
+    [<InlineData("")>]
+    [<InlineData(null)>]
+    let ``strNotEmpty should be false`` str =
+        str
+        |> strNotEmpty
+        |> should equal false
+
+    [<Fact>]
+    let ``strNotEmpty should be true`` () =
+        "falco"
+        |> strNotEmpty
+        |> should equal true
+
+    [<Theory>]
+    [<InlineData("falco", "falco")>]
+    [<InlineData("falco", "FaLco")>]
+    let ``strEquals should be true`` str1 str2 =
+        strEquals str1 str2
+        |> should equal true
+
+    [<Fact>]
+    let ``strEquals should be false`` () =
+        strEquals "falco" "aclaf"
+        |> should equal false
+
+    [<Fact>]
+    let ``strSplit should split string into substrings`` () =
+        strSplit [|' '; '-'|] "falco eagle bird-crow"
+        |> should equal [|"falco"; "eagle"; "bird"; "crow"|]
+
+    [<Fact>]
+    let ``strSplit should not split if separator is not found`` () =
+        strSplit [|';'; '-'|] "falco eagle bird,crow"
+        |> should equal [|"falco eagle bird,crow"|]
+
+module StringParser =
     open Falco.StringParser
 
-    [<Theory>]    
-    [<InlineData("1", 1)>]    
+    [<Theory>]
+    [<InlineData("1", 1)>]
     [<InlineData("2147483647", 2147483647)>]
     [<InlineData("-2147483648", -2147483648)>]
     let ``parseInt should be some`` toParse result =
@@ -21,7 +80,7 @@ module StringParser =
     [<InlineData("2147483648")>]
     [<InlineData("-2147483649")>]
     let ``parseInt should be none`` toParse =
-        toParse 
+        toParse
         |> parseInt
         |> should equal None
 
@@ -85,9 +144,9 @@ module StringParser =
         |> should equal None
 
     [<Theory>]
-    [<InlineData("99.99", 99.99)>]    
+    [<InlineData("99.99", 99.99)>]
     [<InlineData("1", 1.0)>]
-    let ``parseFloat should be some`` toParse result = 
+    let ``parseFloat should be some`` toParse result =
         toParse
         |> parseFloat
         |> should equal (Some result)
@@ -95,15 +154,15 @@ module StringParser =
     [<Theory>]
     [<InlineData("falco")>]
     [<InlineData("")>]
-    let ``parseFloat should be none`` toParse = 
+    let ``parseFloat should be none`` toParse =
         toParse
         |> parseFloat
         |> should equal None
 
     [<Theory>]
-    [<InlineData("99.99", 99.99)>]    
+    [<InlineData("99.99", 99.99)>]
     [<InlineData("1", 1.0)>]
-    let ``parseDecimal should be some`` toParse (result : float) = 
+    let ``parseDecimal should be some`` toParse (result : float) =
         toParse
         |> parseDecimal
         |> should equal (Some (Convert.ToDecimal(result)))
@@ -111,7 +170,7 @@ module StringParser =
     [<Theory>]
     [<InlineData("falco")>]
     [<InlineData("")>]
-    let ``parseDecimal should be none`` toParse = 
+    let ``parseDecimal should be none`` toParse =
         toParse
         |> parseDecimal
         |> should equal None
@@ -127,7 +186,7 @@ module StringParser =
     [<Theory>]
     [<InlineData("falco")>]
     [<InlineData("")>]
-    let ``parseDateTime should be none`` toParse = 
+    let ``parseDateTime should be none`` toParse =
         toParse
         |> parseDateTime
         |> should equal None
@@ -142,7 +201,7 @@ module StringParser =
     [<Theory>]
     [<InlineData("falco")>]
     [<InlineData("")>]
-    let ``parseDateTimeOffset should be none`` toParse = 
+    let ``parseDateTimeOffset should be none`` toParse =
         toParse
         |> parseDateTimeOffset
         |> should equal None
@@ -156,7 +215,7 @@ module StringParser =
     [<Theory>]
     [<InlineData("falco")>]
     [<InlineData("")>]
-    let ``parseTimeSpan should be none`` toParse = 
+    let ``parseTimeSpan should be none`` toParse =
         toParse
         |> parseTimeSpan
         |> should equal None
@@ -172,7 +231,7 @@ module StringParser =
     [<Theory>]
     [<InlineData("falco")>]
     [<InlineData("")>]
-    let ``parseGuid should be none`` toParse = 
+    let ``parseGuid should be none`` toParse =
         toParse
         |> parseGuid
         |> should equal None
@@ -181,7 +240,7 @@ module StringParser =
     let ``tryParsreArray should work for complete list`` () =
         tryParseArray parseNonEmptyString [|"1";"2";"3"|]
         |> should equal [|"1";"2";"3"|]
-    
+
         tryParseArray parseInt [|"1";"2";"3"|]
         |> should equal [|1;2;3|]
 

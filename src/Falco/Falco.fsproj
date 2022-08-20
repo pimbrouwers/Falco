@@ -50,8 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="StringUtils.fs" />
-    <Compile Include="StringParser.fs" />
+    <Compile Include="String.fs" />
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="Routing.fs" />

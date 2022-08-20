@@ -3,16 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <GenerateProgramFile>false</GenerateProgramFile>    
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="StringParserTests.fs" />
-    <Compile Include="StringUtilsTests.fs" />
+    <Compile Include="StringTests.fs" />
     <Compile Include="StringCollectionReaderTests.fs" />
     <Compile Include="CoreTests.fs" />
-    <Compile Include="RoutingTests.fs" />    
+    <Compile Include="RoutingTests.fs" />
     <Compile Include="CryptoTests.fs" />
     <Compile Include="XssTests.fs" />
     <Compile Include="AuthTests.fs" />
@@ -22,7 +21,7 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
 
-  <ItemGroup>    
+  <ItemGroup>
     <PackageReference Include="FsUnit.Xunit" Version="4.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />

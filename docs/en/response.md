@@ -22,6 +22,26 @@ let htmlHandler : HttpHandler =
         ]
 
     Response.ofHtml html
+
+// Automatically protect against XSS attacks
+let secureHtmlHandler : HttpHandler =
+    let html token =
+        Elem.html [] [
+            Elem.body [] [
+                Elem.form [ Attr.method "post" ] [
+                    Elem.input [ Attr.name "first_name" ]
+
+                    Elem.input [ Attr.name "last_name" ]
+
+                    // using the CSRF HTML helper
+                    Xss.antiforgeryInput token
+
+                    Elem.input [ Attr.type' "submit"; Attr.value "Submit" ]
+                ]
+            ]
+        ]
+
+    Response.ofHtmlCsrf html
 ```
 
 Alternatively, if you're using an external view engine and want to return an HTML response from a string literal, then you can use `Response.ofHtmlString`.
@@ -43,6 +63,12 @@ type Person =
 let jsonHandler : HttpHandler =
     let name = { First = "John"; Last = "Doe" }
     Response.ofJson name
+
+let jsonOptionsHandler : HttpHandler =
+    let options = JsonSerializerOptions()
+    options.IgnoreNullValues <- true
+    let name = { First = "John"; Last = "Doe" }
+    Response.ofJson options name
 ```
 
 ## Redirect (301/302) Response
@@ -53,6 +79,23 @@ let oldUrlHandler : HttpHandler =
 
 let redirectUrlHandler : HttpHandler =
     Response.redirectTemporarily "/new-url" // HTTP 302
+```
+
+## Content Disposition
+
+```fsharp
+let inlineBinaryHandler : HttpHandler =
+    let contentType = "image/jpeg"
+    let headers = [ HeaderNames.CacheControl,  "no-store, max-age=0" ]
+    let bytes = // ... binary data
+    Response.ofBinary contentType headers bytes
+
+let attachmentHandler : HttpHandler =
+    let filename = "profile.jpg"
+    let contentType = "image/jpeg"
+    let headers = [ HeaderNames.CacheControl,  "no-store, max-age=0" ]
+    let bytes = // ... binary data
+    Response.ofAttachment filename contentType headers bytes
 ```
 
 ## Response Modifiers
@@ -67,21 +110,31 @@ let notFoundHandler : HttpHandler =
     >> Response.ofPlainText "Not found"
 ```
 
-### Add a header to the response
+### Add a header(s) to the response
 
 ```fsharp
 let handlerWithHeader : HttpHandler =
     Response.withHeader "Content-Language" "en-us"
+    >> Response.ofPlainText "Hello world"
+
+let handlerWithHeaders : HttpHandler =
+    Response.withHeaders [ "Content-Language" "en-us" ]
     >> Response.ofPlainText "Hello world"
 ```
 
 
 ### Add a cookie to the response
 
+> IMPORTANT: *Do not* use this for authentication. Instead use the `Auth.signIn` and `Auth.signOut` functions found in the [Authentication](/authentication) module.
+
 ```fsharp
-let handlerWithHeader : HttpHandler =
+let handlerWithCookie : HttpHandler =
     Response.withCookie "greeted" "1"
     >> Response.ofPlainText "Hello world"
-```
 
-> IMPORTANT: *Do not* use this for authentication. Instead use the `Auth.signIn` and `Auth.signOut` functions found in the [Authentication](/authentication) module.
+let handlerWithCookieOptions : HttpHandler =
+    let options = CookieOptions()
+    options.Expires <- DateTime.Now.Minutes(15)
+    Response.withCookie options "greeted" "1"
+    >> Response.ofPlainText "Hello world"
+```

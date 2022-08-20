@@ -86,7 +86,7 @@ let manualFormHandler : HttpHandler = fun ctx -> task {
 
 #### `multipart/form-data` Binding
 
-Microsoft defines [large uploads][15] as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
+Microsoft defines [large upload](https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming) as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
 
 To make this process **a lot** easier Falco provides a set of four `HttpHandler`'s analogous to the form handlers above, which utilize an `HttpContext` extension method called `TryStreamFormAsync()` that will attempt to stream multipart form data, or return an error message indicating the likely problem.
 
@@ -102,6 +102,19 @@ let imageUploadHandler : HttpHandler =
 
     // Safely buffer the multipart form submission
     Request.mapFormStream formBinder uploadImage
+
+let secureImageUploadHandler : HttpHandler =
+    let formBinder (f : FormCollectionReader) : IFormFile option =
+        f.TryGetFormFile "profile_image"
+
+    let uploadImage (profileImage : IFormFile option) : HttpHandler =
+        // Process the uploaded file ...
+
+    let handleInvalidCsrf : HttpHandler =
+        Response.withStatusCode 400 >> Response.ofEmpty
+
+    // Safely buffer the multipart form submission
+    Request.mapFormStreamSecure formBinder uploadImage handleInvalidCsrf
 ```
 
 ## JSON

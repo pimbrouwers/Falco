@@ -37,7 +37,7 @@ let getHeaders (ctx : HttpContext) : HeaderCollectionReader  =
 /// Retrieve all route values from the request as RouteCollectionReader
 let getRoute (ctx : HttpContext) : RouteCollectionReader =
     RouteCollectionReader(ctx.Request.RouteValues, ctx.Request.Query)
- 
+
 /// Retrieve the query string from the request as an instance of QueryCollectionReader
 let getQuery (ctx : HttpContext) : QueryCollectionReader =
     QueryCollectionReader(ctx.Request.Query)
@@ -97,8 +97,8 @@ let validateCsrfToken
 /// Project JSON onto 'a and provide to next
 /// Httphandler, throws JsonException if errors
 /// occurs during deserialization.
-let mapJson 
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->    
+let mapJson
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     #if NETCOREAPP3_1 || NET5_0
     unitTask {
     #else
@@ -108,12 +108,12 @@ let mapJson
         return next json
     }
 
-/// Project JSON using custom JsonSerializerOptions 
-/// onto 'a and provide to next Httphandler, throws 
+/// Project JSON using custom JsonSerializerOptions
+/// onto 'a and provide to next Httphandler, throws
 /// JsonException if errors occurs during deserialization.
-let mapJsonOption 
-    (options : JsonSerializerOptions) 
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->    
+let mapJsonOption
+    (options : JsonSerializerOptions)
+    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     #if NETCOREAPP3_1 || NET5_0
     unitTask {
     #else
@@ -121,7 +121,7 @@ let mapJsonOption
     #endif
         let! json = getJsonOptions options ctx
         return next json
-    }   
+    }
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler
@@ -196,7 +196,9 @@ let mapFormStreamSecure
 
 /// Attempt to authenticate the current request using the provided
 /// scheme and pass AuthenticateResult into next HttpHandler
-let authenticate (scheme : string) (next : AuthenticateResult -> HttpHandler) : HttpHandler = fun ctx ->
+let authenticate
+    (scheme : string)
+    (next : AuthenticateResult -> HttpHandler) : HttpHandler = fun ctx ->
     #if NETCOREAPP3_1 || NET5_0
     unitTask {
     #else

@@ -8,13 +8,15 @@ open Falco.StringUtils
 open Falco.Extensions
 
 /// Returns the current user (IPrincipal) or None
-let getUser (ctx : HttpContext) =
+let getUser
+    (ctx : HttpContext) =
     match ctx.User with
     | null -> None
     | _    -> Some ctx.User
 
 /// Returns authentication status of IPrincipal, false on null
-let isAuthenticated (ctx : HttpContext) : bool =
+let isAuthenticated
+    (ctx : HttpContext) : bool =
     let isAuthenciated (user : ClaimsPrincipal) =
         let identity = user.Identity
         match identity with

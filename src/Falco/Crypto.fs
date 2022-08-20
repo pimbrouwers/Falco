@@ -5,11 +5,11 @@ open System.Text
 open System.Security.Cryptography
 
 /// Make byte[] from Base64 string
-let bytesFromBase64 (str : string) =
+let private bytesFromBase64 (str : string) =
     Convert.FromBase64String str
 
 /// Make Base64 string from byte[]
-let bytesToBase64 (bytes : byte[]) =
+let private bytesToBase64 (bytes : byte[]) =
     Convert.ToBase64String bytes
 
 /// Generate a random int32 between range
@@ -34,7 +34,7 @@ let pbkdf2
     let pbkdf2 = new Rfc2898DeriveBytes(input, salt, iterations, algo)
     let bytes = pbkdf2.GetBytes numBytesRequested
     bytesToBase64 bytes
-    
+
 /// Perform PBKDF2 key derivation using HMACSHA256
 let sha256
     (iterations : int)
