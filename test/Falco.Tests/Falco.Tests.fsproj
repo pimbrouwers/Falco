@@ -12,9 +12,7 @@
     <Compile Include="StringCollectionReaderTests.fs" />
     <Compile Include="CoreTests.fs" />
     <Compile Include="RoutingTests.fs" />
-    <Compile Include="CryptoTests.fs" />
-    <Compile Include="XssTests.fs" />
-    <Compile Include="AuthTests.fs" />
+    <Compile Include="SecurityTests.fs" />
     <Compile Include="RequestTests.fs" />
     <Compile Include="RequestHandlersTests.fs" />
     <Compile Include="ResponseTests.fs" />
