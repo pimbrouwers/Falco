@@ -7,7 +7,6 @@ open Falco
 open Falco.Markup
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
-open Microsoft.AspNetCore.Authentication
 open Microsoft.Net.Http.Headers
 open NSubstitute
 open Xunit
@@ -52,17 +51,24 @@ let ``Response.withContentType should set header`` () =
         |> should equal contentType
     }
 
-[<Theory>]
-[<InlineData(false)>]
-[<InlineData(true)>]
-let ``Response.redirect temporary should invoke HttpResponse Redirect with provided bool`` (permanent : bool) =
+[<Fact>]
+let ``Response.redirectPermanentlyTo invokes HttpRedirect with permanently moved resource`` () =
     let ctx = getHttpContextWriteable false
-
+    let permanentRedirect = true
     task {
         do! ctx
-            |> Response.redirect "/" permanent
+            |> Response.redirectPermanently "/"
+        ctx.Response.Received().Redirect("/", permanentRedirect)
+    }
 
-        ctx.Response.Received().Redirect("/", permanent)
+[<Fact>]
+let ``Response.redirectTemporarilyTo invokes HttpRedirect with temporarily moved resource`` () =
+    let ctx = getHttpContextWriteable false
+    let permanentRedirect = false
+    task {
+        do! ctx
+            |> Response.redirectTemporarily "/"
+        ctx.Response.Received().Redirect("/", permanentRedirect)
     }
 
 

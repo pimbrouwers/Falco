@@ -87,10 +87,25 @@ let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : Http
         writeBytes httpBodyBytes ctx
 
 /// Returns a redirect (301 or 302) to client
-let redirect (url : string) (permanent : bool) : HttpHandler =
+
+type private RedirectType =
+    | PermanentlyTo of url: string
+    | TemporarilyTo of url: string
+
+let private redirect (redirectType: RedirectType): HttpHandler =
     fun ctx ->
+        let (permanent, url) =
+            match redirectType with
+            | PermanentlyTo url -> (true, url)
+            | TemporarilyTo url -> (false, url)
         ctx.Response.Redirect(url, permanent)
-        ctx.Response.CompleteAsync ()
+        ctx.Response.CompleteAsync()
+        
+/// Returns a redirect (301) to client
+let redirectPermanently (url: string) = redirect (PermanentlyTo url)
+
+/// Returns a redirect (302) to client
+let redirectTemporarily (url: string) = redirect (TemporarilyTo url)
 
 /// Returns an inline binary (i.e., Byte[]) response with the specified Content-Type
 ///
@@ -184,7 +199,7 @@ let signInAndRedirect
     task {
     #endif
         do! Auth.signIn authScheme claimsPrincipal ctx
-        do! redirect url false ctx
+        do! redirectTemporarily url ctx
     }
 
 /// Sign in claim principal for provided scheme and options then respond with a 301 redirect to provided URL
@@ -199,7 +214,7 @@ let signInOptionsAndRedirect
     task {
     #endif
         do! Auth.signInOptions authScheme claimsPrincipal options ctx
-        do! redirect url false ctx
+        do! redirectTemporarily url ctx
     }
 
 /// Terminates authenticated context for provided scheme then respond with a 301 redirect to provided URL
@@ -212,7 +227,7 @@ let signOutAndRedirect
     task {
     #endif
         do! Auth.signOut authScheme ctx
-        do! redirect url false ctx
+        do! redirectTemporarily url ctx
     }
 
 /// Challenge the specified authentication scheme.
