@@ -55,9 +55,7 @@
     <Compile Include="Core.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Extensions.fs" />
-    <Compile Include="Crypto.fs" />
-    <Compile Include="Xss.fs" />
-    <Compile Include="Auth.fs" />
+    <Compile Include="Security.fs" />
     <Compile Include="Multipart.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />

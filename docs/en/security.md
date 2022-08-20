@@ -1,6 +1,6 @@
 ## Authentication
 
-ASP.NET Core has amazing built-in support for authentication. Review the [docs][13] for specific implementation details. Falco includes some authentication utilities.
+ASP.NET Core has amazing built-in support for authentication. Review the [docs](https://docs.microsoft.com/en-us/aspnet/core/security/authentication) for specific implementation details. Falco includes some authentication utilities.
 
 > To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`.
 
@@ -11,8 +11,7 @@ open Falco.Security
 
 let secureResourceHandler : HttpHandler =
     let handleAuth : HttpHandler =
-        "hello authenticated user"
-        |> Response.ofPlainText
+        Response.ofPlainText "hello authenticated user"
 
     let handleInvalid : HttpHandler =
         Response.withStatusCode 403
@@ -78,7 +77,7 @@ let logOut : HttpHandler =
     Response.signOutAndRedirect authScheme redirectTo
 ```
 
-## Security
+## Cross-site Scripting (XSS) Attacks
 
 Cross-site scripting attacks are extremely common since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.
 
