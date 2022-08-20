@@ -4,11 +4,7 @@ The `HttpHandler` type is used to represent the processing of a request. It can 
 
 ## Accessing Request Data
 
-> Falco exposes a [uniform API](#model-binding) to obtain typed values from the various sources of request data. Note, the similarity in the various binders below.
-
-Reflection-based approaches to binding at IO boundaries work well for simple use cases. But as the complexity of the input rises it becomes error-prone and often involves tedious workarounds. This is especially true for an expressive, algebraic type system like F#. As such, it is often advisable to take back control of this process from the runtime. An added bonus of doing this is that it all but eliminates the need for `[<CLIMutable>]` attributes.
-
-We can make this simpler by creating a succinct API to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary`, `IHeaderCollection`, and `IRequestCookieCollection`. All of which are derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
+Falco exposes a __uniform API__ to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary`, `IHeaderCollection`, and `IRequestCookieCollection`. All implementations are derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
 
 ### Route Binding
 

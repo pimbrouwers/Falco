@@ -53,16 +53,8 @@ Run the application:
 dotnet run
 ```
 
-There you have it, an industrial-strength [Hello World][7] web app, achieved using only base ASP.NET Core libraries. Pretty sweet!
+There you have it, an industrial-strength [Hello World](https://github.com/pimbrouwers/Falco/tree/master/samples/) web app, achieved using only base ASP.NET Core libraries. Pretty sweet!
 
 # Sample Applications
 
-Code is always worth a thousand words, so for the most up-to-date usage, the [/samples][6] directory contains a few sample applications.
-
-| Sample | Description |
-| ------ | ----------- |
-| [Hello World][7] | A basic hello world app |
-| [Configure Host][21] | Demonstrating how to configure the `IHost` instance using the `webHost` computation expression |
-| [Blog][17] | A basic markdown (with YAML frontmatter) blog |
-| [Third-part View Engine][22] | Demonstrating how to render with an external view engine, specifically [Scriban][23] |
-| [Falco Journal][20] | A bullet journal built using Falco |
+Code is worth a thousand words. For the most up-to-date usage, the [/samples][(https://github.com/pimbrouwers/Falco/tree/master/samples/) directory contains a few sample applications.

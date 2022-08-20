@@ -1,5 +1,7 @@
 # Response Writing
 
+The `Response` module contains a series of functions that provide support for the most common response types.
+
 ## Plain Text responses
 
 ```fsharp
@@ -31,7 +33,7 @@ let htmlHandler : HttpHandler =
 
 ## JSON responses
 
-> IMPORTANT: This handler uses the default `System.Text.Json.JsonSerializer`. See [JSON](#json) section below for further information.
+> IMPORTANT: This handler uses the default `System.Text.Json.JsonSerializer`.
 
 ```fsharp
 type Person =
@@ -55,7 +57,7 @@ let redirectUrlHandler : HttpHandler =
 
 ## Response Modifiers
 
-Response modifiers can be thought of as the in-and-out modification of the `HttpResponse`. A preamble to writing and returning. Since these functions receive the `Httpcontext` as input and return it as the only output, they can take advantage of [function compoistion](22).
+Response modifiers can be thought of as the in-and-out modification of the `HttpResponse`. A preamble to writing and returning. Since these functions receive the `Httpcontext` as input and return it as the only output, they can take advantage of function compoistion.
 
 ### Set the status code of the response
 
@@ -82,4 +84,4 @@ let handlerWithHeader : HttpHandler =
     >> Response.ofPlainText "Hello world"
 ```
 
-> IMPORTANT: *Do not* use this for authentication. Instead use the `Auth.signIn` and `Auth.signOut` functions found in the [Authentication](#authentication) module.
+> IMPORTANT: *Do not* use this for authentication. Instead use the `Auth.signIn` and `Auth.signOut` functions found in the [Authentication](/authentication) module.
