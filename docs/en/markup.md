@@ -1,28 +1,13 @@
 # Markup
 
-A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.).
+[![NuGet Version](https://img.shields.io/nuget/v/Falco.Markup.svg)](https://www.nuget.org/packages/Falco.Markup)
+[![build](https://github.com/pimbrouwers/Falco/actions/workflows/build.yml/badge.svg)](https://github.com/pimbrouwers/Falco/actions/workflows/build.yml)
 
-For example, the module is easily extended since creating new tags is simple. An example to render `<svg>`'s:
+A core feature of Falco is the XML markup module. It can be used to produce any form of angle-bracket markup (i.e. HTML, SVG, XML etc.) within a Falco project and is also available directly as a standalone [NuGet](https://www.nuget.org/packages/Falco.Markup) package
 
-```fsharp
-let svg (width : float) (height : float) =
-    Elem.tag "svg" [
-        Attr.create "version" "1.0"
-        Attr.create "xmlns" "http://www.w3.org/2000/svg"
-        Attr.create "viewBox" (sprintf "0 0 %f %f" width height)
-    ]
+## HTML
 
-let path d = Elem.tag "path" [ Attr.create "d" d ] []
-
-let bars =
-    svg 384.0 384.0 [
-        path "M368 154.668H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 32H16C7.168 32 0 24.832 0 16S7.168 0 16 0h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0M368 277.332H16c-8.832 0-16-7.168-16-16s7.168-16 16-16h352c8.832 0 16 7.168 16 16s-7.168 16-16 16zm0 0"
-    ]
-```
-
-## HTML View Engine
-
-Most of the standard HTML tags & attributes have been built into the markup module and produce objects to represent the HTML node. Nodes are either:
+_All_ of the standard HTML tags & attributes have a functional representation that produces objects to represent the HTML node. Nodes are either:
 
 - `Text` which represents `string` values. (Ex: `Text.raw "hello"`, `Text.rawf "hello %s" "world"`)
 - `SelfClosingNode` which represent self-closing tags (Ex: `<br />`).
@@ -33,17 +18,12 @@ The benefits of using the Falco markup module as an HTML engine include:
 - Writing your views in plain F#, directly in your assembly.
 - Markup is compiled alongside the rest of your code, leading to improved performance and ultimately simpler deployments.
 
-```fsharp
-// Create an HTML5 document using built-in template
-let doc =
-    Templates.html5 "en"
-        [ Elem.title [] [ Text.raw "Sample App" ] ] // <head></head>
-        [ Elem.h1 [] [ Text.raw "Sample App" ] ]    // <body></body>
-```
-
 Since views are plain F# they can easily be made strongly-typed:
+
 ```fsharp
-type Person = { FirstName : string; LastName : string }
+type Person =
+    { FirstName : string
+      LastName : string }
 
 let doc (person : Person) =
     Elem.html [ Attr.lang "en" ] [
@@ -59,7 +39,11 @@ let doc (person : Person) =
     ]
 ```
 
-Views can also be combined to create more complex views and share output:
+Rumor has it that the Falco [creator](https://twitter.com/pim_brouwers) makes a dog sound every time he uses `Text.rawf`.
+
+> **Note**: I am the creator, and this is entirely true.
+
+Views can also be combined to create more complex views and share output (i.e., view components):
 
 ```fsharp
 let master (title : string) (content : XmlNode list) =
