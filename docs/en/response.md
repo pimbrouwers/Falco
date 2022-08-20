@@ -125,7 +125,7 @@ let handlerWithHeaders : HttpHandler =
 
 ### Add a cookie to the response
 
-> IMPORTANT: *Do not* use this for authentication. Instead use the `Auth.signIn` and `Auth.signOut` functions found in the [Authentication](/authentication) module.
+> IMPORTANT: *Do not* use this for authentication. Instead use the `Auth.signIn` and `Auth.signOut` functions found in the [Authentication](security.md) module.
 
 ```fsharp
 let handlerWithCookie : HttpHandler =
