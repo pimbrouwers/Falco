@@ -57,7 +57,7 @@ let htmlHandler : HttpHandler =
 
 ## JSON responses
 
-These handlers uses the .NET built-in `System.Text.Json.JsonSerializer`.
+These handlers use the .NET built-in `System.Text.Json.JsonSerializer`.
 
 ```fsharp
 type Person =
