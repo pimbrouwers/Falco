@@ -88,6 +88,7 @@ The vast majority of the SVG spec has been mapped to element and attributes func
 open Falco.Markup
 open Falco.Markup.Svg
 
+// https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text#example
 let svgDrawing =
     Templates.svg (0, 0, 240, 80) [
         Elem.style [] [
