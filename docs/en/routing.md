@@ -9,27 +9,30 @@ open Falco
 open Falco.Routing
 open Falco.HostBuilder
 
+/// GET /Hello/{Name:alpha}
 let helloHandler : HttpHandler =
     let getMessage (route : RouteCollectionReader) =
-        route.GetString "name" "World"
-        |> sprintf "Hello %s"
+        let name = route.GetString "Name" "World"
+        sprintf "Hello %s" name
 
     Request.mapRoute getMessage Response.ofPlainText
 
+/// GET /Login
 let loginHandler : HttpHandler = // ...
 
+/// POST /Login
 let loginSubmitHandler : HttpHandler = // ...
 
 module Router =
     let endpoints =
         [
-            // a basic GET handler
-            get "/hello/{name:alpha}" helloHandler
+            // a basic GET handler, with an alphanumerically constrained route parameter
+            get "/Hello/{Name:alpha}" helloHandler
 
             // multi-method endpoint
-            all "/login"
-                [ POST, loginSubmitHandler
-                  GET,  loginHandler ]
+            all "/Login" [
+                POST, loginSubmitHandler
+                GET,  loginHandler ]
         ]
 
 webHost [||] {
