@@ -86,8 +86,6 @@ let private writeString (encoding : Encoding) (httpBodyStr : string) (ctx : Http
         let httpBodyBytes = encoding.GetBytes httpBodyStr
         writeBytes httpBodyBytes ctx
 
-/// Returns a redirect (301 or 302) to client
-
 type private RedirectType =
     | PermanentlyTo of url: string
     | TemporarilyTo of url: string
@@ -100,7 +98,7 @@ let private redirect (redirectType: RedirectType): HttpHandler =
             | TemporarilyTo url -> (false, url)
         ctx.Response.Redirect(url, permanent)
         ctx.Response.CompleteAsync()
-        
+
 /// Returns a redirect (301) to client
 let redirectPermanently (url: string) = redirect (PermanentlyTo url)
 
@@ -172,7 +170,7 @@ let ofJsonOptions (options : JsonSerializerOptions) (obj : 'a) : HttpHandler =
         task {
         #endif
             use str = new MemoryStream()
-            do! JsonSerializer.SerializeAsync(str, obj, options = options)            
+            do! JsonSerializer.SerializeAsync(str, obj, options = options)
             let bytes = str.ToArray ()
             let byteLen = bytes.Length
             ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
