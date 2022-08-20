@@ -53,7 +53,7 @@ let htmlHandler : HttpHandler =
 
 ## JSON responses
 
-> IMPORTANT: This handler uses the default `System.Text.Json.JsonSerializer`.
+> IMPORTANT: These handlers uses the default `System.Text.Json.JsonSerializer`.
 
 ```fsharp
 type Person =

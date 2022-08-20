@@ -119,7 +119,7 @@ let secureImageUploadHandler : HttpHandler =
 
 ## JSON
 
-Included in Falco are basic JSON in/out handlers, `Request.mapJson` and `Response.ofJson` respectively. Both rely on `System.Text.Json` and thus have minimal support for F#'s algebraic types.
+> IMPORTANT: These handlers uses the default `System.Text.Json.JsonSerializer`.
 
 ```fsharp
 type Person = { FirstName : string; LastName : string }
@@ -134,4 +134,14 @@ let mapJsonHandler : HttpHandler =
         Response.ofPlainText message
 
     Request.mapJson handleOk
+
+let mapJsonOptionsHandler : HttpHandler =
+    let options = JsonSerializerOptions()
+    options.IgnoreNullValues <- true
+
+    let handleOk person : HttpHandler =
+        let message = sprintf "hello %s %s" person.First person.Last
+        Response.ofPlainText message
+
+    Request.mapJson options handleOk
 ```
