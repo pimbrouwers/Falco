@@ -84,14 +84,14 @@ This means that you will inevitably end up needing to combine your predefined `X
 
 ```fsharp
 // Components
-let heading (text : string) (attrs : XmlAttribute list) =
+let heading (attrs : XmlAttribute list) (content : XmlNode list) =
     // safely combine the default XmlAttribute list with those provided
     // at runtime
     let attrs' =
         Attr.merge [ Attr.class' "text-large" ] attrs
 
     Elem.div [] [
-        Elem.h1 [ attrs' ] [ Text.raw text ]
+        Elem.h1 [ attrs' ] content
     ]
 
 // Template
@@ -106,7 +106,13 @@ let master (title : string) (content : XmlNode list) =
 // Views
 let homepage =
     master "Homepage" [
-        heading "Welcome to the homepage" [ Attr.class' "red" ]
+        heading [ Attr.class' "red" ] [ Text.raw "Welcome to the homepage" ]
+        Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+    ]
+
+let homepage =
+    master "About Us" [
+        heading [ Attr.class' "purple" ] [ Text.raw "This is what we're all about" ]
         Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
     ]
 ```
