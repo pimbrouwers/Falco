@@ -1,6 +1,6 @@
 # Request Handling
 
-The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion and processing of an HTTP request, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally [response writing](/response). With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
+The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion and processing of an HTTP request, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally [response writing](response). With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
 
 ## Accessing Request Data
 
