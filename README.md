@@ -1,7 +1,6 @@
 # Falco
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
-[![NuGet Version](https://img.shields.io/nuget/v/Falco.Markup.svg)](https://www.nuget.org/packages/Falco.Markup)
 [![build](https://github.com/pimbrouwers/Falco/actions/workflows/build.yml/badge.svg)](https://github.com/pimbrouwers/Falco/actions/workflows/build.yml)
 
 ```fsharp
@@ -44,24 +43,30 @@ The best way to get started is by visiting the [documentation](https://falcofram
 
 If you want to stay in touch, feel free to reach out on [Twitter][https://twitter.com/falco_framework].
 
+> If you have an article or video that you want to share, we'd love to hear from you! To add, fork and submit a [pull request](https://github.com/pimbrouwers/Falco/pulls).
+
 ### Articles
 
-Istvan - [Running ASP.Net web application with Falco on AWS Lambda]
-(https://dev.l1x.be/posts/2020/12/18/running-asp.net-web-application-with-falco-on-aws-lambda/)
+Istvan - [Running ASP.Net web application with Falco on AWS Lambda](https://dev.l1x.be/posts/2020/12/18/running-asp.net-web-application-with-falco-on-aws-lambda/)
 
 ### Videos
 
 Ben Gobeil - [Why I'm Using Falco Instead Of Saturn | How To Switch Your Backend In SAFE Stack | StonkWatch Ep.13](https://youtu.be/DTy5gIUWvpo)
 
-> If you have an article or video that you want to share, we'd love to hear from you! To add, fork and submit a [pull request](https://github.com/pimbrouwers/Falco/pulls).
-
 ## Contribute
 
-Thank you for considering to contribute to Falco! We appreciate (and actively resolve) PRs of all shapes and sizes.
+Thank you for considering to contribute to Falco, and to those who have already contributed! We appreciate (and actively resolve) PRs of all shapes and sizes.
 
 We kindly ask that before submitting a pull request, you first submit an [issue](https://github.com/pimbrouwers/Falco/issues) or open a [discussion](https://github.com/pimbrouwers/Falco/discussions).
 
-Thank you to everyone who has contributed!
+
+If functionality is added to the API, or changed, please kindly update the relevent [document](https://github.com/pimbrouwers/Falco/tree/master/docs). Unit tests must also be added and/or updated before a pull request can be successfully merged.
+
+The develop branch is the main and only branch which should be used for all pull requests. A merge into develop means that your changes are scheduled to go live with the very next release, which could happen any time from the same day up to a couple weeks (depending on priorities and urgency).
+
+Only pull requests which pass all build checks and comply with the general coding guidelines can be approved.
+
+If you have any further questions, submit an [issue](https://github.com/pimbrouwers/Falco/issues) or open a [discussion](https://github.com/pimbrouwers/Falco/discussions) or reach out on [Twitter][https://twitter.com/falco_framework].
 
 ## Why "Falco"?
 
