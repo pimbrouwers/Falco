@@ -59,39 +59,31 @@ let divider =
     Elem.hr [ Attr.class' "divider" ]
 
 let homeView =
-    [
+    master "Homepage" [
         Elem.h1 [] [ Text.raw "Homepage" ]
         divider
         Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
     ]
-    |> master "Homepage"
 
 let aboutView =
-    [
+    master "About Us" [
         Elem.h1 [] [ Text.raw "About" ]
         divider
         Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
     ]
-    |> master "About Us"
 ```
 
 ## SVG
 
+
 ## Merging Attributes
 
-The markup module allows you to easily create components, an excellent way to reduce code repetition in your UI. In general, it is advisable to ensure components or reusable blocks of markup retain a similar function definition to standard elements. That being, `XmlAttribte list -> XmlNode list -> XmlNode`.
+The markup module allows you to easily create components, an excellent way to reduce code repetition in your UI. To support runtime customization, it is advisable to ensure components (or reusable markup blocks) retain a similar function "shape" to standard elements. That being, `XmlAttribte list -> XmlNode list -> XmlNode`.
 
 This means that you will inevitably end up needing to combine your predefined `XmlAttribute list` with a list provided at runtime. To facilitate this, the `Attr.merge` function will group attributes by key, and concat the values in the case of `KeyValueAttribute`.
 
 ```fsharp
-let master (title : string) (content : XmlNode list) =
-    Elem.html [ Attr.lang "en" ] [
-        Elem.head [] [
-            Elem.title [] [ Text.raw "Sample App" ]
-        ]
-        Elem.body [] content
-    ]
-
+// Components
 let heading (text : string) (attrs : XmlAttribute list) =
     // safely combine the default XmlAttribute list with those provided
     // at runtime
@@ -102,6 +94,16 @@ let heading (text : string) (attrs : XmlAttribute list) =
         Elem.h1 [ attrs' ] [ Text.raw text ]
     ]
 
+// Template
+let master (title : string) (content : XmlNode list) =
+    Elem.html [ Attr.lang "en" ] [
+        Elem.head [] [
+            Elem.title [] [ Text.raw "Sample App" ]
+        ]
+        Elem.body [] content
+    ]
+
+// Views
 let homepage =
     master "Home" [
         heading "Welcome to the homepage" [ Attr.class' "red" ]
