@@ -1,10 +1,12 @@
+# Security
+
 ## Authentication
 
 ASP.NET Core has amazing built-in support for authentication. Review the [docs](https://docs.microsoft.com/en-us/aspnet/core/security/authentication) for specific implementation details. Falco includes some authentication utilities.
 
 > To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`.
 
-Prevent user from accessing secure endpoint:
+### Allow only authenticated access
 
 ```fsharp
 open Falco.Security
@@ -20,7 +22,7 @@ let secureResourceHandler : HttpHandler =
     Request.ifAuthenticated handleAuth handleInvalid
 ```
 
-Prevent authenticated user from accessing anonymous-only end-point:
+### Deny access if not authenticated
 
 ```fsharp
 let anonResourceOnlyHandler : HttpHandler =
@@ -34,7 +36,7 @@ let anonResourceOnlyHandler : HttpHandler =
     Request.ifNotAuthenticated handleAnon handleInvalid
 ```
 
-Allow only user's from a certain group to access endpoint"
+### Allow only authenticated user's in certain role(s) to access
 
 ```fsharp
 let secureResourceHandler : HttpHandler =
@@ -50,7 +52,7 @@ let secureResourceHandler : HttpHandler =
     Request.ifAuthenticatedInRole rolesAllowed handleAuthInRole handleInvalid
 ```
 
-Allow only user's with a certain scope to access endpoint"
+### Allow only authenticated user's with a certain scope to access"
 
 ```fsharp
 let secureResourceHandler : HttpHandler =
@@ -67,7 +69,7 @@ let secureResourceHandler : HttpHandler =
     Request.ifAuthenticatedWithScope issuer scope handleAuthHasScope handleInvalid
 ```
 
-End user session (sign out):
+### Terminate user session
 
 ```fsharp
 let logOut : HttpHandler =
@@ -127,7 +129,7 @@ let mapFormSecureHandler : HttpHandler =
     Request.mapFormSecure mapPerson Response.ofJson handleInvalid
 ```
 
-### Crytography
+## Crytography
 
 Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is important.
 
