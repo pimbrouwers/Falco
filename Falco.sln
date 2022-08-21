@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B8137374-EB5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6E18E550-9E9C-4093-8282-93560104041A}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FalcoBenchmarks", "benchmarks\FalcoBenchmarks.fsproj", "{6C19A41D-374F-4978-B388-315E79025812}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,6 +187,18 @@ Global
 		{10654758-5415-4373-990A-C1474525846B}.Release|x64.Build.0 = Release|Any CPU
 		{10654758-5415-4373-990A-C1474525846B}.Release|x86.ActiveCfg = Release|Any CPU
 		{10654758-5415-4373-990A-C1474525846B}.Release|x86.Build.0 = Release|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Debug|x64.Build.0 = Debug|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Debug|x86.Build.0 = Debug|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Release|x64.ActiveCfg = Release|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Release|x64.Build.0 = Release|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Release|x86.ActiveCfg = Release|Any CPU
+		{6C19A41D-374F-4978-B388-315E79025812}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
