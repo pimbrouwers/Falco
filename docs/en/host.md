@@ -35,12 +35,12 @@ The following built-in custom operations are available to make registering servi
 
 | Operation | Description |
 | --------- | ----------- |
-| add_antiforgery | Add Antiforgery support into the IServiceCollection. |
-| add_cookie | Add default cookie authentication into the IServiceCollection. |
-| add_conf_cookies | Add configured cookie(s) authentication into the IServiceCollection. |
-| add_authorization | Add default Authorization into the IServiceCollection. |
+| add_antiforgery | Add Antiforgery support into the `IServiceCollection`. |
+| add_cookie | Add default cookie authentication into the `IServiceCollection`. |
+| add_conf_cookies | Add configured cookie(s) authentication into the `IServiceCollection`. |
+| add_authorization | Add default Authorization into the `IServiceCollection`. |
 | add_data_protection | Add file system based data protection. |
-| add_http_client | Add IHttpClientFactory into the IServiceCollection |
+| add_http_client | Add IHttpClientFactory into the `IServiceCollection` |
 
 ### Activating Middleware
 
@@ -48,7 +48,7 @@ The following built-in custom operations are available to make registering servi
 | --------- | ----------- |
 | use_if | Use the specified middleware if the provided predicate is "true". |
 | use_ifnot | Use the specified middleware if the provided predicate is "true". |
-| use_authentication | /// Use authorization middleware. Call before any middleware that depends on users being authenticated. |
+| use_authentication | Use authorization middleware. Call before any middleware that depends on users being authenticated. |
 | use_authorization | Register authorization service and enable middleware |
 | use_caching | Register HTTP Response caching service and enable middleware. |
 | use_compression | Register Brotli + GZip HTTP Compression service and enable middleware. |
@@ -60,8 +60,8 @@ The following built-in custom operations are available to make registering servi
 
 | Operation | Description |
 | --------- | ----------- |
-| logging | Configure logging via ILogger. |
-| add_service | Add a new service descriptor into the IServiceCollection. |
+| logging | Configure logging via `ILogger`. |
+| add_service | Add a new service descriptor into the `IServiceCollection`. |
 | use_middleware | Use the specified middleware. |
 | not_found | Include a catch-all (i.e., Not Found) HttpHandler (must be added last). |
 
