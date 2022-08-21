@@ -4,7 +4,7 @@
     <!-- General info -->
     <Description>A dotnet-new template for Falco web applications.</Description>
     <Copyright>Copyright 2020 Pim Brouwers</Copyright>
-    <Authors>Pim Brouwers, Angel Munoz and contributors</Authors>    
+    <Authors>Pim Brouwers, Angel Munoz and contributors</Authors>
     <NeutralLanguage>en-CA</NeutralLanguage>
 
     <!-- Build config -->
@@ -18,7 +18,7 @@
     <!-- NuGet config -->
     <PackageType>Template</PackageType>
     <PackageId>Falco.Template</PackageId>
-    <PackageVersion>3.0.0</PackageVersion>
+    <PackageVersion>4.0.0</PackageVersion>
     <PackageTags>falco;web;app;razor;pages;micro;service;dotnet;new;template</PackageTags>
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
