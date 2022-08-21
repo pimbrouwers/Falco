@@ -7,25 +7,25 @@ open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
 
 // ------------
-// Handlers 
+// Handlers
 // ------------
 let handlePlainText : HttpHandler =
     "Hello from /"
-    |> Response.ofPlainText 
+    |> Response.ofPlainText
 
 let handleHtml : HttpHandler =
-    Templates.html5 "en" 
+    Templates.html5 "en"
         [ Elem.link [ Attr.href "style.css"; Attr.rel "stylesheet" ] ]
         [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]
     |> Response.ofHtml
 
 let handleJson : HttpHandler =
     {| Message = "Hello from /json" |}
-    |> Response.ofJson 
+    |> Response.ofJson
 
 let handleGreeting : HttpHandler =
-    Request.mapRoute 
-        (fun r -> r.Get "name" "John Doe" |> sprintf "Hi %s") 
+    Request.mapRoute
+        (fun r -> r.Get "name" "John Doe" |> sprintf "Hi %s")
         Response.ofPlainText
 
 let exceptionHandler : HttpHandler =
@@ -35,7 +35,7 @@ let exceptionHandler : HttpHandler =
 // Host
 // ------------
 [<EntryPoint>]
-let main args =     
+let main args =
     webHost args {
         use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
         use_https
@@ -45,18 +45,14 @@ let main args =
         use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
         use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
 
-        endpoints [            
-            get "/greet/{name:alpha}" 
-                handleGreeting
+        endpoints [
+            get "/greet/{name:alpha}" handleGreeting
 
-            get "/json" 
-                handleJson
+            get "/json" handleJson
 
-            get "/html" 
-                handleHtml
-                
-            any "/" 
-                handlePlainText
+            get "/html" handleHtml
+
+            any "/" handlePlainText
         ]
     }
     0

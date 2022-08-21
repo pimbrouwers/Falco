@@ -227,9 +227,8 @@ type HostBuilder(args : string[]) =
     member _.UseIfNot (conf : HostConfig, pred : IApplicationBuilder -> bool, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = fun app -> if not(pred app) then conf.Middleware(app) |> fn else conf.Middleware(app) }
 
-    /// Use authorization middleware. Call before
-    /// any middleware that depends on users being
-    /// authenticated.
+    /// Use authorization middleware. Call before any middleware that depends
+    /// on users being authenticated.
     [<CustomOperation("use_authentication")>]
     member x.UseAuthentication (conf : HostConfig) =
         x.Use (conf, fun app -> app.UseAuthentication())
@@ -242,6 +241,7 @@ type HostBuilder(args : string[]) =
                Middleware = conf.Middleware >> fun app -> app.UseAuthorization() }
 
     /// Register HTTP Response caching service and enable middleware.
+    [<CustomOperation("use_cachine")>]
     member x.UseCaching(conf : HostConfig) =
         { conf with
                Services = conf.Services >> fun s -> s.AddResponseCaching()
@@ -298,4 +298,3 @@ type HostBuilder(args : string[]) =
 
 /// A computation expression to make IHost construction easier
 let webHost args = HostBuilder(args)
-

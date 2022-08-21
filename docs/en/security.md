@@ -68,9 +68,9 @@ let logOut : HttpHandler =
 [<EntryPoint>]
 let main args =
     webHost args {
+        // rest omitted
         use_authentication
-
-        // rest of config
+        // rest omitted
     }
 ```
 
@@ -127,9 +127,9 @@ let mapFormSecureHandler : HttpHandler =
 [<EntryPoint>]
 let main args =
     webHost args {
+        // rest omitted
         add_antiforgery
-
-        // rest of config
+        // rest omitted
     }
 ```
 
