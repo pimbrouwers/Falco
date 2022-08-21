@@ -59,7 +59,7 @@ module Markup =
         [<Benchmark(Baseline = true)>]
         member _.StringBuilder() =
             let sb = new Text.StringBuilder()
-            sb.Append("<ul id='products'>")
+            sb.Append("<ul id='products'>") |> ignore
 
             for p in products do
                 sb.Append("<li><h2>")
@@ -68,7 +68,8 @@ module Markup =
                   .Append(sprintf "%f" p.Price)
                   .Append(p.Description)
                   .Append("</li>") |> ignore
-            sb.Append("</ul>")
+
+            sb.Append("</ul>") |> ignore
             sb.ToString ()
 
         [<Benchmark>]
