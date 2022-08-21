@@ -4,13 +4,11 @@
 
 ASP.NET Core has amazing built-in support for authentication. Review the [docs](https://docs.microsoft.com/en-us/aspnet/core/security/authentication) for specific implementation details. Falco includes some authentication utilities.
 
-> To use the authentication helpers, ensure the service has been registered (`AddAuthentication()`) with the `IServiceCollection` and activated (`UseAuthentication()`) using the `IApplicationBuilder`.
-
-### Allow only authenticated access
 
 ```fsharp
 open Falco.Security
 
+// Allow only authenticated access
 let secureResourceHandler : HttpHandler =
     let handleAuth : HttpHandler =
         Response.ofPlainText "hello authenticated user"
@@ -20,11 +18,8 @@ let secureResourceHandler : HttpHandler =
         >> Response.ofPlainText "Forbidden"
 
     Request.ifAuthenticated handleAuth handleInvalid
-```
 
-### Deny access if not authenticated
-
-```fsharp
+// Allow only non-authenticated access
 let anonResourceOnlyHandler : HttpHandler =
     let handleAnon : HttpHandler =
         Response.ofPlainText "hello anonymous"
@@ -34,11 +29,8 @@ let anonResourceOnlyHandler : HttpHandler =
         >> Response.ofPlainText "Forbidden"
 
     Request.ifNotAuthenticated handleAnon handleInvalid
-```
 
-### Allow only authenticated user's in certain role(s) to access
-
-```fsharp
+// Allow only authenticated access when in certain role(s)
 let secureResourceHandler : HttpHandler =
     let handleAuthInRole : HttpHandler =
         Response.ofPlainText "hello admin"
@@ -50,11 +42,8 @@ let secureResourceHandler : HttpHandler =
     let rolesAllowed = [ "Admin" ]
 
     Request.ifAuthenticatedInRole rolesAllowed handleAuthInRole handleInvalid
-```
 
-### Allow only authenticated user's with a certain scope to access"
-
-```fsharp
+// Allow only authenticated acces with a certain scope
 let secureResourceHandler : HttpHandler =
     let handleAuthHasScope : HttpHandler =
         Response.ofPlainText "user1, user2, user3"
@@ -67,16 +56,22 @@ let secureResourceHandler : HttpHandler =
     let scope = "read:users"
 
     Request.ifAuthenticatedWithScope issuer scope handleAuthHasScope handleInvalid
-```
 
-### Terminate user session
-
-```fsharp
+// Terminate authenticated session
 let logOut : HttpHandler =
     let authScheme = "..."
     let redirectTo = "/login"
 
     Response.signOutAndRedirect authScheme redirectTo
+
+// Host configuration
+[<EntryPoint>]
+let main args =
+    webHost args {
+        use_authentication
+
+        // rest of config
+    }
 ```
 
 ## Cross-site Scripting (XSS) Attacks
@@ -87,7 +82,7 @@ The [Microsoft.AspNetCore.Antiforgery][14] package provides the required utiliti
 
 Falco provides a few handlers via `Falco.Security.Xss`:
 
-> To use the Xss helpers, ensure the service has been registered (`AddAntiforgery()`) with the `IServiceCollection` and activated (`UseAntiforgery()`) using the `IApplicationBuilder`.
+> To use the Xss helpers, ensure the service has been registered using `add_antiforgery` in the `webHost {}` expression.
 
 ```fsharp
 open Falco.Markup
@@ -127,6 +122,15 @@ let mapFormSecureHandler : HttpHandler =
         >> Response.ofEmpty
 
     Request.mapFormSecure mapPerson Response.ofJson handleInvalid
+
+// Host configuration
+[<EntryPoint>]
+let main args =
+    webHost args {
+        add_antiforgery
+
+        // rest of config
+    }
 ```
 
 ## Crytography
