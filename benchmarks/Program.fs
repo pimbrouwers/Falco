@@ -63,12 +63,11 @@ module Markup =
 
             for p in products do
                 sb.Append("<li><h2>")
-                sb.Append(p.Name)
-                sb.Append("</h2>Only ")
-                sb.Append(sprintf "%f" p.Price)
-                sb.Append(p.Description)
-                sb.Append("</li>")
-
+                  .Append(p.Name)
+                  .Append("</h2>Only ")
+                  .Append(sprintf "%f" p.Price)
+                  .Append(p.Description)
+                  .Append("</li>") |> ignore
             sb.Append("</ul>")
             sb.ToString ()
 
@@ -90,13 +89,11 @@ module Markup =
 
     [<MemoryDiagnoser>]
     type MergeBench() =
-        let attrs1 = [ Attr.class' "ma2" ]
-        let attrs2 = [ Attr.id "some-el"; Attr.class' "bg-red"; Attr.readonly ]
+        let attrs1 = [ Attr.class' "ma2 ds axzcx cxzc cxzc xzczx xzzc"; Attr.target "_blank"; Attr.href "https://dotnet.microsoft.com"; Attr.title "This is a title for an attribute"; Attr.alt "Alt text" ]
+        let attrs2 = [ Attr.id "some-el"; Attr.class' "bg-red"; Attr.readonly; Attr.disabled; ]
 
-        let mergeNestedLists
-            (attrs1 : Falco.Markup.XmlAttribute list)
-            (attrs2 : Falco.Markup.XmlAttribute list)
-            =
+        [<Benchmark(Baseline = true)>]
+        member _.NestedLists() =
             (attrs2, attrs1)
             ||> List.fold (fun acc elem -> elem :: acc)
             |> List.map (fun attr ->
@@ -118,84 +115,12 @@ module Markup =
                 | None   -> NonValueAttr(g)
                 | Some v -> KeyValueAttr(g, v))
 
-        let mergeDictionaryOfLists
-            (attrs1 : Falco.Markup.XmlAttribute list)
-            (attrs2 : Falco.Markup.XmlAttribute list)
-            =
-            let merged = Dictionary [
-                for attr in attrs1 do
-                      match attr with
-                      | NonValueAttr name ->
-                          KeyValuePair(name, [])
-                      | KeyValueAttr (name, value) ->
-                          KeyValuePair(name, [ value ])
-              ]
-
-            for attr in attrs2 do
-                match attr with
-                | NonValueAttr name ->
-                    if not (merged.ContainsKey name) then merged.Add(name, [])
-                | KeyValueAttr (name, value) ->
-                    if merged.ContainsKey(name) then
-                        merged[name] <- value :: merged[name]
-                    else
-                        merged.Add(name, [ value ])
-
-            [
-                for Operators.KeyValue (name, values) in merged do
-                    match values with
-                    | [] ->
-                        NonValueAttr name
-                    | vs ->
-                        KeyValueAttr (name, vs |> List.rev |> String.concat " ")
-            ]
-
-        let mergeDictionaryOfOptions
-            (attrs1 : Falco.Markup.XmlAttribute list)
-            (attrs2 : Falco.Markup.XmlAttribute list)
-            =
-            let merged = Dictionary [
-                for attr in attrs1 do
-                      match attr with
-                      | NonValueAttr name ->
-                          KeyValuePair(name, None)
-                      | KeyValueAttr (name, value) ->
-                          KeyValuePair(name, Some value)
-              ]
-
-            for attr in attrs2 do
-                match attr with
-                | NonValueAttr name ->
-                    if not (merged.ContainsKey name) then merged.Add(name, None)
-                | KeyValueAttr (name, value) ->
-                    if merged.ContainsKey(name) then
-                        merged[name] <-
-                            merged[name]
-                            |> Option.map (fun value' -> value' + " " + value)
-                    else
-                        merged.Add(name, Some value)
-
-            [
-                for Operators.KeyValue (name, values) in merged do
-                    match values with
-                    | None ->
-                        NonValueAttr name
-                    | Some value ->
-                        KeyValueAttr (name, value)
-            ]
-
-        [<Benchmark(Baseline = true)>]
-        member _.NestedLists() = mergeNestedLists attrs1 attrs2
-
         [<Benchmark>]
-        member _.DictionaryOfLists() = mergeDictionaryOfLists attrs1 attrs2
-
-        [<Benchmark>]
-        member _.DictionaryOfOptionsConcat() =
-            mergeDictionaryOfOptions attrs1 attrs2
+        member _.DictionaryOfOptionsStringConcat() =
+            Attr.merge attrs1 attrs2
 
 [<EntryPoint>]
 let main argv =
-    BenchmarkRunner.Run<Markup.RenderBench>() |> ignore
+    // BenchmarkRunner.Run<Markup.RenderBench>() |> ignore
     BenchmarkRunner.Run<Markup.MergeBench>() |> ignore
     0 // return an integer exit code

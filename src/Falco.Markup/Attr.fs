@@ -14,37 +14,38 @@ module Attr =
 
     /// Merge two XmlAttribute lists
     let merge (attrs1 : XmlAttribute list) (attrs2 : XmlAttribute list) =
+        let joinValues v2 v1 = String.Concat([| v1; " "; v2 |])
+
         // convert left list into dictionary
-        let merged =
-            Dictionary (dict [
-                for attr in attrs1 do
-                  match attr with
-                  | NonValueAttr  name         -> (name, None)
-                  | KeyValueAttr (name, value) -> (name, Some value)
-            ])
+        let merged = Dictionary<string, string option>()
+
+        for attr in attrs1 do
+            match attr with
+            | NonValueAttr name          -> merged.Add(name, None)
+            | KeyValueAttr (name, value) -> merged.Add(name, Some value)
 
         // check right list against dictionary, updating as appropriate
         for attr in attrs2 do
             match attr with
             | NonValueAttr name ->
-                if not (merged.ContainsKey name) then merged.Add(name, None)
-                //NOTE nothing to do if attr is already in the dictionary
+                if not (merged.ContainsKey name) then
+                    merged.Add(name, None)
 
             | KeyValueAttr (name, value) ->
-                match merged.TryGetValue(name) with
-                // combine left and right values
-                | true, Some value' ->
-                    merged[name] <- Some (value' + " " + value)
-                // right value is brand new
-                | true,  _
-                | false, _ -> merged.Add(name, Some value)
+                if merged.ContainsKey(name) then
+                    let newValue = Option.map (joinValues value) merged[name]
+                    merged[name] <- newValue
+                else
+                    merged.Add(name, Some value)
 
-        // inputs are now merged, convert dictionary back into list
+        // inputs are now merged, convert dictionary back into of XmlAttribute
         [
-            for KeyValue (name, value) in merged do
-                match value with
-                | None        -> NonValueAttr name
-                | Some value' -> KeyValueAttr (name, value')
+            for Operators.KeyValue (name, values) in merged do
+                match values with
+                | None ->
+                    NonValueAttr name
+                | Some value ->
+                    KeyValueAttr (name, value)
         ]
 
     let accept = create "accept"
