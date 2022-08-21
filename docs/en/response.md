@@ -11,7 +11,7 @@ let textHandler : HttpHandler =
 
 ## HTML responses
 
-Write your views in plain F#, directly in your assembly, using the [`Markup`](markup.md) module. A performant F# DSL capable of generating any angle-bracket markup. 
+Write your views in plain F#, directly in your assembly, using the [`Markup`](markup.md) module. A performant F# DSL capable of generating any angle-bracket markup.
 
 Also available directly as a standalone [NuGet](https://www.nuget.org/packages/Falco.Markup) package.
 
@@ -129,7 +129,7 @@ let handlerWithHeaders : HttpHandler =
 
 ### Add a cookie to the response
 
-> IMPORTANT: *Do not* use this for authentication. Instead use the `Auth.signIn` and `Auth.signOut` functions found in the [Authentication](security.md) module.
+> IMPORTANT: *Do not* use this for authentication. Instead use the `Response.signInAndRedirect` and `Response.signOutAndRedirect` functions found in the [Authentication](security.md) module.
 
 ```fsharp
 let handlerWithCookie : HttpHandler =

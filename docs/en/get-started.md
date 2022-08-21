@@ -55,6 +55,6 @@ dotnet run
 
 There you have it, an industrial-strength [Hello World](https://github.com/pimbrouwers/Falco/tree/master/samples/) web app, achieved using only base ASP.NET Core libraries. Pretty sweet!
 
-# Sample Applications
+## Sample Applications
 
 Code is worth a thousand words. For the most up-to-date usage, the [samples](https://github.com/pimbrouwers/Falco/tree/master/samples/) directory contains a few sample applications.

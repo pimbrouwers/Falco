@@ -8,7 +8,6 @@ Falco exposes a __uniform API__ to obtain typed values from `IFormCollection`, `
 
 ```fsharp
 // Assuming a route pattern of /{Name}
-
 let mapRouteHandler : HttpHandler =
     let routeMap (r : RouteCollectionReader) =
         r.GetString "Name" "John Doe"
@@ -88,7 +87,7 @@ let manualFormHandler : HttpHandler = fun ctx -> task {
 }
 ```
 
-## `multipart/form-data` Binding
+### `multipart/form-data` Binding
 
 Microsoft defines [large upload](https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming) as anything **> 64KB**, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.
 
