@@ -52,7 +52,7 @@ The following built-in custom operations are available to make registering servi
 | use_ifnot | Use the specified middleware if the provided predicate is "true". |
 | use_authentication | /// Use authorization middleware. Call before any middleware that depends on users being authenticated. |
 | use_authorization | Register authorization service and enable middleware |
-| use_cachine | Register HTTP Response caching service and enable middleware. |
+| use_caching | Register HTTP Response caching service and enable middleware. |
 | use_compression | Register Brotli + GZip HTTP Compression service and enable middleware. |
 | use_hsts | Use automatic HSTS middleware (adds strict-transport-policy header). |
 | use_https | Use automatic HTTPS redirection. |

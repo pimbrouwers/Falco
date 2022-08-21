@@ -241,7 +241,7 @@ type HostBuilder(args : string[]) =
                Middleware = conf.Middleware >> fun app -> app.UseAuthorization() }
 
     /// Register HTTP Response caching service and enable middleware.
-    [<CustomOperation("use_cachine")>]
+    [<CustomOperation("use_caching")>]
     member x.UseCaching(conf : HostConfig) =
         { conf with
                Services = conf.Services >> fun s -> s.AddResponseCaching()
