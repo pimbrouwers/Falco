@@ -44,10 +44,8 @@ The following built-in custom operations are available to make registering servi
 
 ### Activating Middleware
 
-
 | Operation | Description |
 | --------- | ----------- |
-| use_middleware | Use the specified middleware. |
 | use_if | Use the specified middleware if the provided predicate is "true". |
 | use_ifnot | Use the specified middleware if the provided predicate is "true". |
 | use_authentication | /// Use authorization middleware. Call before any middleware that depends on users being authenticated. |
@@ -58,25 +56,15 @@ The following built-in custom operations are available to make registering servi
 | use_https | Use automatic HTTPS redirection. |
 | use_static_files | Use Static File middleware. |
 
-To assume full control over configuring your `IHost` use the `configure` custom operation. It expects a function with the signature of `HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder` and assumes you will register and activate Falco (i.e., `AddFalco()` and `UseFalco(endpoints)`).
+### Other Operations
 
-```fsharp
-[<EntryPoint>]
-let main args =
-    let configureServices : IServiceCollection -> unit =
-      fun services -> services.AddFalco() |> ignore
+| Operation | Description |
+| --------- | ----------- |
+| logging | Configure logging via ILogger. |
+| add_service | Add a new service descriptor into the IServiceCollection. |
+| use_middleware | Use the specified middleware. |
+| not_found | Include a catch-all (i.e., Not Found) HttpHandler (must be added last). |
 
-    let configureApp : HttpEndpoint list -> IApplicationBuilder -> unit =
-       fun endpoints app -> app.UseFalco(endpoints) |> ignore
+## Registering Custom Services
 
-    let configureWebHost : HttpEndpoint list -> IWebHostBuilder =
-      fun endpoints webHost ->
-          webHost.ConfigureLogging(configureLogging)
-                 .ConfigureServices(configureServices)
-                 .Configure(configureApp endpoints)
-
-    webHost args {
-      configure configureWebHost
-      endpoints []
-    }
-```
+## Activating Custom Middleware
