@@ -1,4 +1,4 @@
-# Host Builder
+# Host Configuration
 
 [Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel) is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. To make things more expressive, Falco exposes an optional computation expression. Below is an example using the expression, taken from the [Configure Host](https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost) sample.
 
@@ -27,20 +27,108 @@ let main args =
     0
 ```
 
-## Built-in Operations
-
-The following built-in custom operations are available to make registering services and activating middleware simpler.
-
-### Registering Services
+## Registering Services
 
 | Operation | Description |
 | --------- | ----------- |
-| add_antiforgery | Add Antiforgery support into the `IServiceCollection`. |
-| add_cookie | Add default cookie authentication into the `IServiceCollection`. |
-| add_conf_cookies | Add configured cookie(s) authentication into the `IServiceCollection`. |
-| add_authorization | Add default Authorization into the `IServiceCollection`. |
-| add_data_protection | Add file system based data protection. |
-| add_http_client | Add IHttpClientFactory into the `IServiceCollection` |
+| [add_antiforgery](#add_antiforgery) | Add Antiforgery support into the `IServiceCollection`. |
+| add_cookie(#add_cookie) | Add default cookie authentication into the `IServiceCollection`. |
+| add_conf_cookies(#add_conf_cookies) | Add configured cookie(s) authentication into the `IServiceCollection`. |
+| add_authorization(#add_authorization) | Add default Authorization into the `IServiceCollection`. |
+| add_data_protection(#add_data_protection) | Add file system based data protection. |
+| add_http_client(#add_http_client) | Add IHttpClientFactory into the `IServiceCollection` |
+
+### `add_antiforgery`
+
+```fsharp
+webHost [||] {
+    add_antiforgery
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+
+### `add_cookie`
+
+```fsharp
+webHost [||] {
+    add_cookie
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+
+### `add_conf_cookies`
+
+```fsharp
+let appAuthScheme = "MyApp"
+
+let authConfig
+    (scheme : string)
+    (opetions : AuthenticationOptions) =
+    options.DefaultChallengeScheme <- scheme
+    options.DefaultAuthenticateScheme <- scheme
+    options.DefaultScheme <- scheme
+
+let cookieConfig
+    let cookieOptions
+        (scheme : string)
+        (options : CookieAuthenticationOptions) =
+        options.Cookie.Path <- "/"
+        options.Cookie.HttpOnly <- true
+        options.Cookie.SameSite <- SameSiteMode.Strict
+        options.Cookie.SecurePolicy <- CookieSecurePolicy.Always
+
+    [ appAuthScheme, cookieOptions appAuthScheme ]
+
+webHost [||] {
+    endpoints [
+        add_conf_cookies authConfig cookieConfig
+
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+
+### `add_authorization`
+
+```fsharp
+webHost [||] {
+    add_authorization
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+
+### `add_data_protection`
+
+```fsharp
+webHost [||] {
+    add_data_protection "C:\\Data\\Protection\\Dir"
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+
+### `add_http_client`
+
+```fsharp
+webHost [||] {
+    add_http_client
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
 
 ### Activating Middleware
 

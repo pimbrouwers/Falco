@@ -12,6 +12,7 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
+// ------------
 // Config Builder
 // ------------
 type ConfigurationSpec =
@@ -68,6 +69,7 @@ type ConfigBuilder (args : string[]) =
 
 let configuration args = ConfigBuilder(args)
 
+// ------------
 // Host Builder
 // ------------
 
@@ -135,25 +137,12 @@ type HostBuilder(args : string[]) =
             .Build()
             .Run()
 
-    /// Fully customize the IWebHost, when specified will overide all
-    /// "use" and "add" operations.
-    [<CustomOperation("configure")>]
-    member _.Configure (conf : HostConfig, builder : HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder) =
-        { conf with Builder = builder; IsCustom = true }
-
     /// Register Falco HttpEndpoint's
     [<CustomOperation("endpoints")>]
     member _.Endpoints (conf : HostConfig, endpoints : HttpEndpoint list) =
         { conf with Endpoints = endpoints }
 
-    /// Apply the given configuration to the web host.
-    [<CustomOperation("configure_host")>]
-    member _.Host (conf : HostConfig, fn : IWebHostBuilder -> IWebHostBuilder) =
-        { conf with WebHost = conf.WebHost >> fn }
-
-
     // Service Collection
-    // ------------
 
     /// Configure logging via ILogger
     [<CustomOperation("logging")>]
@@ -178,39 +167,37 @@ type HostBuilder(args : string[]) =
     /// Add configured cookie(s) authentication into the IServiceCollection.
     [<CustomOperation("add_conf_cookies")>]
     member x.AddConfiguredCookies (conf : HostConfig, configure : AuthenticationOptions -> unit, cookieConfig : (string * (CookieAuthenticationOptions -> unit)) list) =
-        let addAuthentication (s : IServiceCollection) =
-            let x = s.AddAuthentication(Action<AuthenticationOptions>(configure))
+        let addAuthentication (svc : IServiceCollection) =
+            let x = svc.AddAuthentication(Action<AuthenticationOptions>(configure))
 
             for (scheme, config) in cookieConfig do
                 x.AddCookie(scheme, Action<CookieAuthenticationOptions>(config)) |> ignore
 
-            s
+            svc
 
         x.AddService (conf, addAuthentication)
 
     /// Add default Authorization into the IServiceCollection.
     [<CustomOperation("add_authorization")>]
     member x.AddAuthorization (conf : HostConfig) =
-        x.AddService (conf, fun s -> s.AddAuthorization())
+        x.AddService (conf, fun svc -> svc.AddAuthorization())
 
     /// Add file system based data protection.
     [<CustomOperation("add_data_protection")>]
     member x.AddDataProtection (conf : HostConfig, dir : string) =
-        let addDataProtection (s : IServiceCollection) =
-            s.AddDataProtection().PersistKeysToFileSystem(IO.DirectoryInfo(dir))
+        let addDataProtection (svc : IServiceCollection) =
+            svc.AddDataProtection().PersistKeysToFileSystem(IO.DirectoryInfo(dir))
             |> ignore
-            s
+            svc
 
         x.AddService (conf, addDataProtection)
 
     /// Add IHttpClientFactory into the IServiceCollection
     [<CustomOperation("add_http_client")>]
     member x.AddHttpClient (conf : HostConfig) =
-        x.AddService (conf, fun s -> s.AddHttpClient())
-
+        x.AddService (conf, fun svc -> svc.AddHttpClient())
 
     // Application Builder
-    // ------------
 
     /// Use the specified middleware.
     [<CustomOperation("use_middleware")>]
