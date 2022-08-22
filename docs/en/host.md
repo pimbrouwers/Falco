@@ -419,9 +419,10 @@ let main args =
         add_env
     }
 
-    // Load
+    // Register our database connection factory service
     let dbConnectionService (svc : IServiceCollection) =
         svc.AddSingleton<IDbConnectionFactory, DbConnectionFactory>(fun _ ->
+            // Load default connection string from appsettings.json
             let connectionString = config.GetConnectionString("Default")
             new DbConnectionFactory(connectionString))
 
