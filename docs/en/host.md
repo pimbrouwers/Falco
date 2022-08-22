@@ -174,7 +174,7 @@ webHost [||] {
 
 ### `use_authentication`
 
-> Note: this must be called **before** `use_authorization, and called **after** `use_hsts`, `use_http`, `use_compression`, `use_static_files`.
+> Note: this must be called **before** `use_authorization`, and called **after** `use_hsts`, `use_http`, `use_compression`, `use_static_files`.
 
 ```fsharp
 webHost [||] {
