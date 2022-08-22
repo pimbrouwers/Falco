@@ -413,7 +413,6 @@ let cultureMiddleware (app : IApplicationBuilder) =
             match query.TryGet "culture" with
             | Some cultureQuery ->
                 let culture = CultureInfo(cultureQuery)
-                printfn "%A" culture
                 CultureInfo.CurrentCulture <- culture
                 CultureInfo.CurrentUICulture <- culture
             | None -> ()
