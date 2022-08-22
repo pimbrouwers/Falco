@@ -1,20 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
+    <AssemblyName>FalcoScriban</AssemblyName>
+    <RootNamespace>FalcoScriban</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Program.fs" />
-    <None Include="Views\*" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Scriban" Version="3.0.*" />
+    <PackageReference Include="Scriban" Version="5.5.*" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Views\*" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>
