@@ -3,6 +3,14 @@
 [Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel) is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. To make things more expressive, Falco exposes an optional computation expression. Below is an example using the expression, taken from the [Configure Host](https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost) sample.
 
 ```fsharp
+module ConfigureHost.Program
+
+open Falco
+open Falco.Markup
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 [<EntryPoint>]
 let main args =
     webHost args {
@@ -15,13 +23,7 @@ let main args =
         use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
 
         endpoints [
-            get "/greet/{name:alpha}" handleGreeting
-
-            get "/json" handleJson
-
-            get "/html" handleHtml
-
-            any "/" handlePlainText
+            // Endpoints and handlers
         ]
     }
     0
@@ -148,6 +150,8 @@ webHost [||] {
 
 ```fsharp
 webHost [||] {
+    use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
@@ -158,6 +162,8 @@ webHost [||] {
 
 ```fsharp
 webHost [||] {
+    use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
