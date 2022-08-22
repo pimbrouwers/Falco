@@ -32,11 +32,11 @@ let main args =
 | Operation | Description |
 | --------- | ----------- |
 | [add_antiforgery](#add_antiforgery) | Add Antiforgery support into the `IServiceCollection`. |
-| add_cookie(#add_cookie) | Add default cookie authentication into the `IServiceCollection`. |
-| add_conf_cookies(#add_conf_cookies) | Add configured cookie(s) authentication into the `IServiceCollection`. |
-| add_authorization(#add_authorization) | Add default Authorization into the `IServiceCollection`. |
-| add_data_protection(#add_data_protection) | Add file system based data protection. |
-| add_http_client(#add_http_client) | Add IHttpClientFactory into the `IServiceCollection` |
+| [add_cookie](#add_cookie) | Add default cookie authentication into the `IServiceCollection`. |
+| [add_conf_cookies](#add_conf_cookies) | Add configured cookie(s) authentication into the `IServiceCollection`. |
+| [add_authorization](#add_authorization) | Add default Authorization into the `IServiceCollection`. |
+| [add_data_protection](#add_data_protection) | Add file system based data protection. |
+| [add_http_client](#add_http_client) | Add IHttpClientFactory into the `IServiceCollection` |
 
 ### `add_antiforgery`
 
