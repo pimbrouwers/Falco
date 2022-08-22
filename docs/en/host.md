@@ -272,6 +272,8 @@ webHost [||] {
 
 > Note: this should be called **before** `use_static_files` if compression is desired on static assets.
 
+In addition to the [default MIME types](https://docs.microsoft.com/en-us/aspnet/core/performance/response-compression#mime-types), this enables compression for the following: `image/jpeg`, `image/png`, `image/svg+xml`, `font/woff`, `font/woff2'`.
+
 ```fsharp
 open Falco
 open Falco.Routing
@@ -433,7 +435,6 @@ let main args =
     }
     0
 ```
-
 
 ## Activating Custom Middleware using `use_middleware`
 
