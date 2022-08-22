@@ -342,6 +342,97 @@ webHost [||] {
 }
 ```
 
+## Custom Services and Middleware
+
+| Operation | Description |
+| --------- | ----------- |
+| [add_service](#add_service) | Add a new service descriptor into the IServiceCollection. |
+| [use_middleware](#use_middleware) | Use the specified middleware. |
+
+
+### `add_service`
+
+```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.Data.Sqlite
+
+type IDbConnectionFactory =
+    abstract member CreateConnection : unit -> IDbConnection
+
+type DbConnectionFactory (connectionString : string) =
+    interface IDbConnectionFactory with
+        member _.CreateConnection () =
+            let conn = new SqliteConnection(connectionString)
+            conn.TryOpenConnection()
+            conn
+
+[<EntryPoint>]
+let main args =
+    // Using the ConfigurationBuilder
+    let config = configuration args {
+        required_json "appsettings.json"
+        add_env
+    }
+
+    // Register our database connection factory service
+    let dbConnectionService (svc : IServiceCollection) =
+        svc.AddSingleton<IDbConnectionFactory, DbConnectionFactory>(fun _ ->
+            // Load default connection string from appsettings.json
+            let connectionString = config.GetConnectionString("Default")
+            new DbConnectionFactory(connectionString))
+
+    webHost [||] {
+        endpoints [
+            get "/" (Response.ofPlainText "Hello world")
+        ]
+    }
+    0
+```
+
+### `use_middleware`
+
+```fsharp
+open System.Globalization
+open System.Threading.Tasks
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Http
+
+let displayCulture : HttpHandler = fun ctx ->
+    Response.ofPlainText CultureInfo.CurrentCulture.DisplayName ctx
+
+let cultureMiddleware (app : IApplicationBuilder) =
+    let middleware (ctx : HttpContext) (next : RequestDelegate) : Task =
+        task {
+            let query = QueryCollectionReader(ctx.Request.Query)
+            match query.TryGet "culture" with
+            | Some cultureQuery ->
+                let culture = CultureInfo(cultureQuery)
+                printfn "%A" culture
+                CultureInfo.CurrentCulture <- culture
+                CultureInfo.CurrentUICulture <- culture
+            | None -> ()
+
+            return! next.Invoke(ctx)
+        }
+
+    app.Use(middleware)
+
+webHost [||] {
+    use_middleware cultureMiddleware
+
+    endpoints [
+        any "/" displayCulture
+    ]
+}
+```
+
+
 ## Other Operations
 
 | Operation | Description |
@@ -388,63 +479,6 @@ module ErrorPages =
 webHost [||] {
     not_found ErrorPages.notFound
 
-    endpoints [
-        get "/" (Response.ofPlainText "Hello world")
-    ]
-}
-```
-
-## Registering Custom Services using `add_service`
-
-```fsharp
-open Falco
-open Falco.Routing
-open Falco.HostBuilder
-open Microsoft.AspNetCore.Builder
-open Microsoft.Data.Sqlite
-
-type IDbConnectionFactory =
-    abstract member CreateConnection : unit -> IDbConnection
-
-type DbConnectionFactory (connectionString : string) =
-    interface IDbConnectionFactory with
-        member _.CreateConnection () =
-            let conn = new SqliteConnection(connectionString)
-            conn.TryOpenConnection()
-            conn
-
-[<EntryPoint>]
-let main args =
-    // Using the ConfigurationBuilder
-    let config = configuration args {
-        required_json "appsettings.json"
-        add_env
-    }
-
-    // Register our database connection factory service
-    let dbConnectionService (svc : IServiceCollection) =
-        svc.AddSingleton<IDbConnectionFactory, DbConnectionFactory>(fun _ ->
-            // Load default connection string from appsettings.json
-            let connectionString = config.GetConnectionString("Default")
-            new DbConnectionFactory(connectionString))
-
-    webHost [||] {
-        endpoints [
-            get "/" (Response.ofPlainText "Hello world")
-        ]
-    }
-    0
-```
-
-## Activating Custom Middleware using `use_middleware`
-
-```fsharp
-open Falco
-open Falco.Routing
-open Falco.HostBuilder
-open Microsoft.AspNetCore.Builder
-
-webHost [||] {
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
