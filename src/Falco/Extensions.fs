@@ -44,11 +44,14 @@ type IApplicationBuilder with
     member x.UseFalco (endpoints : HttpEndpoint list) =
         x.UseRouting()
             .UseEndpoints(fun r -> r.UseFalcoEndpoints(endpoints))
-    
+
     /// Register a Falco HttpHandler as exception handler lambda
     /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
     member x.UseFalcoExceptionHandler (exceptionHandler : HttpHandler) =
-        x.UseExceptionHandler (fun (errApp : IApplicationBuilder) -> errApp.Run(HttpHandler.toRequestDelegate exceptionHandler))
+        let configure (appBuilder : IApplicationBuilder) =
+            appBuilder.Run(HttpHandler.toRequestDelegate exceptionHandler)
+
+        x.UseExceptionHandler(configure)
 
     /// Executes function against IApplicationBuidler if the predicate returns true
     member x.UseWhen (predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) =
@@ -71,7 +74,7 @@ type IServiceCollection with
         if predicate then fn x
         else x
 
-type FalcoExtensions = 
+type FalcoExtensions =
     static member IsDevelopment : IApplicationBuilder -> bool =
         fun app -> app.IsDevelopment()
 

@@ -6,7 +6,6 @@
 module ConfigureHost.Program
 
 open Falco
-open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
@@ -45,6 +44,11 @@ let main args =
 ### `add_antiforgery`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     add_antiforgery
 
@@ -57,6 +61,11 @@ webHost [||] {
 ### `add_cookie`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     add_cookie
 
@@ -69,6 +78,13 @@ webHost [||] {
 ### `add_conf_cookies`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Authentication
+open Microsoft.AspNetCore.Authentication.Cookies
+open Microsoft.AspNetCore.Builder
+
 let appAuthScheme = "MyApp"
 
 let authConfig
@@ -101,6 +117,11 @@ webHost [||] {
 ### `add_authorization`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     add_authorization
 
@@ -113,6 +134,11 @@ webHost [||] {
 ### `add_data_protection`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     add_data_protection "C:\\Data\\Protection\\Dir"
 
@@ -125,6 +151,11 @@ webHost [||] {
 ### `add_http_client`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     add_http_client
 
@@ -151,6 +182,11 @@ webHost [||] {
 ### `use_if`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
 
@@ -163,6 +199,11 @@ webHost [||] {
 ### `use_ifnot`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
 
@@ -177,6 +218,11 @@ webHost [||] {
 > Note: this must be called **before** `use_authorization`, and called **after** `use_hsts`, `use_http`, `use_compression`, `use_static_files`.
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     use_authentication
 
@@ -191,6 +237,11 @@ webHost [||] {
 > Note: this must be called **after** `use_authentication`.
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     use_authorization
 
@@ -203,7 +254,14 @@ webHost [||] {
 ### `use_caching`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
+    use_caching
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
@@ -215,6 +273,11 @@ webHost [||] {
 > Note: this should be called **before** `use_static_files` if compression is desired on static assets.
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     use_compression
 
@@ -229,6 +292,11 @@ webHost [||] {
 > Note: this should be called **before** `use_https`.
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     use_hsts
 
@@ -241,6 +309,11 @@ webHost [||] {
 ### `use_https`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     use_https
 
@@ -253,6 +326,11 @@ webHost [||] {
 ### `use_static_files`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
 webHost [||] {
     use_static_files
 
@@ -267,34 +345,25 @@ webHost [||] {
 | Operation | Description |
 | --------- | ----------- |
 | [logging](#logging) | Configure logging via `ILogger`. |
-| [add_service](#add_service) | Add a new service descriptor into the `IServiceCollection`. |
-| [use_middleware](#use_middleware) | Use the specified middleware. |
 | [not_found](#not_found) | Include a catch-all (i.e., Not Found) HttpHandler (must be added last). |
 
 ### `logging`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.Logging
+
+let configureLogging (log : ILoggingBuilder) =
+    log.ClearProviders()
+    log.AddConsole()
+    log
+
 webHost [||] {
-    endpoints [
-        get "/" (Response.ofPlainText "Hello world")
-    ]
-}
-```
+    logging configureLogging
 
-### `add_service`
-
-```fsharp
-webHost [||] {
-    endpoints [
-        get "/" (Response.ofPlainText "Hello world")
-    ]
-}
-```
-
-### `use_middleware`
-
-```fsharp
-webHost [||] {
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
@@ -304,14 +373,78 @@ webHost [||] {
 ### `not_found`
 
 ```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
+module ErrorPages =
+    let unauthorized : HttpHandler =
+        Response.withStatusCode 404
+        >> Response.ofPlainText "Not Found"
+
 webHost [||] {
+    not_found ErrorPages.notFound
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
 }
 ```
 
+## Registering Custom Services using `add_service`
 
-## Registering Custom Services
+```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.Data.Sqlite
 
-## Activating Custom Middleware
+type IDbConnectionFactory =
+    abstract member CreateConnection : unit -> IDbConnection
+
+type DbConnectionFactory (connectionString : string) =
+    interface IDbConnectionFactory with
+        member _.CreateConnection () =
+            let conn = new SqliteConnection(connectionString)
+            conn.TryOpenConnection()
+            conn
+
+[<EntryPoint>]
+let main args =
+    // Using the ConfigurationBuilder
+    let config = configuration args {
+        required_json "appsettings.json"
+        add_env
+    }
+
+    // Load
+    let dbConnectionService (svc : IServiceCollection) =
+        svc.AddSingleton<IDbConnectionFactory, DbConnectionFactory>(fun _ ->
+            let connectionString = config.GetConnectionString("Default")
+            new DbConnectionFactory(connectionString))
+
+    webHost [||] {
+        endpoints [
+            get "/" (Response.ofPlainText "Hello world")
+        ]
+    }
+    0
+```
+
+
+## Activating Custom Middleware using `use_middleware`
+
+```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
+webHost [||] {
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
