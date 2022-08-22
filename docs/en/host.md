@@ -11,6 +11,8 @@ open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
 
+// Code omitted for brevity
+
 [<EntryPoint>]
 let main args =
     webHost args {
@@ -172,8 +174,12 @@ webHost [||] {
 
 ### `use_authentication`
 
+> Note: this must be called **before** `use_authorization, and called **after** `use_hsts`, `use_http`, `use_compression`, `use_static_files`.
+
 ```fsharp
 webHost [||] {
+    use_authentication
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
@@ -182,8 +188,12 @@ webHost [||] {
 
 ### `use_authorization`
 
+> Note: this must be called **after** `use_authentication`.
+
 ```fsharp
 webHost [||] {
+    use_authorization
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
@@ -202,8 +212,12 @@ webHost [||] {
 
 ### `use_compression`
 
+> Note: this should be called **before** `use_static_files` if compression is desired on static assets.
+
 ```fsharp
 webHost [||] {
+    use_compression
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
@@ -212,8 +226,12 @@ webHost [||] {
 
 ### `use_hsts`
 
+> Note: this should be called **before** `use_https`.
+
 ```fsharp
 webHost [||] {
+    use_hsts
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
@@ -224,6 +242,8 @@ webHost [||] {
 
 ```fsharp
 webHost [||] {
+    use_https
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
@@ -234,12 +254,13 @@ webHost [||] {
 
 ```fsharp
 webHost [||] {
+    use_static_files
+
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
     ]
 }
 ```
-
 
 ## Other Operations
 
