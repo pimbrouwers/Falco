@@ -5,7 +5,7 @@ Welcome to Falco's documentation, visit the [getting started](get-started.md) pa
 
 ## Guides
 
-Falco depends only on the high-performance base components of ASP.NET Core, and provides a toolset to build a working full-stack web application. This section of the documentation explains the different parts of Falco and how they can be used, customized, and extended. Beyond Falco itself, look for community-maintained extensions to add even more functionality.
+Falco depends only on the high-performance base components of .NET and ASP.NET Core, and provides a toolset to build a working full-stack web application. This section of the documentation explains the different parts of Falco and how they can be used, customized, and extended. Beyond Falco itself, look for community-maintained extensions to add even more functionality.
 
 - [Getting Started](get-started.md)
 - [Routing](routing.md)

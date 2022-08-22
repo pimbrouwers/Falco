@@ -78,7 +78,7 @@ let main args =
 
 Cross-site scripting attacks are extremely common since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.
 
-The [Microsoft.AspNetCore.Antiforgery][14] package provides the required utilities to easily protect yourself against such attacks.
+The [Microsoft.AspNetCore.Antiforgery](https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery) package provides the required utilities to easily protect yourself against such attacks.
 
 Falco provides a few handlers via `Falco.Security.Xss`:
 
@@ -136,8 +136,6 @@ let main args =
 ## Crytography
 
 Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is important.
-
-Falco helpers are accessed by importing `Falco.Auth.Crypto`.
 
 ```fsharp
 open Falco.Security
