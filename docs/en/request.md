@@ -1,6 +1,6 @@
 # Request Handling
 
-The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e. asynchronous) completion and processing of an HTTP request, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally [response writing](response.md). With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
+The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e., asynchronous) completion and processing of an HTTP request, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally [response writing](response.md). With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
 
 Falco exposes a __uniform API__ to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary`, `IHeaderCollection`, and `IRequestCookieCollection`. All implementations are derivatives of `StringCollectionReader` which is an abstraction intended to make it easier to work with the string-based key/value collections.
 

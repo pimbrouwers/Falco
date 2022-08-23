@@ -4,7 +4,6 @@ module Falco.Core
 open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Routing
 
 // ------------
 // Constants

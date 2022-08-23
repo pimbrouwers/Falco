@@ -142,7 +142,9 @@ type HostBuilder(args : string[]) =
     member _.Endpoints (conf : HostConfig, endpoints : HttpEndpoint list) =
         { conf with Endpoints = endpoints }
 
+    // ------------
     // Service Collection
+    // ------------
 
     /// Configure logging via ILogger
     [<CustomOperation("logging")>]
@@ -197,7 +199,9 @@ type HostBuilder(args : string[]) =
     member x.AddHttpClient (conf : HostConfig) =
         x.AddService (conf, fun svc -> svc.AddHttpClient())
 
+    // ------------
     // Application Builder
+    // ------------
 
     /// Use the specified middleware.
     [<CustomOperation("use_middleware")>]

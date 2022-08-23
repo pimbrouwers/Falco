@@ -75,7 +75,8 @@ module Program =
 
             use_https
             use_compression
-            use_middleware  DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
+            use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
+            use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
 
             endpoints [
                 get "/" Handlers.homepage
