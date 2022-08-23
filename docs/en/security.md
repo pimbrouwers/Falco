@@ -133,7 +133,7 @@ let main args =
     }
 ```
 
-## Crytography
+## Cryptography
 
 Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is important.
 

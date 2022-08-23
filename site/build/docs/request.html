@@ -113,7 +113,7 @@
 
 <!-- /body/content -->
 <div class="h100vh bg-white">
-  <div class="cf mw8 center pv4 pv5-l ph3">
+  <div class="cf mw8 center pv4 ph3">
     <main><h1 id="request-handling">Request Handling</h1>
 <p>The <code>HttpHandler</code> type is used to represent the processing of a request. It can be thought of as the eventual (i.e., asynchronous) completion and processing of an HTTP request, defined in F# as: <code>HttpContext -&gt; Task</code>. Handlers will typically involve some combination of: route inspection, form/query binding, business logic and finally <a href="response.html">response writing</a>. With access to the <code>HttpContext</code> you are able to inspect all components of the request, and manipulate the response in any way you choose.</p>
 <p>Falco exposes a <strong>uniform API</strong> to obtain typed values from <code>IFormCollection</code>, <code>IQueryCollection</code>, <code>RouteValueDictionary</code>, <code>IHeaderCollection</code>, and <code>IRequestCookieCollection</code>. All implementations are derivatives of <code>StringCollectionReader</code> which is an abstraction intended to make it easier to work with the string-based key/value collections.</p>
