@@ -1,3 +1,6 @@
+---
+title: Welcome to Falco
+---
 # Documentation
 
 Welcome to Falco's documentation, visit the [getting started](get-started.md) page for installation and a brief overview. There is also a more detailed [Tutorial](tutorial.md) that shows how to create a small but complete application with Falco. The rest of the docs describe each component of Falco in detail.
