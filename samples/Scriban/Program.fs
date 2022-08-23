@@ -10,11 +10,11 @@ open Microsoft.Extensions.DependencyInjection
 open Scriban
 open Scriban.Runtime
 
-type IViewRenderer =
-    abstract member RenderAsync : view : string * 'a -> ValueTask<string>
+type IViewEngine =
+    abstract member RenderAsync : view : string * model : 'a -> ValueTask<string>
 
-type ScribanRenderer (views : Map<string, Template>) =
-    interface IViewRenderer with
+type ScribanViewEngine (views : Map<string, Template>) =
+    interface IViewEngine with
         member _.RenderAsync(view : string, model : 'a) =
             match Map.tryFind view views with
             | Some template -> template.RenderAsync(model)
@@ -22,31 +22,34 @@ type ScribanRenderer (views : Map<string, Template>) =
 
 module Response =
     let renderScriban
-        (renderer : IViewRenderer)
+        (viewEngine : IViewEngine)
         (view : string)
         (model : 'a) : HttpHandler = fun ctx ->
         task {
-            let! html = renderer.RenderAsync(view, model)
+            let! html = viewEngine.RenderAsync(view, model)
             return Response.ofHtmlString html ctx
         }
 
 module Middleware =
-    let withViews (next : IViewRenderer -> HttpHandler) : HttpHandler = fun ctx ->
-        let renderer = ctx.RequestServices.GetRequiredService<IViewRenderer>()
-        next renderer ctx
+    let withViewEngine (next : IViewEngine -> HttpHandler) : HttpHandler = fun ctx ->
+        let viewEngine = ctx.RequestServices.GetRequiredService<IViewEngine>()
+        next viewEngine ctx
 
 module Handlers =
     open Middleware
 
+    let exceptionHandler : HttpHandler =
+        Response.withStatusCode 500 >> Response.ofPlainText "Server error"
+
     let homepage : HttpHandler =
-        withViews (fun renderer ->
+        withViewEngine (fun viewEngine ->
             let queryMap (q: QueryCollectionReader) =
                 {|
                     Name = q.Get "name" "World"
                 |}
 
             let next =
-                Response.renderScriban renderer "Home"
+                Response.renderScriban viewEngine "Home"
 
             Request.mapQuery queryMap next)
 
@@ -65,10 +68,10 @@ module Program =
                 viewName, view)
             |> Map.ofSeq
 
-        // Register renderer with service collection
+        // Register viewEngine with service collection
         let scribanService (svc : IServiceCollection) =
-            svc.AddScoped<IViewRenderer, ScribanRenderer>(fun _ ->
-                new ScribanRenderer(views))
+            svc.AddScoped<IViewEngine, ScribanViewEngine>(fun _ ->
+                new ScribanViewEngine(views))
 
         webHost args {
             add_service scribanService
@@ -76,7 +79,7 @@ module Program =
             use_https
             use_compression
             use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-            use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
+            use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler Handlers.exceptionHandler)
 
             endpoints [
                 get "/" Handlers.homepage
