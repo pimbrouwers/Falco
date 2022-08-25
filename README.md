@@ -23,13 +23,13 @@ webHost [||] {
 
 ## Key Features
 
-- Asynchronous [request handling](#request-handling).
-- Simple and powerful [routing](#routing) API.
-- Fast, secure and configurable [web server](#host-builder).
-- Native F# [view engine](#markup).
-- Uniform API for [model binding](#model-binding).
-- [Authentication](#authentication) and [security](#security) utilities.
-- Built-in support for [large uploads](#handling-large-uploads).
+- Asynchronous [request handling](https://github.com/pimbrouwers/Falco/tree/master/docs/en/request.md).
+- Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/docs/en/routing.md) API.
+- Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/docs/en/host.md).
+- Native F# [view engine](https://github.com/pimbrouwers/Falco/tree/master/docs/en/markup.md).
+- Uniform API for [model binding](https://github.com/pimbrouwers/Falco/tree/master/docs/en/model-binding.md).
+- [Authentication](https://github.com/pimbrouwers/Falco/tree/master/docs/en/security.md#authentication) and [security](https://github.com/pimbrouwers/Falco/tree/master/docs/en/security.md) utilities.
+- Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/docs/en/request.md#multipartform-data-binding).
 
 ## Design Goals
 

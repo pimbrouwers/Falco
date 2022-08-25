@@ -75,12 +75,12 @@ type ConfigBuilder (args : string[]) =
     member _.AddEnvVars (conf : ConfigurationSpec) =
         { conf with AddEnvVars = true }
 
-    /// Add required config (INI/JSON/XML) file to the ConfigurationBuilder.
+    /// Add required config [INI|JSON|XML] file to the ConfigurationBuilder.
     [<CustomOperation("add_file")>]
     member _.AddConfigFile (conf : ConfigurationSpec, filePath : string) =
         { conf with ConfigFiles = filePath :: conf.ConfigFiles }
 
-    /// Add optional config (INI/JSON/XML) file to the ConfigurationBuilder.
+    /// Add optional config [INI|JSON|XML] file to the ConfigurationBuilder.
     [<CustomOperation("add_file_optional")>]
     member _.AddOptionalJsonFile (conf : ConfigurationSpec, filePath : string) =
         { conf with OptionalConfigFiles = filePath :: conf.OptionalConfigFiles }
