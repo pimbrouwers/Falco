@@ -13,7 +13,7 @@ type XmlAttribute =
 
 /// Represents an XML-style element containing attributes
 type XmlElement =
-    string * XmlAttribute[]
+    string * XmlAttribute list
 
 /// Describes the different XML-style node patterns
 type XmlNode =
@@ -31,7 +31,7 @@ module internal XmlNode =
         let _quote = '"'
 
         let writeAttributes attrs =
-            for attr in (attrs : XmlAttribute[]) do
+            for attr in (attrs : XmlAttribute list) do
                 if attrs.Length > 0 then
                     w.Write _space
 
@@ -108,13 +108,23 @@ module Text =
 
 module Elem =
     /// Standard XmlNode constructor
+    let create (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
+        ParentNode ((tag, attr), children)
+
+    /// Self-closing XmlNode constructor
+    let createSelfClosing (tag : string) (attr : XmlAttribute list) =
+        SelfClosingNode (tag, attr)
+
+    /// Standard XmlNode constructor
+    [<Obsolete("Elem.tag is obsolete, please use Elem.create")>]
     let tag (tag : string) (attr : XmlAttribute list) (children : XmlNode list) =
-        ((tag, List.toArray attr), children)
+        ((tag, attr), children)
         |> ParentNode
 
     /// Self-closing XmlNode constructor
+    [<Obsolete("Elem.selfClosingTag is obsolete, please use Elem.createSelfClosing")>]
     let selfClosingTag (tag : string) (attr : XmlAttribute list) =
-        (tag, List.toArray attr)
+        (tag, attr)
         |> SelfClosingNode
 
     /// HTML Tag <html></html>

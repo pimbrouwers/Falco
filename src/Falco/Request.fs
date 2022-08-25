@@ -34,6 +34,7 @@ let getHeaders (ctx : HttpContext) : HeaderCollectionReader  =
 let getRoute (ctx : HttpContext) : RouteCollectionReader =
     RouteCollectionReader(ctx.Request.RouteValues, ctx.Request.Query)
 
+[<Obsolete("Use Request.getRoute")>]
 let tryBindRoute
     (binder : RouteCollectionReader -> Result<'a, 'b>)
     (ctx : HttpContext) : Result<'a, 'b> =
@@ -45,6 +46,7 @@ let getQuery (ctx : HttpContext) : QueryCollectionReader =
     QueryCollectionReader(ctx.Request.Query)
 
 /// Attempt to bind query collection
+[<Obsolete("Use Request.getQuery")>]
 let tryBindQuery
     (binder : QueryCollectionReader -> Result<'a, 'b>)
     (ctx : HttpContext) : Result<'a, 'b> =
@@ -60,6 +62,7 @@ let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
     }
 
 /// Attempt to bind the form collection
+[<Obsolete("Use Request.getForm")>]
 let tryBindForm
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (ctx : HttpContext) : Task<Result<'a, 'b>> =
@@ -79,6 +82,7 @@ let streamForm
     ctx.Request.StreamFormAsync()
 
 /// Attempt to bind the form collection
+[<Obsolete("Use Request.tryStreamForm")>]
 let tryBindFormStream
     (binder : FormCollectionReader -> Result<'a, 'b>)
     (ctx : HttpContext) : Task<Result<'a, 'b>> =
@@ -92,6 +96,7 @@ let getCookie (ctx : HttpContext) : CookieCollectionReader =
     CookieCollectionReader(ctx.Request.Cookies)
 
 /// Attempt to bind cookie collection
+[<Obsolete("Use Request.getCookie")>]
 let tryBindCookie
     (binder : CookieCollectionReader -> Result<'a, 'b>)
     (ctx : HttpContext) : Result<'a, 'b> =
@@ -99,6 +104,18 @@ let tryBindCookie
     |> binder
 
 /// Attempt to bind request body using System.Text.Json and provided JsonSerializerOptions
+let getJsonOptions<'a>
+    (options : JsonSerializerOptions)
+    (ctx : HttpContext) : Task<'a> =
+    JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
+
+/// Attempt to bind request body using System.Text.Json
+let getJson<'a>
+    (ctx : HttpContext) : Task<'a> =
+    getJsonOptions Constants.defaultJsonOptions ctx
+
+/// Attempt to bind request body using System.Text.Json and provided JsonSerializerOptions
+[<Obsolete("Use Request.getJsonOptions")>]
 let tryBindJsonOptions<'a>
     (options : JsonSerializerOptions)
     (ctx : HttpContext) : Task<Result<'a, string>> =
@@ -111,6 +128,7 @@ let tryBindJsonOptions<'a>
     }
 
 /// Attempt to bind request body using System.Text.Json
+[<Obsolete("Use Request.getJson")>]
 let tryBindJson<'a>
     (ctx : HttpContext) : Task<Result<'a, string>> =
     tryBindJsonOptions Constants.defaultJsonOptions ctx

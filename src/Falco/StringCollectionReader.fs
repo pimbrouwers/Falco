@@ -38,17 +38,17 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
 
     /// Safely retrieve string array value from collection
     member private _.TryGetValue (name : string) =
-        let found = 
-            values 
-            |> Map.tryPick (fun key value -> 
-                if StringUtils.strEquals key name then Some value else None) 
+        let found =
+            values
+            |> Map.tryPick (fun key value ->
+                if StringUtils.strEquals key name then Some value else None)
 
         match found with
         | Some v when v.Length > 0 -> Some v
         | _                        -> None
-    
+
     /// Retrieve value from StringCollectionReader
-    member private x.GetValue (name : string) =        
+    member private x.GetValue (name : string) =
         match x.TryGetValue name with
         | Some v -> v
         | None -> failwith (sprintf "Could not find %s" name)
@@ -60,7 +60,7 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
     /// Safely retrieve string array value from collection and apply binder
     member private x.TryGetBindArray (binder : string -> 'a option) (name : string) =
         x.TryGetValue name |> Option.map (tryParseArray binder) |> Option.defaultValue [||]
-        
+
     // ------------
     // Primitives
     // ------------
@@ -158,39 +158,93 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
     // ------------
 
     /// Safely retrieve the named String[]
+    member x.GetStringArray (name : string) = x.TryGetBindArray Some name
+
+    /// Safely retrieve the named String[]
+    member x.GetArray (name : string) = x.TryGetBindArray Some name
+
+    /// Safely retrieve the named String[] excluding empty & null values
+    member x.GetStringNonEmptyArray (name : string) = x.TryGetBindArray parseNonEmptyString name
+
+    /// Safely retrieve the named Int16[]
+    member x.GetInt16Array (name : string) = x.TryGetBindArray parseInt16 name
+
+    /// Safely retrieve the named Int32[]
+    member x.GetInt32Array (name : string) = x.TryGetBindArray parseInt32 name
+
+    /// Safely retrieve the named Int[] (alias for StringCollectionReader.TryArrayInt32)
+    member x.GetIntArray (name : string) = x.GetInt32Array name
+
+    /// Safely retrieve the named Int64[]
+    member x.GetInt64Array (name : string) = x.TryGetBindArray parseInt64 name
+
+    /// Safely retrieve the named Boolean[]
+    member x.GetBooleanArray (name : string) = x.TryGetBindArray parseBoolean name
+
+    /// Safely retrieve the named Float[]
+    member x.GetFloatArray (name : string) = x.TryGetBindArray parseFloat name
+
+    /// Safely retrieve the named Decimal[]
+    member x.GetDecimalArray (name : string) = x.TryGetBindArray parseDecimal name
+
+    /// Safely retrieve the named DateTime[]
+    member x.GetDateTimeArray (name : string) = x.TryGetBindArray parseDateTime name
+
+    /// Safely retrieve the named DateTimeOffset[]
+    member x.GetDateTimeOffsetArray (name : string) = x.TryGetBindArray parseDateTimeOffset name
+
+    /// Safely retrieve the named Guid[]
+    member x.GetGuidArray (name : string) = x.TryGetBindArray parseGuid name
+
+    /// Safely retrieve the named TimeSpan[]
+    member x.GetTimeSpanArray (name : string) = x.TryGetBindArray parseTimeSpan name
+
+    /// Safely retrieve the named String[]
+    [<Obsolete("TryArrayString is obsolete, please use GetStringArray")>]
     member x.TryArrayString (name : string) = x.TryGetBindArray parseNonEmptyString name
 
     /// Safely retrieve the named Int16[]
+    [<Obsolete("TryArrayInt16 is obsolete, please use GetInt16Array")>]
     member x.TryArrayInt16 (name : string) = x.TryGetBindArray parseInt16 name
 
     /// Safely retrieve the named Int32[]
+    [<Obsolete("TryArrayInt32 is obsolete, please use GetInt32Array")>]
     member x.TryArrayInt32 (name : string) = x.TryGetBindArray parseInt32 name
 
     /// Safely retrieve the named Int[] (alias for StringCollectionReader.TryArrayInt32)
+    [<Obsolete("TryArrayInt is obsolete, please use GetIntArray")>]
     member x.TryArrayInt (name : string) = x.TryArrayInt32 name
 
     /// Safely retrieve the named Int64[]
+    [<Obsolete("TryArrayInt64 is obsolete, please use GetInt64Array")>]
     member x.TryArrayInt64 (name : string) = x.TryGetBindArray parseInt64 name
 
     /// Safely retrieve the named Boolean[]
+    [<Obsolete("TryArrayBoolean is obsolete, please use GetBooleanArray")>]
     member x.TryArrayBoolean (name : string) = x.TryGetBindArray parseBoolean name
 
     /// Safely retrieve the named Float[]
+    [<Obsolete("TryArrayFloat is obsolete, please use GetFloatArray")>]
     member x.TryArrayFloat (name : string) = x.TryGetBindArray parseFloat name
 
     /// Safely retrieve the named Decimal[]
+    [<Obsolete("TryArrayDecimal is obsolete, please use GetDecimalArray")>]
     member x.TryArrayDecimal (name : string) = x.TryGetBindArray parseDecimal name
 
     /// Safely retrieve the named DateTime[]
+    [<Obsolete("TryArrayDateTime is obsolete, please use GetDateTimeArray")>]
     member x.TryArrayDateTime (name : string) = x.TryGetBindArray parseDateTime name
 
     /// Safely retrieve the named DateTimeOffset[]
+    [<Obsolete("TryArrayDateTimeOffset is obsolete, please use GetDateTimeOffsetArray")>]
     member x.TryArrayDateTimeOffset (name : string) = x.TryGetBindArray parseDateTimeOffset name
 
     /// Safely retrieve the named Guid[]
+    [<Obsolete("TryArrayGuid is obsolete, please use GetGuidArray")>]
     member x.TryArrayGuid (name : string) = x.TryGetBindArray parseGuid name
 
     /// Safely retrieve the named TimeSpan[]
+    [<Obsolete("TryArrayTimeSpan is obsolete, please use GetTimeSpanArray")>]
     member x.TryArrayTimeSpan (name : string) = x.TryGetBindArray parseTimeSpan name
 
 /// Represents a readable collection of parsed form value

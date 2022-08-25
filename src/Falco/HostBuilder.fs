@@ -137,6 +137,7 @@ type HostBuilder(args : string[]) =
 
     /// Fully customize the IWebHost, when specified will overide all
     /// "use" and "add" operations.
+    [<Obsolete("No longer supported in future versions")>]
     [<CustomOperation("configure")>]
     member _.Configure (conf : HostConfig, builder : HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder) =
         { conf with Builder = builder; IsCustom = true }
@@ -147,6 +148,7 @@ type HostBuilder(args : string[]) =
         { conf with Endpoints = endpoints }
 
     /// Apply the given configuration to the web host.
+    [<Obsolete("No longer supported in future versions")>]
     [<CustomOperation("configure_host")>]
     member _.Host (conf : HostConfig, fn : IWebHostBuilder -> IWebHostBuilder) =
         { conf with WebHost = conf.WebHost >> fn }
@@ -242,6 +244,7 @@ type HostBuilder(args : string[]) =
                Middleware = conf.Middleware >> fun app -> app.UseAuthorization() }
 
     /// Register HTTP Response caching service and enable middleware.
+    [<CustomOperation("use_caching")>]
     member x.UseCaching(conf : HostConfig) =
         { conf with
                Services = conf.Services >> fun s -> s.AddResponseCaching()
@@ -298,4 +301,3 @@ type HostBuilder(args : string[]) =
 
 /// A computation expression to make IHost construction easier
 let webHost args = HostBuilder(args)
-
