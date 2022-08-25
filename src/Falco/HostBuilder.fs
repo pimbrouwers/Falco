@@ -1,13 +1,11 @@
 ﻿module Falco.HostBuilder
 
 open System
-open System.Collections.Generic
 open System.IO
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.DataProtection
-open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.ResponseCompression
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
@@ -17,19 +15,24 @@ open Microsoft.Extensions.Logging
 // ------------
 // Config Builder
 // ------------
+type ConfigFile =
+    | IniFile of path : string
+    | XmlFile of path : string
+    | JsonFile of path : string
+
 type ConfigurationSpec =
-    { AddEnvVars          : bool
-      BasePath            : string
-      ConfigFiles         : string list
-      OptionalConfigFiles : string list
-      InMemoryCollection : Dictionary<string, string> }
+    { AddEnvVars    : bool
+      BasePath      : string
+      RequiredFiles : ConfigFile list
+      OptionalFiles : ConfigFile list
+      InMemory      : Map<string, string> }
 
     static member Empty =
-        { AddEnvVars          = false
-          BasePath            = Directory.GetCurrentDirectory()
-          ConfigFiles         = []
-          OptionalConfigFiles = []
-          InMemoryCollection  = Dictionary<string, string>() }
+        { AddEnvVars    = false
+          BasePath      = Directory.GetCurrentDirectory()
+          RequiredFiles = []
+          OptionalFiles = []
+          InMemory      = Map.empty }
 
 type ConfigBuilder (args : string[]) =
     member _.Yield(_) = ConfigurationSpec.Empty
@@ -42,26 +45,22 @@ type ConfigBuilder (args : string[]) =
         if conf.AddEnvVars then
             bldr <- bldr.AddEnvironmentVariables()
 
-        for file in conf.ConfigFiles do
+        for file in conf.RequiredFiles do
             bldr <-
-                let extension = Path.GetExtension(file).ToUpper()
-                match extension with
-                | "INI"  -> bldr.AddIniFile(file, optional = false, reloadOnChange = true)
-                | "JSON" -> bldr.AddJsonFile(file, optional = false, reloadOnChange = true)
-                | "XML"  -> bldr.AddXmlFile(file, optional = false, reloadOnChange = true)
-                | _ -> failwithf "%s is not a supported file type" extension
+                match file with
+                | IniFile file  -> bldr.AddIniFile(file, optional = false, reloadOnChange = true)
+                | JsonFile file -> bldr.AddJsonFile(file, optional = false, reloadOnChange = true)
+                | XmlFile file  -> bldr.AddXmlFile(file, optional = false, reloadOnChange = true)
 
-        for file in conf.OptionalConfigFiles do
+        for file in conf.OptionalFiles do
             bldr <-
-                let extension = Path.GetExtension(file).ToUpper()
-                match extension with
-                | "INI"  -> bldr.AddIniFile(file, optional = true, reloadOnChange = true)
-                | "JSON" -> bldr.AddJsonFile(file, optional = true, reloadOnChange = true)
-                | "XML"  -> bldr.AddXmlFile(file, optional = true, reloadOnChange = true)
-                | _ -> failwithf "%s is not a supported file type" extension
+                match file with
+                | IniFile file  -> bldr.AddIniFile(file, optional = true, reloadOnChange = true)
+                | JsonFile file -> bldr.AddJsonFile(file, optional = true, reloadOnChange = true)
+                | XmlFile file  -> bldr.AddXmlFile(file, optional = true, reloadOnChange = true)
 
-        if conf.InMemoryCollection.Keys.Count > 0 then
-            bldr <- bldr.AddInMemoryCollection(conf.InMemoryCollection)
+        if conf.InMemory.Keys.Count > 0 then
+            bldr <- bldr.AddInMemoryCollection(conf.InMemory)
 
         bldr.Build() :> IConfiguration
 
@@ -75,22 +74,43 @@ type ConfigBuilder (args : string[]) =
     member _.AddEnvVars (conf : ConfigurationSpec) =
         { conf with AddEnvVars = true }
 
-    /// Add required config [INI|JSON|XML] file to the ConfigurationBuilder.
-    [<CustomOperation("add_file")>]
-    member _.AddConfigFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with ConfigFiles = filePath :: conf.ConfigFiles }
+    /// Add an in-memory collection to the ConfigurationBuilder.
+    [<CustomOperation("in_memory")>]
+    member _.AddInMemoryValues (conf : ConfigurationSpec, pairs : (string * string) seq) =
+        let inMemory =
+            (conf.InMemory, pairs)
+            ||> Seq.fold (fun m (k, v) -> m.Add(k, v))
+        { conf with InMemory = inMemory }
 
-    /// Add optional config [INI|JSON|XML] file to the ConfigurationBuilder.
-    [<CustomOperation("add_file_optional")>]
+    /// Add required config INI file to the ConfigurationBuilder.
+    [<CustomOperation("required_ini")>]
+    member _.AddRequiredIniFile (conf : ConfigurationSpec, filePath : string) =
+        { conf with RequiredFiles = (IniFile filePath) :: conf.RequiredFiles }
+
+    /// Add optional config INI file to the ConfigurationBuilder.
+    [<CustomOperation("optional_ini")>]
+    member _.AddOptionalIniFile (conf : ConfigurationSpec, filePath : string) =
+        { conf with OptionalFiles = (IniFile filePath) :: conf.OptionalFiles }
+
+    /// Add required config XML file to the ConfigurationBuilder.
+    [<CustomOperation("required_xml")>]
+    member _.AddRequiredXmlFile (conf : ConfigurationSpec, filePath : string) =
+        { conf with RequiredFiles = (XmlFile filePath) :: conf.RequiredFiles }
+
+    /// Add optional config XML file to the ConfigurationBuilder.
+    [<CustomOperation("optional_xml")>]
+    member _.AddOptionalXmlFile (conf : ConfigurationSpec, filePath : string) =
+        { conf with OptionalFiles = (XmlFile filePath) :: conf.OptionalFiles }
+
+    /// Add required config JSON file to the ConfigurationBuilder.
+    [<CustomOperation("required_json")>]
+    member _.AddRequiredJsonFile (conf : ConfigurationSpec, filePath : string) =
+        { conf with RequiredFiles = (JsonFile filePath) :: conf.RequiredFiles }
+
+    /// Add optional config JSON file to the ConfigurationBuilder.
+    [<CustomOperation("optional_json")>]
     member _.AddOptionalJsonFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with OptionalConfigFiles = filePath :: conf.OptionalConfigFiles }
-
-    /// Add an in-memory Dictionary<string, string> to the ConfigurationBuilder.
-    ///
-    /// Note: this operation replaces existing Dictionary
-    [<CustomOperation("add_dict")>]
-    member _.AddDict(conf : ConfigurationSpec, dict : Dictionary<string, string>) =
-        { conf with InMemoryCollection = dict }
+        { conf with OptionalFiles = (JsonFile filePath) :: conf.OptionalFiles }
 
 let configuration args = ConfigBuilder(args)
 

@@ -1,11 +1,8 @@
 ﻿module Falco.Tests.Request
 
-open System
 open System.Collections.Generic
 open System.IO
 open System.Text
-open System.Text.Json
-open System.Text.Json.Serialization
 open System.Threading.Tasks
 open Falco
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -46,127 +43,6 @@ let ``Request.getRouteValues should return Map<string, string> from HttpContext`
 
     route.GetString "name" ""
     |> should equal "falco"
-
-// [<Fact>]
-// let ``Request.tryBindQuery should bind record successfully`` () =
-//     let ctx = getHttpContextWriteable false
-//     let query = Dictionary<string, StringValues>()
-//     query.Add("name", StringValues("falco"))
-//     ctx.Request.Query <- QueryCollection(query)
-
-//     let bind =
-//         fun (rd : StringCollectionReader) ->
-//             match rd.TryGetString "name" with
-//             | None -> Error "name not found"
-//             | Some name -> Ok { Name = name }
-
-//     let boundRecord = Request.tryBindQuery bind ctx
-
-//     match boundRecord with
-//     | Error _    -> false
-//                    |> should equal true
-
-//     | Ok record -> record.Name
-//                    |> should equal "falco"
-
-// [<Fact>]
-// let ``Request.tryBindCookie should bind record successfully`` () =
-//     let ctx = getHttpContextWriteable false
-//     ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
-
-//     let bind =
-//         fun (rd : StringCollectionReader) ->
-//             match rd.TryGetString "name" with
-//             | None -> Error "name not found"
-//             | Some name -> Ok { Name = name }
-
-//     let boundRecord = Request.tryBindCookie bind ctx
-
-//     match boundRecord with
-//     | Error _    -> false
-//                    |> should equal true
-
-//     | Ok record -> record.Name
-//                    |> should equal "falco"
-
-// [<Fact>]
-// let ``Request.tryBindForm should return a FormCollectionReader instance`` () =
-//     let ctx = getHttpContextWriteable false
-//     let form = Dictionary<string, StringValues>()
-//     form.Add("name", StringValues("falco"))
-//     ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
-
-//     let bind =
-//         fun (rd : FormCollectionReader) ->
-//             match rd.TryGetString "name" with
-//             | None -> Error "name not found"
-//             | Some name -> Ok { Name = name }
-
-//     task {
-//         let! boundRecord = Request.tryBindForm bind ctx
-
-//         match boundRecord with
-//         | Error _   -> false
-//                        |> should equal true
-
-//         | Ok record -> record.Name
-//                        |> should equal "falco"
-//     }
-
-// [<Fact>]
-// let ``Request.tryBindJson should return deserialzed FakeRecord record `` () =
-//     let ctx = getHttpContextWriteable false
-//     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
-//     ctx.Request.Body.Returns(ms) |> ignore
-
-//     task {
-//         let! boundRecord = Request.tryBindJson<FakeRecord> ctx
-
-//         match boundRecord with
-//         | Error _   -> false
-//                        |> should equal true
-
-//         | Ok record -> record.Name
-//                        |> should equal "falco"
-//     }
-
-// [<Fact>]
-// let ``Request.tryBindJson should return Error on failure`` () =
-//     let ctx = getHttpContextWriteable false
-//     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))
-//     ctx.Request.Body.Returns(ms) |> ignore
-
-//     task {
-//         let! boundRecord = Request.tryBindJson<FakeRecord> ctx
-
-//         match boundRecord with
-//         | Error error -> String.IsNullOrWhiteSpace(error)
-//                          |> should equal false
-
-//         | Ok _        -> false
-//                          |> should equal true
-//     }
-
-// [<Fact>]
-// let ``Request.tryBindJsonOptions should return empty record `` () =
-//     let ctx = getHttpContextWriteable false
-//     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":null}"))
-//     ctx.Request.Body.Returns(ms) |> ignore
-
-//     task {
-//         let jsonOptions = JsonSerializerOptions()
-//         jsonOptions.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
-//         jsonOptions.PropertyNameCaseInsensitive <- false
-
-//         let! boundRecord = Request.tryBindJsonOptions<FakeRecord> jsonOptions ctx
-
-//         match boundRecord with
-//         | Error _   -> false
-//                        |> should equal true
-
-//         | Ok record -> record.Name
-//                        |> should be null
-//     }
 
 [<Fact>]
 let ``Request.ifAuthenticatedWithScope should invoke handleOk if authenticated with scope claim from issuer`` () =
@@ -215,3 +91,79 @@ let ``Request.ifAuthenticatedWithScope should invoke handleError if authenticate
     task {
         do! Request.ifAuthenticatedWithScope "issuer" "create" handleOk handleError ctx
     }
+
+let handleOk fn v =
+    fun ctx ->
+        fn v
+        true |> should equal true
+        Response.ofEmpty ctx
+
+let handleError _ =
+    fun ctx ->
+        false |> should equal true
+        Response.ofEmpty ctx
+
+[<Fact>]
+let ``Request.mapJson`` () =
+    let ctx = getHttpContextWriteable false
+    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))
+    ctx.Request.Body.Returns(ms) |> ignore
+
+    let predicates j =
+        j.Name |> should equal "falco"
+
+    Request.mapJson (handleOk predicates)
+
+[<Fact>]
+let ``Request.mapRoute`` () =
+    let ctx = getHttpContextWriteable false
+    ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
+
+    let predicates name =
+        name |> should equal "falco"
+
+    Request.mapRoute (fun r -> r.GetString "name" "" |> Ok) (handleOk predicates)
+
+let ``Request.mapQuery`` () =
+    let ctx = getHttpContextWriteable false
+    ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
+
+    let predicates name =
+        name |> should equal "falco"
+
+    Request.mapCookie (fun q -> q.GetString "name" "" |> Ok) (handleOk predicates)
+
+let ``Request.mapCookie`` () =
+    let ctx = getHttpContextWriteable false
+    let query = Dictionary<string, StringValues>()
+    query.Add("name", StringValues("falco"))
+    ctx.Request.Query <- QueryCollection(query)
+
+    let predicates name =
+        name |> should equal "falco"
+
+    Request.mapQuery (fun c -> c.GetString "name" "" |> Ok) (handleOk predicates)
+
+[<Fact>]
+let ``Request.mapForm`` () =
+    let ctx = getHttpContextWriteable false
+    let form = Dictionary<string, StringValues>()
+    form.Add("name", StringValues("falco"))
+    ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
+
+    let predicates name =
+        name |> should equal "falco"
+
+    Request.mapForm (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates)
+
+[<Fact>]
+let ``Request.mapFormStream`` () =
+    let ctx = getHttpContextWriteable false
+    let form = Dictionary<string, StringValues>()
+    form.Add("name", StringValues("falco"))
+    ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
+
+    let predicates name =
+        name |> should equal "falco"
+
+    Request.mapFormStream (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates)
