@@ -18,64 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <link href="/prism.css" rel="stylesheet" />
   <link href="/tachyons.css" rel="stylesheet" />
-  <style>
-    :root {
-      --gray: rgba(51,51,51,.6);
-      --silver: rgb(204, 204, 204);
-      --slate: rgb(51, 51, 51);
-      --merlot: rgb(50, 1, 79);
-      --purple: rgb(184, 69, 252);
-      --washed-purple: rgba(185, 69, 252, 0.10);
-    }
-
-    /* sizing */
-    .h100vh { min-height: 100vh }
-    .mw9 { max-width: 80rem }
-
-    /* font */
-    .noto { font-family: 'Noto Sans JP', sans-serif }
-    .noto-serif { font-family: 'Noto Serif JP', Georgia, serif }
-
-    /* bg */
-    .bg-merlot { background-color: var(--merlot) }
-    .bg-dots { background-image: radial-gradient(rgba(255,255,255,.3) 1px, transparent 1px), radial-gradient(rgba(255,255,255,.3) 1px, transparent 1px); background-size: 75px 75px; background-position: 0px 0px,40px 25px }
-    .bg-parallax {  background-attachment: fixed }
-
-    /* color */
-    .merlot { color: var(--merlot) }
-
-    /* opacity */
-    .hover-o-100:hover { opacity: 1 }
-
-    /* transform */
-    .ty--50 { transform: translateY(-50%);}
-
-    /* text */
-    main h1, main h2, main h3, main h4, main h5 { margin-bottom: 0; font-weight: 400 }
-    main h2 { margin-top: 3rem; font-size: 2em; color: var(--gray) }
-    main h3 { margin-top: 2rem; font-size: 1.5em }
-    main h2 + h3 { margin-top: .5rem }
-    main p { line-height: 1.4 }
-
-    a { color: inherit; transition: color .125s ease-in }
-    main a:visited { color: inherit }
-    main a:hover { color: var(--purple) }
-
-    blockquote { margin-left: 0; margin-right: 0; padding: 1rem; border-left: 4px solid var(--purple); background: var(--washed-purple) }
-    blockquote p { margin: 0 }
-
-    /* tables */
-    table { text-align: left; border-collapse: collapse }
-    td, th { padding: .5rem; border-bottom: 1px solid var(--silver) }
-
-    /* code */
-    code[class*="language-"], pre[class*="language-"] { font-size: .875rem }
-    pre[class*="language-"] { padding: 1rem }
-    pre { overflow-x: auto; overflow-wrap: normal; white-space: pre; font-size: .875rem; margin: 1rem 0; padding: 1rem; color: #eff0f9; background: #333 }
-    code { vertical-align: middle; font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; background-color: var(--washed-purple) }
-    pre > code { background-color: inherit }
-    h2 > code, h3 > code, p > code { padding: 0 .25rem }
-  </style>
+  <link href="/style.css" rel="stylesheet" />
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script>
   <script>
@@ -87,34 +30,31 @@
 </head>
 
 <!-- /body -->
-<body class="noto bg-merlot bg-dots bg-parallax">
+<body class="noto lh-copy">
 
-<!-- /body/header -->
-<header class="pv3">
-  <div class="mw8 center pa3">
-    <!-- /top bar -->
-    <div>
-      <nav class="flex flex-column flex-row-l items-center">
-        <a href="/"><img src="/icon.svg" class="w3 pb3 pb0-l o-80 hover-o-100" /></a>
-        <div class="flex-grow-1-l tc tr-l">
-          <a href="/docs" title="Overview of Falco's key features" class="dib mh2 mh3-l no-underline white-90 hover-white">docs</a>
-          <a href="/docs/tutorial.html" title="A guide on how to write small, but complete application using Falco" class="dib mh2 mh3-l no-underline white-90 hover-white">guide</a>
-          <a href="https://github.com/pimbrouwers/Falco"
-             target="_blank"
-             alt="Falco GitHub Link"
-             title="Fork Falco on GitHub"
-             class="dib ml2 ml3-l no-underline white-90 hover-white">code</a>
-        </div>
-      </nav>
-    </div>
-    
-  </div>
-</header>
-
-<!-- /body/content -->
-<div class="h100vh bg-white">
-  <div class="cf mw8 center pv4 ph3">
-    <main><h1 id="documentation">Documentation</h1>
+<div class="mw9 center pa3">
+    <nav class="sidebar w-20-l fl-l">
+        <a href="/docs" class="db w4">
+            <img src="/brand.svg" class="br3" />
+        </a>
+        <h3>Project Links</h3>
+        <a href="https://github.com/pimbrouwers/Falco" target="_blank" class="db">Source Code</a>
+        <a href="https://github.com/pimbrouwers/Falco/issues" target="_blank" class="db">Issue Tracker</a>
+        <a href="https://github.com/pimbrouwers/Falco/discussions" target="_blank" class="db">Discussion</a>
+        <a href="https://twitter.com/falco_framework" target="_blank" class="db">Twitter</a>
+        
+        <h3>Documents</h3>
+        <ul>
+          <li><a href="get-started.html">Getting Started</a></li>
+          <li><a href="routing.html">Routing</a></li>
+          <li><a href="request.html">Accessing request data</a></li>
+          <li><a href="response.html">Writing responses</a></li>
+          <li><a href="markup.html">View engine</a></li>
+          <li><a href="host.html">Host configuration</a></li>
+          <li><a href="security.html">Security</a></li>
+        </ul>
+    </nav>
+    <main class="w-80-l fl-l pl3-l"><h1 id="documentation">Documentation</h1>
 <p>Welcome to Falco's documentation, visit the <a href="get-started.html">getting started</a> page for installation and a brief overview. There is also a more detailed <a href="tutorial.html">Tutorial</a> that shows how to create a small but complete application with Falco. The rest of the docs describe each component of Falco in detail.</p>
 <h2 id="guides">Guides</h2>
 <p>Falco depends only on the high-performance base components of .NET and ASP.NET Core, and provides a toolset to build a working full-stack web application. This section of the documentation explains the different parts of Falco and how they can be used, customized, and extended. Beyond Falco itself, look for community-maintained extensions to add even more functionality.</p>
@@ -149,7 +89,7 @@
 <ul>
 <li><a href="host.html#registering-services">Registering Services</a></li>
 <li><a href="host.html#activating-middleware">Activating Middleware</a></li>
-<li><a href="host.html#custom-services">Custom Services and Middleware</a></li>
+<li><a href="host.html#custom-services-and-middleware">Custom Services and Middleware</a></li>
 <li><a href="host.html#other-operations">Other Operations</a></li>
 </ul>
 </li>
@@ -162,7 +102,6 @@
 </li>
 </ul>
 </main>
-  </div>
 </div>
 
 <!-- /body/footer -->

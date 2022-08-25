@@ -96,10 +96,14 @@ module Markdown =
 
 type LayoutTemplate =
     { Title : string
-      TopContent : string
       MainContent : string
       CopyrightYear : int }
 
+type LayoutTwoColTemplate =
+    { Title : string
+      SideContent : string
+      MainContent : string
+      CopyrightYear : int }
 
 module Template =
     let private layoutTmpl =
@@ -110,11 +114,26 @@ module Template =
     let layout (template : LayoutTemplate) =
         layoutTmpl.Render(template)
 
-    let hero =
-        Path.resolve "templates/hero.html"
+    let private layoutTwoColTmpl =
+        Path.resolve "templates/layout-twocol.html"
         |> File.ReadAllText
         |> Template.Parse
-        |> fun template -> template.Render()
+
+    let layoutTwoCol (template : LayoutTwoColTemplate) =
+        layoutTwoColTmpl.Render(template)
+
+    module Partials =
+        let docsLinks =
+            Path.resolve "templates/partials/docs-links.html"
+            |> File.ReadAllText
+            |> Template.Parse
+            |> fun t -> t.Render()
+
+        let docsNav =
+            Path.resolve "templates/partials/docs-nav.html"
+            |> File.ReadAllText
+            |> Template.Parse
+            |> fun t -> t.Render()
 
 //
 // Build site
@@ -138,8 +157,7 @@ let mainContent = Markdown.renderFile homepageFile
 
 Log.info "Rendering homepage..."
 
-{ Title = ""
-  TopContent = Template.hero
+{ Title = String.Empty
   MainContent = mainContent.Body
   CopyrightYear = DateTime.Now.Year }
 |> Template.layout
@@ -155,15 +173,22 @@ let buildDocs (docs : FileInfo[]) (buildDir : string) =
         Directory.CreateDirectory(buildDir) |> ignore
 
     for file in docs do
-        let buildFilename = if file.Name = "readme.md" then "index.html" else Path.ChangeExtension(file.Name, ".html")
+        let buildFilename, sideContent =
+            if file.Name = "readme.md" then
+                "index.html", Template.Partials.docsLinks
+            else
+                Path.ChangeExtension(file.Name, ".html"), Template.Partials.docsNav
+
         let mainContent = Markdown.renderFile file.FullName
 
-        { Title = mainContent.Title
-          TopContent = ""
-          MainContent = mainContent.Body
-          CopyrightYear = DateTime.Now.Year }
-        |> Template.layout
-        |> fun text -> File.WriteAllText(Path.Join(buildDir, buildFilename), text)
+        let html =
+            { Title = mainContent.Title
+              SideContent = sideContent
+              MainContent = mainContent.Body
+              CopyrightYear = DateTime.Now.Year }
+            |> Template.layoutTwoCol
+
+        File.WriteAllText(Path.Join(buildDir, buildFilename), html)
 
 Log.info "Rendering docs..."
 buildDocs (DirectoryInfo(docsDir).GetFiles()) docsBuildDir

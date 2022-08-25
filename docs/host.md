@@ -1,34 +1,6 @@
 # Host Configuration
 
-[Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel) is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. To make things more expressive, Falco exposes an optional computation expression. Below is an example taken from the [Configure Host](https://github.com/pimbrouwers/Falco/tree/master/samples/ConfigureHost) sample, demonstrating some of the capabilities.
-
-```fsharp
-module ConfigureHost.Program
-
-open Falco
-open Falco.Routing
-open Falco.HostBuilder
-open Microsoft.AspNetCore.Builder
-
-// Code omitted for brevity
-
-[<EntryPoint>]
-let main args =
-    webHost args {
-        use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
-        use_https
-        use_compression
-        use_static_files
-
-        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
-
-        endpoints [
-            // Endpoints and handlers
-        ]
-    }
-    0
-```
+[Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel) is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. To make things more expressive, Falco exposes an optional computation expression.
 
 ## Registering Services
 

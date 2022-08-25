@@ -30,7 +30,7 @@ Falco depends only on the high-performance base components of .NET and ASP.NET C
 - [Host configuration](host.md)
     - [Registering Services](host.md#registering-services)
     - [Activating Middleware](host.md#activating-middleware)
-    - [Custom Services and Middleware](host.md#custom-services)
+    - [Custom Services and Middleware](host.md#custom-services-and-middleware)
     - [Other Operations](host.md#other-operations)
 - [Security](security.md)
     - [Authentication](security.md#authentication)
