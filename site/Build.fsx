@@ -150,21 +150,11 @@ let docsDir = Path.resolve "../docs"
 let docsBuildDir = Path.Join(buildDir, "docs")
 Directory.CreateDirectory(docsBuildDir)
 
-let languageCodes = [ "en" ]
+let buildDocs (docs : FileInfo[]) (buildDir : string) =
+    if not(Directory.Exists(buildDir)) then
+        Directory.CreateDirectory(buildDir) |> ignore
 
-for languageCode in languageCodes do
-    let languageDir = DirectoryInfo(Path.Join(docsDir, languageCode))
-
-    let languageBuildDir =
-        if languageCode = "en" then docsBuildDir
-        else Path.Join(docsBuildDir, languageCode)
-
-    if not(Directory.Exists(languageBuildDir)) then
-        Directory.CreateDirectory(languageBuildDir) |> ignore
-
-    Log.info "Rendering /%s docs" languageCode
-
-    for file in languageDir.GetFiles() do
+    for file in docs do
         let buildFilename = if file.Name = "readme.md" then "index.html" else Path.ChangeExtension(file.Name, ".html")
         let mainContent = Markdown.renderFile file.FullName
 
@@ -173,4 +163,16 @@ for languageCode in languageCodes do
           MainContent = mainContent.Body
           CopyrightYear = DateTime.Now.Year }
         |> Template.layout
-        |> fun text -> File.WriteAllText(Path.Join(languageBuildDir, buildFilename), text)
+        |> fun text -> File.WriteAllText(Path.Join(buildDir, buildFilename), text)
+
+Log.info "Rendering docs..."
+buildDocs (DirectoryInfo(docsDir).GetFiles()) docsBuildDir
+
+// Additional languages
+let languageCodes = []
+
+for languageCode in languageCodes do
+    Log.info "Rendering /%s docs" languageCode
+    let languageDir = DirectoryInfo(Path.Join(docsDir, languageCode))
+    let languageBuildDir = Path.Join(docsBuildDir, languageCode)
+    buildDocs (languageDir.GetFiles()) languageBuildDir

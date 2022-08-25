@@ -157,11 +157,11 @@ let main args =
 </tr>
 <tr>
 <td><a href="#add_cookie">add_cookie</a></td>
-<td>Add default cookie authentication into the <code>IServiceCollection</code>.</td>
+<td>Add configured cookie into the <code>IServiceCollection</code>.</td>
 </tr>
 <tr>
-<td><a href="#add_conf_cookies">add_conf_cookies</a></td>
-<td>Add configured cookie(s) authentication into the <code>IServiceCollection</code>.</td>
+<td><a href="#add_cookies">add_cookies</a></td>
+<td>Add configured cookie collection into the <code>IServiceCollection</code>.</td>
 </tr>
 <tr>
 <td><a href="#add_authorization">add_authorization</a></td>
@@ -197,15 +197,17 @@ open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
 
+let cookieScheme = &quot;MyAppScheme&quot;
+
 webHost [||] {
-    add_cookie
+    add_cookie cookieScheme
 
     endpoints [
         get &quot;/&quot; (Response.ofPlainText &quot;Hello world&quot;)
     ]
 }
 </code></pre>
-<h3 id="add_conf_cookies"><code>add_conf_cookies</code></h3>
+<h3 id="add_cookies"><code>add_cookies</code></h3>
 <pre><code class="language-fsharp">open Falco
 open Falco.Routing
 open Falco.HostBuilder
@@ -213,29 +215,29 @@ open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
 
-let appAuthScheme = &quot;MyApp&quot;
+let cookieScheme = &quot;MyApp&quot;
 
 let authConfig
     (scheme : string)
-    (opetions : AuthenticationOptions) =
-    options.DefaultChallengeScheme &lt;- scheme
-    options.DefaultAuthenticateScheme &lt;- scheme
+    (options : AuthenticationOptions) =
     options.DefaultScheme &lt;- scheme
 
 let cookieConfig
     let cookieOptions
         (scheme : string)
         (options : CookieAuthenticationOptions) =
+        options.AccessDeniedPath &lt;- &quot;/account/denied&quot;
+        options.LoginPath &lt;- &quot;/account/login&quot;
         options.Cookie.Path &lt;- &quot;/&quot;
         options.Cookie.HttpOnly &lt;- true
         options.Cookie.SameSite &lt;- SameSiteMode.Strict
         options.Cookie.SecurePolicy &lt;- CookieSecurePolicy.Always
 
-    [ appAuthScheme, cookieOptions appAuthScheme ]
+    [ cookieScheme, cookieOptions cookieScheme ]
 
 webHost [||] {
     endpoints [
-        add_conf_cookies authConfig cookieConfig
+        add_cookies authConfig cookieConfig
 
         get &quot;/&quot; (Response.ofPlainText &quot;Hello world&quot;)
     ]
@@ -489,6 +491,9 @@ webHost [||] {
 </tbody>
 </table>
 <h3 id="add_service"><code>add_service</code></h3>
+<blockquote>
+<p>Note the use of the <a href="#configuration-builder"><code>ConfigurationBuiler</code></a></p>
+</blockquote>
 <pre><code class="language-fsharp">open Falco
 open Falco.Routing
 open Falco.HostBuilder
