@@ -28,15 +28,15 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
 
             for (verb, handler) in endpoint.Handlers do
                 let routeNameMetadata = RouteNameMetadata(endpoint.Pattern)
-                
+
                 let verbStr = verb.ToString()
-                let displayName = if strEmpty verbStr then endpoint.Pattern else strConcat [|verbStr; " "; endpoint.Pattern|]                
+                let displayName = if strEmpty verbStr then endpoint.Pattern else strConcat [|verbStr; " "; endpoint.Pattern|]
                 let httpMethodMetadata = HttpVerb.toHttpMethodMetadata verb
-                
+
                 let metadata = EndpointMetadataCollection(routeNameMetadata, httpMethodMetadata)
-                
+
                 let requestDelegate = HttpHandler.toRequestDelegate handler
-                
+
                 RouteEndpoint(requestDelegate, routePattern, DefaultOrder, metadata, displayName) :> Endpoint |]
 
     override _.Endpoints = endpoints :> _

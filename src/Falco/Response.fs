@@ -9,9 +9,6 @@ open System.Text.Json
 open System.Threading.Tasks
 open Falco.Markup
 open Falco.Security
-#if NETCOREAPP3_1 || NET5_0
-    open FSharp.Control.Tasks
-#endif
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
@@ -191,11 +188,7 @@ let ofJsonOptions
     (options : JsonSerializerOptions)
     (obj : 'a) : HttpHandler =
     let jsonHandler : HttpHandler = fun ctx ->
-        #if NETCOREAPP3_1 || NET5_0
-        unitTask {
-        #else
         task {
-        #endif
             use str = new MemoryStream()
             do! JsonSerializer.SerializeAsync(str, obj, options = options)
             let bytes = str.ToArray ()
@@ -219,11 +212,7 @@ let signInAndRedirect
     (authScheme : string)
     (claimsPrincipal : ClaimsPrincipal)
     (url : string) : HttpHandler = fun ctx ->
-    #if NETCOREAPP3_1 || NET5_0
-    unitTask {
-    #else
     task {
-    #endif
         do! Auth.signIn authScheme claimsPrincipal ctx
         do! redirectTemporarily url ctx
     }
@@ -234,11 +223,7 @@ let signInOptionsAndRedirect
     (claimsPrincipal : ClaimsPrincipal)
     (options : AuthenticationProperties)
     (url : string) : HttpHandler = fun ctx ->
-    #if NETCOREAPP3_1 || NET5_0
-    unitTask {
-    #else
     task {
-    #endif
         do! Auth.signInOptions authScheme claimsPrincipal options ctx
         do! redirectTemporarily url ctx
     }
@@ -247,11 +232,7 @@ let signInOptionsAndRedirect
 let signOutAndRedirect
     (authScheme : string)
     (url : string) : HttpHandler = fun ctx ->
-    #if NETCOREAPP3_1 || NET5_0
-    unitTask {
-    #else
     task {
-    #endif
         do! Auth.signOut authScheme ctx
         do! redirectTemporarily url ctx
     }
@@ -262,11 +243,7 @@ let signOutAndRedirect
 let challengeWithRedirect
     (authScheme : string)
     (redirectUri : string) : HttpHandler = fun ctx ->
-    #if NETCOREAPP3_1 || NET5_0
-    unitTask {
-    #else
     task {
-    #endif
         let properties = AuthenticationProperties(RedirectUri = redirectUri)
         do! Auth.challenge authScheme properties ctx
     }

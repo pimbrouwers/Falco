@@ -188,35 +188,34 @@ module Router =
             delete "/users/{id:guid}" (Auth.hasScope AuthConfig.deleteUsersPolicy UserHandlers.delete)
         ]
 
-[<EntryPoint>]
-let main args =
-    let authService (svc : IServiceCollection) =
-        let createTokenValidationParameters () =
-            let tvp = new TokenValidationParameters()
-            tvp.NameClaimType <- ClaimTypes.NameIdentifier
-            tvp
+// ------------
+// Register services
+// ------------
+let authService (svc : IServiceCollection) =
+    let createTokenValidationParameters () =
+        let tvp = new TokenValidationParameters()
+        tvp.NameClaimType <- ClaimTypes.NameIdentifier
+        tvp
 
-        svc.AddAuthentication(fun options ->
-            options.DefaultAuthenticateScheme <- JwtBearerDefaults.AuthenticationScheme
-            options.DefaultChallengeScheme <- JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(fun options ->
-                options.Authority <- AuthConfig.authority
-                options.Audience <- AuthConfig.audience
-                options.TokenValidationParameters <- createTokenValidationParameters()) |> ignore
+    svc.AddAuthentication(fun options ->
+        options.DefaultAuthenticateScheme <- JwtBearerDefaults.AuthenticationScheme
+        options.DefaultChallengeScheme <- JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(fun options ->
+            options.Authority <- AuthConfig.authority
+            options.Audience <- AuthConfig.audience
+            options.TokenValidationParameters <- createTokenValidationParameters()) |> ignore
 
-        svc
+    svc
 
-    let memoryStorageService (svc : IServiceCollection) =
-        svc.AddSingleton<IStorage, MemoryStorage>(fun _ -> MemoryStorage())
+let memoryStorageService (svc : IServiceCollection) =
+    svc.AddSingleton<IStorage, MemoryStorage>(fun _ -> MemoryStorage())
 
-    webHost args {
-        add_service authService
-        add_service memoryStorageService
+webHost [||] {
+    add_service authService
+    add_service memoryStorageService
 
-        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler ErrorPages.serverError)
-        use_authentication
+    use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler ErrorPages.serverError)
+    use_authentication
 
-        endpoints Router.endpoints
-    }
-
-    0
+    endpoints Router.endpoints
+}

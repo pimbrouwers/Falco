@@ -4,14 +4,11 @@ open Falco
 open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
-open Microsoft.AspNetCore.Builder
-
-let exceptionHandler : HttpHandler =
-    Response.withStatusCode 500 >> Response.ofPlainText "Server error"
 
 /// ANY /
 let handlePlainText : HttpHandler =
-    Response.ofPlainText "Hello world"
+    // Response.ofPlainText "Hello world"
+    fun ctx -> failwith "EXCEPTION"
 
 /// GET /json
 let handleJson : HttpHandler =
@@ -27,23 +24,14 @@ let handleHtml : HttpHandler =
 
     Response.ofHtml html
 
-[<EntryPoint>]
-let main args =
-    webHost args {
-        use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
-        use_https
-        use_compression
-        use_static_files
+webHost [||] {
+    use_https
 
-        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
+    endpoints [
+        get "/html" handleHtml
 
-        endpoints [
-            get "/html" handleHtml
+        get "/json" handleJson
 
-            get "/json" handleJson
-
-            any "/" handlePlainText
-        ]
-    }
-    0
+        any "/" handlePlainText
+    ]
+}

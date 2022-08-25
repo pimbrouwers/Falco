@@ -43,7 +43,7 @@ type IApplicationBuilder with
     /// Activate Falco integration with IEndpointRouteBuilder
     member x.UseFalco (endpoints : HttpEndpoint list) =
         x.UseRouting()
-            .UseEndpoints(fun r -> r.UseFalcoEndpoints(endpoints))
+         .UseEndpoints(fun r -> r.UseFalcoEndpoints(endpoints))
 
     /// Register a Falco HttpHandler as exception handler lambda
     /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda

@@ -35,8 +35,8 @@ let main args =
 | Operation | Description |
 | --------- | ----------- |
 | [add_antiforgery](#add_antiforgery) | Add Antiforgery support into the `IServiceCollection`. |
-| [add_cookie](#add_cookie) | Add default cookie authentication into the `IServiceCollection`. |
-| [add_conf_cookies](#add_conf_cookies) | Add configured cookie(s) authentication into the `IServiceCollection`. |
+| [add_cookie](#add_cookie) | Add configured cookie into the `IServiceCollection`. |
+| [add_cookies](#add_cookies) | Add configured cookie collection into the `IServiceCollection`. |
 | [add_authorization](#add_authorization) | Add default Authorization into the `IServiceCollection`. |
 | [add_data_protection](#add_data_protection) | Add file system based data protection. |
 | [add_http_client](#add_http_client) | Add IHttpClientFactory into the `IServiceCollection` |
@@ -66,8 +66,10 @@ open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
 
+let cookieScheme = "MyAppScheme"
+
 webHost [||] {
-    add_cookie
+    add_cookie cookieScheme
 
     endpoints [
         get "/" (Response.ofPlainText "Hello world")
@@ -75,7 +77,7 @@ webHost [||] {
 }
 ```
 
-### `add_conf_cookies`
+### `add_cookies`
 
 ```fsharp
 open Falco
@@ -85,29 +87,29 @@ open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
 
-let appAuthScheme = "MyApp"
+let cookieScheme = "MyApp"
 
 let authConfig
     (scheme : string)
-    (opetions : AuthenticationOptions) =
-    options.DefaultChallengeScheme <- scheme
-    options.DefaultAuthenticateScheme <- scheme
+    (options : AuthenticationOptions) =
     options.DefaultScheme <- scheme
 
 let cookieConfig
     let cookieOptions
         (scheme : string)
         (options : CookieAuthenticationOptions) =
+        options.AccessDeniedPath <- "/account/denied"
+        options.LoginPath <- "/account/login"
         options.Cookie.Path <- "/"
         options.Cookie.HttpOnly <- true
         options.Cookie.SameSite <- SameSiteMode.Strict
         options.Cookie.SecurePolicy <- CookieSecurePolicy.Always
 
-    [ appAuthScheme, cookieOptions appAuthScheme ]
+    [ cookieScheme, cookieOptions cookieScheme ]
 
 webHost [||] {
     endpoints [
-        add_conf_cookies authConfig cookieConfig
+        add_cookies authConfig cookieConfig
 
         get "/" (Response.ofPlainText "Hello world")
     ]

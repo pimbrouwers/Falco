@@ -11,19 +11,10 @@ let exceptionHandler : HttpHandler =
 
 [<EntryPoint>]
 let main args =
-    let config = configuration args {
-        required_json "appsettings.json"
-        optional_json (String.Concat([|"appsettings."; env; ".json"|]))
-        add_env
-    }
-
     webHost args {
         use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
         use_https
         use_static_files
-
-        use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-        use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler exceptionHandler)
 
         endpoints []
     }

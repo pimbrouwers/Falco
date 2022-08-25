@@ -1,15 +1,16 @@
-namespace Falco.Scriban
+module Falco.Scriban.Program
 
 open System.IO
 open System.Threading.Tasks
 open Falco
 open Falco.Routing
 open Falco.HostBuilder
-open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
 open Scriban
-open Scriban.Runtime
 
+// ------------
+// View Engine
+// ------------
 type IViewEngine =
     abstract member RenderAsync : view : string * model : 'a -> ValueTask<string>
 
@@ -20,8 +21,11 @@ type ScribanViewEngine (views : Map<string, Template>) =
             | Some template -> template.RenderAsync(model)
             | None -> failwithf "View '%s' was not found" view
 
+// ------------
+// Response helper func for IViewEngine
+// ------------
 module Response =
-    let renderScriban
+    let renderViewEngine
         (viewEngine : IViewEngine)
         (view : string)
         (model : 'a) : HttpHandler = fun ctx ->
@@ -30,59 +34,59 @@ module Response =
             return Response.ofHtmlString html ctx
         }
 
+// ------------
+// App Middleware
+// ------------
 module Middleware =
     let withViewEngine (next : IViewEngine -> HttpHandler) : HttpHandler = fun ctx ->
         let viewEngine = ctx.RequestServices.GetRequiredService<IViewEngine>()
         next viewEngine ctx
 
-module Handlers =
+// ------------
+// Pages
+// ------------
+module Pages =
     open Middleware
-
-    let exceptionHandler : HttpHandler =
-        Response.withStatusCode 500 >> Response.ofPlainText "Server error"
 
     let homepage : HttpHandler =
         withViewEngine (fun viewEngine ->
             let queryMap (q: QueryCollectionReader) =
-                {|
-                    Name = q.Get "name" "World"
-                |}
+                {| Name = q.Get "name" "World" |}
 
             let next =
-                Response.renderScriban viewEngine "Home"
+                Response.renderViewEngine viewEngine "Home"
 
             Request.mapQuery queryMap next)
 
-module Program =
-    [<EntryPoint>]
-    let main args =
-        // Load & parse views on startup
-        let views =
-            let viewsDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Views")
+// ------------
+// Scriban templates
+// ------------
+let loadScribanTemplates (root : string) =
+    let viewsDirectory = Path.Combine(root, "Views")
 
-            Directory.EnumerateFiles(viewsDirectory)
-            |> Seq.map (fun file ->
-                let viewName = Path.GetFileNameWithoutExtension(file)
-                let viewContent = File.ReadAllText(file)
-                let view = Template.Parse(viewContent)
-                viewName, view)
-            |> Map.ofSeq
+    Directory.EnumerateFiles(viewsDirectory)
+    |> Seq.map (fun file ->
+        let viewName = Path.GetFileNameWithoutExtension(file)
+        let viewContent = File.ReadAllText(file)
+        let view = Template.Parse(viewContent)
+        viewName, view)
+    |> Map.ofSeq
 
-        // Register viewEngine with service collection
-        let scribanService (svc : IServiceCollection) =
-            svc.AddScoped<IViewEngine, ScribanViewEngine>(fun _ ->
-                new ScribanViewEngine(views))
+let templates = loadScribanTemplates (Directory.GetCurrentDirectory())
 
-        webHost args {
-            add_service scribanService
+// ------------
+// Register services
+// ------------
+let scribanService (svc : IServiceCollection) =
+    svc.AddScoped<IViewEngine, ScribanViewEngine>(fun _ ->
+        new ScribanViewEngine(templates))
 
-            use_https
-            use_compression
-            use_if    FalcoExtensions.IsDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage
-            use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler Handlers.exceptionHandler)
+webHost [||] {
+    use_https
 
-            endpoints [
-                get "/" Handlers.homepage
-            ]
-        }
-        0
+    add_service scribanService
+
+    endpoints [
+        get "/" Pages.homepage
+    ]
+}

@@ -1,6 +1,8 @@
 ﻿module Falco.HostBuilder
 
 open System
+open System.Collections.Generic
+open System.IO
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
@@ -16,16 +18,18 @@ open Microsoft.Extensions.Logging
 // Config Builder
 // ------------
 type ConfigurationSpec =
-    { BasePath     : string
-      RequiredJson : string list
-      OptionalJson : string list
-      AddEnvVars   : bool }
+    { AddEnvVars          : bool
+      BasePath            : string
+      ConfigFiles         : string list
+      OptionalConfigFiles : string list
+      InMemoryCollection : Dictionary<string, string> }
 
     static member Empty =
-        { BasePath     = IO.Directory.GetCurrentDirectory()
-          RequiredJson = []
-          OptionalJson = []
-          AddEnvVars   = false }
+        { AddEnvVars          = false
+          BasePath            = Directory.GetCurrentDirectory()
+          ConfigFiles         = []
+          OptionalConfigFiles = []
+          InMemoryCollection  = Dictionary<string, string>() }
 
 type ConfigBuilder (args : string[]) =
     member _.Yield(_) = ConfigurationSpec.Empty
@@ -38,11 +42,26 @@ type ConfigBuilder (args : string[]) =
         if conf.AddEnvVars then
             bldr <- bldr.AddEnvironmentVariables()
 
-        for json in conf.RequiredJson do
-            bldr <- bldr.AddJsonFile(json, optional = false, reloadOnChange = true)
+        for file in conf.ConfigFiles do
+            bldr <-
+                let extension = Path.GetExtension(file).ToUpper()
+                match extension with
+                | "INI"  -> bldr.AddIniFile(file, optional = false, reloadOnChange = true)
+                | "JSON" -> bldr.AddJsonFile(file, optional = false, reloadOnChange = true)
+                | "XML"  -> bldr.AddXmlFile(file, optional = false, reloadOnChange = true)
+                | _ -> failwithf "%s is not a supported file type" extension
 
-        for json in conf.OptionalJson do
-            bldr <- bldr.AddJsonFile(json, optional = true, reloadOnChange = true)
+        for file in conf.OptionalConfigFiles do
+            bldr <-
+                let extension = Path.GetExtension(file).ToUpper()
+                match extension with
+                | "INI"  -> bldr.AddIniFile(file, optional = true, reloadOnChange = true)
+                | "JSON" -> bldr.AddJsonFile(file, optional = true, reloadOnChange = true)
+                | "XML"  -> bldr.AddXmlFile(file, optional = true, reloadOnChange = true)
+                | _ -> failwithf "%s is not a supported file type" extension
+
+        if conf.InMemoryCollection.Keys.Count > 0 then
+            bldr <- bldr.AddInMemoryCollection(conf.InMemoryCollection)
 
         bldr.Build() :> IConfiguration
 
@@ -56,16 +75,22 @@ type ConfigBuilder (args : string[]) =
     member _.AddEnvVars (conf : ConfigurationSpec) =
         { conf with AddEnvVars = true }
 
-    /// Add required JSON file to the ConfigurationBuilder.
-    [<CustomOperation("required_json")>]
-    member _.AddRequiredJsonFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with RequiredJson = filePath :: conf.RequiredJson }
+    /// Add required config (INI/JSON/XML) file to the ConfigurationBuilder.
+    [<CustomOperation("add_file")>]
+    member _.AddConfigFile (conf : ConfigurationSpec, filePath : string) =
+        { conf with ConfigFiles = filePath :: conf.ConfigFiles }
 
-    /// Add optional JSON file to the ConfigurationBuilder.
-    [<CustomOperation("optional_json")>]
+    /// Add optional config (INI/JSON/XML) file to the ConfigurationBuilder.
+    [<CustomOperation("add_file_optional")>]
     member _.AddOptionalJsonFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with OptionalJson = filePath :: conf.OptionalJson }
+        { conf with OptionalConfigFiles = filePath :: conf.OptionalConfigFiles }
 
+    /// Add an in-memory Dictionary<string, string> to the ConfigurationBuilder.
+    ///
+    /// Note: this operation replaces existing Dictionary
+    [<CustomOperation("add_dict")>]
+    member _.AddDict(conf : ConfigurationSpec, dict : Dictionary<string, string>) =
+        { conf with InMemoryCollection = dict }
 
 let configuration args = ConfigBuilder(args)
 
@@ -75,67 +100,55 @@ let configuration args = ConfigBuilder(args)
 
 /// Represents the eventual existence of a runnable IWebhost
 type HostConfig =
-    { WebHost    : IWebHostBuilder -> IWebHostBuilder
-      Logging    : ILoggingBuilder -> ILoggingBuilder
+    { Logging    : ILoggingBuilder -> ILoggingBuilder
       Services   : IServiceCollection -> IServiceCollection
       Middleware : IApplicationBuilder -> IApplicationBuilder
       NotFound   : HttpHandler option
-      Endpoints  : HttpEndpoint list
-      Builder    : HttpEndpoint list -> IWebHostBuilder -> IWebHostBuilder
-      IsCustom   : bool }
+      Endpoints  : HttpEndpoint list }
 
     static member Empty =
-        let defaultBuilder (endpoints : HttpEndpoint list) (webHost : IWebHostBuilder) =
-            let configureServices (services : IServiceCollection) =
-                services.AddFalco() |> ignore
-
-            let configureApp (app : IApplicationBuilder) =
-                app.UseDeveloperExceptionPage()
-                   .UseFalco(endpoints) |> ignore
-
-            webHost.ConfigureServices(configureServices).Configure(configureApp)
-
-        { WebHost    = id
-          Logging    = id
+        { Logging    = id
           Services   = id
           Middleware = id
           NotFound   = None
-          Endpoints  = []
-          Builder    = defaultBuilder
-          IsCustom   = false }
+          Endpoints  = [] }
 
 /// Computation expression to allow for elegant IHost construction
 type HostBuilder(args : string[]) =
     member _.Yield(_) = HostConfig.Empty
 
     member _.Run(conf : HostConfig) =
-        let configure =
-            if conf.IsCustom then
-                let wrappedBuilder = fun bldr -> conf.Builder conf.Endpoints bldr |> ignore
-                Action<IWebHostBuilder>(wrappedBuilder)
-            else
-                let addFalco = fun (services : IServiceCollection) -> services.AddFalco ()
+        let configureLogging (log : ILoggingBuilder) =
+            log |> conf.Logging |> ignore
 
-                let useFalco = fun (app : IApplicationBuilder) -> app.UseFalco (conf.Endpoints)
+        let configureServices (svc : IServiceCollection) =
+            let addFalco = fun (services : IServiceCollection) -> services.AddFalco ()
+            svc |> (addFalco >> conf.Services) |> ignore
 
-                let includeNotFound = fun (app : IApplicationBuilder) ->
-                    match conf.NotFound with
-                    | Some handler -> app.Run(HttpHandler.toRequestDelegate handler)
-                    | None -> ()
+        let configureApp (app : WebApplication) =
+            let useFalco = fun (app : IApplicationBuilder) -> app.UseFalco (conf.Endpoints)
 
-                let wrappedBuilder = fun bldr ->
-                    conf.WebHost(bldr)
-                        .ConfigureLogging(conf.Logging >> ignore)
-                        .ConfigureServices(addFalco >> conf.Services >> ignore)
-                        .Configure(conf.Middleware >> useFalco >> includeNotFound)
-                    |> ignore
+            let devExceptionHandler = fun (app : IApplicationBuilder) ->
+                if FalcoExtensions.IsDevelopment app then app.UseDeveloperExceptionPage()
+                else app
 
-                Action<IWebHostBuilder>(wrappedBuilder)
+            let includeNotFound = fun (app : IApplicationBuilder) ->
+                match conf.NotFound with
+                | Some handler -> app.Run(HttpHandler.toRequestDelegate handler)
+                | None -> ()
 
-        Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(configure)
-            .Build()
-            .Run()
+            (app :> IApplicationBuilder)
+            |> (conf.Middleware >> useFalco >> includeNotFound)
+            |> ignore
+
+        let builder = WebApplication.CreateBuilder(args)
+        configureLogging builder.Logging
+        configureServices builder.Services
+
+        let app = builder.Build()
+        configureApp app
+
+        app.Run()
 
     /// Register Falco HttpEndpoint's
     [<CustomOperation("endpoints")>]
@@ -161,23 +174,27 @@ type HostBuilder(args : string[]) =
     member x.AddAntiforgery (conf : HostConfig) =
         x.AddService (conf, fun s -> s.AddAntiforgery())
 
-    /// Add default cookie authentication into the IServiceCollection.
-    [<CustomOperation("add_cookie")>]
-    member x.AddCookie (conf : HostConfig) =
-        x.AddService (conf, fun s -> s.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie() |> ignore; s)
-
     /// Add configured cookie(s) authentication into the IServiceCollection.
-    [<CustomOperation("add_conf_cookies")>]
-    member x.AddConfiguredCookies (conf : HostConfig, configure : AuthenticationOptions -> unit, cookieConfig : (string * (CookieAuthenticationOptions -> unit)) list) =
+    [<CustomOperation("add_cookies")>]
+    member x.AddCookies (
+        conf : HostConfig,
+        authConfig : AuthenticationOptions -> unit,
+        cookies : (string * (CookieAuthenticationOptions -> unit)) list) =
         let addAuthentication (svc : IServiceCollection) =
-            let x = svc.AddAuthentication(Action<AuthenticationOptions>(configure))
+            let x = svc.AddAuthentication(Action<AuthenticationOptions>(authConfig))
 
-            for (scheme, config) in cookieConfig do
+            for (scheme, config) in cookies do
                 x.AddCookie(scheme, Action<CookieAuthenticationOptions>(config)) |> ignore
 
             svc
 
         x.AddService (conf, addAuthentication)
+
+    /// Add default cookie authentication into the IServiceCollection.
+    [<CustomOperation("add_cookie")>]
+    member x.AddCookie (conf : HostConfig, scheme : string, config : CookieAuthenticationOptions -> unit) =
+        x.AddService (conf, fun s -> s.AddAuthentication(scheme).AddCookie(config) |> ignore; s)
+
 
     /// Add default Authorization into the IServiceCollection.
     [<CustomOperation("add_authorization")>]
