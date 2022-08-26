@@ -9,7 +9,7 @@
   {{ if string.empty title }}
     <title>Falco - F# web toolkit for ASP.NET Core</title>
   {{ else }}
-    <title>{{ title }} - Falco Documentaiton</title>
+    <title>{{ title }} - Falco Documentation</title>
   {{ end}}
   <meta name="description" content="A functional-first toolkit for building brilliant ASP.NET Core applications using F#.">
 
@@ -34,19 +34,23 @@
 <!-- /body -->
 <body class="noto lh-copy">
 
-<div class="mw9 center pa3">
-    <nav class="sidebar w-20-l fl-l">
-        <a href="/docs" class="db w4">
-            <img src="/brand.svg" class="br3" />
-        </a>
-        {{ side_content }}
+<div class="mw9 center pa3 overflow-hidden">
+    <nav class="sidebar w-20-l fl-l mb3 mb0-l">
+        <div class="flex items-center">
+            <a href="/docs" class="db w3 w4-l">
+                <img src="/brand.svg" class="br3" />
+            </a>
+            <h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2>
+        </div>
+        <div class="dn db-l">{{ side_content }}</div>
     </nav>
     <main class="w-80-l fl-l pl3-l">{{ main_content }}</main>
 </div>
 
 <!-- /body/footer -->
-<footer class="tc ph3 pv4">
-  <div class="f6 white-90">&copy; 2020-{{ copyright_year }} Pim Brouwers & contributors.</div>
+<footer class="cl mt4 pa3 bg-merlot">
+  <div class="dn-l white-90">{{ side_content }}</div>
+  <div class="mt4 mt0-l f7 tc white-70">&copy; 2020-{{ copyright_year }} Pim Brouwers & contributors.</div>
 </footer>
 
 <!-- /body/script -->
