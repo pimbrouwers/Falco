@@ -5,15 +5,30 @@ open System.Collections.Generic
 open System.IO
 open System.Text
 open System.Text.Json
-open Falco
-open FSharp.Control.Tasks.V2.ContextInsensitive
+open Falco.HostBuilder
 open FsUnit.Xunit
-open NSubstitute
-open Xunit
-open Microsoft.AspNetCore.Routing
-open Microsoft.Net.Http.Headers
-open Microsoft.AspNetCore.Http
-open Microsoft.Extensions.Primitives
+open Microsoft.Extensions.Configuration
 
 [<Fact>]
-let ``xyz`` () = true
+let ``args should be available`` () =
+    let falcoArgVarKey = "FALCO_ARG_VAR"
+    let falcoArgVar = "--" + falcoArgVarKey + "=TEST"
+    let config : IConfiguration = configuration [|falcoArgVar|] {
+        add_env
+    }
+
+    config.AsEnumerable()
+    |> Seq.exists (fun x -> x.Key = falcoArgVarKey)
+    |> should equal true
+
+[<Fact>]
+let ``add_env should add the environment variables`` () =
+    let falcoEnvVar = "FALCO_ENV_VAR"
+    Environment.SetEnvironmentVariable(falcoEnvVar, "TEST")
+    let config : IConfiguration = configuration [||] {
+        add_env
+    }
+
+    config.AsEnumerable()
+    |> Seq.exists (fun x -> x.Key = falcoEnvVar)
+    |> should equal true

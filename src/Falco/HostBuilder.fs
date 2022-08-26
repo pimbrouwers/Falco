@@ -40,7 +40,7 @@ type ConfigBuilder (args : string[]) =
     member _.Run(conf : ConfigurationSpec) =
         let mutable bldr = ConfigurationBuilder().SetBasePath(conf.BasePath)
 
-        bldr <- bldr.AddCommandLine (args)
+        bldr <- bldr.AddCommandLine(args)
 
         if conf.AddEnvVars then
             bldr <- bldr.AddEnvironmentVariables()

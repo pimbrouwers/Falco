@@ -5,10 +5,11 @@ open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 
+open Microsoft.Extensions.Configuration
+
 /// ANY /
 let handlePlainText : HttpHandler =
-    // Response.ofPlainText "Hello world"
-    fun ctx -> failwith "EXCEPTION"
+    Response.ofPlainText "Hello world"
 
 /// GET /json
 let handleJson : HttpHandler =
