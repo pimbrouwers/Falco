@@ -20,6 +20,7 @@ Create a new F# web project:
 
 ```cmd
 dotnet new web -lang F# -o HelloWorldApp
+cd HelloWorldApp
 ```
 
 Install the nuget package:
@@ -28,7 +29,7 @@ Install the nuget package:
 dotnet add package Falco
 ```
 
-Remove the `Startup.fs` file and save the following in `Program.fs` (if following the manual install path):
+Remove any `*.fs` files created automatically, create a new file named `Program.fs` and set the contents to the following:
 
 ```fsharp
 module HelloWorld.Program
@@ -37,14 +38,11 @@ open Falco
 open Falco.Routing
 open Falco.HostBuilder
 
-[<EntryPoint>]
-let main args =
-    webHost args {
-        endpoints [
-            get "/" (Response.ofPlainText "Hello World")
-        ]
-    }
-    0
+webHost [||] {
+    endpoints [
+        get "/" (Response.ofPlainText "Hello World")
+    ]
+}
 ```
 
 Run the application:
@@ -53,7 +51,7 @@ Run the application:
 dotnet run
 ```
 
-There you have it, an industrial-strength [Hello World](https://github.com/pimbrouwers/Falco/tree/master/samples/) web app, achieved using only base ASP.NET Core libraries. Pretty sweet!
+And there you have it, an industrial-strength [Hello World](https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld) web app. Pretty sweet!
 
 ## Sample Applications
 

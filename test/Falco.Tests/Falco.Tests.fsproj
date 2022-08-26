@@ -39,8 +39,11 @@
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <!--<PackageReference Update="FSharp.Core" Version="4.7.1" />-->
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

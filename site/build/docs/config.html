@@ -107,13 +107,13 @@
 <td></td>
 </tr>
 <tr>
-<td>[config_file]</td>
+<td>[required_json]</td>
 <td>Add required [INI</td>
 <td>JSON</td>
 <td>XML] file to the <code>ConfigurationBuilder</code>.</td>
 </tr>
 <tr>
-<td>[config_file_optional]</td>
+<td>[optional_json]</td>
 <td>Add optional [INI</td>
 <td>JSON</td>
 <td>XML] file to the <code>ConfigurationBuilder</code>.</td>
@@ -134,8 +134,8 @@ let main args =
 
     let config = configuration args {
         add_env
-        config_file &quot;appsettings.json&quot;
-        config_file_optional (String.Concat([|&quot;appsettings.&quot;; env; &quot;.json&quot;|]))
+        required_json &quot;appsettings.json&quot;
+        optional_json (String.Concat([|&quot;appsettings.&quot;; env; &quot;.json&quot;|]))
     }
 
     // ...

@@ -93,30 +93,28 @@
 <h2 id="manually-installing">Manually installing</h2>
 <p>Create a new F# web project:</p>
 <pre><code class="language-cmd">dotnet new web -lang F# -o HelloWorldApp
+cd HelloWorldApp
 </code></pre>
 <p>Install the nuget package:</p>
 <pre><code class="language-cmd">dotnet add package Falco
 </code></pre>
-<p>Remove the <code>Startup.fs</code> file and save the following in <code>Program.fs</code> (if following the manual install path):</p>
+<p>Remove any <code>*.fs</code> files created automatically, create a new file named <code>Program.fs</code> and set the contents to the following:</p>
 <pre><code class="language-fsharp">module HelloWorld.Program
 
 open Falco
 open Falco.Routing
 open Falco.HostBuilder
 
-[&lt;EntryPoint&gt;]
-let main args =
-    webHost args {
-        endpoints [
-            get &quot;/&quot; (Response.ofPlainText &quot;Hello World&quot;)
-        ]
-    }
-    0
+webHost [||] {
+    endpoints [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello World&quot;)
+    ]
+}
 </code></pre>
 <p>Run the application:</p>
 <pre><code class="language-cmd">dotnet run
 </code></pre>
-<p>There you have it, an industrial-strength <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/">Hello World</a> web app, achieved using only base ASP.NET Core libraries. Pretty sweet!</p>
+<p>And there you have it, an industrial-strength <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld">Hello World</a> web app. Pretty sweet!</p>
 <h2 id="sample-applications">Sample Applications</h2>
 <p>Code is worth a thousand words. For the most up-to-date usage, the <a href="https://github.com/pimbrouwers/Falco/tree/master/samples/">samples</a> directory contains a few sample applications.</p>
 </main>

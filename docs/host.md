@@ -1,6 +1,6 @@
 # Host Configuration
 
-[Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel) is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. To make things more expressive, Falco exposes an optional computation expression.
+[Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel) is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people.
 
 ## Registering Services
 
@@ -348,9 +348,8 @@ type DbConnectionFactory (connectionString : string) =
 [<EntryPoint>]
 let main args =
     // Using the ConfigurationBuilder
-    let config = configuration args {
+    let config = configuration [||] {
         required_json "appsettings.json"
-        add_env
     }
 
     // Register our database connection factory service

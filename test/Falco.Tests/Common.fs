@@ -15,8 +15,6 @@ open Microsoft.Net.Http.Headers
 open NSubstitute
 open System.Collections.Generic
 
-open type HeaderNames
-
 let shouldBeSome pred (option : Option<'a>) =
     match option with
     | Some o -> pred o
@@ -52,8 +50,8 @@ type TestingHandler(options, logger, encoder, clock) =
 
   override me.HandleChallengeAsync(properties) =
       me.Context.Response.StatusCode <- 401
-      me.Context.Response.Headers.SetCommaSeparatedValues(WWWAuthenticate, AuthScheme)
-      me.Context.Response.Headers.Add(Location, properties.RedirectUri)
+      me.Context.Response.Headers.SetCommaSeparatedValues(HeaderNames.WWWAuthenticate, AuthScheme)
+      me.Context.Response.Headers.Add(HeaderNames.Location, properties.RedirectUri)
       Task.CompletedTask
 
 

@@ -40,27 +40,27 @@ type ConfigBuilder (args : string[]) =
     member _.Run(conf : ConfigurationSpec) =
         let mutable bldr = ConfigurationBuilder().SetBasePath(conf.BasePath)
 
-        bldr <- bldr.AddCommandLine(args)
+        bldr.AddCommandLine(args) |> ignore
 
         if conf.AddEnvVars then
-            bldr <- bldr.AddEnvironmentVariables()
+            bldr.AddEnvironmentVariables() |> ignore
 
         for file in conf.RequiredFiles do
-            bldr <-
-                match file with
-                | IniFile file  -> bldr.AddIniFile(file, optional = false, reloadOnChange = true)
-                | JsonFile file -> bldr.AddJsonFile(file, optional = false, reloadOnChange = true)
-                | XmlFile file  -> bldr.AddXmlFile(file, optional = false, reloadOnChange = true)
+            match file with
+            | IniFile file  -> bldr.AddIniFile(file, optional = false, reloadOnChange = true)
+            | JsonFile file -> bldr.AddJsonFile(file, optional = false, reloadOnChange = true)
+            | XmlFile file  -> bldr.AddXmlFile(file, optional = false, reloadOnChange = true)
+            |> ignore
 
         for file in conf.OptionalFiles do
-            bldr <-
-                match file with
-                | IniFile file  -> bldr.AddIniFile(file, optional = true, reloadOnChange = true)
-                | JsonFile file -> bldr.AddJsonFile(file, optional = true, reloadOnChange = true)
-                | XmlFile file  -> bldr.AddXmlFile(file, optional = true, reloadOnChange = true)
+            match file with
+            | IniFile file  -> bldr.AddIniFile(file, optional = true, reloadOnChange = true)
+            | JsonFile file -> bldr.AddJsonFile(file, optional = true, reloadOnChange = true)
+            | XmlFile file  -> bldr.AddXmlFile(file, optional = true, reloadOnChange = true)
+            |> ignore
 
         if conf.InMemory.Keys.Count > 0 then
-            bldr <- bldr.AddInMemoryCollection(conf.InMemory)
+            bldr.AddInMemoryCollection(conf.InMemory) |> ignore
 
         bldr.Build() :> IConfiguration
 
@@ -75,11 +75,11 @@ type ConfigBuilder (args : string[]) =
         { conf with AddEnvVars = true }
 
     /// Add an in-memory collection to the ConfigurationBuilder.
+    ///
+    /// Note: This is operation replaces the existing In Memory Collection.
     [<CustomOperation("in_memory")>]
     member _.AddInMemoryValues (conf : ConfigurationSpec, pairs : (string * string) seq) =
-        let inMemory =
-            (conf.InMemory, pairs)
-            ||> Seq.fold (fun m (k, v) -> m.Add(k, v))
+        let inMemory = Map.ofSeq pairs
         { conf with InMemory = inMemory }
 
     /// Add required config INI file to the ConfigurationBuilder.

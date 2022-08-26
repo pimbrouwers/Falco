@@ -83,7 +83,7 @@
         </ul>
     </nav>
     <main class="w-80-l fl-l pl3-l"><h1 id="host-configuration">Host Configuration</h1>
-<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel">Kestrel</a> is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people. To make things more expressive, Falco exposes an optional computation expression.</p>
+<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel">Kestrel</a> is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people.</p>
 <h2 id="registering-services">Registering Services</h2>
 <table>
 <thead>
@@ -455,9 +455,8 @@ type DbConnectionFactory (connectionString : string) =
 [&lt;EntryPoint&gt;]
 let main args =
     // Using the ConfigurationBuilder
-    let config = configuration args {
+    let config = configuration [||] {
         required_json &quot;appsettings.json&quot;
-        add_env
     }
 
     // Register our database connection factory service
