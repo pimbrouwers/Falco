@@ -49,9 +49,13 @@ table { text-align: left; border-collapse: collapse }
 td, th { padding: .5rem; border-bottom: 1px solid var(--silver) }
 
 /* code */
-code[class*="language-"], pre[class*="language-"] { font-size: .875rem }
+code[class*="language-"], pre[class*="language-"] { font-size: .75rem }
 pre[class*="language-"] { padding: 1rem }
 pre { overflow-x: auto; overflow-wrap: normal; white-space: pre; font-size: .875rem; margin: 1rem 0; padding: 1rem; color: #eff0f9; background: #333 }
 code { vertical-align: middle; font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; background-color: var(--washed-purple) }
 pre > code { background-color: inherit }
 h2 > code, h3 > code, p > code { padding: 0 .25rem }
+
+@media screen and (min-width: 60em) {
+    code[class*="language-"], pre[class*="language-"] { font-size: .875rem }
+}
