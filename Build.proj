@@ -1,0 +1,29 @@
+<Project DefaultTargets="Build">
+  <Import Project="Directory.Build.props" />
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+
+    <CleanCmd>dotnet clean src -c $(Configuration) --nologo --verbosity quiet</CleanCmd>
+    <RestoreCmd>dotnet restore src --force --force-evaluate --nologo --verbosity quiet</RestoreCmd>
+    <BuildCmd>dotnet build src -c $(Configuration)</BuildCmd>
+    <TestCmd>dotnet test src -c $(Configuration) --no-restore</TestCmd>
+  </PropertyGroup>
+
+  <Target Name="Clean">
+    <Message Importance="High" Text="$(CleanCmd)" />
+    <Exec Command="$(CleanCmd)" />
+    <Message Importance="High" Text="$(RestoreCmd)" />
+    <Exec Command="$(RestoreCmd)" />
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="Clean">
+    <Message Importance="High" Text="$(BuildCmd)" />
+    <Exec Command="$(BuildCmd)" />
+  </Target>
+
+  <Target Name="Test" DependsOnTargets="Clean">
+    <Message Importance="High" Text="$(TestCmd)" />
+    <Exec Command="$(TestCmd)" UseUtf8Encoding="Always"/>
+  </Target>
+</Project>

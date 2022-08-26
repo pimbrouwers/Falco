@@ -9,6 +9,7 @@ open Xunit
 let configHasKey (key : string) (config : IConfiguration) =
     config.AsEnumerable()
     |> Seq.exists (fun x -> x.Key = key)
+
 [<Fact>]
 let ``args should be available`` () =
     let falcoArgVarKey = "FALCO_ARG_VAR"
@@ -44,6 +45,7 @@ let ``in_memory should add the collection of values`` () =
     |> configHasKey falcoMemVarKey
     |> should equal true
 
+// JSON
 [<Fact>]
 let ``required_json should add the JSON file`` () =
     let falcoJsonVar = "FALCO_JSON_VAR"
@@ -75,4 +77,72 @@ let ``optional_json should not throw error for missing file`` () =
 
     config
     |> configHasKey falcoJsonVar
+    |> should equal false
+
+// INI
+[<Fact>]
+let ``required_ini should add the INI file`` () =
+    let falcoIniVar = "FALCO_INI_VAR"
+    let config : IConfiguration = configuration [||] {
+        required_ini "appsettings.ini"
+    }
+
+    config
+    |> configHasKey falcoIniVar
+    |> should equal true
+
+[<Fact>]
+let ``optional_ini should add the INI file`` () =
+    let falcoIniVar = "FALCO_INI_VAR"
+    let config : IConfiguration = configuration [||] {
+        optional_ini "appsettings.ini"
+    }
+
+    config
+    |> configHasKey falcoIniVar
+    |> should equal true
+
+[<Fact>]
+let ``optional_ini should not throw error for missing file`` () =
+    let falcoIniVar = "FALCO_INI_VAR"
+    let config : IConfiguration = configuration [||] {
+        optional_ini "fake.ini"
+    }
+
+    config
+    |> configHasKey falcoIniVar
+    |> should equal false
+
+// XML
+[<Fact>]
+let ``required_xml should add the XML file`` () =
+    let falcoXmlVar = "FALCO_XML_VAR"
+    let config : IConfiguration = configuration [||] {
+        required_xml "appsettings.xml"
+    }
+
+    config
+    |> configHasKey falcoXmlVar
+    |> should equal true
+
+[<Fact>]
+let ``optional_xml should add the XML file`` () =
+    let falcoXmlVar = "FALCO_XML_VAR"
+    let config : IConfiguration = configuration [||] {
+        optional_xml "appsettings.xml"
+    }
+
+    config
+    |> configHasKey falcoXmlVar
+    |> should equal true
+
+[<Fact>]
+let ``optional_xml should not throw error for missing file`` () =
+    let falcoXmlVar = "FALCO_XML_VAR"
+    let config : IConfiguration = configuration [||] {
+        optional_xml "fake.xml"
+    }
+
+    config
+    |> configHasKey falcoXmlVar
     |> should equal false

@@ -41,7 +41,7 @@
 
 
   <ItemGroup>
-    <Content Include="appsettings.json">
+    <Content Include="appsettings.json;appsettings.ini;appsettings.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
