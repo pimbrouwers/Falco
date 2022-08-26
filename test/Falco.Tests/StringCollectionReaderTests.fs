@@ -11,12 +11,12 @@ open Microsoft.Extensions.Primitives
 
 [<Fact>]
 let ``Can make QueryCollectionReader from IQueryCollection`` () =
-    QueryCollectionReader(QueryCollection(Dictionary()))        
+    QueryCollectionReader(QueryCollection(Dictionary()))
     |> should not' throw
 
 [<Fact>]
 let ``Can make HeaderCollectionReader from HeaderDictionary`` () =
-    HeaderCollectionReader(HeaderDictionary())        
+    HeaderCollectionReader(HeaderDictionary())
     |> should not' throw
 
 [<Fact>]
@@ -26,14 +26,14 @@ let ``Can make RouteCollectionReader from RouteValueDictionary`` () =
 
 [<Fact>]
 let ``Can make FormCollectionReader from IFormCollection`` () =
-    FormCollectionReader(FormCollection(Dictionary()), Some (FormFileCollection() :> IFormFileCollection))        
+    FormCollectionReader(FormCollection(Dictionary()), Some (FormFileCollection() :> IFormFileCollection))
     |> should not' throw
 
 [<Fact>]
 let ``StringCollectionReader value lookups are case-insensitive`` () =
-    let values = 
-        [ 
-            "FString", [|"John Doe"; "Jane Doe"|] |> StringValues                
+    let values =
+        [
+            "FString", [|"John Doe"; "Jane Doe"|] |> StringValues
         ]
         |> Map.ofList
         |> fun m -> Dictionary(m)
@@ -50,15 +50,15 @@ let ``StringCollectionReader value lookups are case-insensitive`` () =
     scr.GetArray "fString" |> should equal [|"John Doe";"Jane Doe"|]
     scr.GetArray "fstriNG" |> should equal [|"John Doe";"Jane Doe"|]
 
-[<Fact>] 
+[<Fact>]
 let ``Inline StringCollectionReader from form collection should resolve primitives`` () =
     let now = DateTime.Now.ToString()
     let offsetNow = DateTimeOffset.Now.ToString()
     let timespan = TimeSpan.FromSeconds(1.0).ToString()
     let guid = Guid().ToString()
-     
-    let values = 
-        [ 
+
+    let values =
+        [
             "emptystring", [|""|]
             "fstring", [|"John Doe"; "";""; "Jane Doe";""|]
             "fint16", [|"16";"";"17"|]
@@ -77,8 +77,8 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
         |> fun m -> Dictionary(m)
 
 
-    let scr = FormCollectionReader(FormCollection(values), Some (FormFileCollection() :> IFormFileCollection))        
-    
+    let scr = FormCollectionReader(FormCollection(values), Some (FormFileCollection() :> IFormFileCollection))
+
     // single values
     scr.TryGetString "_fstring"                  |> shouldBeNone
     scr.TryGetString "fstring"                   |> shouldBeSome (should equal "John Doe")
@@ -109,20 +109,20 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
     scr.GetTimeSpan "ftimespan" TimeSpan.MinValue                   |> should equal (TimeSpan.Parse(timespan))
     scr.GetGuid "fguid" Guid.Empty                                  |> should equal (Guid.Parse(guid))
 
-    scr.GetString "_fstring" "default_value"                         |> should equal  "default_value"                    
-    scr.GetStringNonEmpty "_fstring" "default_value"                 |> should equal  "default_value"            
-    scr.GetInt16 "_fint16" -1s                                       |> should equal  -1s                                  
-    scr.GetInt32 "_fint32" -1                                        |> should equal  -1                                   
-    scr.GetInt "_fint32" -1                                          |> should equal  -1                                     
-    scr.GetInt64 "_fint64" 1L                                        |> should equal  1L                                   
-    scr.GetBoolean "_fbool" false                                    |> should equal  false                               
-    scr.GetFloat "_ffloat" 0.0                                       |> should equal  0.0                                  
-    scr.GetDecimal "_fdecimal" 0.0M                                  |> should equal  0.0M                             
-    scr.GetDateTime "_fdatetime" DateTime.MinValue                   |> should equal  DateTime.MinValue   
+    scr.GetString "_fstring" "default_value"                         |> should equal  "default_value"
+    scr.GetStringNonEmpty "_fstring" "default_value"                 |> should equal  "default_value"
+    scr.GetInt16 "_fint16" -1s                                       |> should equal  -1s
+    scr.GetInt32 "_fint32" -1                                        |> should equal  -1
+    scr.GetInt "_fint32" -1                                          |> should equal  -1
+    scr.GetInt64 "_fint64" 1L                                        |> should equal  1L
+    scr.GetBoolean "_fbool" false                                    |> should equal  false
+    scr.GetFloat "_ffloat" 0.0                                       |> should equal  0.0
+    scr.GetDecimal "_fdecimal" 0.0M                                  |> should equal  0.0M
+    scr.GetDateTime "_fdatetime" DateTime.MinValue                   |> should equal  DateTime.MinValue
     scr.GetDateTimeOffset "_fdatetimeoffset" DateTimeOffset.MinValue |> should equal  DateTimeOffset.MinValue
-    scr.GetTimeSpan "_ftimespan" TimeSpan.MinValue                   |> should equal  TimeSpan.MinValue              
-    scr.GetGuid "_fguid" Guid.Empty                                  |> should equal  Guid.Empty                             
-    
+    scr.GetTimeSpan "_ftimespan" TimeSpan.MinValue                   |> should equal  TimeSpan.MinValue
+    scr.GetGuid "_fguid" Guid.Empty                                  |> should equal  Guid.Empty
+
     // array values
     scr.GetStringArray "_fstring"                |> should equal [||]
     scr.GetStringArray "fstring"                 |> should equal [|"John Doe"; "";""; "Jane Doe";""|]
@@ -139,3 +139,49 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
     scr.GetDateTimeOffsetArray "fdatetimeoffset" |> should equal [|DateTimeOffset.Parse(offsetNow)|]
     scr.GetTimeSpanArray "ftimespan"             |> should equal [|TimeSpan.Parse(timespan)|]
     scr.GetGuidArray "fguid"                     |> should equal [|Guid.Parse(guid)|]
+
+[<Fact>]
+let ``StringCollectionReader.GetChildren should produce empty list`` () =
+    StringCollectionReader(Map.empty)
+    |> fun x -> x.GetChildren("person")
+    |> List.isEmpty
+    |> should equal true
+
+[<Fact>]
+let ``StringCollectionReader.GetChildren should produce list of StringCollectionReader`` () =
+    let lst =
+        [
+            "person.first_name", [|"first1"; "first2";"first3"|]
+            "person.last_name", [|"last1"; "last2";"last3"|]
+        ]
+        |> Map.ofList
+        |> fun x -> StringCollectionReader(x)
+        |> fun x -> x.GetChildren("person")
+
+    lst
+    |> List.length
+    |> should equal 3
+
+    for i = 0 to 2 do
+        lst.[i].Get "first_name" "" |> should equal (sprintf "first%i" (i+1))
+        lst.[i].Get "last_name" "" |> should equal (sprintf "last%i" (i+1))
+
+[<Fact>]
+let ``StringCollectionReader.GetChildren should produce list of StringCollectionReader for jagged map`` () =
+    let lst =
+        [
+            "person.first_name", [|"first1"; "first2";|]
+            "person.last_name", [|"last1"; "last2";"last3"|]
+        ]
+        |> Map.ofList
+        |> fun x -> StringCollectionReader(x)
+        |> fun x -> x.GetChildren("person")
+
+    lst
+    |> List.length
+    |> should equal 3
+
+    for i = 0 to 2 do
+        lst.[i].Get "first_name" ""
+        |> if i = 2 then should equal "" else should equal (sprintf "first%i" (i+1))
+        lst.[i].Get "last_name" "" |> should equal (sprintf "last%i" (i+1))

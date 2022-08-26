@@ -3,52 +3,25 @@ module Falco.StringCollectionReader
 
 open System
 open System.Collections.Generic
-open Microsoft.Extensions.Primitives
 open Falco.StringParser
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Routing
 
 /// A safe string collection reader, with type utilities
-[<AbstractClass>]
-type StringCollectionReader internal (values : Map<string, string[]>) =
-
-    new (kvpValues : KeyValuePair<string, StringValues> seq) =
-        let map =
-            kvpValues
-            |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToArray())
-            |> Map.ofSeq
-
-        StringCollectionReader(map)
-
-    new (routeValues : RouteValueDictionary) =
-        let map =
-            routeValues
-            |> Seq.map (fun kvp -> kvp.Key, [|Convert.ToString(kvp.Value, Globalization.CultureInfo.InvariantCulture)|])
-            |> Map.ofSeq
-
-        StringCollectionReader(map)
-
-    new (cookies : IRequestCookieCollection) =
-        let map =
-            cookies
-            |> Seq.map (fun kvp -> kvp.Key, [|kvp.Value|])
-            |> Map.ofSeq
-
-        StringCollectionReader(map)
-
+type StringCollectionReader (values : Map<string, string[]>) =
     /// Safely retrieve string array value from collection
     member private _.TryGetValue (name : string) =
-        let found = 
-            values 
-            |> Map.tryPick (fun key value -> 
-                if StringUtils.strEquals key name then Some value else None) 
+        let found =
+            values
+            |> Map.tryPick (fun key value ->
+                if StringUtils.strEquals key name then Some value else None)
 
         match found with
         | Some v when v.Length > 0 -> Some v
         | _                        -> None
-    
+
     /// Retrieve value from StringCollectionReader
-    member private x.GetValue (name : string) =        
+    member private x.GetValue (name : string) =
         match x.TryGetValue name with
         | Some v -> v
         | None -> failwith (sprintf "Could not find %s" name)
@@ -60,7 +33,40 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
     /// Safely retrieve string array value from collection and apply binder
     member private x.TryGetBindArray (binder : string -> 'a option) (name : string) =
         x.TryGetValue name |> Option.map (tryParseArray binder) |> Option.defaultValue [||]
-        
+
+    member _.GetChildren (name : string) =
+        let childMap =
+            values
+            |> Map.filter (fun key _ ->
+                key.StartsWith(name + ".", StringComparison.OrdinalIgnoreCase))
+
+        if Map.isEmpty childMap then []
+        else
+            let dict = Dictionary<int, Dictionary<string, string list>>()
+
+            for key in childMap.Keys do
+                for i = 0 to childMap.[key].Length - 1 do
+                    let newKey = key.Substring(name.Length + 1)
+                    let newValue = childMap.[key].[i]
+
+                    if dict.ContainsKey i && dict.[i].ContainsKey newKey then
+                        dict.[i].[newKey] <- newValue :: dict.[i].[newKey]
+                    elif dict.ContainsKey i then
+                        dict.[i].Add(newKey,[newValue])
+                    else
+                        let newDict = Dictionary<string, string list>()
+                        newDict.Add(newKey, [newValue])
+                        dict.Add(i, newDict)
+
+            [
+                for Operators.KeyValue (_, childDict) in dict do
+                    [
+                        for Operators.KeyValue (key, value) in childDict do
+                            key, Array.ofList value
+                    ]
+            ]
+            |> List.map (Map.ofList >> StringCollectionReader)
+
     // ------------
     // Primitives
     // ------------
@@ -158,10 +164,10 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
     // ------------
 
     /// Safely retrieve the named String[]
-    member x.GetStringArray (name : string) = x.TryGetBindArray Some name    
+    member x.GetStringArray (name : string) = x.TryGetBindArray Some name
 
     /// Safely retrieve the named String[]
-    member x.GetArray (name : string) = x.TryGetBindArray Some name    
+    member x.GetArray (name : string) = x.TryGetBindArray Some name
 
     /// Safely retrieve the named String[] excluding empty & null values
     member x.GetStringNonEmptyArray (name : string) = x.TryGetBindArray parseNonEmptyString name
@@ -200,8 +206,12 @@ type StringCollectionReader internal (values : Map<string, string[]>) =
     member x.GetTimeSpanArray (name : string) = x.TryGetBindArray parseTimeSpan name
 
 /// Represents a readable collection of parsed form value
+[<Sealed>]
 type FormCollectionReader (form : IFormCollection, files : IFormFileCollection option) =
-    inherit StringCollectionReader (form)
+    inherit StringCollectionReader(
+        form
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToArray())
+        |> Map.ofSeq)
 
     /// The IFormFileCollection submitted in the request.
     ///
@@ -220,18 +230,37 @@ type FormCollectionReader (form : IFormCollection, files : IFormFileCollection o
                 if isNull(file) then None else Some file
 
 /// Represents a readable collection of parsed HTTP header values
+[<Sealed>]
 type HeaderCollectionReader (headers : IHeaderDictionary) =
-    inherit StringCollectionReader (headers)
+    inherit StringCollectionReader (
+        headers
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToArray())
+        |> Map.ofSeq)
 
 /// Represents a readble collection of query string values
+[<Sealed>]
 type QueryCollectionReader (query : IQueryCollection) =
-    inherit StringCollectionReader (query)
+    inherit StringCollectionReader (
+        query
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToArray())
+        |> Map.ofSeq)
 
 /// Represents a readble collection of route values
+[<Sealed>]
 type RouteCollectionReader (route : RouteValueDictionary, query : IQueryCollection) =
-    inherit StringCollectionReader (route)
+    inherit StringCollectionReader (
+        route
+        |> Seq.map (fun kvp ->
+            kvp.Key,
+            [|Convert.ToString(kvp.Value, Globalization.CultureInfo.InvariantCulture)|])
+        |> Map.ofSeq)
+
     member _.Query = QueryCollectionReader(query)
 
 /// Represents a readble collection of cookie values
+[<Sealed>]
 type CookieCollectionReader (cookies: IRequestCookieCollection) =
-    inherit StringCollectionReader(cookies)
+    inherit StringCollectionReader(
+        cookies
+        |> Seq.map (fun kvp -> kvp.Key, [|kvp.Value|])
+        |> Map.ofSeq)
