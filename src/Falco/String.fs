@@ -8,36 +8,36 @@ module StringUtils =
     let inline stringf format (x : ^a) =
         (^a : (member ToString : string -> string) (x, format))
 
-    /// Check if string is null or whitespace
+    /// Check if string is null or whitespace.
     let strEmpty str =
         String.IsNullOrWhiteSpace(str)
 
-    /// Check if string is not null or whitespace
+    /// Check if string is not null or whitespace.
     let strNotEmpty str =
         not(strEmpty str)
 
-    /// Case & culture insensistive string equality
+    /// Case & culture insensistive string equality.
     let strEquals s1 s2 =
         String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)
 
-    /// Concat strings
+    /// Concat strings.
     let strConcat (list : string seq) =
         // String.Concat uses a StringBuilder when provided an IEnumerable
         // Url: https://github.com/microsoft/referencesource/blob/master/mscorlib/system/string.cs#L161
         String.Concat(list)
 
-    /// Join strings with a separator
+    /// Join strings with a separator.
     let strJoin (sep : string) (lst : string seq) =
         // String.Join uses a StringBuilder when provided an IEnumerable
         // Url: https://github.com/microsoft/referencesource/blob/master/mscorlib/system/string.cs#L161
         String.Join(sep, lst)
 
-    /// Split string into substrings based on separator
+    /// Split string into substrings based on separator.
     let strSplit (sep : char array) (str : string) =
         str.Split(sep)
 
 module StringParser =
-    /// Helper to wrap .NET tryParser's
+    /// Helper to wrap .NET tryParser's.
     let tryParseWith (tryParseFunc: string -> bool * _) =
         tryParseFunc >> function
         | true, v    -> Some v
@@ -57,8 +57,11 @@ module StringParser =
     let parseGuid           = tryParseWith Guid.TryParse
 
     /// Attempt to parse boolean from string.
+    ///
     /// Returns None on failure, Some x on success.
-    /// Case-insensitive comparison, and special cases for "yes", "no", "on", "off", "1", "0".
+    ///
+    /// Case-insensitive comparison, and special cases for "yes", "no", "on",
+    /// "off", "1", "0".
     let parseBoolean (value : string) =
         let v = value.ToUpperInvariant ()
 
@@ -67,13 +70,13 @@ module StringParser =
         | "OFF" | "NO" | "0" -> Some false
         | v -> tryParseWith Boolean.TryParse v
 
-    /// Attempt to parse, or failwith message
+    /// Attempt to parse, or failwith message.
     let parseOrFail parser msg v =
         match parser v with
         | Some v -> v
         | None   -> failwith msg
 
-    /// Attempt to parse array, returns none for failure
+    /// Attempt to parse array, returns none for failure.
     let tryParseArray parser ary =
         ary
         |> List.ofArray

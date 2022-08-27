@@ -58,8 +58,8 @@
     <Compile Include="Extensions.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="Multipart.fs" />
-    <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
+    <Compile Include="Request.fs" />
     <Compile Include="ConfigBuilder.fs" />
     <Compile Include="HostBuilder.fs" />
   </ItemGroup>

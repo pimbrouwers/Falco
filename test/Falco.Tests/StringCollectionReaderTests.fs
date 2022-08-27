@@ -33,12 +33,11 @@ let ``Can make FormCollectionReader from IFormCollection`` () =
 let ``StringCollectionReader value lookups are case-insensitive`` () =
     let values =
         [
-            "FString", [|"John Doe"; "Jane Doe"|] |> StringValues
+            "FString", [|"John Doe"; "Jane Doe"|]
         ]
         |> Map.ofList
-        |> fun m -> Dictionary(m)
 
-    let scr = QueryCollectionReader(QueryCollection(values))
+    let scr = StringCollectionReader(values)
 
     // single values
     scr.TryGet "FSTRING" |> shouldBeSome (should equal "John Doe")
@@ -72,12 +71,10 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
             "ftimespan", [|timespan|]
             "fguid", [|guid|]
         ]
-        |> List.map (fun (k, v) -> k, v |> StringValues)
         |> Map.ofList
-        |> fun m -> Dictionary(m)
 
 
-    let scr = FormCollectionReader(FormCollection(values), Some (FormFileCollection() :> IFormFileCollection))
+    let scr = StringCollectionReader(values)
 
     // single values
     scr.TryGetString "_fstring"                  |> shouldBeNone
@@ -144,6 +141,13 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
 let ``StringCollectionReader.GetChildren should produce empty list`` () =
     StringCollectionReader(Map.empty)
     |> fun x -> x.GetChildren("person")
+    |> List.isEmpty
+    |> should equal true
+
+[<Fact>]
+let ``StringCollectionReader.GetChildren should work with incorrect case`` () =
+    StringCollectionReader(Map.empty)
+    |> fun x -> x.GetChildren("PeRsOn")
     |> List.isEmpty
     |> should equal true
 

@@ -3,11 +3,14 @@
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <ProjectDir>$([System.IO.Path]::GetFullPath("$(MSBuildThisFileDirectory)"))</ProjectDir>
 
     <CleanCmd>dotnet clean src -c $(Configuration) --nologo --verbosity quiet</CleanCmd>
     <RestoreCmd>dotnet restore src --force --force-evaluate --nologo --verbosity quiet</RestoreCmd>
     <BuildCmd>dotnet build src -c $(Configuration)</BuildCmd>
-    <TestCmd>dotnet test src -c $(Configuration) --no-restore</TestCmd>
+    <TestCmd>dotnet test src -c $(Configuration)</TestCmd>
+    <TestCoreCmd>dotnet test "$(ProjectDir)\test\Falco.Tests" -c $(Configuration)</TestCoreCmd>
+    <TestMarkup>dotnet test "$(ProjectDir)\test\Falco.Markup.Tests" -c $(Configuration)</TestMarkup>
   </PropertyGroup>
 
   <Target Name="Clean">
@@ -22,8 +25,18 @@
     <Exec Command="$(BuildCmd)" />
   </Target>
 
-  <Target Name="Test" DependsOnTargets="Clean">
+  <Target Name="Test">
     <Message Importance="High" Text="$(TestCmd)" />
     <Exec Command="$(TestCmd)" UseUtf8Encoding="Always"/>
+  </Target>
+
+  <Target Name="TestCore">
+    <Message Importance="High" Text="$(TestCoreCmd)" />
+    <Exec Command="$(TestCoreCmd)" UseUtf8Encoding="Always"/>
+  </Target>
+
+  <Target Name="TestMark">
+    <Message Importance="High" Text="$(TestMarkCmd)" />
+    <Exec Command="$(TestMarkCmd)" UseUtf8Encoding="Always"/>
   </Target>
 </Project>

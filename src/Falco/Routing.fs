@@ -5,7 +5,7 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.FileProviders
 open Falco.StringUtils
 
-/// The process of associating a route and handler
+/// The process of associating a route and handler.
 type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
 
 module HttpVerb =
@@ -42,37 +42,37 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
     override _.Endpoints = endpoints :> _
     override _.GetChangeToken() = NullChangeToken.Singleton :> _
 
-/// Constructor for multi-method HttpEndpoint
+/// Constructor for multi-method HttpEndpoint.
 let all (pattern : string) (handlers : (HttpVerb * HttpHandler) list) : HttpEndpoint =
     { Pattern  = pattern; Handlers = handlers }
 
-/// Constructor for a singular HttpEndpoint
+/// Constructor for a singular HttpEndpoint.
 let route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) : HttpEndpoint =
     all pattern [ verb, handler ]
 
-/// HttpEndpoint constructor that matches any HttpVerb
+/// HttpEndpoint constructor that matches any HttpVerb.
 let any : MapHttpEndpoint = route ANY
 
-/// GET HttpEndpoint constructor
+/// GET HttpEndpoint constructor.
 let get : MapHttpEndpoint = route GET
 
-/// HEAD HttpEndpoint constructor
+/// HEAD HttpEndpoint constructor.
 let head : MapHttpEndpoint = route HEAD
 
-/// POST HttpEndpoint constructor
+/// POST HttpEndpoint constructor.
 let post : MapHttpEndpoint = route POST
 
-/// PUT HttpEndpoint constructor
+/// PUT HttpEndpoint constructor.
 let put : MapHttpEndpoint = route PUT
 
-/// PATCH HttpEndpoint constructor
+/// PATCH HttpEndpoint constructor.
 let patch : MapHttpEndpoint = route PATCH
 
-/// DELETE HttpEndpoint constructor
+/// DELETE HttpEndpoint constructor.
 let delete : MapHttpEndpoint = route DELETE
 
-/// OPTIONS HttpEndpoint constructor
+/// OPTIONS HttpEndpoint constructor.
 let options : MapHttpEndpoint = route OPTIONS
 
-/// TRACE HttpEndpoint construct
+/// TRACE HttpEndpoint construct.
 let trace : MapHttpEndpoint = route TRACE

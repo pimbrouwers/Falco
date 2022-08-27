@@ -19,7 +19,7 @@ module Constants =
 // Errors
 // ------------
 
-/// Represents a missing dependency, thrown on request
+/// Represents a missing dependency, thrown on request.
 exception InvalidDependencyException of string
 
 // ------------
@@ -50,19 +50,20 @@ type HttpVerb =
         | TRACE   -> HttpMethods.Trace
         | ANY     -> String.Empty
 
-/// The eventual return of asynchronous HttpContext processing
+/// The eventual return of asynchronous HttpContext processing.
 type HttpHandler =
     HttpContext -> Task
 
 module HttpHandler =
-    /// Convert HttpHandler to a RequestDelegate
+    /// Convert HttpHandler to a RequestDelegate.
     let toRequestDelegate (handler : HttpHandler) =
         new RequestDelegate(handler)
 
-/// In-and-out processing of a HttpContext
+/// In-and-out processing of a HttpContext.
 type HttpResponseModifier = HttpContext -> HttpContext
 
-/// Specifies an association of a route pattern to a collection of HttpEndpointHandler
+/// Specifies an association of a route pattern to a collection of
+/// HttpEndpointHandler.
 type HttpEndpoint =
     { Pattern  : string
       Handlers : (HttpVerb * HttpHandler) list }

@@ -43,6 +43,7 @@ webHost [||] {
     endpoints [
         any "/"      (Response.ofPlainText "/")
         get "/hello" (Response.ofPlainText "/hello")
+        get "/debug" Request.debug
         all "/form"  [GET, Response.ofPlainText "/form"
                       POST, Request.mapJson Response.ofJson]
     ]
