@@ -1,6 +1,6 @@
 # Response Writing
 
-The `Response` module contains a series of functions that provide support for the most common response types.
+The `HttpHandler` type is used to represent the processing of a request. It can be thought of as the eventual (i.e., asynchronous) completion and processing of an HTTP request, defined in F# as: `HttpContext -> Task`. Handlers will typically involve some combination of: [route inspection](request.md#route-binding), [form](request.md#form-binding)/[query](request.md#query-binding) binding, business logic and finally response writing. With access to the `HttpContext` you are able to inspect all components of the request, and manipulate the response in any way you choose.
 
 ## Plain Text responses
 
@@ -11,7 +11,7 @@ let textHandler : HttpHandler =
 
 ## HTML responses
 
-Write your views in plain F#, directly in your assembly, using the [`Markup`](markup.md) module. A performant F# DSL capable of generating any angle-bracket markup. Also available directly as a standalone [NuGet](https://www.nuget.org/packages/Falco.Markup) package.
+Write your views in plain F#, directly in your assembly, using the [Markup](markup.md) module. A performant F# DSL capable of generating any angle-bracket markup. Also available directly as a standalone [NuGet](https://www.nuget.org/packages/Falco.Markup) package.
 
 ```fsharp
 let htmlHandler : HttpHandler =

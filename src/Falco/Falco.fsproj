@@ -60,6 +60,7 @@
     <Compile Include="Multipart.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
+    <Compile Include="ConfigBuilder.fs" />
     <Compile Include="HostBuilder.fs" />
   </ItemGroup>
 

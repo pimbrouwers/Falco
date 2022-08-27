@@ -1,125 +1,17 @@
-﻿module Falco.HostBuilder
+﻿namespace Falco.HostBuilder
 
 open System
-open System.IO
+open Falco
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.DataProtection
 open Microsoft.AspNetCore.ResponseCompression
-open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
-// ------------
-// Config Builder
-// ------------
-type ConfigFile =
-    | IniFile of path : string
-    | XmlFile of path : string
-    | JsonFile of path : string
-
-type ConfigurationSpec =
-    { AddEnvVars    : bool
-      BasePath      : string
-      RequiredFiles : ConfigFile list
-      OptionalFiles : ConfigFile list
-      InMemory      : Map<string, string> }
-
-    static member Empty =
-        { AddEnvVars    = false
-          BasePath      = Directory.GetCurrentDirectory()
-          RequiredFiles = []
-          OptionalFiles = []
-          InMemory      = Map.empty }
-
-type ConfigBuilder (args : string[]) =
-    member _.Yield(_) = ConfigurationSpec.Empty
-
-    member _.Run(conf : ConfigurationSpec) =
-        let mutable bldr = ConfigurationBuilder().SetBasePath(conf.BasePath)
-
-        bldr.AddCommandLine(args) |> ignore
-
-        if conf.AddEnvVars then
-            bldr.AddEnvironmentVariables() |> ignore
-
-        for file in conf.RequiredFiles do
-            match file with
-            | IniFile file  -> bldr.AddIniFile(file, optional = false, reloadOnChange = true)
-            | JsonFile file -> bldr.AddJsonFile(file, optional = false, reloadOnChange = true)
-            | XmlFile file  -> bldr.AddXmlFile(file, optional = false, reloadOnChange = true)
-            |> ignore
-
-        for file in conf.OptionalFiles do
-            match file with
-            | IniFile file  -> bldr.AddIniFile(file, optional = true, reloadOnChange = true)
-            | JsonFile file -> bldr.AddJsonFile(file, optional = true, reloadOnChange = true)
-            | XmlFile file  -> bldr.AddXmlFile(file, optional = true, reloadOnChange = true)
-            |> ignore
-
-        if conf.InMemory.Keys.Count > 0 then
-            bldr.AddInMemoryCollection(conf.InMemory) |> ignore
-
-        bldr.Build() :> IConfiguration
-
-    /// Set the base path of the ConfigurationBuilder.
-    [<CustomOperation("base_path")>]
-    member _.SetBasePath (conf : ConfigurationSpec, basePath : string) =
-        { conf with BasePath = basePath }
-
-    /// Add Environment Variables to the ConfigurationBuilder.
-    [<CustomOperation("add_env")>]
-    member _.AddEnvVars (conf : ConfigurationSpec) =
-        { conf with AddEnvVars = true }
-
-    /// Add an in-memory collection to the ConfigurationBuilder.
-    ///
-    /// Note: This is operation replaces the existing In Memory Collection.
-    [<CustomOperation("in_memory")>]
-    member _.AddInMemoryValues (conf : ConfigurationSpec, pairs : (string * string) seq) =
-        let inMemory = Map.ofSeq pairs
-        { conf with InMemory = inMemory }
-
-    /// Add required config INI file to the ConfigurationBuilder.
-    [<CustomOperation("required_ini")>]
-    member _.AddRequiredIniFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with RequiredFiles = (IniFile filePath) :: conf.RequiredFiles }
-
-    /// Add optional config INI file to the ConfigurationBuilder.
-    [<CustomOperation("optional_ini")>]
-    member _.AddOptionalIniFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with OptionalFiles = (IniFile filePath) :: conf.OptionalFiles }
-
-    /// Add required config XML file to the ConfigurationBuilder.
-    [<CustomOperation("required_xml")>]
-    member _.AddRequiredXmlFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with RequiredFiles = (XmlFile filePath) :: conf.RequiredFiles }
-
-    /// Add optional config XML file to the ConfigurationBuilder.
-    [<CustomOperation("optional_xml")>]
-    member _.AddOptionalXmlFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with OptionalFiles = (XmlFile filePath) :: conf.OptionalFiles }
-
-    /// Add required config JSON file to the ConfigurationBuilder.
-    [<CustomOperation("required_json")>]
-    member _.AddRequiredJsonFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with RequiredFiles = (JsonFile filePath) :: conf.RequiredFiles }
-
-    /// Add optional config JSON file to the ConfigurationBuilder.
-    [<CustomOperation("optional_json")>]
-    member _.AddOptionalJsonFile (conf : ConfigurationSpec, filePath : string) =
-        { conf with OptionalFiles = (JsonFile filePath) :: conf.OptionalFiles }
-
-let configuration args = ConfigBuilder(args)
-
-// ------------
-// Host Builder
-// ------------
-
-/// Represents the eventual existence of a runnable IWebhost
-type HostConfig =
+type HostBuilderSpec =
     { Logging    : ILoggingBuilder -> ILoggingBuilder
       Services   : IServiceCollection -> IServiceCollection
       Middleware : IApplicationBuilder -> IApplicationBuilder
@@ -135,9 +27,9 @@ type HostConfig =
 
 /// Computation expression to allow for elegant IHost construction
 type HostBuilder(args : string[]) =
-    member _.Yield(_) = HostConfig.Empty
+    member _.Yield(_) = HostBuilderSpec.Empty
 
-    member _.Run(conf : HostConfig) =
+    member _.Run(conf : HostBuilderSpec) =
         let configureLogging (log : ILoggingBuilder) =
             log |> conf.Logging |> ignore
 
@@ -172,7 +64,7 @@ type HostBuilder(args : string[]) =
 
     /// Register Falco HttpEndpoint's
     [<CustomOperation("endpoints")>]
-    member _.Endpoints (conf : HostConfig, endpoints : HttpEndpoint list) =
+    member _.Endpoints (conf : HostBuilderSpec, endpoints : HttpEndpoint list) =
         { conf with Endpoints = endpoints }
 
     // ------------
@@ -181,23 +73,23 @@ type HostBuilder(args : string[]) =
 
     /// Configure logging via ILogger
     [<CustomOperation("logging")>]
-    member _.Logging (conf : HostConfig, fn : ILoggingBuilder -> ILoggingBuilder) =
+    member _.Logging (conf : HostBuilderSpec, fn : ILoggingBuilder -> ILoggingBuilder) =
         { conf with Logging = conf.Logging >> fn }
 
     /// Add a new service descriptor into the IServiceCollection.
     [<CustomOperation("add_service")>]
-    member _.AddService (conf : HostConfig, fn : IServiceCollection -> IServiceCollection) =
+    member _.AddService (conf : HostBuilderSpec, fn : IServiceCollection -> IServiceCollection) =
         { conf with Services = conf.Services >> fn }
 
     /// Add Antiforgery support into the IServiceCollection.
     [<CustomOperation("add_antiforgery")>]
-    member x.AddAntiforgery (conf : HostConfig) =
+    member x.AddAntiforgery (conf : HostBuilderSpec) =
         x.AddService (conf, fun s -> s.AddAntiforgery())
 
     /// Add configured cookie(s) authentication into the IServiceCollection.
     [<CustomOperation("add_cookies")>]
     member x.AddCookies (
-        conf : HostConfig,
+        conf : HostBuilderSpec,
         authConfig : AuthenticationOptions -> unit,
         cookies : (string * (CookieAuthenticationOptions -> unit)) list) =
         let addAuthentication (svc : IServiceCollection) =
@@ -212,18 +104,18 @@ type HostBuilder(args : string[]) =
 
     /// Add default cookie authentication into the IServiceCollection.
     [<CustomOperation("add_cookie")>]
-    member x.AddCookie (conf : HostConfig, scheme : string, config : CookieAuthenticationOptions -> unit) =
+    member x.AddCookie (conf : HostBuilderSpec, scheme : string, config : CookieAuthenticationOptions -> unit) =
         x.AddService (conf, fun s -> s.AddAuthentication(scheme).AddCookie(config) |> ignore; s)
 
 
     /// Add default Authorization into the IServiceCollection.
     [<CustomOperation("add_authorization")>]
-    member x.AddAuthorization (conf : HostConfig) =
+    member x.AddAuthorization (conf : HostBuilderSpec) =
         x.AddService (conf, fun svc -> svc.AddAuthorization())
 
     /// Add file system based data protection.
     [<CustomOperation("add_data_protection")>]
-    member x.AddDataProtection (conf : HostConfig, dir : string) =
+    member x.AddDataProtection (conf : HostBuilderSpec, dir : string) =
         let addDataProtection (svc : IServiceCollection) =
             svc.AddDataProtection().PersistKeysToFileSystem(IO.DirectoryInfo(dir))
             |> ignore
@@ -233,7 +125,7 @@ type HostBuilder(args : string[]) =
 
     /// Add IHttpClientFactory into the IServiceCollection
     [<CustomOperation("add_http_client")>]
-    member x.AddHttpClient (conf : HostConfig) =
+    member x.AddHttpClient (conf : HostBuilderSpec) =
         x.AddService (conf, fun svc -> svc.AddHttpClient())
 
     // ------------
@@ -242,42 +134,42 @@ type HostBuilder(args : string[]) =
 
     /// Use the specified middleware.
     [<CustomOperation("use_middleware")>]
-    member _.Use (conf : HostConfig, fn : IApplicationBuilder -> IApplicationBuilder) =
+    member _.Use (conf : HostBuilderSpec, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = conf.Middleware >> fn }
 
     /// Use the specified middleware if the provided predicate is "true".
     [<CustomOperation("use_if")>]
-    member _.UseIf (conf : HostConfig, pred : IApplicationBuilder -> bool, fn : IApplicationBuilder -> IApplicationBuilder) =
+    member _.UseIf (conf : HostBuilderSpec, pred : IApplicationBuilder -> bool, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = fun app -> if pred app then conf.Middleware(app) |> fn else conf.Middleware(app) }
 
     /// Use the specified middleware if the provided predicate is "true".
     [<CustomOperation("use_ifnot")>]
-    member _.UseIfNot (conf : HostConfig, pred : IApplicationBuilder -> bool, fn : IApplicationBuilder -> IApplicationBuilder) =
+    member _.UseIfNot (conf : HostBuilderSpec, pred : IApplicationBuilder -> bool, fn : IApplicationBuilder -> IApplicationBuilder) =
         { conf with Middleware = fun app -> if not(pred app) then conf.Middleware(app) |> fn else conf.Middleware(app) }
 
     /// Use authorization middleware. Call before any middleware that depends
     /// on users being authenticated.
     [<CustomOperation("use_authentication")>]
-    member x.UseAuthentication (conf : HostConfig) =
+    member x.UseAuthentication (conf : HostBuilderSpec) =
         x.Use (conf, fun app -> app.UseAuthentication())
 
     /// Register authorization service and enable middleware
     [<CustomOperation("use_authorization")>]
-    member _.UseAuthorization (conf : HostConfig) =
+    member _.UseAuthorization (conf : HostBuilderSpec) =
         { conf with
                Services = conf.Services >> fun s -> s.AddAuthorization()
                Middleware = conf.Middleware >> fun app -> app.UseAuthorization() }
 
     /// Register HTTP Response caching service and enable middleware.
     [<CustomOperation("use_caching")>]
-    member x.UseCaching(conf : HostConfig) =
+    member x.UseCaching(conf : HostBuilderSpec) =
         { conf with
                Services = conf.Services >> fun s -> s.AddResponseCaching()
                Middleware = conf.Middleware >> fun app -> app.UseResponseCaching() }
 
     /// Register Brotli + GZip HTTP Compression service and enable middleware.
     [<CustomOperation("use_compression")>]
-    member _.UseCompression (conf : HostConfig) =
+    member _.UseCompression (conf : HostBuilderSpec) =
         let configureCompression (s : IServiceCollection) =
             let mimeTypes =
                 let additionalMimeTypes = [|
@@ -303,26 +195,29 @@ type HostBuilder(args : string[]) =
 
     /// Use automatic HSTS middleware (adds strict-transport-policy header).
     [<CustomOperation("use_hsts")>]
-    member x.UseHsts (conf : HostConfig) =
+    member x.UseHsts (conf : HostBuilderSpec) =
         x.Use (conf, fun app -> app.UseHsts())
 
     /// Use automatic HTTPS redirection.
     [<CustomOperation("use_https")>]
-    member x.UseHttps (conf : HostConfig) =
+    member x.UseHttps (conf : HostBuilderSpec) =
         x.Use (conf, fun app -> app.UseHttpsRedirection())
 
     /// Use Static File middleware.
     [<CustomOperation("use_static_files")>]
-    member _.UseStaticFiles (conf : HostConfig) =
+    member _.UseStaticFiles (conf : HostBuilderSpec) =
         { conf with Middleware = conf.Middleware >> fun app -> app.UseStaticFiles() }
 
+    // ------------
     // Errors
     // ------------
 
     /// Include a catch-all (i.e., Not Found) HttpHandler (must be added last).
     [<CustomOperation("not_found")>]
-    member _.NotFound (conf : HostConfig, handler : HttpHandler) =
+    member _.NotFound (conf : HostBuilderSpec, handler : HttpHandler) =
         { conf with NotFound = Some handler }
 
-/// A computation expression to make IHost construction easier
-let webHost args = HostBuilder(args)
+[<AutoOpen>]
+module WebHostBuilder =
+    /// Computation expression to allow for elegant IHost construction
+    let webHost args = HostBuilder(args)

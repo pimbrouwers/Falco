@@ -1,6 +1,8 @@
 ﻿[<RequireQualifiedAccess>]
 module Falco.Request
 
+open System.IO
+open System.Text
 open System.Text.Json
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
@@ -21,6 +23,13 @@ let getVerb (ctx : HttpContext) : HttpVerb =
     | m when strEquals m HttpMethods.Options -> OPTIONS
     | m when strEquals m HttpMethods.Trace   -> TRACE
     | _ -> ANY
+
+/// Steam the request body into a string
+let getBodyString (ctx : HttpContext) : Task<string> =
+    task {
+        use reader = new StreamReader(ctx.Request.Body, Encoding.UTF8)
+        return! reader.ReadToEndAsync()
+    }
 
 /// Retrieve the cookie from the request as an instance of CookieCollectionReader
 let getCookie (ctx : HttpContext) : CookieCollectionReader =
@@ -71,19 +80,13 @@ let tryStreamForm
 // Handlers
 // ------------
 
-/// Validate the CSRF of the current request
-let validateCsrfToken
-    (handleOk : HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
+/// Buffer the current HttpRequest body into a
+/// string and provide to next HttpHandler
+let bodyString
+    (next : string -> HttpHandler) : HttpHandler = fun ctx ->
     task {
-        let! isValid = Xss.validateToken ctx
-
-        let respondWith =
-            match isValid with
-            | true  -> handleOk
-            | false -> handleInvalidToken
-
-        return! respondWith ctx
+        let! body = getBodyString ctx
+        return next body
     }
 
 /// Project JSON onto 'a and provide to next
@@ -146,6 +149,21 @@ let mapFormStream
     task {
         let! form = streamForm ctx
         return! next (form |> map) ctx
+    }
+
+/// Validate the CSRF of the current request
+let validateCsrfToken
+    (handleOk : HttpHandler)
+    (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
+    task {
+        let! isValid = Xss.validateToken ctx
+
+        let respondWith =
+            match isValid with
+            | true  -> handleOk
+            | false -> handleInvalidToken
+
+        return! respondWith ctx
     }
 
 /// Project FormCollectionReader onto 'a and provide

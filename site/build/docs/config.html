@@ -41,17 +41,9 @@
             <h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2>
         </div>
         <div class="dn db-l"><h3>Contents</h3>
-<ul class="nl3">
+<ul class="nl3 f6">
   <li><a href="get-started.html">Getting Started</a></li>
   <li><a href="routing.html">Routing</a></li>
-  <li><a href="request.html">Accessing request data</a>
-    <ul>
-      <li><a href="request.html#route-binding">Route Binding</a></li>
-      <li><a href="request.html#query-binding">Query Binding</a></li>
-      <li><a href="request.html#form-binding">Form Binding</a></li>
-      <li><a href="request.html#json">JSON</a></li>
-    </ul>
-  </li>
   <li><a href="response.html">Writing responses</a>
     <ul>
       <li><a href="response.html#plain-text-responses">Plain Text responses</a></li>
@@ -60,6 +52,14 @@
       <li><a href="response.html#redirect-301302-response">Redirect (301/302) Response</a></li>
       <li><a href="response.html#content-disposition">Content Disposition</a></li>
       <li><a href="response.html#response-modifiers">Response Modifiers</a></li>
+    </ul>
+  </li>
+  <li><a href="request.html">Accessing request data</a>
+    <ul>
+      <li><a href="request.html#route-binding">Route Binding</a></li>
+      <li><a href="request.html#query-binding">Query Binding</a></li>
+      <li><a href="request.html#form-binding">Form Binding</a></li>
+      <li><a href="request.html#json">JSON</a></li>
     </ul>
   </li>
   <li><a href="markup.html">View engine</a>
@@ -83,6 +83,8 @@
       <li><a href="security.html#cryptography">Cryptography</a></li>
     </ul>
   </li>
+  <li><a href="model-binding.html">Model Binding</a></li>
+  <li><a href="dependency-injection.html">Dependency Injection</a></li>
 </ul></div>
     </nav>
     <main class="w-80-l fl-l pl3-l"><h1 id="configuration-builder">Configuration Builder</h1>
@@ -92,56 +94,99 @@
 <tr>
 <th>Operation</th>
 <th>Description</th>
-<th></th>
-<th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>[base_path]</td>
+<td><a href="#base_path">base_path</a></td>
 <td>Set the base path of the <code>ConfigurationBuilder</code>.</td>
-<td></td>
-<td></td>
 </tr>
 <tr>
-<td>[add_env]</td>
+<td><a href="#add_env">add_env</a></td>
 <td>Add Environment Variables to the <code>ConfigurationBuilder</code>.</td>
-<td></td>
-<td></td>
 </tr>
 <tr>
-<td>[required_json]</td>
-<td>Add required [INI</td>
-<td>JSON</td>
-<td>XML] file to the <code>ConfigurationBuilder</code>.</td>
+<td><a href="#required_json">required_json</a></td>
+<td>Add required JSON file to the <code>ConfigurationBuilder</code>.</td>
 </tr>
 <tr>
-<td>[optional_json]</td>
-<td>Add optional [INI</td>
-<td>JSON</td>
-<td>XML] file to the <code>ConfigurationBuilder</code>.</td>
+<td><a href="#optional_json">optional_json</a></td>
+<td>Add optional JSON file to the <code>ConfigurationBuilder</code>.</td>
 </tr>
 <tr>
-<td>[add_dict]</td>
+<td><a href="#required_ini">required_ini</a></td>
+<td>Add required INI file to the <code>ConfigurationBuilder</code>.</td>
+</tr>
+<tr>
+<td><a href="#optional_ini">optional_ini</a></td>
+<td>Add optional INI file to the <code>ConfigurationBuilder</code>.</td>
+</tr>
+<tr>
+<td><a href="#required_xml">required_xml</a></td>
+<td>Add required XML file to the <code>ConfigurationBuilder</code>.</td>
+</tr>
+<tr>
+<td><a href="#optional_xml">optional_xml</a></td>
+<td>Add optional XML file to the <code>ConfigurationBuilder</code>.</td>
+</tr>
+<tr>
+<td><a href="#in_memory">in_memory</a></td>
 <td>Add an in-memory <code>Dictionary&lt;string, string&gt;</code> to the <code>ConfigurationBuilder</code>.</td>
-<td></td>
-<td></td>
 </tr>
 </tbody>
 </table>
-<pre><code class="language-fsharp">open Falco.HostBuilder
+<h2 id="base_path"><code>base_path</code></h2>
+<pre><code class="language-fsharp">let config = configuration [||] {
+    base_path &quot;C:\\SOME\\PATH&quot;
+}
+</code></pre>
+<h2 id="add_env"><code>add_env</code></h2>
+<pre><code class="language-fsharp">let config = configuration [||] {
+    add_env
+}
+</code></pre>
+<h2 id="required_json"><code>required_json</code></h2>
+<pre><code class="language-fsharp">let config = configuration [||] {
+    required_json &quot;appsettings.json&quot;
+}
+</code></pre>
+<h2 id="optional_json"><code>optional_json</code></h2>
+<pre><code class="language-fsharp">let env = Environment.GetEnvironmentVariable(&quot;ASPNETCORE_ENVIRONMENT&quot;)
 
-[&lt;EntryPoint&gt;]
-let main args =
-    let env = Environment.GetEnvironmentVariable(&quot;ASPNETCORE_ENVIRONMENT&quot;)
+let config = configuration [||] {
+    optional_json (String.Concat([|&quot;appsettings.&quot;; env; &quot;.json&quot;|]))
+}
+</code></pre>
+<h2 id="required_ini"><code>required_ini</code></h2>
+<pre><code class="language-fsharp">let config = configuration [||] {
+    required_ini &quot;appsettings.ini&quot;
+}
+</code></pre>
+<h2 id="optional_ini"><code>optional_ini</code></h2>
+<pre><code class="language-fsharp">let env = Environment.GetEnvironmentVariable(&quot;ASPNETCORE_ENVIRONMENT&quot;)
 
-    let config = configuration args {
-        add_env
-        required_json &quot;appsettings.json&quot;
-        optional_json (String.Concat([|&quot;appsettings.&quot;; env; &quot;.json&quot;|]))
-    }
+let config = configuration [||] {
+    optional_ini (String.Concat([|&quot;appsettings.&quot;; env; &quot;.ini&quot;|]))
+}
+</code></pre>
+<h2 id="required_xml"><code>required_xml</code></h2>
+<pre><code class="language-fsharp">let config = configuration [||] {
+    required_json &quot;appsettings.xml&quot;
+}
+</code></pre>
+<h2 id="optional_xml"><code>optional_xml</code></h2>
+<pre><code class="language-fsharp">let env = Environment.GetEnvironmentVariable(&quot;ASPNETCORE_ENVIRONMENT&quot;)
 
-    // ...
+let config = configuration [||] {
+    optional_xml (String.Concat([|&quot;appsettings.&quot;; env; &quot;.xml&quot;|]))
+}
+</code></pre>
+<h2 id="in_memory"><code>in_memory</code></h2>
+<pre><code class="language-fsharp">let pairs = [ &quot;FALCO_VAR&quot;, &quot;TEST&quot; ]
+
+let config = configuration [||] {
+    in_memory pairs
+}
 </code></pre>
 </main>
 </div>
@@ -149,17 +194,9 @@ let main args =
 <!-- /body/footer -->
 <footer class="cl mt4 pa3 bg-merlot">
   <div class="dn-l white-90"><h3>Contents</h3>
-<ul class="nl3">
+<ul class="nl3 f6">
   <li><a href="get-started.html">Getting Started</a></li>
   <li><a href="routing.html">Routing</a></li>
-  <li><a href="request.html">Accessing request data</a>
-    <ul>
-      <li><a href="request.html#route-binding">Route Binding</a></li>
-      <li><a href="request.html#query-binding">Query Binding</a></li>
-      <li><a href="request.html#form-binding">Form Binding</a></li>
-      <li><a href="request.html#json">JSON</a></li>
-    </ul>
-  </li>
   <li><a href="response.html">Writing responses</a>
     <ul>
       <li><a href="response.html#plain-text-responses">Plain Text responses</a></li>
@@ -168,6 +205,14 @@ let main args =
       <li><a href="response.html#redirect-301302-response">Redirect (301/302) Response</a></li>
       <li><a href="response.html#content-disposition">Content Disposition</a></li>
       <li><a href="response.html#response-modifiers">Response Modifiers</a></li>
+    </ul>
+  </li>
+  <li><a href="request.html">Accessing request data</a>
+    <ul>
+      <li><a href="request.html#route-binding">Route Binding</a></li>
+      <li><a href="request.html#query-binding">Query Binding</a></li>
+      <li><a href="request.html#form-binding">Form Binding</a></li>
+      <li><a href="request.html#json">JSON</a></li>
     </ul>
   </li>
   <li><a href="markup.html">View engine</a>
@@ -191,8 +236,10 @@ let main args =
       <li><a href="security.html#cryptography">Cryptography</a></li>
     </ul>
   </li>
+  <li><a href="model-binding.html">Model Binding</a></li>
+  <li><a href="dependency-injection.html">Dependency Injection</a></li>
 </ul></div>
-  <div class="mt4 mt0-l f7 tc white-70">&copy; 2020-2022 Pim Brouwers & contributors.</div>
+  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2022 Pim Brouwers & contributors.</div>
 </footer>
 
 <!-- /body/script -->

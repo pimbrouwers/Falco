@@ -15,7 +15,7 @@
     <Compile Include="SecurityTests.fs" />
     <Compile Include="RequestTests.fs" />
     <Compile Include="ResponseTests.fs" />
-    <Compile Include="HostBuilderTests.fs" />
+    <Compile Include="ConfigBuilderTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
