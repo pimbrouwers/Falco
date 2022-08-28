@@ -110,6 +110,7 @@ let getJsonOptions<'a>
     JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
 
 /// Attempt to bind request body using System.Text.Json
+[<Obsolete("Use Request.getJsonOptions Constants.defaultJsonOptions")>]
 let getJson<'a>
     (ctx : HttpContext) : Task<'a> =
     getJsonOptions Constants.defaultJsonOptions ctx
