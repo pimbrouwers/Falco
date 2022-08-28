@@ -129,7 +129,7 @@ let tryBindJsonOptions<'a>
     }
 
 /// Attempt to bind request body using System.Text.Json
-[<Obsolete("Use Request.getJson")>]
+[<Obsolete("Use Request.getJsonOptions Constants.defaultJsonOptions")>]
 let tryBindJson<'a>
     (ctx : HttpContext) : Task<Result<'a, string>> =
     tryBindJsonOptions Constants.defaultJsonOptions ctx
