@@ -9,7 +9,6 @@ open Microsoft.AspNetCore.Routing
 
 /// A safe string collection reader, with type utilities.
 type StringCollectionReader (values : Map<string, string[]>) =
-    /// Safely retrieve string array value from collection.
     member private _.TryGetValue (name : string) =
         let found =
             values
@@ -20,11 +19,9 @@ type StringCollectionReader (values : Map<string, string[]>) =
         | Some v when v.Length > 0 -> Some v
         | _                        -> None
 
-    /// Safely retrieve string array value from collection and apply binder.
     member private x.TryGetBind (binder : string -> 'a option) (name : string) =
         x.TryGetValue name |> Option.bind (fun ary -> binder ary.[0])
 
-    /// Safely retrieve string array value from collection and apply binder.
     member private x.TryGetBindArray (binder : string -> 'a option) (name : string) =
         x.TryGetValue name |> Option.map (tryParseArray binder) |> Option.defaultValue [||]
 

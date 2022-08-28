@@ -28,7 +28,7 @@ type Error =
       Message   : string }
 
 // ------------
-// Repositories
+// Storage
 // ------------
 type IStorage =
     abstract member GetAll : unit   -> Result<User seq, Error>
@@ -148,7 +148,7 @@ module UserHandlers =
         withStorage (fun storage ->
             Request.mapRoute idFromRoute (fun id ->
                 Request.mapJson (fun (userDto : UserDto) ->
-                        handleResult (UserStorage.update storage id userDto))))
+                    handleResult (UserStorage.update storage id userDto))))
 
     let delete : HttpHandler =
         withStorage (fun storage ->
@@ -170,23 +170,6 @@ module AuthConfig =
 module Auth =
     let hasScope (scope : string) (next : HttpHandler) : HttpHandler =
         Request.ifAuthenticatedWithScope AuthConfig.authority scope next ErrorPages.forbidden
-
-// ------------
-// Router
-// ------------
-module Router =
-    let endpoints =
-        [
-            get "/" UserHandlers.index
-
-            get "/users" (Auth.hasScope AuthConfig.readUsersPolicy UserHandlers.readAll)
-
-            post "/users" (Auth.hasScope AuthConfig.createUsersPolicy UserHandlers.create)
-
-            put "/users/{id:guid}" (Auth.hasScope AuthConfig.updateUsersPolicy UserHandlers.update)
-
-            delete "/users/{id:guid}" (Auth.hasScope AuthConfig.deleteUsersPolicy UserHandlers.delete)
-        ]
 
 // ------------
 // Register services
@@ -217,5 +200,15 @@ webHost [||] {
     use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler ErrorPages.serverError)
     use_authentication
 
-    endpoints Router.endpoints
+    endpoints [
+        get "/" UserHandlers.index
+
+        get "/users" (Auth.hasScope AuthConfig.readUsersPolicy UserHandlers.readAll)
+
+        post "/users" (Auth.hasScope AuthConfig.createUsersPolicy UserHandlers.create)
+
+        put "/users/{id:guid}" (Auth.hasScope AuthConfig.updateUsersPolicy UserHandlers.update)
+
+        delete "/users/{id:guid}" (Auth.hasScope AuthConfig.deleteUsersPolicy UserHandlers.delete)
+    ]
 }

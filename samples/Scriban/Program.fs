@@ -21,9 +21,6 @@ type ScribanViewEngine (views : Map<string, Template>) =
             | Some template -> template.RenderAsync(model)
             | None -> failwithf "View '%s' was not found" view
 
-// ------------
-// Response helper func for IViewEngine
-// ------------
 module Response =
     let renderViewEngine
         (viewEngine : IViewEngine)
@@ -35,7 +32,7 @@ module Response =
         }
 
 // ------------
-// App Middleware
+// Middleware
 // ------------
 module Middleware =
     let withViewEngine (next : IViewEngine -> HttpHandler) : HttpHandler = fun ctx ->

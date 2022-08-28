@@ -65,20 +65,10 @@ let getJsonOptions<'a>
     (ctx : HttpContext) : Task<'a> =
     JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
 
-/// Attempt to bind request body using System.Text.Json.
-let getJson<'a>
-    (ctx : HttpContext) : Task<'a> =
-    getJsonOptions Constants.defaultJsonOptions ctx
-
 /// Stream the form collection for multipart form submissions.
 let streamForm
     (ctx : HttpContext) : Task<FormCollectionReader> =
     ctx.Request.StreamFormAsync()
-
-/// Attempt to stream the form collection for multipart form submissions.
-let tryStreamForm
-    (ctx : HttpContext) : Task<Result<FormCollectionReader, string>> =
-    ctx.Request.TryStreamFormAsync()
 
 // ------------
 // Handlers
@@ -93,16 +83,6 @@ let bodyString
         return next body
     }
 
-/// Project JSON onto 'a and provide to next
-/// Httphandler, throws JsonException if errors
-/// occurs during deserialization.
-let mapJson
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! json = getJson ctx
-        return next json ctx
-    }
-
 /// Project JSON using custom JsonSerializerOptions
 /// onto 'a and provide to next Httphandler, throws
 /// JsonException if errors occurs during deserialization.
@@ -113,6 +93,13 @@ let mapJsonOption
         let! json = getJsonOptions options ctx
         return next json ctx
     }
+
+/// Project JSON onto 'a and provide to next
+/// Httphandler, throws JsonException if errors
+/// occurs during deserialization.
+let mapJson
+    (next : 'a -> HttpHandler) : HttpHandler =
+    mapJsonOption Constants.defaultJsonOptions next
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler.

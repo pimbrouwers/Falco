@@ -75,24 +75,9 @@ let withCookieOptions
 // Handlers
 // ------------
 
-/// Write bytes to HttpResponse body.
-let private writeBytes
-    (bytes : byte[])
-    (ctx : HttpContext) =
-    let byteLen = bytes.Length
-    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
-    ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes)).AsTask() :> Task
-
-/// Write UTF8 string to HttpResponse body.
-let private writeString
-    (encoding : Encoding)
-    (httpBodyStr : string)
-    (ctx : HttpContext) =
-    if isNull httpBodyStr then
-        Task.CompletedTask
-    else
-        let httpBodyBytes = encoding.GetBytes httpBodyStr
-        writeBytes httpBodyBytes ctx
+/// Flushes any remaining response headers or data and returns empty response.
+let ofEmpty : HttpHandler = fun ctx ->
+    ctx.Response.CompleteAsync ()
 
 type private RedirectType =
     | PermanentlyTo of url: string
@@ -114,6 +99,13 @@ let redirectPermanently (url: string) =
 /// Returns a redirect (302) to client.
 let redirectTemporarily (url: string) =
     redirect (TemporarilyTo url)
+
+let private writeBytes
+    (bytes : byte[])
+    (ctx : HttpContext) =
+    let byteLen = bytes.Length
+    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
+    ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes)).AsTask() :> Task
 
 /// Returns an inline binary (i.e., Byte[]) response with the specified
 /// Content-Type.
@@ -141,7 +133,8 @@ let ofAttachment
     (string * string) list)
     (bytes : Byte[]) : HttpHandler =
     let contentDisposition =
-        if StringUtils.strNotEmpty filename then sprintf "attachment; filename=\"%s\"" filename
+        if StringUtils.strNotEmpty filename then
+            sprintf "attachment; filename=\"%s\"" filename
         else "attachment"
 
     let headers = (HeaderNames.ContentDisposition, contentDisposition) :: headers
@@ -150,9 +143,14 @@ let ofAttachment
     >> withHeaders headers
     >> writeBytes bytes
 
-/// Flushes any remaining response headers or data and returns empty response.
-let ofEmpty : HttpHandler = fun ctx ->
-    ctx.Response.CompleteAsync ()
+let private writeString
+    (encoding : Encoding)
+    (httpBodyStr : string)
+    (ctx : HttpContext) =
+    if isNull httpBodyStr then Task.CompletedTask
+    else
+        let httpBodyBytes = encoding.GetBytes httpBodyStr
+        writeBytes httpBodyBytes ctx
 
 /// Writes string to response body with provided encoding.
 let ofString
