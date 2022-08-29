@@ -28,6 +28,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/pimbrouwers/Falco</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- SourceLink settings -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -40,10 +41,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../../assets/icon.png">
+    <None Include="../../assets/icon.png" Pack="true" PackagePath="\">
       <Pack>true</Pack>
       <PackagePath>$(PackageIconUrl)</PackagePath>
     </None>
+
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
