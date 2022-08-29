@@ -306,14 +306,12 @@ let mapJson (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
     #else
     task {
     #endif
-        // let! json = tryBindJson ctx
-        // let respondWith =
-        //     match json with
-        //     | Error error -> failwith "Could not bind JSON"
-        //     | Ok json -> next json
-        // return! respondWith ctx
-
-        return! JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, Constants.defaultJsonOptions).AsTask()
+        let! json = tryBindJson ctx
+        let respondWith =
+            match json with
+            | Error error -> failwith error
+            | Ok json -> next json
+        return! respondWith ctx
     }
 
 /// Project RouteCollectionReader onto 'a and provide
