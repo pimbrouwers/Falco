@@ -19,7 +19,7 @@ webHost [||] {
 
 - Built upon the high-performance components of ASP.NET Core.
 - Optimized for building HTTP applications quickly.
-- Seamlessly integrates with existing .NET Core middleware and frameworks.
+- Seamlessly integrates with existing .NET Core middleware and libraries.
 
 ## Key Features
 
@@ -27,15 +27,15 @@ webHost [||] {
 - Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/docs/en/routing.md) API.
 - Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/docs/en/host.md).
 - Native F# [view engine](https://github.com/pimbrouwers/Falco/tree/master/docs/en/markup.md).
-- Uniform API for [model binding](https://github.com/pimbrouwers/Falco/tree/master/docs/en/model-binding.md).
+- Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/docs/en/model-binding.md).
 - [Authentication](https://github.com/pimbrouwers/Falco/tree/master/docs/en/security.md#authentication) and [security](https://github.com/pimbrouwers/Falco/tree/master/docs/en/security.md) utilities.
-- Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/docs/en/request.md#multipartform-data-binding).
+- Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/docs/en/request.md#multipartform-data-binding) and [binary responses](#).
 
 ## Design Goals
 
 - Provide a toolset to build a working full-stack web application.
+- Should be simple, extensible and integrate with existing .NET libraries.
 - Can be easily learned.
-- Should be extensible.
 
 ## Learn
 
