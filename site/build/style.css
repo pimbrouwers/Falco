@@ -39,7 +39,7 @@ main p { line-height: 1.4 }
 
 a { color: inherit; transition: color .125s ease-in }
 main a:visited, .sidebar a:visited { color: inherit }
-main a:hover, .sidebar a:hover { color: var(--purple) }
+main a:hover, .sidebar a:hover { color: var(--merlot) }
 
 blockquote { margin-left: 0; margin-right: 0; padding: 1rem; border-left: 4px solid var(--purple); background: var(--washed-purple) }
 blockquote p { margin: 0 }

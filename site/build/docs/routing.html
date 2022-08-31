@@ -88,18 +88,93 @@
 </ul></div>
     </nav>
     <main class="w-80-l fl-l pl3-l"><h1 id="routing">Routing</h1>
-<p>The breakdown of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#configuring-endpoint-metadata">Endpoint Routing</a> is simple. Associate a specific <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-template-reference">route pattern</a> and an HTTP verb to an <a href="request.html"><code>HttpHandler</code></a> which represents the ongoing processing (and eventual return) of a request.</p>
+<p>Routing is responsible for matching incoming HTTP requests and dispatching those requests to the app's <code>HttpHandler</code>s. The breakdown of <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#configuring-endpoint-metadata">Endpoint Routing</a> is simple. Associate a specific <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-template-reference">route pattern</a> and an HTTP verb to an <a href="request.html"><code>HttpHandler</code></a> which represents the ongoing processing (and eventual return) of a request.</p>
 <p>Bearing this in mind, routing can practically be represented by a list of these &quot;mappings&quot; known in Falco as an <code>HttpEndpoint</code> which bind together: a route, verb and handler.</p>
-<p>To create a &quot;multi-method&quot; endpoint, the <code>all</code> function accepts a list of HTTP Verb and <code>HttpHandler</code> pairs.</p>
+<blockquote>
+<p>Note: All of the following examples are <em>fully functional</em> web apps.</p>
+</blockquote>
 <pre><code class="language-fsharp">open Falco
 open Falco.Routing
 open Falco.HostBuilder
 
 webHost [||] {
-    any &quot;/&quot;      (Response.ofPlainText &quot;/&quot;)
-    get &quot;/hello&quot; (Response.ofPlainText &quot;/hello&quot;)
-    all &quot;/form&quot;  [GET, Response.ofPlainText &quot;/form&quot;
-                  POST, Requuest.mapJson Response.ofJson]
+    endpoints [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;)
+    ]
+}
+</code></pre>
+<p>The preceding example includes a single <code>HttpEndpoint</code>:</p>
+<ul>
+<li>When an HTTP <code>GET</code> request is sent to the root URL <code>/</code>:
+<ul>
+<li>The <code>HttpHandler</code> shown executes.</li>
+<li><code>Hello World!</code> is written to the HTTP response using the <a href="response.html">Response</a> module.</li>
+</ul>
+</li>
+<li>If the request method is not <code>GET</code> or the URL is not <code>/</code>, no route matches and an HTTP 404 is returned.</li>
+</ul>
+<p>The following example shows a more sophisticated <code>HttpEndpoint</code>:</p>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Falco.HostBuilder
+
+webHost [||] {
+    endpoints [
+        get &quot;/hello/{name:alpha}&quot; (fun ctx -&gt;
+            let route = Request.getRoute ctx
+            let name = route.GetString &quot;name&quot; &quot;&quot;
+            let message = sprintf &quot;Hello %s&quot; name
+            Response.ofPlainText message ctx)
+    ]
+}
+</code></pre>
+<p>The string <code>/hello/{name:alpha}</code> is a <strong>route template</strong>. It is used to configure how the endpoint is matched. In this case, the template matches:</p>
+<ul>
+<li>A URL like <code>/hello/Ryan</code></li>
+<li>Any URL path that begins with <code>/hello/</code> followed by a sequence of alphabetic characters. <code>:alpha</code> applies a route constraint that matches only alphabetic characters.
+<ul>
+<li>Full route constraint reference: <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-constraint-reference">https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-constraint-reference</a>.</li>
+</ul>
+</li>
+</ul>
+<p>The second segment of the URL path, <code>{name:alpha}</code>:</p>
+<ul>
+<li>Is bound to the <code>name</code> parameter.</li>
+<li>Is captured and stored in <code>HttpRequest.RouteValues</code>, which Falco exposes through a <a href="request.html">uniform API</a> to obtain primitive typed values.</li>
+</ul>
+<p>An alternative way to express the <code>HttEndpoint</code> above is seen below. Note the omission of the <code>ctx</code> parameter, made possible by the <a href="request.html">Request</a> module:</p>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Falco.HostBuilder
+
+webHost [||] {
+    endpoints [
+        get &quot;/hello/{name:alpha}&quot;
+            (Request.mapRoute
+                (fun route -&gt; route.GetString &quot;name&quot; &quot;John Doe&quot;)
+                Response.ofPlainText)
+    ]
+}
+</code></pre>
+<h2 id="multi-method-endpoints">Multi-method Endpoints</h2>
+<p>There are scenarios where you may want to accept multiple HTTP verbs to single a URL. For example, a <code>GET</code>/<code>POST</code> form submission.</p>
+<p>To create a &quot;multi-method&quot; endpoint, the <code>all</code> function accepts a list of HTTP Verb and HttpHandler pairs.</p>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Falco.HostBuilder
+
+let form =
+    Templates.html5 &quot;en&quot; [] [
+        [ Elem.form [ Attr.method &quot;post&quot; ] [
+            Elem.input [ Attr.name &quot;name&quot; ]
+            Elem.input [ Attr.type' &quot;submit&quot; ] ] ]
+
+webHost [||] {
+    endpoints [
+        get &quot;/hello&quot; (Response.ofPlainText &quot;/hello&quot;)
+        all &quot;/form&quot;  [GET, Response.ofHtml form
+                      POST, Request.debug] // useful development tool
+    ]
 }
 </code></pre>
 </main>
