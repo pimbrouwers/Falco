@@ -151,7 +151,8 @@ webHost [||] {
 | [use_compression](#use_compression) | Register Brotli + GZip HTTP Compression service and enable middleware. |
 | [use_hsts](#use_hsts) | Use automatic HSTS middleware (adds strict-transport-policy header). |
 | [use_https](#use_https) | Use automatic HTTPS redirection. |
-| [use_static_files](#use_static_files) | Use Static File middleware. |
+| [use_default_files](#use_default_files) | Use Default Files middleware. |
+| [use_static_files](#use_static_files) | Use Static Files middleware. |
 
 ### `use_if`
 
@@ -292,6 +293,23 @@ open Microsoft.AspNetCore.Builder
 
 webHost [||] {
     use_https
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+### `use_default_files`
+
+```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
+webHost [||] {
+    use_default_files
+    use_static_files
 
     endpoints [
         get "/" (Response.ofPlainText "Hello world")

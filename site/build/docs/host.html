@@ -274,8 +274,12 @@ webHost [||] {
 <td>Use automatic HTTPS redirection.</td>
 </tr>
 <tr>
+<td><a href="#use_default_files">use_default_files</a></td>
+<td>Use Default Files middleware.</td>
+</tr>
+<tr>
 <td><a href="#use_static_files">use_static_files</a></td>
-<td>Use Static File middleware.</td>
+<td>Use Static Files middleware.</td>
 </tr>
 </tbody>
 </table>
@@ -398,6 +402,21 @@ open Microsoft.AspNetCore.Builder
 
 webHost [||] {
     use_https
+
+    endpoints [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello world&quot;)
+    ]
+}
+</code></pre>
+<h3 id="use_default_files"><code>use_default_files</code></h3>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+
+webHost [||] {
+    use_default_files
+    use_static_files
 
     endpoints [
         get &quot;/&quot; (Response.ofPlainText &quot;Hello world&quot;)

@@ -19,6 +19,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SecureRestApi", "..\samples
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tutorial", "..\samples\Tutorial\Tutorial.fsproj", "{0BA0DCA0-5776-4317-8321-A2407EC0ACC9}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WebSockets", "..\samples\WebSockets\WebSockets.fsproj", "{974A2F94-0579-44E9-B4A6-9F27E3ADDF44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{0BA0DCA0-5776-4317-8321-A2407EC0ACC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BA0DCA0-5776-4317-8321-A2407EC0ACC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BA0DCA0-5776-4317-8321-A2407EC0ACC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{974A2F94-0579-44E9-B4A6-9F27E3ADDF44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{974A2F94-0579-44E9-B4A6-9F27E3ADDF44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{974A2F94-0579-44E9-B4A6-9F27E3ADDF44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{974A2F94-0579-44E9-B4A6-9F27E3ADDF44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

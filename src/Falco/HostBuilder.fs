@@ -203,10 +203,25 @@ type HostBuilder(args : string[]) =
     member x.UseHttps (conf : HostBuilderSpec) =
         x.Use (conf, fun app -> app.UseHttpsRedirection())
 
+    /// Use Default File middleware. Must be called before use_static_files
+    [<CustomOperation("use_default_files")>]
+    member _.UseDefaultFiles (conf : HostBuilderSpec, ?config : DefaultFilesOptions) =
+        let configureDefaultFiles (app : IApplicationBuilder) =
+            match config with
+            | Some x -> app.UseDefaultFiles(x)
+            | None   -> app.UseDefaultFiles()
+
+        { conf with Middleware = conf.Middleware >> configureDefaultFiles }
+
     /// Use Static File middleware.
     [<CustomOperation("use_static_files")>]
-    member _.UseStaticFiles (conf : HostBuilderSpec) =
-        { conf with Middleware = conf.Middleware >> fun app -> app.UseStaticFiles() }
+    member _.UseStaticFiles (conf : HostBuilderSpec, ?config : StaticFileOptions) =
+        let configureStaticFiles (app : IApplicationBuilder) =
+            match config with
+            | Some x -> app.UseStaticFiles(x)
+            | None   -> app.UseStaticFiles()
+
+        { conf with Middleware = conf.Middleware >> configureStaticFiles }
 
     // ------------
     // Errors

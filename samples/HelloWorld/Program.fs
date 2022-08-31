@@ -5,10 +5,9 @@ open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 
-/// ANY /
+/// GET /
 let handlePlainText : HttpHandler =
-    // Response.ofPlainText "Hello world"
-    fun ctx -> failwith "EXCEPTION"
+    Response.ofPlainText "Hello world"
 
 /// GET /json
 let handleJson : HttpHandler =
@@ -29,6 +28,8 @@ webHost [||] {
 
     endpoints [
         get "/json" handleJson
+
+        get "/html" handleHtml
 
         any "/" handlePlainText
     ]
