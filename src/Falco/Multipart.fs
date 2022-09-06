@@ -48,7 +48,6 @@ type HttpRequest with
 
     /// Attempt to stream the HttpRequest body into IFormCollection.
     member x.TryStreamFormAsync () : Task<Result<FormCollectionReader, string>> =
-
         let rec streamForm (form : MultipartFormData) (rd : MultipartReader) =
             task {
                 let! section = rd.ReadNextSectionAsync()
@@ -86,7 +85,7 @@ type HttpRequest with
             }
 
         task {
-            match x.IsMultipart(), x.GetBoundary with
+            match x.IsMultipart(), x.GetBoundary() with
             | true, Some boundary ->
                 let formAcc = { FormData = new KeyValueAccumulator(); FormFiles = new FormFileCollection()  }
                 let multipartReader = new MultipartReader(boundary, x.Body)
