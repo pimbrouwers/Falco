@@ -35,18 +35,19 @@ type HttpRequest with
     member x.IsMultipart () : bool =
         x.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
 
+    member x.GetBoundary() =
+        // Content-Type: multipart/form-data; boundary="----WebKitFormBoundarymx2fSWqWSd0OxQqq"
+        // The spec at https://tools.ietf.org/html/rfc2046#section-5.1 states that 70 characters is a reasonable limit.
+        let lengthLimit = 70
+        let contentType = MediaTypeHeaderValue.Parse(StringSegment(x.ContentType))
+        let boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary).Value;
+        match boundary with
+        | b when isNull b                -> None
+        | b when b.Length > lengthLimit  -> None
+        | b                              -> Some b
+
     /// Attempt to stream the HttpRequest body into IFormCollection.
     member x.TryStreamFormAsync () : Task<Result<FormCollectionReader, string>> =
-        let getBoundary(request : HttpRequest) =
-            // Content-Type: multipart/form-data; boundary="----WebKitFormBoundarymx2fSWqWSd0OxQqq"
-            // The spec at https://tools.ietf.org/html/rfc2046#section-5.1 states that 70 characters is a reasonable limit.
-            let lengthLimit = 70
-            let contentType = MediaTypeHeaderValue.Parse(StringSegment(request.ContentType))
-            let boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary).Value;
-            match boundary with
-            | b when isNull b                -> None
-            | b when b.Length > lengthLimit  -> None
-            | b                              -> Some b
 
         let rec streamForm (form : MultipartFormData) (rd : MultipartReader) =
             task {
@@ -85,10 +86,7 @@ type HttpRequest with
             }
 
         task {
-            let isMultipart = x.IsMultipart ()
-            let boundary = x |> getBoundary
-
-            match isMultipart, boundary with
+            match x.IsMultipart(), x.GetBoundary with
             | true, Some boundary ->
                 let formAcc = { FormData = new KeyValueAccumulator(); FormFiles = new FormFileCollection()  }
                 let multipartReader = new MultipartReader(boundary, x.Body)

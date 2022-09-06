@@ -13,10 +13,10 @@ let mapRouteHandler : HttpHandler =
     Request.mapRoute routeMap Response.ofJson
 
 let manualRouteHandler : HttpHandler = fun ctx ->
-    let r : RouteCollectionReader = Request.getRoute ctx
+    let r = Request.getRoute ctx
     let name = r.GetString "Name" "John Doe"
 
-    Response.ofJson name ctx
+    Response.ofPlainText name ctx
 ```
 
 ## Query Binding
@@ -35,7 +35,7 @@ let mapQueryHandler : HttpHandler =
     Request.mapQuery queryMap Response.ofJson
 
 let manualQueryHandler : HttpHandler = fun ctx ->
-    let q : QueryCollectionReader = Request.getQuery ctx
+    let q = Request.getQuery ctx
 
     let person =
         { FirstName = q.GetString "FirstName" "John" // Get value or return default value

@@ -53,7 +53,7 @@ let getQuery (ctx : HttpContext) : QueryCollectionReader =
 /// FormCollectionReader.
 let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
-        let! form = ctx.Request.ReadFormAsync ()
+        let! form = ctx.Request.ReadFormAsync()
         let files = if isNull(form.Files) then None else Some form.Files
         return FormCollectionReader(form, files)
     }

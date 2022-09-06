@@ -98,10 +98,10 @@ let mapRouteHandler : HttpHandler =
     Request.mapRoute routeMap Response.ofJson
 
 let manualRouteHandler : HttpHandler = fun ctx -&gt;
-    let r : RouteCollectionReader = Request.getRoute ctx
+    let r = Request.getRoute ctx
     let name = r.GetString &quot;Name&quot; &quot;John Doe&quot;
 
-    Response.ofJson name ctx
+    Response.ofPlainText name ctx
 </code></pre>
 <h2 id="query-binding">Query Binding</h2>
 <pre><code class="language-fsharp">type Person =
@@ -117,7 +117,7 @@ let mapQueryHandler : HttpHandler =
     Request.mapQuery queryMap Response.ofJson
 
 let manualQueryHandler : HttpHandler = fun ctx -&gt;
-    let q : QueryCollectionReader = Request.getQuery ctx
+    let q = Request.getQuery ctx
 
     let person =
         { FirstName = q.GetString &quot;FirstName&quot; &quot;John&quot; // Get value or return default value

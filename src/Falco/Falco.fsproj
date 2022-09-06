@@ -35,22 +35,12 @@
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="../../assets/icon.png">
-      <Pack>true</Pack>
-      <PackagePath>$(PackageIconUrl)</PackagePath>
-    </None>
-
-    <None Include="../../README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+
     <PackageReference Update="FSharp.Core" Version="6.*" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -75,4 +65,12 @@
     <PackageReference Include="Falco.Markup" Version="1.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="../../assets/icon.png">
+      <Pack>true</Pack>
+      <PackagePath>$(PackageIconUrl)</PackagePath>
+    </None>
+
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

@@ -77,7 +77,7 @@ let withCookieOptions
 
 /// Flushes any remaining response headers or data and returns empty response.
 let ofEmpty : HttpHandler = fun ctx ->
-    ctx.Response.CompleteAsync ()
+    ctx.Response.CompleteAsync()
 
 type private RedirectType =
     | PermanentlyTo of url: string
@@ -134,7 +134,7 @@ let ofAttachment
     (bytes : Byte[]) : HttpHandler =
     let contentDisposition =
         if StringUtils.strNotEmpty filename then
-            sprintf "attachment; filename=\"%s\"" filename
+            StringUtils.strConcat [ "attachment; filename=\""; filename; "\"" ]
         else "attachment"
 
     let headers = (HeaderNames.ContentDisposition, contentDisposition) :: headers
@@ -196,11 +196,11 @@ let ofJsonOptions
         task {
             use str = new MemoryStream()
             do! JsonSerializer.SerializeAsync(str, obj, options = options)
-            let bytes = str.ToArray ()
+            let bytes = str.ToArray()
             let byteLen = bytes.Length
             ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
             let! _ = ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes))
-            return ()
+            return()
         }
 
     withContentType "application/json; charset=utf-8"

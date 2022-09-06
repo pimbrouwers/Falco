@@ -14,7 +14,7 @@ open Falco.Routing
 type HttpContext with
     /// Attempt to obtain depedency from IServiceCollection
     /// Throws InvalidDependencyException on null.
-    member x.GetService<'a> () =
+    member x.GetService<'a>() =
         let t = typeof<'a>
         match x.RequestServices.GetService t with
         | null    -> raise (InvalidDependencyException t.Name)
@@ -32,7 +32,7 @@ type IEndpointRouteBuilder with
 
 type IApplicationBuilder with
     /// Determine if the application is running in development mode
-    member x.IsDevelopment () =
+    member x.IsDevelopment() =
         x.ApplicationServices.GetService<IWebHostEnvironment>().IsDevelopment()
 
     /// Activate Falco integration with IEndpointRouteBuilder
@@ -58,7 +58,7 @@ type IApplicationBuilder with
 
 type IServiceCollection with
     /// Adds default Falco services to the ASP.NET Core service container.
-    member x.AddFalco () =
+    member x.AddFalco() =
         x.AddRouting()
 
     /// Adds default Falco services to the ASP.NET Core service container.

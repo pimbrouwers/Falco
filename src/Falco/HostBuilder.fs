@@ -34,7 +34,7 @@ type HostBuilder(args : string[]) =
             log |> conf.Logging |> ignore
 
         let configureServices (svc : IServiceCollection) =
-            let addFalco = fun (services : IServiceCollection) -> services.AddFalco ()
+            let addFalco = fun (services : IServiceCollection) -> services.AddFalco()
             svc |> (addFalco >> conf.Services) |> ignore
 
         let configureApp (app : WebApplication) =

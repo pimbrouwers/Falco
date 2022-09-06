@@ -63,7 +63,7 @@ module StringParser =
     /// Case-insensitive comparison, and special cases for "yes", "no", "on",
     /// "off", "1", "0".
     let parseBoolean (value : string) =
-        let v = value.ToUpperInvariant ()
+        let v = value.ToUpperInvariant()
 
         match v with
         | "ON" | "YES" | "1" -> Some true

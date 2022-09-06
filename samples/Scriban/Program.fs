@@ -69,14 +69,15 @@ let loadScribanTemplates (root : string) =
         viewName, view)
     |> Map.ofSeq
 
-let templates = loadScribanTemplates (Directory.GetCurrentDirectory())
 
 // ------------
 // Register services
 // ------------
+let scribanTemplates = loadScribanTemplates (Directory.GetCurrentDirectory())
+
 let scribanService (svc : IServiceCollection) =
     svc.AddScoped<IViewEngine, ScribanViewEngine>(fun _ ->
-        new ScribanViewEngine(templates))
+        new ScribanViewEngine(scribanTemplates))
 
 webHost [||] {
     use_https
