@@ -57,8 +57,4 @@
     <Compile Include="Svg.fs" />
     <Compile Include="Templates.fs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.6.2" />
-  </ItemGroup>
 </Project>

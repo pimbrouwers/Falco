@@ -10,6 +10,5 @@
 
   <ItemGroup>
     <PackageReference Include="Falco" Version="4.*" />
-    <PackageReference Update="FSharp.Core" Version="6.*" />
   </ItemGroup>
 </Project>
