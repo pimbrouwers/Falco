@@ -1,4 +1,4 @@
-module Falco.Multipart.Tests
+module Falco.Tests.Multipart
 
 open System.Collections.Generic
 open System.IO
@@ -18,12 +18,34 @@ open Microsoft.Net.Http.Headers
 open System.Security.Claims
 
 [<Fact>]
+let ``MultipartReader.StreamFormAsync()`` () =
+    let threePartBody =
+        "--9051914041544843365972754266\r\n" +
+        "Content-Disposition: form-data; name=\"name\"\r\n" +
+        "\r\n" +
+        "falco\r\n" +
+        "--9051914041544843365972754266--\r\n";
+
+    use body = new MemoryStream(Encoding.UTF8.GetBytes(threePartBody))
+
+    let rd = new MultipartReader("9051914041544843365972754266", body)
+
+    task {
+        let! form = rd.StreamFormAsync()
+        form.Files.Count |> should equal 0
+
+        let formReader = FormCollectionReader(form, Some form.Files)
+        let formValue = formReader.GetString "name" ""
+        formValue |> should equal "falco"
+    }
+
+[<Fact>]
 let ``MultipartReader.StreamFormAsync() with 3-part body`` () =
     let threePartBody =
             "--9051914041544843365972754266\r\n" +
-            "Content-Disposition: form-data; name=\"text\"\r\n" +
+            "Content-Disposition: form-data; name=\"name\"\r\n" +
             "\r\n" +
-            "text default\r\n" +
+            "falco\r\n" +
             "--9051914041544843365972754266\r\n" +
             "Content-Disposition: form-data; name=\"file1\"; filename=\"a.txt\"\r\n" +
             "Content-Type: text/plain\r\n" +
@@ -40,9 +62,13 @@ let ``MultipartReader.StreamFormAsync() with 3-part body`` () =
 
     use body = new MemoryStream(Encoding.UTF8.GetBytes(threePartBody))
 
-    let rd = new MultipartReader("--9051914041544843365972754266", body)
+    let rd = new MultipartReader("9051914041544843365972754266", body)
 
     task {
         let! form = rd.StreamFormAsync()
-        true |> should equal false
+        form.Files.Count |> should equal 2
+
+        let formReader = FormCollectionReader(form, Some form.Files)
+        let formValue = formReader.GetString "name" ""
+        formValue |> should equal "falco"
     }
