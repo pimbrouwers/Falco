@@ -92,57 +92,52 @@ let ``Request.ifAuthenticatedWithScope should invoke handleError if authenticate
         do! Request.ifAuthenticatedWithScope "issuer" "create" handleOk handleError ctx
     }
 
-let handleOk fn v =
-    fun ctx ->
-        fn v
-        true |> should equal true
-        Response.ofEmpty ctx
-
-let handleError _ =
-    fun ctx ->
-        false |> should equal true
-        Response.ofEmpty ctx
-
 [<Fact>]
 let ``Request.mapJson`` () =
     let ctx = getHttpContextWriteable false
-    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{{\"name\":\"falco\"}"))
+    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
     ctx.Request.Body.Returns(ms) |> ignore
 
-    let predicates j =
-        j.Name |> should equal "falco"
+    let handle json : HttpHandler =
+        json.Name |> should equal "falco"
+        Response.ofEmpty
 
-    Request.mapJson (handleOk predicates)
+    Request.mapJson handle ctx
 
 [<Fact>]
 let ``Request.mapRoute`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.RouteValues <- RouteValueDictionary({|name="falco"|})
 
-    let predicates name =
+    let handle name : HttpHandler =
         name |> should equal "falco"
+        Response.ofEmpty
 
-    Request.mapRoute (fun r -> r.GetString "name" "" |> Ok) (handleOk predicates)
+    Request.mapRoute (fun r -> r.GetString "name" "") handle ctx
 
-let ``Request.mapQuery`` () =
+[<Fact>]
+let ``Request.mapCookie`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
 
-    let predicates name =
+    let handle name : HttpHandler =
         name |> should equal "falco"
+        Response.ofEmpty
 
-    Request.mapCookie (fun q -> q.GetString "name" "" |> Ok) (handleOk predicates)
+    Request.mapCookie (fun q -> q.GetString "name" "") handle ctx
 
-let ``Request.mapCookie`` () =
+[<Fact>]
+let ``Request.mapQuery`` () =
     let ctx = getHttpContextWriteable false
     let query = Dictionary<string, StringValues>()
     query.Add("name", StringValues("falco"))
     ctx.Request.Query <- QueryCollection(query)
 
-    let predicates name =
+    let handle name : HttpHandler =
         name |> should equal "falco"
+        Response.ofEmpty
 
-    Request.mapQuery (fun c -> c.GetString "name" "" |> Ok) (handleOk predicates)
+    Request.mapQuery (fun c -> c.GetString "name" "") handle ctx
 
 [<Fact>]
 let ``Request.mapForm`` () =
@@ -151,19 +146,66 @@ let ``Request.mapForm`` () =
     form.Add("name", StringValues("falco"))
     ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
 
-    let predicates name =
+    let handle name : HttpHandler =
         name |> should equal "falco"
+        Response.ofEmpty
 
-    Request.mapForm (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates)
+    Request.mapForm (fun f -> f.GetString "name" "") handle ctx
 
-[<Fact>]
+// [<Fact>]
 let ``Request.mapFormStream`` () =
     let ctx = getHttpContextWriteable false
+    // let body =
+    //     "--9051914041544843365972754266\r\n" +
+    //     "Content-Disposition: form-data; name=\"text\"\r\n" +
+    //     "\r\n" +
+    //     "text default\r\n" +
+    //     "--9051914041544843365972754266\r\n" +
+    //     "Content-Disposition: form-data; name=\"file1\"; filename=\"a.txt\"\r\n" +
+    //     "Content-Type: text/plain\r\n" +
+    //     "\r\n" +
+    //     "Content of a.txt.\r\n" +
+    //     "\r\n" +
+    //     "--9051914041544843365972754266\r\n" +
+    //     "Content-Disposition: form-data; name=\"file2\"; filename=\"a.html\"\r\n" +
+    //     "Content-Type: text/html\r\n" +
+    //     "\r\n" +
+    //     "<!DOCTYPE html><title>Content of a.html.</title>\r\n" +
+    //     "\r\n" +
+    //     "--9051914041544843365972754266--\r\n";
+
+    // use ms = new MemoryStream(Encoding.UTF8.GetBytes(body))
+    // ctx.Request.Body.Returns(ms) |> ignore
+
     let form = Dictionary<string, StringValues>()
     form.Add("name", StringValues("falco"))
-    ctx.Request.ReadFormAsync().Returns(FormCollection(form)) |> ignore
 
-    let predicates name =
-        name |> should equal "falco"
+    let formFiles = new FormFileCollection()
 
-    Request.mapFormStream (fun f -> f.GetString "name" "" |> Ok) (handleOk predicates)
+//     // for i = 1 to 6 do
+//     //     let formFileName = sprintf "file-%i.txt" i
+//     //     let contentDisposition = "attachment; filename=" + formFileName
+//     //     let formFileStr = new MemoryStream(Encoding.UTF8.GetBytes("falco"))
+//     //     let formFile = new FormFile(formFileStr, int64 0, formFileStr.Length, "file", formFileName)
+
+//     //     let formFileHeaders = new HeaderDictionary()
+//     //     formFileHeaders.Add("Content-Type", "text/plain; charset=utf-8")
+//     //     formFileHeaders.Add("Content-Disposition", contentDisposition)
+//     //     formFileHeaders.Add("Content-Length", string formFileStr.Length)
+
+//     //     formFile.Headers <- formFileHeaders
+//     //     formFile.ContentType <- "text/plain"
+//     //     formFile.ContentDisposition <- contentDisposition
+
+//     //     formFiles.Add(formFile)
+
+    ctx.Request.Headers.Add(HeaderNames.ContentType, "multipart/form-data;boundary=\"--9051914041544843365972754266\"")
+    ctx.Request.ReadFormAsync().Returns(FormCollection(form, formFiles)) |> ignore
+
+    let handle (formValue : string, files : IFormFileCollection option) : HttpHandler =
+        formValue |> should equal "falco"
+        // files |> shouldBeSome (fun x ->
+        //     x.Count |> should equal 5)
+        Response.ofEmpty
+
+    Request.mapFormStream (fun f -> f.GetString "name" "", f.Files) handle ctx

@@ -1,24 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
-
   <ItemGroup>
+    <Compile Include="MultipartTests.fs" />
+    <Compile Include="MultipartTests.fs" />
+    <Compile Include="MultipartTests.fs" />
+    <Compile Include="MultipartTests.fs" />
     <Compile Include="Common.fs" />
     <Compile Include="StringTests.fs" />
     <Compile Include="StringCollectionReaderTests.fs" />
     <Compile Include="CoreTests.fs" />
     <Compile Include="RoutingTests.fs" />
     <Compile Include="SecurityTests.fs" />
-    <Compile Include="RequestTests.fs" />
+    <Compile Include="MultipartTests.fs" />
     <Compile Include="ResponseTests.fs" />
+    <Compile Include="RequestTests.fs" />
     <Compile Include="ConfigBuilderTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="FsUnit.Xunit" Version="4.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
@@ -34,16 +36,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
   </ItemGroup>
-
-
   <ItemGroup>
     <Content Include="appsettings.json;appsettings.ini;appsettings.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
 </Project>

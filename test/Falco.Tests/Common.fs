@@ -61,6 +61,7 @@ let getHttpContextWriteable (authenticated : bool) =
 
     let resp = Substitute.For<HttpResponse>()
     let respBody = new MemoryStream()
+
     resp.Headers.Returns(Substitute.For<HeaderDictionary>()) |> ignore
     resp.BodyWriter.Returns(PipeWriter.Create(respBody)) |> ignore
     resp.Body <- respBody
@@ -72,6 +73,7 @@ let getHttpContextWriteable (authenticated : bool) =
         .AddAuthentication()
         .AddScheme<TestingHandlerOptions, TestingHandler>(AuthScheme, ignore)
         |> ignore
+
     let provider = services.BuildServiceProvider()
 
     let identity = Substitute.For<ClaimsIdentity>()

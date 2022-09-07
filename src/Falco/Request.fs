@@ -68,7 +68,15 @@ let getJsonOptions<'a>
 /// Stream the form collection for multipart form submissions.
 let streamForm
     (ctx : HttpContext) : Task<FormCollectionReader> =
-    ctx.Request.StreamFormAsync()
+    task {
+        let! result = ctx.Request.TryStreamFormAsync()
+        let form =
+            match result with
+            | Ok form -> FormCollectionReader(form, Some form.Files)
+            | Error _ -> FormCollectionReader(FormCollection.Empty, None)
+
+        return form
+    }
 
 // ------------
 // Handlers

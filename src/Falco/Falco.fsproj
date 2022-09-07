@@ -1,15 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>Falco</AssemblyName>
     <Version>4.0.0-alpha1</Version>
-
     <!-- General info -->
     <Description>A functional-first toolkit for building brilliant ASP.NET Core applications using F#.</Description>
     <Copyright>Copyright 2022 Pim Brouwers</Copyright>
     <Authors>Pim Brouwers and contributors</Authors>
     <NeutralLanguage>en-CA</NeutralLanguage>
-
     <!-- Build config -->
     <TargetFrameworks>net6.0</TargetFrameworks>
     <DebugType>embedded</DebugType>
@@ -17,7 +14,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-
     <!-- NuGet config -->
     <PackageId>Falco</PackageId>
     <PackageTags>fsharp;functional;asp.net core;asp.net;.net core;routing;view engine;web;falco;falco-sharp;</PackageTags>
@@ -28,22 +24,18 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/pimbrouwers/Falco</RepositoryUrl>
-
     <!-- SourceLink settings -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
-
-
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-
     <PackageReference Update="FSharp.Core" Version="6.*" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
-
   <ItemGroup>
+    <Compile Include="Multipart.fs" />
     <Compile Include="String.fs" />
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Core.fs" />
@@ -56,21 +48,17 @@
     <Compile Include="ConfigBuilder.fs" />
     <Compile Include="HostBuilder.fs" />
   </ItemGroup>
-
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ProjectReference Include="..\Falco.Markup\Falco.Markup.fsproj" />
   </ItemGroup>
-
   <ItemGroup Condition="'$(Configuration)'=='Release'">
     <PackageReference Include="Falco.Markup" Version="1.*" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="../../assets/icon.png">
       <Pack>true</Pack>
       <PackagePath>$(PackageIconUrl)</PackagePath>
     </None>
-
     <None Include="../../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
