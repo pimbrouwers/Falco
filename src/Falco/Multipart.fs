@@ -101,9 +101,9 @@ module Multipart =
             let contentType = MediaTypeHeaderValue.Parse(StringSegment(x.ContentType))
             let boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary).Value;
             match boundary with
-            | b when isNull b                -> None
-            | b when b.Length > lengthLimit  -> None
-            | b                              -> Some b
+            | b when isNull b               -> None
+            | b when b.Length > lengthLimit -> None
+            | b                             -> Some b
 
         /// Attempt to stream the HttpRequest body into IFormCollection.
         member x.TryStreamFormAsync () : Task<Result<IFormCollection, string>> =
