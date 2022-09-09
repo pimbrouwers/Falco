@@ -1,5 +1,4 @@
-﻿[<AutoOpen>]
-module Falco.StringCollectionReader
+﻿namespace Falco
 
 open System
 open System.Collections.Generic

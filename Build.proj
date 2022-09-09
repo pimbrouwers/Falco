@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == '' Or '$(Configuration)' != 'Release'">Debug</Configuration>
     <ProjectDir>$([System.IO.Path]::GetFullPath("$(MSBuildThisFileDirectory)"))</ProjectDir>
-    <ProjectName Condition="'$(ProjectName)' == ''">Falco</ProjectName>
+    <ProjectName>Falco</ProjectName>
   </PropertyGroup>
 
   <PropertyGroup>

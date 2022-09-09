@@ -28,7 +28,7 @@ module Multipart =
             | false, _     -> None
             | true, parsed -> Some parsed
 
-        member private x.StreamDataAsync() =
+        member private x.StreamSectionAsync() =
             task {
                 match MultipartSection.TryGetContentDisposition(x) with
                 | Some cd when cd.IsFileDisposition() ->
@@ -77,7 +77,7 @@ module Multipart =
                         shouldContinue <- false
 
                     | false ->
-                        let! sectionData = section.StreamDataAsync()
+                        let! sectionData = section.StreamSectionAsync()
 
                         match sectionData with
                         | FormFileData file          -> formFiles.Add(file)

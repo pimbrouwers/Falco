@@ -1,5 +1,4 @@
-﻿[<AutoOpen>]
-module Falco.Core
+﻿namespace Falco
 
 open System
 open System.Threading.Tasks
@@ -14,13 +13,6 @@ module Constants =
         options.AllowTrailingCommas <- true
         options.PropertyNameCaseInsensitive <- true
         options
-
-// ------------
-// Errors
-// ------------
-
-/// Represents a missing dependency, thrown on request.
-exception InvalidDependencyException of string
 
 // ------------
 // HTTP
@@ -51,8 +43,7 @@ type HttpVerb =
         | ANY     -> String.Empty
 
 /// The eventual return of asynchronous HttpContext processing.
-type HttpHandler =
-    HttpContext -> Task
+type HttpHandler = HttpContext -> Task
 
 module HttpHandler =
     /// Convert HttpHandler to a RequestDelegate.

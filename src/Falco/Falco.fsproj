@@ -32,26 +32,20 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Falco.Markup" Version="1.0.0-alpha1" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Multipart.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="String.fs" />
     <Compile Include="StringCollectionReader.fs" />
-    <Compile Include="Core.fs" />
-    <Compile Include="Routing.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="Multipart.fs" />
-    <Compile Include="Response.fs" />
     <Compile Include="Request.fs" />
+    <Compile Include="Response.fs" />
+    <Compile Include="Routing.fs" />
     <Compile Include="ConfigBuilder.fs" />
     <Compile Include="HostBuilder.fs" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <ProjectReference Include="..\Falco.Markup\Falco.Markup.fsproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)'=='Release'">
-    <PackageReference Include="Falco.Markup" Version="1.*" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../../assets/icon.png">

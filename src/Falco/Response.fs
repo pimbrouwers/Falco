@@ -257,3 +257,41 @@ let challengeWithRedirect
         let properties = AuthenticationProperties(RedirectUri = redirectUri)
         do! Auth.challenge authScheme properties ctx
     }
+
+/// Pretty print the content of the current request to the screen.
+///
+/// Important: This is intended to be used for debugging during
+/// development only. DO NOT USE in production.
+let debugRequest : HttpHandler = fun ctx ->
+    task {
+        let verb = Request.getVerb ctx
+        let headers = Request.getHeaders ctx
+        let! body = Request.getBodyString ctx
+
+        let tab = "    "
+
+        let sw = new StringWriter(StringBuilder(16))
+        sw.Write(string verb)
+        sw.Write(' ')
+        sw.Write(ctx.Request.Path)
+        sw.Write(ctx.Request.QueryString)
+        sw.WriteLine()
+        sw.WriteLine()
+
+        sw.WriteLine("Headers:")
+
+        for k in headers.Keys do
+            sw.Write(tab)
+            sw.WriteLine(k)
+            sw.Write(tab)
+            sw.Write(tab)
+            sw.WriteLine(headers.Get k "-")
+            sw.WriteLine()
+
+        sw.WriteLine()
+        sw.Write(body)
+
+        let debugText = sw.ToString()
+
+        return ofPlainText debugText ctx
+    }
