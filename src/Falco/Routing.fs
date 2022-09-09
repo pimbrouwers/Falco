@@ -1,9 +1,6 @@
 ﻿namespace Falco
 
 module Routing =
-    /// The process of associating a route and handler.
-    type MapHttpEndpoint = string -> HttpHandler -> HttpEndpoint
-
     /// Constructor for multi-method HttpEndpoint.
     let all
         (pattern : string)
@@ -18,28 +15,37 @@ module Routing =
         all pattern [ verb, handler ]
 
     /// HttpEndpoint constructor that matches any HttpVerb.
-    let any : MapHttpEndpoint = route ANY
+    let any (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route ANY pattern handler
 
     /// GET HttpEndpoint constructor.
-    let get : MapHttpEndpoint = route GET
+    let get (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route GET pattern handler
 
     /// HEAD HttpEndpoint constructor.
-    let head : MapHttpEndpoint = route HEAD
+    let head (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route HEAD pattern handler
 
     /// POST HttpEndpoint constructor.
-    let post : MapHttpEndpoint = route POST
+    let post (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route POST pattern handler
 
     /// PUT HttpEndpoint constructor.
-    let put : MapHttpEndpoint = route PUT
+    let put (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route PUT pattern handler
 
     /// PATCH HttpEndpoint constructor.
-    let patch : MapHttpEndpoint = route PATCH
+    let patch (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route PATCH pattern handler
 
     /// DELETE HttpEndpoint constructor.
-    let delete : MapHttpEndpoint = route DELETE
+    let delete (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route DELETE pattern handler
 
     /// OPTIONS HttpEndpoint constructor.
-    let options : MapHttpEndpoint = route OPTIONS
+    let options (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route OPTIONS pattern handler
 
     /// TRACE HttpEndpoint construct.
-    let trace : MapHttpEndpoint = route TRACE
+    let trace (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+        route TRACE pattern handler
