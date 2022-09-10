@@ -25,8 +25,7 @@ type StringCollectionReader (values : Map<string, string[]>) =
         x.TryGetValue name |> Option.map (tryParseArray binder) |> Option.defaultValue [||]
 
     /// Access string[] at index
-    member x.Key
-        with get(idx) = values.[idx]
+    member x.Key with get(idx) = values.[idx]
 
     /// The keys in the collection reader.
     member _.Keys = values.Keys

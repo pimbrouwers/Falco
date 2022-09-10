@@ -58,7 +58,8 @@ module Pages =
 // ------------
 // Scriban templates
 // ------------
-let loadScribanTemplates (root : string) =
+let scribanTemplates = // gets evaluated upon startup
+    let root = Directory.GetCurrentDirectory()
     let viewsDirectory = Path.Combine(root, "Views")
 
     Directory.EnumerateFiles(viewsDirectory)
@@ -73,8 +74,6 @@ let loadScribanTemplates (root : string) =
 // ------------
 // Register services
 // ------------
-let scribanTemplates = loadScribanTemplates (Directory.GetCurrentDirectory())
-
 let scribanService (svc : IServiceCollection) =
     svc.AddScoped<IViewEngine, ScribanViewEngine>(fun _ ->
         new ScribanViewEngine(scribanTemplates))

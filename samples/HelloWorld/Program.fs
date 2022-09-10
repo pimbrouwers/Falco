@@ -23,14 +23,17 @@ let handleHtml : HttpHandler =
 
     Response.ofHtml html
 
+/// GET /greet/{name}
+let handleGreet : HttpHandler = fun ctx ->
+    let route = Request.getRoute ctx
+    let greeting = sprintf "Hello %s" (route.Get "name" "")
+    Response.ofPlainText greeting ctx
+
 webHost [||] {
-    use_https
-
     endpoints [
+        get "/" handlePlainText
         get "/json" handleJson
-
         get "/html" handleHtml
-
-        any "/" handlePlainText
+        get "/greet/{name}" handleGreet
     ]
 }
