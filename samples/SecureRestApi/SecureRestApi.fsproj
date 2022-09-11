@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.*" />
-    <PackageReference Include="Falco" Version="4.0.0-alpha1" />
+    <PackageReference Include="Falco" Version="4.0.0-alpha2" />
   </ItemGroup>
 
   <ItemGroup>

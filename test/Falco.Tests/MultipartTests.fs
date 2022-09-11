@@ -1,21 +1,13 @@
 module Falco.Tests.Multipart
 
-open System.Collections.Generic
 open System.IO
 open System.Text
-open System.Threading.Tasks
 open Falco
 open Falco.Multipart
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
-open NSubstitute
 open Xunit
-open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Routing
 open Microsoft.AspNetCore.WebUtilities
-open Microsoft.Extensions.Primitives
-open Microsoft.Net.Http.Headers
-open System.Security.Claims
 
 [<Fact>]
 let ``MultipartReader.StreamFormAsync()`` () =
@@ -35,7 +27,7 @@ let ``MultipartReader.StreamFormAsync()`` () =
         form.Files.Count |> should equal 0
 
         let formReader = FormCollectionReader(form, Some form.Files)
-        let formValue = formReader.GetString "name" ""
+        let formValue = formReader.GetString "name"
         formValue |> should equal "falco"
     }
 
@@ -69,6 +61,6 @@ let ``MultipartReader.StreamFormAsync() with 3-part body`` () =
         form.Files.Count |> should equal 2
 
         let formReader = FormCollectionReader(form, Some form.Files)
-        let formValue = formReader.GetString "name" ""
+        let formValue = formReader.GetString "name"
         formValue |> should equal "falco"
     }

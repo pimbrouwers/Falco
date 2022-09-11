@@ -31,7 +31,7 @@ let ``Request.getHeader should work for present and missing header names`` () =
 
     let headers =  Request.getHeaders ctx
 
-    headers.GetString HeaderNames.Server "" |> should equal serverName
+    headers.GetString HeaderNames.Server |> should equal serverName
     headers.TryGetString "missing" |> should equal None
 
 [<Fact>]
@@ -41,7 +41,7 @@ let ``Request.getRouteValues should return Map<string, string> from HttpContext`
 
     let route = Request.getRoute ctx
 
-    route.GetString "name" ""
+    route.GetString "name"
     |> should equal "falco"
 
 [<Fact>]
@@ -113,7 +113,7 @@ let ``Request.mapRoute`` () =
         name |> should equal "falco"
         Response.ofEmpty
 
-    Request.mapRoute (fun r -> r.GetString "name" "") handle ctx
+    Request.mapRoute (fun r -> r.GetString "name") handle ctx
 
 [<Fact>]
 let ``Request.mapCookie`` () =
@@ -124,7 +124,7 @@ let ``Request.mapCookie`` () =
         name |> should equal "falco"
         Response.ofEmpty
 
-    Request.mapCookie (fun q -> q.GetString "name" "") handle ctx
+    Request.mapCookie (fun q -> q.GetString "name") handle ctx
 
 [<Fact>]
 let ``Request.mapQuery`` () =
@@ -137,7 +137,7 @@ let ``Request.mapQuery`` () =
         name |> should equal "falco"
         Response.ofEmpty
 
-    Request.mapQuery (fun c -> c.GetString "name" "") handle ctx
+    Request.mapQuery (fun c -> c.GetString "name") handle ctx
 
 [<Fact>]
 let ``Request.mapForm`` () =
@@ -150,7 +150,7 @@ let ``Request.mapForm`` () =
         name |> should equal "falco"
         Response.ofEmpty
 
-    Request.mapForm (fun f -> f.GetString "name" "") handle ctx
+    Request.mapForm (fun f -> f.GetString "name") handle ctx
 
 // [<Fact>]
 let ``Request.mapFormStream`` () =
@@ -208,4 +208,4 @@ let ``Request.mapFormStream`` () =
         //     x.Count |> should equal 5)
         Response.ofEmpty
 
-    Request.mapFormStream (fun f -> f.GetString "name" "", f.Files) handle ctx
+    Request.mapFormStream (fun f -> f.GetString "name", f.Files) handle ctx

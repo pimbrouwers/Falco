@@ -91,34 +91,32 @@ let ``Inline StringCollectionReader from form collection should resolve primitiv
     scr.TryGetDateTimeOffset "fdatetimeoffset"   |> shouldBeSome (should equal (DateTimeOffset.Parse(offsetNow)))
     scr.TryGetTimeSpan "ftimespan"               |> shouldBeSome (should equal (TimeSpan.Parse(timespan)))
     scr.TryGetGuid "fguid"                       |> shouldBeSome (should equal (Guid.Parse(guid)))
+    scr.GetString "fstring"                 |> should equal "John Doe"
+    scr.GetInt16 "fint16"                   |> should equal 16s
+    scr.GetInt32 "fint32"                   |> should equal 32
+    scr.GetInt "fint32"                     |> should equal 32
+    scr.GetInt64 "fint64"                   |> should equal 64L
+    scr.GetBoolean "fbool"                  |> should equal true
+    scr.GetFloat "ffloat"                   |> should equal 1.234
+    scr.GetDecimal "fdecimal"               |> should equal 4.567M
+    scr.GetDateTime "fdatetime"             |> should equal (DateTime.Parse(now))
+    scr.GetDateTimeOffset "fdatetimeoffset" |> should equal (DateTimeOffset.Parse(offsetNow))
+    scr.GetTimeSpan "ftimespan"             |> should equal (TimeSpan.Parse(timespan))
+    scr.GetGuid "fguid"                     |> should equal (Guid.Parse(guid))
 
-    scr.GetString "fstring" "default_value"                         |> should equal "John Doe"
-    scr.GetStringNonEmpty "emptystring" "default_value"             |> should equal "default_value"
-    scr.GetInt16 "fint16" -1s                                       |> should equal 16s
-    scr.GetInt32 "fint32" -1                                        |> should equal 32
-    scr.GetInt "fint32" -1                                          |> should equal 32
-    scr.GetInt64 "fint64" 1L                                        |> should equal 64L
-    scr.GetBoolean "fbool" false                                    |> should equal true
-    scr.GetFloat "ffloat" 0.0                                       |> should equal 1.234
-    scr.GetDecimal "fdecimal" 0.0M                                  |> should equal 4.567M
-    scr.GetDateTime "fdatetime" DateTime.MinValue                   |> should equal (DateTime.Parse(now))
-    scr.GetDateTimeOffset "fdatetimeoffset" DateTimeOffset.MinValue |> should equal (DateTimeOffset.Parse(offsetNow))
-    scr.GetTimeSpan "ftimespan" TimeSpan.MinValue                   |> should equal (TimeSpan.Parse(timespan))
-    scr.GetGuid "fguid" Guid.Empty                                  |> should equal (Guid.Parse(guid))
-
-    scr.GetString "_fstring" "default_value"                         |> should equal  "default_value"
-    scr.GetStringNonEmpty "_fstring" "default_value"                 |> should equal  "default_value"
-    scr.GetInt16 "_fint16" -1s                                       |> should equal  -1s
-    scr.GetInt32 "_fint32" -1                                        |> should equal  -1
-    scr.GetInt "_fint32" -1                                          |> should equal  -1
-    scr.GetInt64 "_fint64" 1L                                        |> should equal  1L
-    scr.GetBoolean "_fbool" false                                    |> should equal  false
-    scr.GetFloat "_ffloat" 0.0                                       |> should equal  0.0
-    scr.GetDecimal "_fdecimal" 0.0M                                  |> should equal  0.0M
-    scr.GetDateTime "_fdatetime" DateTime.MinValue                   |> should equal  DateTime.MinValue
-    scr.GetDateTimeOffset "_fdatetimeoffset" DateTimeOffset.MinValue |> should equal  DateTimeOffset.MinValue
-    scr.GetTimeSpan "_ftimespan" TimeSpan.MinValue                   |> should equal  TimeSpan.MinValue
-    scr.GetGuid "_fguid" Guid.Empty                                  |> should equal  Guid.Empty
+    scr.GetString("_fstring", "default_value")                         |> should equal "default_value"
+    scr.GetStringNonEmpty("_fstring", "default_value")                 |> should equal "default_value"
+    scr.GetInt16("_fint16", -1s)                                       |> should equal -1s
+    scr.GetInt32("_fint32", -1)                                        |> should equal -1
+    scr.GetInt("_fint32", -1)                                          |> should equal -1
+    scr.GetInt64("_fint64", 1L)                                        |> should equal 1L
+    scr.GetBoolean("_fbool", false)                                    |> should equal false
+    scr.GetFloat("_ffloat", 0.0)                                       |> should equal 0.0
+    scr.GetDecimal("_fdecimal", 0.0M)                                  |> should equal 0.0M
+    scr.GetDateTime("_fdatetime", DateTime.MinValue)                   |> should equal DateTime.MinValue
+    scr.GetDateTimeOffset("_fdatetimeoffset", DateTimeOffset.MinValue) |> should equal DateTimeOffset.MinValue
+    scr.GetTimeSpan("_ftimespan", TimeSpan.MinValue)                   |> should equal TimeSpan.MinValue
+    scr.GetGuid("_fguid", Guid.Empty)                                  |> should equal Guid.Empty
 
     // array values
     scr.GetStringArray "_fstring"                |> should equal [||]
@@ -167,8 +165,8 @@ let ``StringCollectionReader.GetChildren should produce list of StringCollection
     |> should equal 3
 
     for i = 0 to 2 do
-        lst.[i].Get "first_name" "" |> should equal (sprintf "first%i" (i+1))
-        lst.[i].Get "last_name" "" |> should equal (sprintf "last%i" (i+1))
+        lst.[i].Get "first_name" |> should equal (sprintf "first%i" (i+1))
+        lst.[i].Get "last_name"  |> should equal (sprintf "last%i" (i+1))
 
 [<Fact>]
 let ``StringCollectionReader.GetChildren should produce list of StringCollectionReader for jagged map`` () =
@@ -186,6 +184,6 @@ let ``StringCollectionReader.GetChildren should produce list of StringCollection
     |> should equal 3
 
     for i = 0 to 2 do
-        lst.[i].Get "first_name" ""
+        lst.[i].Get "first_name"
         |> if i = 2 then should equal "" else should equal (sprintf "first%i" (i+1))
-        lst.[i].Get "last_name" "" |> should equal (sprintf "last%i" (i+1))
+        lst.[i].Get "last_name" |> should equal (sprintf "last%i" (i+1))

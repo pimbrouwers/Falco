@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param (
-    [Parameter(HelpMessage="The process to execute.")]
+    [Parameter(HelpMessage="The action to execute.")]
     [ValidateSet("Build", "Test", "Pack")]
-    [string] $Process = "Build",
+    [string] $Action = "Build",
 
     [Parameter(HelpMessage="The msbuild configuration to use.")]
     [ValidateSet("Debug", "Release")]
@@ -20,15 +20,18 @@ $srcDir = Join-Path -Path $rootDir -ChildPath 'src'
 $testDir = Join-Path -Path $rootDir -ChildPath 'test'
 $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco'
 
-if ($Process -eq "Test")
+if ($Action -eq "Test")
 {
     $projectdir = Join-Path -Path $testDir -ChildPath 'Falco.Tests'
 }
+elseif ($action -eq "Pack") {
+    $Configuration = "Release"
+}
 
-RunCommand 'dotnet restore src --force --force-evaluate --nologo --verbosity quiet'
+RunCommand "dotnet restore $projectDir --force --force-evaluate --nologo --verbosity quiet"
 RunCommand "dotnet clean $projectDir -c $Configuration --nologo --verbosity quiet"
 
-switch ($Process) {
+switch ($Action) {
     "Test"  { RunCommand "dotnet test `"$projectDir`"" }
     "Pack"  { RunCommand "dotnet pack `"$projectDir`" -c $Configuration --include-symbols --include-source" }
     Default { RunCommand "dotnet build `"$projectDir`" -c $Configuration" }

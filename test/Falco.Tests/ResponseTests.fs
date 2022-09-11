@@ -219,16 +219,12 @@ let ``Response.ofHtmlString produces text/html result`` () =
 
 
 [<Fact>]
-let ``Are you looking for a CHALLENGE?!`` () =
+let ``Response.challengeWithRedirect`` () =
     let ctx = getHttpContextWriteable false
 
     task {
         do! ctx
             |> Response.challengeWithRedirect AuthScheme "/"
-        //NOTE this assertions are a bit dodgy...
-        // they are based on implicit knowledge of the registered authentication handler
-        // _but_
-        // they are enough to conclude that the correct auth handler was asked to challenge
         ctx.Response.StatusCode |> should equal 401
         ctx.Response.Headers.WWWAuthenticate.ToArray() |> should contain AuthScheme
         ctx.Response.Headers.Location.ToArray() |> should contain "/"

@@ -8,24 +8,24 @@ open FsUnit.Xunit
 let emptyHandler : HttpHandler = Response.ofPlainText ""
 
 [<Fact>]
-let ``route function should return valid HttpEndpoint`` () =    
+let ``route function should return valid HttpEndpoint`` () =
     let routeVerb = GET
     let routePattern = "/"
 
     let endpoint = route routeVerb routePattern emptyHandler
     endpoint.Pattern |> should equal routePattern
-    
+
     let (verb, handler) = endpoint.Handlers.Head
     verb |> should equal routeVerb
     handler |> should be instanceOfType<HttpHandler>
 
 [<Fact>]
-let ``any function returns HttpEndpoint matching ANY HttpVerb`` () = 
-    let testEndpointFunction 
-        (fn : MapHttpEndpoint)
+let ``any function returns HttpEndpoint matching ANY HttpVerb`` () =
+    let testEndpointFunction
+        mapEndPoint
         (verb : HttpVerb) =
         let pattern = "/"
-        let endpoint = fn pattern emptyHandler
+        let endpoint = mapEndPoint pattern emptyHandler
         endpoint.Pattern |> should equal pattern
         let (verb, handler) = endpoint.Handlers.Head
         verb |> should equal verb
@@ -43,4 +43,3 @@ let ``any function returns HttpEndpoint matching ANY HttpVerb`` () =
         trace, TRACE
     ]
     |> List.iter (fun (fn, verb) -> testEndpointFunction fn verb)
-
