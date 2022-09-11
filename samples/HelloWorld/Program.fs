@@ -29,11 +29,16 @@ let handleGreet : HttpHandler = fun ctx ->
     let greeting = sprintf "Hello %s" (route.Get "name" "")
     Response.ofPlainText greeting ctx
 
-webHost [||] {
-    endpoints [
-        get "/" handlePlainText
-        get "/json" handleJson
-        get "/html" handleHtml
-        get "/greet/{name}" handleGreet
-    ]
-}
+
+[<EntryPoint>]
+let main args =
+    webHost args {
+        endpoints [
+            get "/" handlePlainText
+            get "/json" handleJson
+            get "/html" handleHtml
+            get "/greet/{name}" handleGreet
+        ]
+    }
+
+    0 // Exit code
