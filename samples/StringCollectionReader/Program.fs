@@ -2,45 +2,66 @@ module HelloWorld.Program
 
 open Falco
 open Falco.Markup
-open Falco.Routing
 open Falco.HostBuilder
+open Falco.Routing
+open Falco.Security
 
 /// GET /
-let handlePlainText : HttpHandler =
-    Request.mapQuery
-        (fun q -> )
-    Response.ofPlainText "Hello world"
-
-/// GET /json
-let handleJson : HttpHandler =
-    let message = {| Message = "Hello from /json" |}
-    Response.ofJson message
-
-/// GET /html
-let handleHtml : HttpHandler =
-    let html =
-        Templates.html5 "en"
-            [ Elem.link [ Attr.href "style.css"; Attr.rel "stylesheet" ] ]
-            [ Elem.h1 [] [ Text.raw "Hello from /html" ] ]
-
-    Response.ofHtml html
-
-/// GET /greet/{name}
-let handleGreet : HttpHandler = fun ctx ->
-    // manually read values from route
-    let route = Request.getRoute ctx
-    let greeting = sprintf "Hello %s" (route.Get "name" "")
+let handlePlainText : HttpHandler = fun ctx ->
+    // read query values manually
+    let route = Request.getQuery ctx
+    let name = route.Get ("name", "world!") // retrieve name or, use default value
+    let greeting = sprintf "Hello %s" name
     Response.ofPlainText greeting ctx
 
+/// GET /greet/{name?}
+let handleGreet : HttpHandler =
+    // read route values, using continuation
+    Request.mapRoute (fun r ->
+        let name = r.Get "name" // retrieve name, "" if null
+        sprintf "Hello there %s" name)
+        Response.ofPlainText
+
+/// Define a CSRF protected HTML5 form, with error output
+let form errors antiforgeryToken =
+    Templates.html5 "en" [] [
+        Elem.div [] [
+            for e in errors do
+                Elem.div [ Attr.style "color: red" ] [ Text.rawf "&bull; %s" e ]
+                Elem.br [] ]
+
+        Elem.form [ Attr.method "post" ] [
+            Elem.label [] [ Text.raw "Please enter your name " ]
+            Elem.input [ Attr.name "name" ]
+            Xss.antiforgeryInput antiforgeryToken
+            Elem.input [ Attr.type' "submit" ]] ]
+
+/// GET /form
+let handleForm : HttpHandler =
+    // Render HTML form, automatically injecting antiforgery token
+    Response.ofHtmlCsrf (form [])
+
+/// POST /form =
+let handleFormPost : HttpHandler =
+    // read form values as Option, using continuation
+    Request.mapForm
+        (fun f -> f.TryGetStringNonEmpty "name") // retrieve name, if not null or whitespace
+        (fun name ->
+            match name with
+            | None -> Response.ofHtmlCsrf (form [ "Invalid name" ])
+            | Some name -> Response.ofJson {| Name = name |})
 
 [<EntryPoint>]
 let main args =
     webHost args {
+        add_antiforgery // add built-in CSRF protection
+
         endpoints [
             get "/" handlePlainText
-            get "/json" handleJson
-            get "/html" handleHtml
-            get "/greet/{name}" handleGreet
+            get "/greet/{name?}" handleGreet
+            all "/form" [
+                GET, handleForm
+                POST, handleFormPost ]
         ]
     }
 

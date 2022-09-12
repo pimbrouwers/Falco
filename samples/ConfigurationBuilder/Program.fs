@@ -1,20 +1,21 @@
 module ConfigurationBuilder.Program
 
 open Falco
-open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Logging
 
+/// App configuration, loaded on startup
 let config : IConfiguration = configuration [||] {
     required_json "appsettings.json"
     optional_json "appsettings.Development.json"
 }
 
+/// GET /
 let handleConfigRead : HttpHandler = fun ctx ->
     let response =
-        // colon-separated to access nested values
+        // Note: colon-separated to access nested values
         {| LogLevel = config.GetValue<string>("Logging:LogLevel")
            ConnectionString = config.GetConnectionString("default") |}
 

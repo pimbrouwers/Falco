@@ -4,7 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Falco" Version="4.0.0-alpha2" />
+    <ProjectReference Include="../../src/Falco/Falco.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
