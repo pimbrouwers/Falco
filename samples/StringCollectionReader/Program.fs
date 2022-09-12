@@ -41,15 +41,21 @@ let handleForm : HttpHandler =
     // Render HTML form, automatically injecting antiforgery token
     Response.ofHtmlCsrf (form [])
 
+/// Define a 400 Bad Request handler
+let badRequest =
+    Response.withStatusCode 400 // modify response in-place
+    >> Response.ofPlainText "Bad Request"
+
 /// POST /form =
 let handleFormPost : HttpHandler =
     // read form values as Option, using continuation
-    Request.mapForm
+    Request.mapFormSecure
         (fun f -> f.TryGetStringNonEmpty "name") // retrieve name, if not null or whitespace
         (fun name ->
             match name with
             | None -> Response.ofHtmlCsrf (form [ "Invalid name" ])
             | Some name -> Response.ofJson {| Name = name |})
+        badRequest // handle invalid token, in this case return 400 Bad Request
 
 [<EntryPoint>]
 let main args =

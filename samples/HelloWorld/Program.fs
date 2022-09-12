@@ -26,7 +26,7 @@ let handleHtml : HttpHandler =
 /// GET /greet/{name}
 let handleGreet : HttpHandler = fun ctx ->
     let route = Request.getRoute ctx
-    let greeting = sprintf "Hello %s" (route.Get "name" "")
+    let greeting = sprintf "Hello %s" (route.Get "name")
     Response.ofPlainText greeting ctx
 
 

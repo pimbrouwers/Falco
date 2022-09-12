@@ -56,34 +56,35 @@ module Pages =
             Request.mapQuery queryMap next)
 
 // ------------
-// Scriban templates
+// Services
 // ------------
-let scribanTemplates = // gets evaluated upon startup
-    let root = Directory.GetCurrentDirectory()
-    let viewsDirectory = Path.Combine(root, "Views")
-
-    Directory.EnumerateFiles(viewsDirectory)
-    |> Seq.map (fun file ->
-        let viewName = Path.GetFileNameWithoutExtension(file)
-        let viewContent = File.ReadAllText(file)
-        let view = Template.Parse(viewContent)
-        viewName, view)
-    |> Map.ofSeq
-
-
-// ------------
-// Register services
-// ------------
-let scribanService (svc : IServiceCollection) =
+let scribanService scribanTemplates (svc : IServiceCollection) =
     svc.AddScoped<IViewEngine, ScribanViewEngine>(fun _ ->
         new ScribanViewEngine(scribanTemplates))
 
-webHost [||] {
-    use_https
+[<EntryPoint>]
+let main args =
+    let scribanTemplates =
+        let root = Directory.GetCurrentDirectory()
+        let viewsDirectory = Path.Combine(root, "Views")
 
-    add_service scribanService
+        Directory.EnumerateFiles(viewsDirectory)
+        |> Seq.map (fun file ->
+            let viewName = Path.GetFileNameWithoutExtension(file)
+            let viewContent = File.ReadAllText(file)
+            let view = Template.Parse(viewContent)
+            viewName, view)
+        |> Map.ofSeq
 
-    endpoints [
-        get "/" Pages.homepage
-    ]
-}
+
+    webHost [||] {
+        use_https
+
+        add_service (scribanService scribanTemplates)
+
+        endpoints [
+            get "/" Pages.homepage
+        ]
+    }
+
+    0 // Exit code

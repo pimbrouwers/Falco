@@ -140,8 +140,11 @@ let mapForm
         return! next (form |> map) ctx
     }
 
-/// Project FormCollectionReader a streamed (i.e., multipart/form-data)
-/// onto 'a and provide to next HttpHandler.
+/// Stream multipart/form-data into FormCollectionReader and project onto 'a
+/// provide to next HttpHandler.
+///
+/// Important: This is intended to be used with multipart/form-data submissions
+/// and will not work if this content-type is not present.
 let mapFormStream
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
@@ -175,8 +178,11 @@ let mapFormSecure
             (mapForm map next)
             handleInvalidToken
 
-/// Project FormCollectionReader a streamed (i.e., multipart/form-data)
-/// onto 'a and provide to next HttpHandler.
+/// Stream multipart/form-data into FormCollectionReader and project onto 'a
+/// provide to next HttpHandler.
+///
+/// Important: This is intended to be used with multipart/form-data submissions
+/// and will not work if this content-type is not present.
 let mapFormStreamSecure
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler)
