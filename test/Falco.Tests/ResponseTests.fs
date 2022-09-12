@@ -32,7 +32,7 @@ let ``Response.withHeader should set header`` () =
 
     task {
         do! ctx
-            |> (Response.withHeader HeaderNames.Server serverName >> Response.ofEmpty)
+            |> (Response.withHeaders [ HeaderNames.Server, serverName ] >> Response.ofEmpty)
 
         ctx.Response.Headers.[HeaderNames.Server]
         |> should equal serverName
@@ -45,7 +45,7 @@ let ``Response.withContentType should set header`` () =
 
     task {
         do! ctx
-            |> (Response.withHeader HeaderNames.ContentType contentType>> Response.ofEmpty)
+            |> (Response.withContentType contentType>> Response.ofEmpty)
 
         ctx.Response.Headers.[HeaderNames.ContentType]
         |> should equal contentType

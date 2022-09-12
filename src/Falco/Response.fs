@@ -19,36 +19,26 @@ open Microsoft.Net.Http.Headers
 // Modifiers
 // ------------
 
-let private setHeader
-    (name : string)
-    (content : string)
-    (ctx : HttpContext) =
-    if not(ctx.Response.Headers.ContainsKey(name)) then
-        ctx.Response.Headers.Add(name, StringValues(content))
-
-
-/// Set specific header for response.
-let withHeader
-    (name : string)
-    (content : string) : HttpResponseModifier = fun ctx ->
-    setHeader name content ctx
-    ctx
 
 /// Set multiple headers for response.
 let withHeaders
     (headers : (string * string) list) : HttpResponseModifier = fun ctx ->
-    for (name, content) in headers do setHeader name content ctx
+    let setHeader (name, content : string) =
+        if not(ctx.Response.Headers.ContainsKey(name)) then
+            ctx.Response.Headers.Add(name, StringValues(content))
+
+    headers |> List.iter setHeader
     ctx
 
 /// Set ContentLength for response.
 let withContentLength
     (contentLength : int64) : HttpResponseModifier =
-    withHeader HeaderNames.ContentLength (string contentLength)
+    withHeaders [ HeaderNames.ContentLength, (string contentLength) ]
 
 /// Set ContentType header for response.
 let withContentType
     (contentType : string) : HttpResponseModifier =
-    withHeader HeaderNames.ContentType contentType
+    withHeaders [ HeaderNames.ContentType, contentType ]
 
 /// Set StatusCode for response.
 let withStatusCode
