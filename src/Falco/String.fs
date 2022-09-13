@@ -2,12 +2,7 @@
 
 open System
 
-module StringUtils =
-    /// stringf is an F# function that invokes any ToString(string) method.
-    /// Credit: Mark Seeman - https://blog.ploeh.dk/2015/05/08/stringf/
-    let inline stringf format (x : ^a) =
-        (^a : (member ToString : string -> string) (x, format))
-
+module internal StringUtils =
     /// Check if string is null or whitespace.
     let strEmpty str =
         String.IsNullOrWhiteSpace(str)
@@ -26,20 +21,15 @@ module StringUtils =
         // Url: https://github.com/microsoft/referencesource/blob/master/mscorlib/system/string.cs#L161
         String.Concat(list)
 
-    /// Join strings with a separator.
-    let strJoin (sep : string) (lst : string seq) =
-        // String.Join uses a StringBuilder when provided an IEnumerable
-        // Url: https://github.com/microsoft/referencesource/blob/master/mscorlib/system/string.cs#L161
-        String.Join(sep, lst)
-
     /// Split string into substrings based on separator.
     let strSplit (sep : char array) (str : string) =
         str.Split(sep)
 
-module StringParser =
+module internal StringParser =
     /// Helper to wrap .NET tryParser's.
-    let tryParseWith (tryParseFunc: string -> bool * _) =
-        tryParseFunc >> function
+    let tryParseWith (tryParseFunc: string -> bool * _) (str : string) =
+        let parsedResult = tryParseFunc str
+        match parsedResult with
         | true, v    -> Some v
         | false, _   -> None
 

@@ -54,7 +54,6 @@ type TestingHandler(options, logger, encoder, clock) =
       me.Context.Response.Headers.Add(HeaderNames.Location, properties.RedirectUri)
       Task.CompletedTask
 
-
 let getHttpContextWriteable (authenticated : bool) =
     let req = Substitute.For<HttpRequest>()
     req.Headers.Returns(Substitute.For<HeaderDictionary>()) |> ignore

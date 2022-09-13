@@ -10,7 +10,6 @@
     <Compile Include="MultipartTests.fs" />
     <Compile Include="MultipartTests.fs" />
     <Compile Include="Common.fs" />
-    <Compile Include="StringTests.fs" />
     <Compile Include="StringCollectionReaderTests.fs" />
     <Compile Include="CoreTests.fs" />
     <Compile Include="RoutingTests.fs" />

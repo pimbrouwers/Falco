@@ -54,9 +54,9 @@ type StringCollectionReader (values : Map<string, string[]>) =
                         dict.Add(i, newDict)
 
             [
-                for Operators.KeyValue (_, childDict) in dict do
+                for KeyValue (_, childDict) in dict do
                     [
-                        for Operators.KeyValue (key, value) in childDict do
+                        for KeyValue (key, value) in childDict do
                             key, Array.ofList value
                     ]
             ]
@@ -281,7 +281,7 @@ type FormCollectionReader (form : IFormCollection, files : IFormFileCollection o
 
     /// The IFormFileCollection submitted in the request.
     ///
-    /// Note: Only present if form enctype="multipart/form-data".
+    /// Note: Only Some if form enctype="multipart/form-data".
     member _.Files = files
 
     /// Safely retrieve the named IFormFile option from the IFormFileCollection.
