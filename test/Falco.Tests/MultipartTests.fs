@@ -11,14 +11,14 @@ open Microsoft.AspNetCore.WebUtilities
 
 [<Fact>]
 let ``MultipartReader.StreamFormAsync()`` () =
-    let threePartBody =
+    let onePartBody =
         "--9051914041544843365972754266\r\n" +
         "Content-Disposition: form-data; name=\"name\"\r\n" +
         "\r\n" +
         "falco\r\n" +
         "--9051914041544843365972754266--\r\n";
 
-    use body = new MemoryStream(Encoding.UTF8.GetBytes(threePartBody))
+    use body = new MemoryStream(Encoding.UTF8.GetBytes(onePartBody))
 
     let rd = new MultipartReader("9051914041544843365972754266", body)
 

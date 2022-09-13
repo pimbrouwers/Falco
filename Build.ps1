@@ -6,7 +6,9 @@ param (
 
     [Parameter(HelpMessage="The msbuild configuration to use.")]
     [ValidateSet("Debug", "Release")]
-    [string] $Configuration = "Debug"
+    [string] $Configuration = "Debug",
+
+    [switch] $SkipClean
 )
 
 function RunCommand {
@@ -24,12 +26,12 @@ if ($Action -eq "Test")
 {
     $projectdir = Join-Path -Path $testDir -ChildPath 'Falco.Tests'
 }
-elseif ($action -eq "Pack") {
-    $Configuration = "Release"
-}
 
-RunCommand "dotnet restore $projectDir --force --force-evaluate --nologo --verbosity quiet"
-RunCommand "dotnet clean $projectDir -c $Configuration --nologo --verbosity quiet"
+if (!$SkipClean)
+{
+    RunCommand "dotnet restore $projectDir --force --force-evaluate --nologo --verbosity quiet"
+    RunCommand "dotnet clean $projectDir -c $Configuration --nologo --verbosity quiet"
+}
 
 switch ($Action) {
     "Test"  { RunCommand "dotnet test `"$projectDir`"" }

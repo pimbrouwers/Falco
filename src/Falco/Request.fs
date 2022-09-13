@@ -69,13 +69,9 @@ let getJsonOptions<'a>
 let streamForm
     (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
-        let! result = ctx.Request.TryStreamFormAsync()
-        let form =
-            match result with
-            | Ok form -> FormCollectionReader(form, Some form.Files)
-            | Error _ -> FormCollectionReader(FormCollection.Empty, None)
-
-        return form
+        let! form = ctx.Request.StreamFormAsync()
+        let files = if isNull(form.Files) then None else Some form.Files
+        return FormCollectionReader(form, files)
     }
 
 // ------------

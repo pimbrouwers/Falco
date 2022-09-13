@@ -150,62 +150,42 @@ let ``Request.mapForm`` () =
         name |> should equal "falco"
         Response.ofEmpty
 
-    Request.mapForm (fun f -> f.GetString "name") handle ctx
+    Request.mapForm (fun f -> f.GetString "name") handle ctx |> ignore
+    Request.mapFormSecure (fun f -> f.GetString "name") handle Response.ofEmpty ctx |> ignore
 
-// [<Fact>]
+[<Fact>]
 let ``Request.mapFormStream`` () =
     let ctx = getHttpContextWriteable false
-    // let body =
-    //     "--9051914041544843365972754266\r\n" +
-    //     "Content-Disposition: form-data; name=\"text\"\r\n" +
-    //     "\r\n" +
-    //     "text default\r\n" +
-    //     "--9051914041544843365972754266\r\n" +
-    //     "Content-Disposition: form-data; name=\"file1\"; filename=\"a.txt\"\r\n" +
-    //     "Content-Type: text/plain\r\n" +
-    //     "\r\n" +
-    //     "Content of a.txt.\r\n" +
-    //     "\r\n" +
-    //     "--9051914041544843365972754266\r\n" +
-    //     "Content-Disposition: form-data; name=\"file2\"; filename=\"a.html\"\r\n" +
-    //     "Content-Type: text/html\r\n" +
-    //     "\r\n" +
-    //     "<!DOCTYPE html><title>Content of a.html.</title>\r\n" +
-    //     "\r\n" +
-    //     "--9051914041544843365972754266--\r\n";
+    let body =
+        "--9051914041544843365972754266\r\n" +
+        "Content-Disposition: form-data; name=\"name\"\r\n" +
+        "\r\n" +
+        "falco\r\n" +
+        "--9051914041544843365972754266\r\n" +
+        "Content-Disposition: form-data; name=\"file1\"; filename=\"a.txt\"\r\n" +
+        "Content-Type: text/plain\r\n" +
+        "\r\n" +
+        "Content of a.txt.\r\n" +
+        "\r\n" +
+        "--9051914041544843365972754266\r\n" +
+        "Content-Disposition: form-data; name=\"file2\"; filename=\"a.html\"\r\n" +
+        "Content-Type: text/html\r\n" +
+        "\r\n" +
+        "<!DOCTYPE html><title>Content of a.html.</title>\r\n" +
+        "\r\n" +
+        "--9051914041544843365972754266--\r\n";
 
-    // use ms = new MemoryStream(Encoding.UTF8.GetBytes(body))
-    // ctx.Request.Body.Returns(ms) |> ignore
+    use ms = new MemoryStream(Encoding.UTF8.GetBytes(body))
+    ctx.Request.Body.Returns(ms) |> ignore
 
-    let form = Dictionary<string, StringValues>()
-    form.Add("name", StringValues("falco"))
-
-    let formFiles = new FormFileCollection()
-
-//     // for i = 1 to 6 do
-//     //     let formFileName = sprintf "file-%i.txt" i
-//     //     let contentDisposition = "attachment; filename=" + formFileName
-//     //     let formFileStr = new MemoryStream(Encoding.UTF8.GetBytes("falco"))
-//     //     let formFile = new FormFile(formFileStr, int64 0, formFileStr.Length, "file", formFileName)
-
-//     //     let formFileHeaders = new HeaderDictionary()
-//     //     formFileHeaders.Add("Content-Type", "text/plain; charset=utf-8")
-//     //     formFileHeaders.Add("Content-Disposition", contentDisposition)
-//     //     formFileHeaders.Add("Content-Length", string formFileStr.Length)
-
-//     //     formFile.Headers <- formFileHeaders
-//     //     formFile.ContentType <- "text/plain"
-//     //     formFile.ContentDisposition <- contentDisposition
-
-//     //     formFiles.Add(formFile)
-
-    ctx.Request.Headers.Add(HeaderNames.ContentType, "multipart/form-data;boundary=\"--9051914041544843365972754266\"")
-    ctx.Request.ReadFormAsync().Returns(FormCollection(form, formFiles)) |> ignore
+    let contentType = "multipart/form-data;boundary=\"9051914041544843365972754266\""
+    ctx.Request.ContentType <- contentType
 
     let handle (formValue : string, files : IFormFileCollection option) : HttpHandler =
         formValue |> should equal "falco"
-        // files |> shouldBeSome (fun x ->
-        //     x.Count |> should equal 5)
+        files |> shouldBeSome (fun x ->
+            x.Count |> should equal 2)
         Response.ofEmpty
 
-    Request.mapFormStream (fun f -> f.GetString "name", f.Files) handle ctx
+    Request.mapFormStream (fun f -> f.GetString "name", f.Files) handle ctx |> ignore
+    Request.mapFormStreamSecure (fun f -> f.GetString "name", f.Files) handle Response.ofEmpty ctx |> ignore

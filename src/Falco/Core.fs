@@ -7,7 +7,7 @@ open Microsoft.AspNetCore.Http
 // ------------
 // Constants
 // ------------
-module Constants =
+module internal Constants =
     let defaultJsonOptions =
         let options = Text.Json.JsonSerializerOptions()
         options.AllowTrailingCommas <- true

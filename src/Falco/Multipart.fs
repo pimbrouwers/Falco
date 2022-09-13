@@ -62,7 +62,7 @@ module Multipart =
             }
 
     type MultipartReader with
-        member x.StreamFormAsync() =
+        member x.StreamSectionsAsync() =
             task {
                 let formData = new KeyValueAccumulator()
                 let formFiles = new FormFileCollection()
@@ -106,15 +106,14 @@ module Multipart =
             | b                             -> Some b
 
         /// Attempt to stream the HttpRequest body into IFormCollection.
-        member x.TryStreamFormAsync () : Task<Result<IFormCollection, string>> =
+        member x.StreamFormAsync () : Task<IFormCollection> =
             task {
                 match x.IsMultipart(), x.GetBoundary() with
                 | true, Some boundary ->
                     let multipartReader = new MultipartReader(boundary, x.Body)
-                    let! formCollection = multipartReader.StreamFormAsync()
-                    return Ok formCollection
+                    let! formCollection = multipartReader.StreamSectionsAsync()
+                    return formCollection
 
-                | _, None  -> return Error "No boundary found"
-
-                | false, _ -> return Error "Not a multipart request"
+                | _, None
+                | false, _ -> return FormCollection.Empty
             }

@@ -19,7 +19,6 @@ open Microsoft.Net.Http.Headers
 // Modifiers
 // ------------
 
-
 /// Set multiple headers for response.
 let withHeaders
     (headers : (string * string) list) : HttpResponseModifier = fun ctx ->
