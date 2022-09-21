@@ -1,3 +1,5 @@
+> Version 4 is under active development! Follow along [here](https://github.com/pimbrouwers/Falco/tree/develop). Public beta is available through [NuGet](https://www.nuget.org/packages/Falco/4.0.0-beta1).
+
 # Falco
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
