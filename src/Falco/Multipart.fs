@@ -32,7 +32,7 @@ module Multipart =
             task {
                 match MultipartSection.TryGetContentDisposition(x) with
                 | Some cd when cd.IsFileDisposition() ->
-                    use str = new MemoryStream()
+                    let str = new MemoryStream()
                     do! x.Body.CopyToAsync(str, 8192)
 
                     let safeFileName = WebUtility.HtmlEncode cd.FileName.Value

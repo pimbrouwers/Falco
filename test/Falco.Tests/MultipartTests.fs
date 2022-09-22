@@ -10,7 +10,7 @@ open Xunit
 open Microsoft.AspNetCore.WebUtilities
 
 [<Fact>]
-let ``MultipartReader.StreamFormAsync()`` () =
+let ``MultipartReader.StreamSectionsAsync()`` () =
     let onePartBody =
         "--9051914041544843365972754266\r\n" +
         "Content-Disposition: form-data; name=\"name\"\r\n" +
@@ -23,7 +23,7 @@ let ``MultipartReader.StreamFormAsync()`` () =
     let rd = new MultipartReader("9051914041544843365972754266", body)
 
     task {
-        let! form = rd.StreamFormAsync()
+        let! form = rd.StreamSectionsAsync()
         form.Files.Count |> should equal 0
 
         let formReader = FormCollectionReader(form, Some form.Files)
@@ -32,7 +32,7 @@ let ``MultipartReader.StreamFormAsync()`` () =
     }
 
 [<Fact>]
-let ``MultipartReader.StreamFormAsync() with 3-part body`` () =
+let ``MultipartReader.StreamSectionsAsync() with 3-part body`` () =
     let threePartBody =
             "--9051914041544843365972754266\r\n" +
             "Content-Disposition: form-data; name=\"name\"\r\n" +
@@ -57,8 +57,12 @@ let ``MultipartReader.StreamFormAsync() with 3-part body`` () =
     let rd = new MultipartReader("9051914041544843365972754266", body)
 
     task {
-        let! form = rd.StreamFormAsync()
+        let! form = rd.StreamSectionsAsync()
         form.Files.Count |> should equal 2
+
+        // can we access the files?
+        use _ = form.Files.[0].OpenReadStream()
+        use _ = form.Files.[1].OpenReadStream()
 
         let formReader = FormCollectionReader(form, Some form.Files)
         let formValue = formReader.GetString "name"
