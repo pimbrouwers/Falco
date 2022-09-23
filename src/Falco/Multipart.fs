@@ -33,7 +33,7 @@ module Multipart =
                 match MultipartSection.TryGetContentDisposition(x) with
                 | Some cd when cd.IsFileDisposition() ->
                     let str = new MemoryStream()
-                    do! x.Body.CopyToAsync(str, 8192)
+                    do! x.Body.CopyToAsync(str)
 
                     let safeFileName = WebUtility.HtmlEncode cd.FileName.Value
                     let file = new FormFile(str, int64 0, str.Length, cd.Name.Value, safeFileName)

@@ -32,23 +32,15 @@ module Response =
         }
 
 // ------------
-// Middleware
-// ------------
-module Middleware =
-    let withViewEngine (next : IViewEngine -> HttpHandler) : HttpHandler = fun ctx ->
-        let viewEngine = ctx.RequestServices.GetRequiredService<IViewEngine>()
-        next viewEngine ctx
-
-// ------------
 // Pages
 // ------------
 module Pages =
     open Middleware
 
     let homepage : HttpHandler =
-        withViewEngine (fun viewEngine ->
+        withService<IViewEngine> (fun viewEngine ->
             let queryMap (q: QueryCollectionReader) =
-                {| Name = q.Get "name" "World" |}
+                {| Name = q.Get "name" |}
 
             let next =
                 Response.renderViewEngine viewEngine "Home"

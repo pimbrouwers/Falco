@@ -61,8 +61,13 @@ let ``MultipartReader.StreamSectionsAsync() with 3-part body`` () =
         form.Files.Count |> should equal 2
 
         // can we access the files?
-        use _ = form.Files.[0].OpenReadStream()
-        use _ = form.Files.[1].OpenReadStream()
+        use ms = new MemoryStream()
+        use st1 = form.Files.[0].OpenReadStream()
+        st1.CopyTo(ms)
+
+        ms.SetLength(0)
+        use st2 = form.Files.[1].OpenReadStream()
+        st1.CopyTo(ms)
 
         let formReader = FormCollectionReader(form, Some form.Files)
         let formValue = formReader.GetString "name"

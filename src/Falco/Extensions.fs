@@ -108,6 +108,12 @@ module Extensions =
             if predicate then fn x
             else x
 
+    let getService<'a> (ctx : HttpContext) =
+        ctx.GetService<'a> ()
+
+    let getLogger (name : string) (ctx : HttpContext) =
+        ctx.GetLogger name
+
 type FalcoExtensions =
     static member IsDevelopment : IApplicationBuilder -> bool =
         fun app -> app.IsDevelopment()

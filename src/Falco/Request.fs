@@ -7,6 +7,7 @@ open System.Text.Json
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
+open Falco.Middleware
 open Falco.Multipart
 open Falco.Security
 open Falco.StringUtils
@@ -81,60 +82,57 @@ let streamForm
 /// Buffer the current HttpRequest body into a
 /// string and provide to next HttpHandler.
 let bodyString
-    (next : string -> HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! body = getBodyString ctx
-        return next body
-    }
+    (next : string -> HttpHandler) : HttpHandler =
+    httpPipeTask getBodyString next
 
 /// Project JSON using custom JsonSerializerOptions
 /// onto 'a and provide to next Httphandler, throws
 /// JsonException if errors occurs during deserialization.
 let mapJsonOption
     (options : JsonSerializerOptions)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! json = getJsonOptions options ctx
-        return next json ctx
-    }
+    (next : 'a -> HttpHandler) : HttpHandler =
+    httpPipeTask (getJsonOptions options) next
+
+let internal defaultJsonOptions =
+    let options = JsonSerializerOptions()
+    options.AllowTrailingCommas <- true
+    options.PropertyNameCaseInsensitive <- true
+    options
 
 /// Project JSON onto 'a and provide to next
 /// Httphandler, throws JsonException if errors
 /// occurs during deserialization.
 let mapJson
     (next : 'a -> HttpHandler) : HttpHandler =
-    mapJsonOption Constants.defaultJsonOptions next
+    mapJsonOption defaultJsonOptions next
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler.
 let mapRoute
     (map : RouteCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
-    next (getRoute ctx |> map) ctx
+    (next : 'a -> HttpHandler) : HttpHandler =
+    httpPipe (getRoute >> map) next
 
 /// Project QueryCollectionReader onto 'a and provide
 /// to next HttpHandler.
 let mapQuery
     (map : QueryCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
-    next (getQuery ctx |> map) ctx
+    (next : 'a -> HttpHandler) : HttpHandler =
+    httpPipe (getQuery >> map) next
 
 /// Project CookieCollectionReader onto 'a and provide
 /// to next HttpHandler.
 let mapCookie
     (map : CookieCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
-    next (getCookie ctx |> map) ctx
+    (next : 'a -> HttpHandler) : HttpHandler =
+    httpPipe (getCookie >> map) next
 
 /// Project FormCollectionReader onto 'a and provide
 /// to next HttpHandler.
 let mapForm
     (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! form = getForm ctx
-        return! next (form |> map) ctx
-    }
+    (next : 'a -> HttpHandler) : HttpHandler =
+    httpPipeTask getForm (map >> next)
 
 /// Stream multipart/form-data into FormCollectionReader and project onto 'a
 /// provide to next HttpHandler.
@@ -143,11 +141,8 @@ let mapForm
 /// and will not work if this content-type is not present.
 let mapFormStream
     (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! form = streamForm ctx
-        return! next (form |> map) ctx
-    }
+    (next : 'a -> HttpHandler) : HttpHandler =
+    httpPipeTask streamForm (map >> next)
 
 /// Validate the CSRF of the current request.
 let validateCsrfToken
@@ -183,7 +178,6 @@ let mapFormStreamSecure
     (map : FormCollectionReader -> 'a)
     (next : 'a -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
-        ctx.Request.EnableBuffering()
         validateCsrfToken
             (mapFormStream map next)
             handleInvalidToken
@@ -193,19 +187,14 @@ let mapFormStreamSecure
 /// scheme and pass AuthenticateResult into next HttpHandler.
 let authenticate
     (scheme : string)
-    (next : AuthenticateResult -> HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! auth = ctx.AuthenticateAsync(scheme)
-        return! next auth ctx
-    }
+    (next : AuthenticateResult -> HttpHandler) : HttpHandler =
+        httpPipeTask (Auth.authenticate scheme) next
 
 /// Proceed if the authentication status of current IPrincipal is true.
 let ifAuthenticated
     (handleOk : HttpHandler)
     (handleError : HttpHandler) : HttpHandler =
-    fun ctx ->
-        if Auth.isAuthenticated ctx then handleOk ctx
-        else handleError ctx
+    httpPipe Auth.isAuthenticated (function true -> handleOk | false -> handleError)
 
 /// Proceed if the authentication status of current IPrincipal is true
 /// and they exist in a list of roles.

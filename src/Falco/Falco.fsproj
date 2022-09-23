@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>Falco</AssemblyName>
-    <Version>4.0.0-beta1</Version>
+    <Version>4.0.0-beta2</Version>
 
     <!-- General info -->
     <Description>A functional-first toolkit for building brilliant ASP.NET Core applications using F#.</Description>
@@ -47,6 +47,7 @@
     <Compile Include="Extensions.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="Multipart.fs" />
+    <Compile Include="Middleware.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
     <Compile Include="Routing.fs" />

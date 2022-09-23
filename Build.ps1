@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param (
     [Parameter(HelpMessage="The action to execute.")]
-    [ValidateSet("Build", "Test", "Pack")]
+    [ValidateSet("Build", "Test", "Pack", "Sln")]
     [string] $Action = "Build",
 
     [Parameter(HelpMessage="The msbuild configuration to use.")]
@@ -20,14 +20,15 @@ function RunCommand {
 $rootDir = $PSScriptRoot
 $srcDir = Join-Path -Path $rootDir -ChildPath 'src'
 $testDir = Join-Path -Path $rootDir -ChildPath 'test'
-$projectDir = Join-Path -Path $srcDir -ChildPath 'Falco'
 
-if ($Action -eq "Test")
-{
-    $projectdir = Join-Path -Path $testDir -ChildPath 'Falco.Tests'
+switch ($Action) {
+    "Test"  { $projectdir = Join-Path -Path $testDir -ChildPath 'Falco.Tests' }
+    "Pack"  { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
+    "Sln"   { $projectDir = $rootDir }
+    Default { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
 }
 
-if (!$SkipClean)
+if (!$SkipClean.IsPresent)
 {
     RunCommand "dotnet restore $projectDir --force --force-evaluate --nologo --verbosity quiet"
     RunCommand "dotnet clean $projectDir -c $Configuration --nologo --verbosity quiet"

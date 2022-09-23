@@ -184,7 +184,16 @@ let ``Request.mapFormStream`` () =
     let handle (formValue : string, files : IFormFileCollection option) : HttpHandler =
         formValue |> should equal "falco"
         files |> shouldBeSome (fun x ->
-            x.Count |> should equal 2)
+            x.Count |> should equal 2
+
+            // can we access the files?
+            use ms = new MemoryStream()
+            use st1 = x.[0].OpenReadStream()
+            st1.CopyTo(ms)
+
+            ms.SetLength(0)
+            use st2 = x.[1].OpenReadStream()
+            st1.CopyTo(ms))
         Response.ofEmpty
 
     Request.mapFormStream (fun f -> f.GetString "name", f.Files) handle ctx |> ignore

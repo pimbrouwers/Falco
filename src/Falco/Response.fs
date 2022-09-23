@@ -200,7 +200,7 @@ let ofJsonOptions
 let ofJson
     (obj : 'a) : HttpHandler =
     withContentType "application/json; charset=utf-8"
-    >> ofJsonOptions Constants.defaultJsonOptions obj
+    >> ofJsonOptions Request.defaultJsonOptions obj
 
 /// Sign in claim principal for provided scheme then respond with a 301 redirect
 /// to provided URL.

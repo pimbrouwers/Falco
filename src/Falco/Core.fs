@@ -4,19 +4,22 @@ open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 
-// ------------
-// Constants
-// ------------
-module internal Constants =
-    let defaultJsonOptions =
-        let options = Text.Json.JsonSerializerOptions()
-        options.AllowTrailingCommas <- true
-        options.PropertyNameCaseInsensitive <- true
-        options
+/// The eventual return of asynchronous HttpContext processing.
+type HttpHandler = HttpContext -> Task
 
-// ------------
-// HTTP
-// ------------
+module HttpHandler =
+    /// Convert HttpHandler to a RequestDelegate.
+    let toRequestDelegate (handler : HttpHandler) =
+        new RequestDelegate(handler)
+
+/// A function that extracts 'a from the HttpContext.
+type HttpContextAccessor<'a> = HttpContext -> 'a
+
+/// A function that asynchronously extracts 'a from the HttpContext.
+type AsyncHttpContextAccessor<'a> = HttpContext -> Task<'a>
+
+/// In-and-out processing of a HttpContext.
+type HttpResponseModifier = HttpContext -> HttpContext
 
 /// Http verb
 type HttpVerb =
@@ -41,17 +44,6 @@ type HttpVerb =
         | OPTIONS -> HttpMethods.Options
         | TRACE   -> HttpMethods.Trace
         | ANY     -> String.Empty
-
-/// The eventual return of asynchronous HttpContext processing.
-type HttpHandler = HttpContext -> Task
-
-module HttpHandler =
-    /// Convert HttpHandler to a RequestDelegate.
-    let toRequestDelegate (handler : HttpHandler) =
-        new RequestDelegate(handler)
-
-/// In-and-out processing of a HttpContext.
-type HttpResponseModifier = HttpContext -> HttpContext
 
 /// Specifies an association of a route pattern to a collection of
 /// HttpEndpointHandler.

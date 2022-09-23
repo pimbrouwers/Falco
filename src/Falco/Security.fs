@@ -104,6 +104,12 @@ module Auth =
         | null -> None
         | _    -> Some ctx.User
 
+    /// Authenticate the current request using the provided scheme.
+    let authenticate
+        (scheme : string)
+        (ctx : HttpContext) =
+        ctx.AuthenticateAsync(scheme)
+
     /// Returns authentication status of IPrincipal, false on null.
     let isAuthenticated
         (ctx : HttpContext) : bool =

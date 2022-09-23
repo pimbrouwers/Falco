@@ -113,11 +113,6 @@ module ErrorPages =
         Response.withStatusCode 500
         >> Response.ofPlainText "Server Error"
 
-module Middleware =
-    let withStorage (next : IStorage -> HttpHandler) : HttpHandler = fun ctx ->
-        let stoage = ctx.RequestServices.GetRequiredService<IStorage>()
-        next stoage ctx
-
 module UserHandlers =
     open Middleware
 
@@ -133,25 +128,25 @@ module UserHandlers =
         Response.ofPlainText "Hello World, by Falco"
 
     let create : HttpHandler =
-        withStorage (fun storage ->
+        withService<IStorage> (fun storage ->
             Request.mapJson (fun json ->
                 handleResult (UserStorage.create storage json)))
 
     let readAll : HttpHandler =
-        withStorage (fun storage ->
+        withService<IStorage> (fun storage ->
             handleResult (UserStorage.getAll storage ()))
 
     let private idFromRoute (r : RouteCollectionReader) =
-        r.GetString "id" ""
+        r.GetString "id"
 
     let update : HttpHandler =
-        withStorage (fun storage ->
+        withService<IStorage> (fun storage ->
             Request.mapRoute idFromRoute (fun id ->
                 Request.mapJson (fun (userDto : UserDto) ->
                     handleResult (UserStorage.update storage id userDto))))
 
     let delete : HttpHandler =
-        withStorage (fun storage ->
+        withService<IStorage> (fun storage ->
             Request.mapRoute idFromRoute (fun id ->
                 handleResult (UserStorage.delete storage id)))
 
