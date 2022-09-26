@@ -12,24 +12,29 @@ open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
 type HostBuilderSpec =
-    { Logging    : ILoggingBuilder -> ILoggingBuilder
-      Services   : IServiceCollection -> IServiceCollection
+    { Host : IHostBuilder -> IHostBuilder
+      Logging : ILoggingBuilder -> ILoggingBuilder
+      Services : IServiceCollection -> IServiceCollection
       Middleware : IApplicationBuilder -> IApplicationBuilder
-      NotFound   : HttpHandler option
-      Endpoints  : HttpEndpoint list }
+      NotFound : HttpHandler option
+      Endpoints : HttpEndpoint list }
 
     static member Empty =
-        { Logging    = id
-          Services   = id
+        { Host = id
+          Logging = id
+          Services = id
           Middleware = id
-          NotFound   = None
-          Endpoints  = [] }
+          NotFound = None
+          Endpoints = [] }
 
 /// Computation expression to allow for elegant IHost construction
 type HostBuilder(args : string[]) =
     member _.Yield(_) = HostBuilderSpec.Empty
 
     member _.Run(conf : HostBuilderSpec) =
+        let configureHost (host : IHostBuilder) =
+            host |> conf.Host |> ignore
+
         let configureLogging (log : ILoggingBuilder) =
             log |> conf.Logging |> ignore
 
@@ -54,6 +59,7 @@ type HostBuilder(args : string[]) =
             |> ignore
 
         let builder = WebApplication.CreateBuilder(args)
+        configureHost builder.Host
         configureLogging builder.Logging
         configureServices builder.Services
 
@@ -67,14 +73,20 @@ type HostBuilder(args : string[]) =
     member _.Endpoints (conf : HostBuilderSpec, endpoints : HttpEndpoint list) =
         { conf with Endpoints = endpoints }
 
-    // ------------
-    // Service Collection
-    // ------------
 
     /// Configure logging via ILogger
+    [<CustomOperation("host")>]
+    member _.Host (conf : HostBuilderSpec, fn : IHostBuilder -> IHostBuilder) =
+        { conf with Host = conf.Host >> fn }
+
+    /// Configure logging via ILoggingBuilder
     [<CustomOperation("logging")>]
     member _.Logging (conf : HostBuilderSpec, fn : ILoggingBuilder -> ILoggingBuilder) =
         { conf with Logging = conf.Logging >> fn }
+
+    // ------------
+    // Service Collection
+    // ------------
 
     /// Add a new service descriptor into the IServiceCollection.
     [<CustomOperation("add_service")>]
