@@ -23,13 +23,13 @@ webHost [||] {
 
 ## Key Features
 
-- Asynchronous [request handling](https://github.com/pimbrouwers/Falco/tree/master/docs/en/request.md).
-- Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/docs/en/routing.md) API.
-- Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/docs/en/host.md).
-- Native F# [view engine](https://github.com/pimbrouwers/Falco/tree/master/docs/en/markup.md).
-- Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/docs/en/model-binding.md).
-- [Authentication](https://github.com/pimbrouwers/Falco/tree/master/docs/en/security.md#authentication) and [security](https://github.com/pimbrouwers/Falco/tree/master/docs/en/security.md) utilities.
-- Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/docs/en/request.md#multipartform-data-binding) and [binary responses](#).
+- Asynchronous [request handling](https://github.com/pimbrouwers/Falco/tree/master/doc/response.md).
+- Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/doc/routing.md) API.
+- Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/doc/host.md).
+- Native F# [view engine](https://github.com/pimbrouwers/Falco.Markup).
+- Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/doc/re  uest.md).
+- [Authentication and security](https://github.com/pimbrouwers/Falco/tree/master/doc/security.md) utilities.
+- Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/doc/request.md#multipartform-data-binding) and [binary responses](https://github.com/pimbrouwers/Falco/tree/master/doc/response.md#content-disposition).
 
 ## Design Goals
 
@@ -39,7 +39,7 @@ webHost [||] {
 
 ## Learn
 
-The best way to get started is by visiting the [documentation](https://falcoframework.com). For questions and support please use [discussions](https://github.com/pimbrouwers/Falco/discussions). The issue list of this repo is **exclusively** for bug reports and feature requests.
+The best way to get started is by visiting the [documentation](https://falcoframework.com/docs). For questions and support please use [discussions](https://github.com/pimbrouwers/Falco/discussions). The issue list of this repo is **exclusively** for bug reports and feature requests.
 
 If you want to stay in touch, feel free to reach out on [Twitter](https://twitter.com/falco_framework).
 
