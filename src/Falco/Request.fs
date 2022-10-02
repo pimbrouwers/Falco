@@ -85,47 +85,34 @@ let bodyString
     (next : string -> HttpHandler) : HttpHandler =
     httpPipeTask getBodyString next
 
-/// Project JSON using custom JsonSerializerOptions
-/// onto 'a and provide to next Httphandler, throws
-/// JsonException if errors occurs during deserialization.
-let mapJsonOption
-    (options : JsonSerializerOptions)
+/// Project CookieCollectionReader onto 'a and provide
+/// to next HttpHandler.
+let mapCookie
+    (map : CookieCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler =
-    httpPipeTask (getJsonOptions options) next
+    httpPipe getCookie (map >> next)
 
-let internal defaultJsonOptions =
-    let options = JsonSerializerOptions()
-    options.AllowTrailingCommas <- true
-    options.PropertyNameCaseInsensitive <- true
-    options
-
-/// Project JSON onto 'a and provide to next
-/// Httphandler, throws JsonException if errors
-/// occurs during deserialization.
-let mapJson
+/// Project HeaderCollectionReader onto 'a and provide
+/// to next HttpHandler.
+let mapHeader
+    (map : HeaderCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler =
-    mapJsonOption defaultJsonOptions next
+    httpPipe getHeaders (map >> next)
 
 /// Project RouteCollectionReader onto 'a and provide
 /// to next HttpHandler.
 let mapRoute
     (map : RouteCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler =
-    httpPipe (getRoute >> map) next
+    httpPipe getRoute (map >> next)
 
 /// Project QueryCollectionReader onto 'a and provide
 /// to next HttpHandler.
 let mapQuery
     (map : QueryCollectionReader -> 'a)
     (next : 'a -> HttpHandler) : HttpHandler =
-    httpPipe (getQuery >> map) next
+    httpPipe getQuery (map >> next)
 
-/// Project CookieCollectionReader onto 'a and provide
-/// to next HttpHandler.
-let mapCookie
-    (map : CookieCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler =
-    httpPipe (getCookie >> map) next
 
 /// Project FormCollectionReader onto 'a and provide
 /// to next HttpHandler.
@@ -182,6 +169,31 @@ let mapFormStreamSecure
             (mapFormStream map next)
             handleInvalidToken
             ctx
+
+/// Project JSON using custom JsonSerializerOptions
+/// onto 'a and provide to next Httphandler, throws
+/// JsonException if errors occurs during deserialization.
+let mapJsonOption
+    (options : JsonSerializerOptions)
+    (next : 'a -> HttpHandler) : HttpHandler =
+    httpPipeTask (getJsonOptions options) next
+
+let internal defaultJsonOptions =
+    let options = JsonSerializerOptions()
+    options.AllowTrailingCommas <- true
+    options.PropertyNameCaseInsensitive <- true
+    options
+
+/// Project JSON onto 'a and provide to next
+/// Httphandler, throws JsonException if errors
+/// occurs during deserialization.
+let mapJson
+    (next : 'a -> HttpHandler) : HttpHandler =
+    mapJsonOption defaultJsonOptions next
+
+// ------------
+// Authentication
+// ------------
 
 /// Attempt to authenticate the current request using the provided
 /// scheme and pass AuthenticateResult into next HttpHandler.
