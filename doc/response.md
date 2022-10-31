@@ -14,6 +14,8 @@ let textHandler : HttpHandler =
 Write your views in plain F#, directly in your assembly, using the [Markup](markup.md) module. A performant F# DSL capable of generating any angle-bracket markup. Also available directly as a standalone [NuGet](https://www.nuget.org/packages/Falco.Markup) package.
 
 ```fsharp
+open Falco.Markup
+
 let htmlHandler : HttpHandler =
     let html =
         Elem.html [ Attr.lang "en" ] [
