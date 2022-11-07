@@ -29,7 +29,7 @@ webHost [||] {
 - Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/doc/routing.md) API.
 - Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/doc/host.md).
 - Native F# [view engine](https://github.com/pimbrouwers/Falco.Markup).
-- Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/doc/re  uest.md).
+- Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/doc/request.md).
 - [Authentication and security](https://github.com/pimbrouwers/Falco/tree/master/doc/security.md) utilities.
 - Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/doc/request.md#multipartform-data-binding) and [binary responses](https://github.com/pimbrouwers/Falco/tree/master/doc/response.md#content-disposition).
 
