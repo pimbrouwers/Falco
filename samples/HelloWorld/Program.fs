@@ -4,6 +4,8 @@ open Falco
 open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.Hosting
 
 /// GET /
 let handlePlainText : HttpHandler =

@@ -15,11 +15,11 @@ module HttpHandler =
 /// In-and-out processing of a HttpContext.
 type HttpResponseModifier = HttpContext -> HttpContext
 
-/// A function that extracts 'a from the HttpContext.
-type HttpContextAccessor<'a> = HttpContext -> 'a
+/// A function that extracts 'T from the HttpContext.
+type HttpContextAccessor<'T> = HttpContext -> 'T
 
-/// A function that asynchronously extracts 'a from the HttpContext.
-type AsyncHttpContextAccessor<'a> = HttpContext -> Task<'a>
+/// A function that asynchronously extracts 'T from the HttpContext.
+type AsyncHttpContextAccessor<'T> = HttpContext -> Task<'T>
 
 /// Http verb
 type HttpVerb =

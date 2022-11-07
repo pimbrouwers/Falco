@@ -8,15 +8,6 @@ open Microsoft.AspNetCore.Http
 open NSubstitute
 
 [<Fact>]
-let ``GetService should throw on missing dependency``() =
-    let t = typeof<IAntiforgery>
-    let ctx = Substitute.For<HttpContext>()
-    ctx.RequestServices.GetService(t).Returns(null :> IAntiforgery) |> ignore
-
-    (fun () -> ctx.GetService<IAntiforgery>() |> ignore)
-    |> should throw typeof<InvalidDependencyException>
-
-[<Fact>]
 let ``GetService should return dependency``() =
     let t = typeof<IAntiforgery>
     let ctx = Substitute.For<HttpContext>()

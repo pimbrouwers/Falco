@@ -1,3 +1,5 @@
+> [Version 4](https://www.nuget.org/packages/Falco/4.0.0) is officially available! Apologies for any inconvenience caused by the repo and package existing in a conflicting state. We are actively working to complete the migration doc for upgrading from V3 -> V4. In the meantime, please refer to the [samples](/samples) and [docs](/doc) for the most up-to-date usage.
+
 # Falco
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)

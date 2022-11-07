@@ -180,7 +180,7 @@ let ofHtmlCsrf
 /// serialized object provided to the client.
 let ofJsonOptions
     (options : JsonSerializerOptions)
-    (obj : 'a) : HttpHandler =
+    (obj : 'T) : HttpHandler =
     let jsonHandler : HttpHandler = fun ctx ->
         task {
             use str = new MemoryStream()
@@ -198,7 +198,7 @@ let ofJsonOptions
 /// Returns a "application/json; charset=utf-8" response with the serialized
 /// object provided to the client.
 let ofJson
-    (obj : 'a) : HttpHandler =
+    (obj : 'T) : HttpHandler =
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Request.defaultJsonOptions obj
 

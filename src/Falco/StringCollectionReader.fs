@@ -16,10 +16,10 @@ type StringCollectionReader (values : Map<string, string[]>) =
         | Some v when v.Length > 0 -> Some v
         | _                        -> None
 
-    member private x.TryGetBind (binder : string -> 'a option) (name : string) =
+    member private x.TryGetBind (binder : string -> 'T option) (name : string) =
         x.TryGetValue name |> Option.bind (fun ary -> binder ary.[0])
 
-    member private x.TryGetMapArray (binder : string -> 'a option) (name : string) =
+    member private x.TryGetMapArray (binder : string -> 'T option) (name : string) =
         x.TryGetValue name |> Option.map (tryParseArray binder) |> Option.defaultValue [||]
 
     /// The keys in the collection reader.
@@ -63,7 +63,7 @@ type StringCollectionReader (values : Map<string, string[]>) =
             |> List.map (Map.ofList >> StringCollectionReader)
 
 
-    // Primitive returing Option<'a>
+    // Primitive returing Option<'T>
 
     /// Safely retrieve String option (alias for StringCollectionReader.TryGetString).
     member x.TryGet (name : string) =

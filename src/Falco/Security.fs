@@ -65,7 +65,7 @@ module Crypto =
 
 module Xss =
     open System.Threading.Tasks
-    open Falco.Extensions
+    open Falco
     open Falco.Markup
     open Microsoft.AspNetCore.Antiforgery
     open Microsoft.AspNetCore.Http
@@ -95,7 +95,6 @@ module Auth =
     open Microsoft.AspNetCore.Authentication
     open Microsoft.AspNetCore.Http
     open Falco.StringUtils
-    open Falco.Extensions
 
     /// Returns the current user (IPrincipal) or None.
     let getUser

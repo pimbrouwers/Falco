@@ -7,10 +7,22 @@ open System.Text.Json
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
-open Falco.Middleware
 open Falco.Multipart
 open Falco.Security
 open Falco.StringUtils
+
+let private httpPipe
+    (prepare :  HttpContext -> 'T)
+    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
+    next (prepare ctx) ctx
+
+let private httpPipeTask
+    (prepare :  HttpContext -> Task<'T>)
+    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
+    task {
+        let! x = prepare ctx
+        return next x ctx
+    }
 
 /// Obtain the HttpVerb of the request
 let getVerb (ctx : HttpContext) : HttpVerb =
@@ -61,10 +73,10 @@ let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
 
 /// Attempt to bind request body using System.Text.Json and provided
 /// JsonSerializerOptions.
-let getJsonOptions<'a>
+let getJsonOptions<'T>
     (options : JsonSerializerOptions)
-    (ctx : HttpContext) : Task<'a> =
-    JsonSerializer.DeserializeAsync<'a>(ctx.Request.Body, options).AsTask()
+    (ctx : HttpContext) : Task<'T> =
+    JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options).AsTask()
 
 /// Stream the form collection for multipart form submissions.
 let streamForm
@@ -85,50 +97,50 @@ let bodyString
     (next : string -> HttpHandler) : HttpHandler =
     httpPipeTask getBodyString next
 
-/// Project CookieCollectionReader onto 'a and provide
+/// Project CookieCollectionReader onto 'T and provide
 /// to next HttpHandler.
 let mapCookie
-    (map : CookieCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler =
+    (map : CookieCollectionReader -> 'T)
+    (next : 'T -> HttpHandler) : HttpHandler =
     httpPipe getCookie (map >> next)
 
-/// Project HeaderCollectionReader onto 'a and provide
+/// Project HeaderCollectionReader onto 'T and provide
 /// to next HttpHandler.
 let mapHeader
-    (map : HeaderCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler =
+    (map : HeaderCollectionReader -> 'T)
+    (next : 'T -> HttpHandler) : HttpHandler =
     httpPipe getHeaders (map >> next)
 
-/// Project RouteCollectionReader onto 'a and provide
+/// Project RouteCollectionReader onto 'T and provide
 /// to next HttpHandler.
 let mapRoute
-    (map : RouteCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler =
+    (map : RouteCollectionReader -> 'T)
+    (next : 'T -> HttpHandler) : HttpHandler =
     httpPipe getRoute (map >> next)
 
-/// Project QueryCollectionReader onto 'a and provide
+/// Project QueryCollectionReader onto 'T and provide
 /// to next HttpHandler.
 let mapQuery
-    (map : QueryCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler =
+    (map : QueryCollectionReader -> 'T)
+    (next : 'T -> HttpHandler) : HttpHandler =
     httpPipe getQuery (map >> next)
 
 
-/// Project FormCollectionReader onto 'a and provide
+/// Project FormCollectionReader onto 'T and provide
 /// to next HttpHandler.
 let mapForm
-    (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler =
+    (map : FormCollectionReader -> 'T)
+    (next : 'T -> HttpHandler) : HttpHandler =
     httpPipeTask getForm (map >> next)
 
-/// Stream multipart/form-data into FormCollectionReader and project onto 'a
+/// Stream multipart/form-data into FormCollectionReader and project onto 'T
 /// provide to next HttpHandler.
 ///
 /// Important: This is intended to be used with multipart/form-data submissions
 /// and will not work if this content-type is not present.
 let mapFormStream
-    (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler) : HttpHandler =
+    (map : FormCollectionReader -> 'T)
+    (next : 'T -> HttpHandler) : HttpHandler =
     httpPipeTask streamForm (map >> next)
 
 /// Validate the CSRF of the current request.
@@ -146,36 +158,36 @@ let validateCsrfToken
         return! respondWith ctx
     }
 
-/// Project FormCollectionReader onto 'a and provide
+/// Project FormCollectionReader onto 'T and provide
 /// to next HttpHandler.
 let mapFormSecure
-    (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler)
+    (map : FormCollectionReader -> 'T)
+    (next : 'T -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler =
-        validateCsrfToken
-            (mapForm map next)
-            handleInvalidToken
+    validateCsrfToken
+        (mapForm map next)
+        handleInvalidToken
 
-/// Stream multipart/form-data into FormCollectionReader and project onto 'a
+/// Stream multipart/form-data into FormCollectionReader and project onto 'T
 /// provide to next HttpHandler.
 ///
 /// Important: This is intended to be used with multipart/form-data submissions
 /// and will not work if this content-type is not present.
 let mapFormStreamSecure
-    (map : FormCollectionReader -> 'a)
-    (next : 'a -> HttpHandler)
+    (map : FormCollectionReader -> 'T)
+    (next : 'T -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
-        validateCsrfToken
-            (mapFormStream map next)
-            handleInvalidToken
-            ctx
+    validateCsrfToken
+        (mapFormStream map next)
+        handleInvalidToken
+        ctx
 
 /// Project JSON using custom JsonSerializerOptions
-/// onto 'a and provide to next Httphandler, throws
+/// onto 'T and provide to next Httphandler, throws
 /// JsonException if errors occurs during deserialization.
 let mapJsonOption
     (options : JsonSerializerOptions)
-    (next : 'a -> HttpHandler) : HttpHandler =
+    (next : 'T -> HttpHandler) : HttpHandler =
     httpPipeTask (getJsonOptions options) next
 
 let internal defaultJsonOptions =
@@ -184,11 +196,11 @@ let internal defaultJsonOptions =
     options.PropertyNameCaseInsensitive <- true
     options
 
-/// Project JSON onto 'a and provide to next
+/// Project JSON onto 'T and provide to next
 /// Httphandler, throws JsonException if errors
 /// occurs during deserialization.
 let mapJson
-    (next : 'a -> HttpHandler) : HttpHandler =
+    (next : 'T -> HttpHandler) : HttpHandler =
     mapJsonOption defaultJsonOptions next
 
 // ------------
@@ -200,13 +212,15 @@ let mapJson
 let authenticate
     (scheme : string)
     (next : AuthenticateResult -> HttpHandler) : HttpHandler =
-        httpPipeTask (Auth.authenticate scheme) next
+    httpPipeTask (Auth.authenticate scheme) next
 
 /// Proceed if the authentication status of current IPrincipal is true.
 let ifAuthenticated
     (handleOk : HttpHandler)
     (handleError : HttpHandler) : HttpHandler =
-    httpPipe Auth.isAuthenticated (function true -> handleOk | false -> handleError)
+    httpPipe
+        Auth.isAuthenticated
+        (function true -> handleOk | false -> handleError)
 
 /// Proceed if the authentication status of current IPrincipal is true
 /// and they exist in a list of roles.
@@ -241,6 +255,6 @@ let ifAuthenticatedWithScope
 let ifNotAuthenticated
     (handleOk : HttpHandler)
     (handleError : HttpHandler) : HttpHandler =
-    fun ctx ->
-        if Auth.isAuthenticated ctx then handleError ctx
-        else handleOk ctx
+    httpPipe
+        Auth.isAuthenticated
+        (function true -> handleError | false -> handleOk)

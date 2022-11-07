@@ -431,14 +431,18 @@ open Microsoft.Data.Sqlite
 type IDbConnectionFactory =
     abstract member CreateConnection : unit -> IDbConnection
 
+let connectToDb : HttpHandler =
+    Services.inject<IDbConnectionFactory>(fun db ->
+        use conn = db.CreateConnection()
+        // code which uses IDbConnection...
+    )
+
 type DbConnectionFactory (connectionString : string) =
     interface IDbConnectionFactory with
         member _.CreateConnection () =
             let conn = new SqliteConnection(connectionString)
             conn.TryOpenConnection()
             conn
-
-let connectToDb : HttpHandler =
 
 [<EntryPoint>]
 let main args =
