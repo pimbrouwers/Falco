@@ -35,10 +35,9 @@ module internal StringParser =
 
     let parseNonEmptyString x = if StringUtils.strEmpty x then None else Some x
 
-    let parseInt            = tryParseWith Int32.TryParse
     let parseInt16          = tryParseWith Int16.TryParse
-    let parseInt32          = parseInt
     let parseInt64          = tryParseWith Int64.TryParse
+    let parseInt32          = tryParseWith Int32.TryParse
     let parseFloat          = tryParseWith Double.TryParse
     let parseDecimal        = tryParseWith Decimal.TryParse
     let parseDateTime       = tryParseWith DateTime.TryParse
