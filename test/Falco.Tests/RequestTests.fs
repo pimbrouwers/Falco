@@ -1,4 +1,4 @@
-﻿module Falco.Tests.Request
+module Falco.Tests.Request
 
 open System.Collections.Generic
 open System.IO
@@ -198,3 +198,43 @@ let ``Request.mapFormStream`` () =
 
     Request.mapFormStream (fun f -> f.GetString "name", f.Files) handle ctx |> ignore
     Request.mapFormStreamSecure (fun f -> f.GetString "name", f.Files) handle Response.ofEmpty ctx |> ignore
+
+type HandlerEndSignal = | HandlerEndSignal
+type PipelineEndSignal = | PipelineEndSignal
+
+[<Fact>]
+let ``Request.httpPipeTask awaits the next handler before returning`` () =
+    let ctx = getHttpContextWriteable false
+
+    let handlerTcs = TaskCompletionSource<HandlerEndSignal>()
+    let pipelineEndTcs = TaskCompletionSource<PipelineEndSignal>()
+
+    let prepare ctx = Task.FromResult(42)
+
+    let handler arg : HttpHandler =
+        fun ctx -> handlerTcs.Task
+
+    task {
+        // Start the pipeline task:
+        let pipelineTask =
+            task {
+                do! Request.httpPipeTask prepare handler ctx
+                pipelineEndTcs.SetResult(PipelineEndSignal)
+            }
+
+        // Since we didn't unlock the handler task yet, the timeout should expire first:
+        let timeout = Task.Delay(100)
+        let! firstTaskToComplete = Task.WhenAny(handlerTcs.Task, pipelineEndTcs.Task, timeout)
+
+        firstTaskToComplete |> should equal timeout
+
+        // Now let's unlock the handler task:
+        handlerTcs.SetResult(HandlerEndSignal)
+
+        // And wait for the end of the pipeline:
+        let! firstTaskToComplete = Task.WhenAny(handlerTcs.Task, pipelineEndTcs.Task)
+
+        // The handler should have completed first:
+        firstTaskToComplete |> should equal handlerTcs.Task
+    }
+

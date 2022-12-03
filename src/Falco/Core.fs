@@ -1,8 +1,12 @@
-﻿namespace Falco
+namespace Falco
 
 open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
+open System.Runtime.CompilerServices
+
+[<assembly: InternalsVisibleTo("Falco.Tests")>]
+do ()
 
 /// The eventual return of asynchronous HttpContext processing.
 type HttpHandler = HttpContext -> Task

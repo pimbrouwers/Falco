@@ -16,12 +16,12 @@ let private httpPipe
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     next (prepare ctx) ctx
 
-let private httpPipeTask
+let internal httpPipeTask
     (prepare :  HttpContext -> Task<'T>)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     task {
         let! x = prepare ctx
-        return next x ctx
+        return! next x ctx
     }
 
 /// Obtain the HttpVerb of the request
