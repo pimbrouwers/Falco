@@ -5,19 +5,19 @@ module Crypto =
     open System.Text
     open System.Security.Cryptography
 
-    /// Make byte[] from Base64 string.
+    /// Makes byte[] from Base64 string.
     let private bytesFromBase64 (str : string) =
         Convert.FromBase64String str
 
-    /// Make Base64 string from byte[].
+    /// Makes Base64 string from byte[].
     let private bytesToBase64 (bytes : byte[]) =
         Convert.ToBase64String bytes
 
-    /// Generate a random int32 between range.
+    /// Generates a random Int32 between range.
     let randomInt min max =
         RandomNumberGenerator.GetInt32(min,max)
 
-    /// Generate cryptographically-sound random salt.
+    /// Generates cryptographically-sound random salt.
     ///
     /// Example: `createSalt 16 (generates a 128-bit (i.e. 128 / 8) salt).`
     let createSalt len =
@@ -26,7 +26,7 @@ module Crypto =
         rng.GetBytes rndAry
         rndAry |> bytesToBase64
 
-    /// Perform key derivation using the provided algorithm.
+    /// Performs key derivation using the provided algorithm.
     let pbkdf2
         (algo : HashAlgorithmName)
         (iterations : int)
@@ -37,7 +37,7 @@ module Crypto =
         let bytes = pbkdf2.GetBytes numBytesRequested
         bytesToBase64 bytes
 
-    /// Perform PBKDF2 key derivation using HMACSHA256.
+    /// Performs PBKDF2 key derivation using HMACSHA256.
     let sha256
         (iterations : int)
         (numBytesRequested : int)
@@ -50,7 +50,7 @@ module Crypto =
             (Encoding.UTF8.GetBytes salt)
             (Encoding.UTF8.GetBytes strToHash)
 
-    /// Perform key derivation using HMACSHA512.
+    /// Performs key derivation using HMACSHA512.
     let sha512
         (iterations : int)
         (numBytesRequested : int)
@@ -70,7 +70,7 @@ module Xss =
     open Microsoft.AspNetCore.Antiforgery
     open Microsoft.AspNetCore.Http
 
-    /// Output an antiforgery <input type="hidden" />.
+    /// Outputs an antiforgery <input type="hidden" />.
     let antiforgeryInput
         (token : AntiforgeryTokenSet) =
         Elem.input [
@@ -84,7 +84,7 @@ module Xss =
         let antiFrg = ctx.GetService<IAntiforgery>()
         antiFrg.GetAndStoreTokens ctx
 
-    /// Validate the Antiforgery token within the provided HttpContext.
+    /// Validates the Antiforgery token within the provided HttpContext.
     let validateToken (ctx : HttpContext) : Task<bool> =
         let antiFrg = ctx.GetService<IAntiforgery>()
         antiFrg.IsRequestValidAsync ctx
@@ -174,14 +174,14 @@ module Auth =
         | None       -> false
         | Some claim -> Array.contains scope (strSplit [|' '|] claim.Value)
 
-    /// Establish an authenticated context for the provide scheme and principal.
+    /// Establishes an authenticated context for the provide scheme and principal.
     let signIn
         (authScheme : string)
         (claimsPrincipal : ClaimsPrincipal)
         (ctx : HttpContext) : Task =
         ctx.SignInAsync(authScheme, claimsPrincipal)
 
-    /// Establish an authenticated context for the provide scheme, options and
+    /// Establishes an authenticated context for the provide scheme, options and
     /// principal.
     let signInOptions
         (authScheme : string)
@@ -190,13 +190,13 @@ module Auth =
         (ctx : HttpContext) : Task =
         ctx.SignInAsync(authScheme, claimsPrincipal, options)
 
-    /// Terminate authenticated context for provided scheme.
+    /// Terminates authenticated context for provided scheme.
     let signOut
         (authScheme : string)
         (ctx : HttpContext) : Task =
         ctx.SignOutAsync(authScheme)
 
-    /// Challenge the specified authentication scheme.
+    /// Challenges the specified authentication scheme.
     ///
     /// An authentication challenge can be issued when an unauthenticated user
     /// requests an endpoint that requires authentication.

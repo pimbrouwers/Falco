@@ -77,7 +77,7 @@ Thank you for considering contributing to Falco, and to those who have already c
 We kindly ask that before submitting a pull request, you first submit an [issue](https://github.com/pimbrouwers/Falco/issues) or open a [discussion](https://github.com/pimbrouwers/Falco/discussions).
 
 
-If functionality is added to the API, or changed, please kindly update the relevent [document](https://github.com/pimbrouwers/Falco/tree/master/docs). Unit tests must also be added and/or updated before a pull request can be successfully merged.
+If functionality is added to the API, or changed, please kindly update the relevant [document](https://github.com/pimbrouwers/Falco/tree/master/docs). Unit tests must also be added and/or updated before a pull request can be successfully merged.
 
 All pull requests should originate from the `develop` branch. A merge into this branch means that your changes are scheduled to go into production with the very next release, which could happen any time from the same day up to a couple weeks (depending on priorities and urgency).
 
