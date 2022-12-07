@@ -1,4 +1,4 @@
-﻿[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess>]
 module Falco.Response
 
 open System
@@ -19,7 +19,7 @@ open Microsoft.Net.Http.Headers
 // Modifiers
 // ------------
 
-/// Set multiple headers for response.
+/// Sets multiple headers for response.
 let withHeaders
     (headers : (string * string) list) : HttpResponseModifier = fun ctx ->
     let setHeader (name, content : string) =
@@ -29,12 +29,12 @@ let withHeaders
     headers |> List.iter setHeader
     ctx
 
-/// Set ContentLength for response.
+/// Sets ContentLength for response.
 let withContentLength
     (contentLength : int64) : HttpResponseModifier =
     withHeaders [ HeaderNames.ContentLength, (string contentLength) ]
 
-/// Set ContentType header for response.
+/// Sets ContentType header for response.
 let withContentType
     (contentType : string) : HttpResponseModifier =
     withHeaders [ HeaderNames.ContentType, contentType ]
@@ -45,14 +45,14 @@ let withStatusCode
     ctx.Response.StatusCode <- statusCode
     ctx
 
-/// Add cookie to response.
+/// Adds cookie to response.
 let withCookie
     (key : string)
     (value : string) : HttpResponseModifier = fun ctx ->
     ctx.Response.Cookies.Append(key, value)
     ctx
 
-/// Add a configured cookie to response, via CookieOptions.
+/// Adds a configured cookie to response, via CookieOptions.
 let withCookieOptions
     (options : CookieOptions)
     (key : string)
@@ -114,7 +114,7 @@ let ofBinary
 /// Content-Type and optional filename.
 ///
 /// Note: Automatically sets "content-disposition: attachment" and includes
-/// filename if provided
+/// filename if provided.
 let ofAttachment
     (filename : string)
     (contentType : string)
@@ -202,7 +202,7 @@ let ofJson
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Request.defaultJsonOptions obj
 
-/// Sign in claim principal for provided scheme then respond with a 301 redirect
+/// Signs in claim principal for provided scheme then responds with a 301 redirect
 /// to provided URL.
 let signInAndRedirect
     (authScheme : string)
@@ -213,7 +213,7 @@ let signInAndRedirect
         do! redirectTemporarily url ctx
     }
 
-/// Sign in claim principal for provided scheme and options then respond with a
+/// Signs in claim principal for provided scheme and options then responds with a
 /// 301 redirect to provided URL.
 let signInOptionsAndRedirect
     (authScheme : string)
@@ -225,7 +225,7 @@ let signInOptionsAndRedirect
         do! redirectTemporarily url ctx
     }
 
-/// Terminates authenticated context for provided scheme then respond with a 301
+/// Terminates authenticated context for provided scheme then responds with a 301
 /// redirect to provided URL.
 let signOutAndRedirect
     (authScheme : string)
@@ -235,7 +235,7 @@ let signOutAndRedirect
         do! redirectTemporarily url ctx
     }
 
-/// Challenge the specified authentication scheme.
+/// Challenges the specified authentication scheme.
 /// An authentication challenge can be issued when an unauthenticated user
 /// requests an endpoint that requires authentication. Then given redirectUri is
 /// forwarded to the authentication handler for use after authentication succeeds.
@@ -247,7 +247,7 @@ let challengeWithRedirect
         do! Auth.challenge authScheme properties ctx
     }
 
-/// Pretty print the content of the current request to the screen.
+/// Pretty prints the content of the current request to the screen.
 ///
 /// Important: This is intended to be used for debugging during
 /// development only. DO NOT USE in production.
