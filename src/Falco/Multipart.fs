@@ -1,4 +1,4 @@
-﻿namespace Falco
+namespace Falco
 
 open System
 open System.IO
@@ -16,13 +16,13 @@ module Multipart =
         | FormFileData of FormFile
 
     type private MultipartSection with
-        /// Attempt to obtain encoding from content type, default to UTF8.
-        static member private GetEncondingFromContentType(section : MultipartSection) =
+        /// Attempts to obtain encoding from content type, default to UTF8.
+        static member private GetEncodingFromContentType(section : MultipartSection) =
             match MediaTypeHeaderValue.TryParse(StringSegment(section.ContentType)) with
             | false, _     -> System.Text.Encoding.UTF8
             | true, parsed -> parsed.Encoding
 
-        /// Safely obtain the content disposition header value.
+        /// Safely obtains the content disposition header value.
         static member private TryGetContentDisposition(section : MultipartSection) =
             match ContentDispositionHeaderValue.TryParse(StringSegment(section.ContentDisposition)) with
             | false, _     -> None
@@ -50,7 +50,7 @@ module Multipart =
 
                 | Some cd when cd.IsFormDisposition() ->
                     let key = HeaderUtilities.RemoveQuotes(cd.Name).Value
-                    let encoding = MultipartSection.GetEncondingFromContentType(x)
+                    let encoding = MultipartSection.GetEncodingFromContentType(x)
                     use str = new StreamReader(x.Body, encoding, true, 1024, true)
                     let! formValue = str.ReadToEndAsync()
 
@@ -105,7 +105,7 @@ module Multipart =
             | b when b.Length > lengthLimit -> None
             | b                             -> Some b
 
-        /// Attempt to stream the HttpRequest body into IFormCollection.
+        /// Attempts to stream the HttpRequest body into IFormCollection.
         member x.StreamFormAsync () : Task<IFormCollection> =
             task {
                 match x.IsMultipart(), x.GetBoundary() with

@@ -47,6 +47,21 @@ If you want to stay in touch, feel free to reach out on [Twitter](https://twitte
 
 Have an article or video that you want to share? We'd love to hear from you! To add your content, visit this [discussion](https://github.com/pimbrouwers/Falco/discussions/82).
 
+### Related Libraries
+
+- [FalcoDocs](https://github.com/pimbrouwers/FalcoDocs) - the [official documentation website](https://falcoframework.com/docs).
+- [Falco.Markup](https://github.com/pimbrouwers/Falco.Markup) - an XML markup module primary used as the syntax for [authoring HTML with Falco](https://www.falcoframework.com/docs/markup.html).
+- [Falco.Template](https://github.com/pimbrouwers/Falco.Template) - a .NET SDK [project template](https://learn.microsoft.com/en-us/dotnet/core/tools/custom-templates) to help get started with Falco quickly.
+- [Falco.Htmx](https://github.com/dpraimeyuu/Falco.Htmx) - An experimental Falco integration with [htmx JS package](https://htmx.org/).
+
+### Community Projects
+
+- [FalcoJournal](https://github.com/pimbrouwers/FalcoJournal) - A bullet journal built with Falco, .NET 5.x and ASP.NET Core.
+- [Falco GraphQL Sample](https://github.com/adelarsq/falco_graphql_sample) - A sample showing how to use GraphQL on Falco using .NET 6.
+- [Falco API with Tests Sample](https://github.com/jasiozet/falco-api-with-tests-template) - A sample project using Falco and unit testing.
+- [Falco + SQLite + Donald](https://github.com/galassie/FalcoSample) - A demo project using Falco, [Donald](https://github.com/pimbrouwers/Donald), and SQLite
+- [FShopOnWeb](https://github.com/NitroDevs/FShopOnWeb) - An adaptation of the classic [ASP.NET Core sample application](https://github.com/dotnet-architecture/eShopOnWeb) using Falco and an F# architecture.
+
 ### Articles
 
 - Istvan - [Running ASP.Net web application with Falco on AWS Lambda](https://dev.l1x.be/posts/2020/12/18/running-asp.net-web-application-with-falco-on-aws-lambda/)
@@ -62,7 +77,7 @@ Thank you for considering contributing to Falco, and to those who have already c
 We kindly ask that before submitting a pull request, you first submit an [issue](https://github.com/pimbrouwers/Falco/issues) or open a [discussion](https://github.com/pimbrouwers/Falco/discussions).
 
 
-If functionality is added to the API, or changed, please kindly update the relevent [document](https://github.com/pimbrouwers/Falco/tree/master/docs). Unit tests must also be added and/or updated before a pull request can be successfully merged.
+If functionality is added to the API, or changed, please kindly update the relevant [document](https://github.com/pimbrouwers/Falco/tree/master/docs). Unit tests must also be added and/or updated before a pull request can be successfully merged.
 
 All pull requests should originate from the `develop` branch. A merge into this branch means that your changes are scheduled to go into production with the very next release, which could happen any time from the same day up to a couple weeks (depending on priorities and urgency).
 

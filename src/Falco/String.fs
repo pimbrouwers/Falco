@@ -1,27 +1,27 @@
-﻿namespace Falco
+namespace Falco
 
 open System
 
 module internal StringUtils =
-    /// Check if string is null or whitespace.
+    /// Checks if string is null or whitespace.
     let strEmpty str =
         String.IsNullOrWhiteSpace(str)
 
-    /// Check if string is not null or whitespace.
+    /// Checks if string is not null or whitespace.
     let strNotEmpty str =
         not(strEmpty str)
 
-    /// Case & culture insensistive string equality.
+    /// Case & culture insensitive string equality.
     let strEquals s1 s2 =
         String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)
 
-    /// Concat strings.
+    /// Concats strings.
     let strConcat (list : string seq) =
         // String.Concat uses a StringBuilder when provided an IEnumerable
         // Url: https://github.com/microsoft/referencesource/blob/master/mscorlib/system/string.cs#L161
         String.Concat(list)
 
-    /// Split string into substrings based on separator.
+    /// Splits string into substrings based on separator.
     let strSplit (sep : char array) (str : string) =
         str.Split(sep)
 
@@ -35,10 +35,9 @@ module internal StringParser =
 
     let parseNonEmptyString x = if StringUtils.strEmpty x then None else Some x
 
-    let parseInt            = tryParseWith Int32.TryParse
     let parseInt16          = tryParseWith Int16.TryParse
-    let parseInt32          = parseInt
     let parseInt64          = tryParseWith Int64.TryParse
+    let parseInt32          = tryParseWith Int32.TryParse
     let parseFloat          = tryParseWith Double.TryParse
     let parseDecimal        = tryParseWith Decimal.TryParse
     let parseDateTime       = tryParseWith DateTime.TryParse
@@ -46,7 +45,7 @@ module internal StringParser =
     let parseTimeSpan       = tryParseWith TimeSpan.TryParse
     let parseGuid           = tryParseWith Guid.TryParse
 
-    /// Attempt to parse boolean from string.
+    /// Attempts to parse boolean from string.
     ///
     /// Returns None on failure, Some x on success.
     ///
@@ -60,13 +59,13 @@ module internal StringParser =
         | "OFF" | "NO" | "0" -> Some false
         | v -> tryParseWith Boolean.TryParse v
 
-    /// Attempt to parse, or failwith message.
+    /// Attempts to parse, or failwith message.
     let parseOrFail parser msg v =
         match parser v with
         | Some v -> v
         | None   -> failwith msg
 
-    /// Attempt to parse array, returns none for failure.
+    /// Attempts to parse array, returns none for failure.
     let tryParseArray parser ary =
         ary
         |> List.ofArray

@@ -35,6 +35,9 @@ let handleGreet : HttpHandler = fun ctx ->
 [<EntryPoint>]
 let main args =
     webHost args {
+
+        use_static_files
+
         endpoints [
             get "/" handlePlainText
             get "/json" handleJson
