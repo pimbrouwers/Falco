@@ -7,33 +7,27 @@ open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Logging
 
 /// App configuration, loaded on startup
-let config : IConfiguration = configuration [||] {
+let config = configuration [||] {
     required_json "appsettings.json"
     optional_json "appsettings.Development.json"
 }
 
 /// GET /
-let handleConfigRead : HttpHandler = fun ctx ->
-    let response =
-        // Note: colon-separated to access nested values
-        {| LogLevel = config.GetValue<string>("Logging:LogLevel")
-           ConnectionString = config.GetConnectionString("default") |}
+let handleConfigRead : HttpHandler =
+    // Note: colon-separated to access nested values
+    Response.ofJson {|
+        LogLevel = config.GetValue<string>("Logging:LogLevel")
+        ConnectionString = config.GetConnectionString("default") |}
 
-    Response.ofJson response ctx
+webHost [||] {
+    logging (fun logging ->
+        logging
+            .ClearProviders()
+            .AddSimpleConsole()
+            .AddConfiguration(config)
+    )
 
-[<EntryPoint>]
-let main args =
-    webHost args {
-        logging (fun logging ->
-            logging
-                .ClearProviders()
-                .AddSimpleConsole()
-                .AddConfiguration(config)
-        )
-
-        endpoints [
-            get "/" handleConfigRead
-        ]
-    }
-
-    0 // Exit code
+    endpoints [
+        get "/" handleConfigRead
+    ]
+}

@@ -4,6 +4,8 @@ open Falco
 open Falco.Markup
 open Falco.Routing
 open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.Hosting
 
 /// GET /
 let handlePlainText : HttpHandler =
@@ -33,6 +35,9 @@ let handleGreet : HttpHandler = fun ctx ->
 [<EntryPoint>]
 let main args =
     webHost args {
+
+        use_static_files
+
         endpoints [
             get "/" handlePlainText
             get "/json" handleJson

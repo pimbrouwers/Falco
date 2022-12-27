@@ -21,29 +21,20 @@ type ScribanViewEngine (views : Map<string, Template>) =
             | Some template -> template.RenderAsync(model)
             | None -> failwithf "View '%s' was not found" view
 
-module Response =
-    let renderViewEngine
-        (viewEngine : IViewEngine)
-        (view : string)
-        (model : 'a) : HttpHandler = fun ctx ->
-        task {
-            let! html = viewEngine.RenderAsync(view, model)
-            return Response.ofHtmlString html ctx
-        }
-
 // ------------
 // Pages
 // ------------
 module Pages =
-    open Middleware
-
     let homepage : HttpHandler =
-        withService<IViewEngine> (fun viewEngine ->
+        Services.inject<IViewEngine> (fun viewEngine ->
             let queryMap (q: QueryCollectionReader) =
                 {| Name = q.Get "name" |}
 
-            let next =
-                Response.renderViewEngine viewEngine "Home"
+            let next model : HttpHandler = fun ctx ->
+                task {
+                    let! html = viewEngine.RenderAsync("Home", model)
+                    return Response.ofHtmlString html ctx
+                }
 
             Request.mapQuery queryMap next)
 

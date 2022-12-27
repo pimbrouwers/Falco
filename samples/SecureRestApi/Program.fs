@@ -114,8 +114,6 @@ module ErrorPages =
         >> Response.ofPlainText "Server Error"
 
 module UserHandlers =
-    open Middleware
-
     let private jsonError json : HttpHandler =
         Response.withStatusCode 400 >> Response.ofJson json
 
@@ -128,25 +126,25 @@ module UserHandlers =
         Response.ofPlainText "Hello World, by Falco"
 
     let create : HttpHandler =
-        withService<IStorage> (fun storage ->
+        Services.inject<IStorage> (fun storage ->
             Request.mapJson (fun json ->
                 handleResult (UserStorage.create storage json)))
 
     let readAll : HttpHandler =
-        withService<IStorage> (fun storage ->
+        Services.inject<IStorage> (fun storage ->
             handleResult (UserStorage.getAll storage ()))
 
     let private idFromRoute (r : RouteCollectionReader) =
         r.GetString "id"
 
     let update : HttpHandler =
-        withService<IStorage> (fun storage ->
+        Services.inject<IStorage> (fun storage ->
             Request.mapRoute idFromRoute (fun id ->
                 Request.mapJson (fun (userDto : UserDto) ->
                     handleResult (UserStorage.update storage id userDto))))
 
     let delete : HttpHandler =
-        withService<IStorage> (fun storage ->
+        Services.inject<IStorage> (fun storage ->
             Request.mapRoute idFromRoute (fun id ->
                 handleResult (UserStorage.delete storage id)))
 

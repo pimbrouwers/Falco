@@ -1,4 +1,4 @@
-﻿namespace Falco
+namespace Falco
 
 open System
 open Microsoft.AspNetCore.Builder
@@ -48,36 +48,33 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
 [<AutoOpen>]
 module Extensions =
     type HttpContext with
-        /// Attempt to obtain depedency from IServiceCollection
+        /// Attempts to obtain dependency from IServiceCollection
         /// Throws InvalidDependencyException on null.
-        member x.GetService<'a>() =
-            let t = typeof<'a>
-            match x.RequestServices.GetService t with
-            | null    -> raise (InvalidDependencyException t.Name)
-            | service -> service :?> 'a
+        member x.GetService<'T>() =
+            x.RequestServices.GetRequiredService<'T>()
 
-        /// Obtain a named instance of ILogger.
+        /// Obtains a named instance of ILogger.
         member x.GetLogger (name : string) =
             let loggerFactory = x.GetService<ILoggerFactory>()
             loggerFactory.CreateLogger name
 
     type IEndpointRouteBuilder with
-        /// Activate Falco Endpoint integration
+        /// Activates Falco Endpoint integration.
         member x.UseFalcoEndpoints (endpoints : HttpEndpoint list) =
             let dataSource = FalcoEndpointDatasource(endpoints)
             x.DataSources.Add(dataSource)
 
     type IApplicationBuilder with
-        /// Determine if the application is running in development mode
+        /// Determines if the application is running in development mode.
         member x.IsDevelopment() =
             x.ApplicationServices.GetService<IWebHostEnvironment>().IsDevelopment()
 
-        /// Activate Falco integration with IEndpointRouteBuilder
+        /// Activates Falco integration with IEndpointRouteBuilder.
         member x.UseFalco (endpoints : HttpEndpoint list) =
             x.UseRouting()
              .UseEndpoints(fun r -> r.UseFalcoEndpoints(endpoints))
 
-        /// Register a Falco HttpHandler as exception handler lambda.
+        /// Registers a Falco HttpHandler as exception handler lambda.
         /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
         member x.UseFalcoExceptionHandler (exceptionHandler : HttpHandler) =
             let configure (appBuilder : IApplicationBuilder) =
@@ -108,12 +105,6 @@ module Extensions =
             if predicate then fn x
             else x
 
-    let getService<'a> (ctx : HttpContext) =
-        ctx.GetService<'a> ()
-
-    let getLogger (name : string) (ctx : HttpContext) =
-        ctx.GetLogger name
-
 type FalcoExtensions =
     static member IsDevelopment : IApplicationBuilder -> bool =
         fun app -> app.IsDevelopment()
@@ -122,3 +113,42 @@ type FalcoExtensions =
         (exceptionHandler : HttpHandler)
         (app : IApplicationBuilder) =
         app.UseFalcoExceptionHandler exceptionHandler
+
+type Services =
+    static member withLogger name next : HttpHandler = fun ctx ->
+        next (ctx.GetLogger name) ctx
+
+    static member inject<'T1> next : HttpHandler = fun ctx ->
+        next
+            (ctx.GetService<'T1>())
+            ctx
+
+    static member inject<'T1, 'T2> next : HttpHandler = fun ctx ->
+        next
+            (ctx.GetService<'T1>())
+            (ctx.GetService<'T2>())
+            ctx
+
+    static member inject<'T1, 'T2, 'T3> next : HttpHandler = fun ctx ->
+        next
+            (ctx.GetService<'T1>())
+            (ctx.GetService<'T2>())
+            (ctx.GetService<'T3>())
+            ctx
+
+    static member inject<'T1, 'T2, 'T3, 'T4> next : HttpHandler = fun ctx ->
+        next
+            (ctx.GetService<'T1>())
+            (ctx.GetService<'T2>())
+            (ctx.GetService<'T3>())
+            (ctx.GetService<'T4>())
+            ctx
+
+    static member inject<'T1, 'T2, 'T3, 'T4, 'T5> next : HttpHandler = fun ctx ->
+        next
+            (ctx.GetService<'T1>())
+            (ctx.GetService<'T2>())
+            (ctx.GetService<'T3>())
+            (ctx.GetService<'T4>())
+            (ctx.GetService<'T5>())
+            ctx
