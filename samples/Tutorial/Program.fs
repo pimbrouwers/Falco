@@ -5,8 +5,7 @@ open System
 type Entry =
     { EntryId      : Guid
       HtmlContent  : string
-      TextContent  : string
-      EntryDate    : DateTime }
+      TextContent  : string }
 
 type EntrySummary =
     { EntryId   : Guid
@@ -25,6 +24,7 @@ module Db =
             p.ParameterName <- name
             if isNull value then p.Value <- DBNull.Value
             else p.Value <- value
+            x.Parameters.Add p |> ignore
 
         member private x.Prepare() : unit =
             if x.Connection.State = ConnectionState.Closed then
@@ -43,23 +43,40 @@ module Db =
         let save (conn : IDbConnection) (entry : Entry) : unit =
             use cmd = conn.CreateCommand()
             cmd.CommandText <- "
-                INSERT OR REPLACE INTO entry (entry_id, html_content, text_content, entry_date, modified_date)
-                VALUES (@entry_id, @html_content, @text_content, DATETIME('now'), DATETIME('now'));"
+                INSERT OR REPLACE INTO entry (entry_id, html_content, text_content, modified_date)
+                VALUES (@entry_id, @html_content, @text_content, DATETIME('now'));"
 
-            cmd.AddParameter("entry_id", entry.EntryId)
-            cmd.AddParameter("html_content", entry.HtmlContent)
-            cmd.AddParameter("text_content", entry.TextContent)
+            cmd.AddParameter ("entry_id", entry.EntryId)
+            cmd.AddParameter ("html_content", entry.HtmlContent)
+            cmd.AddParameter ("text_content", entry.TextContent)
 
             cmd.Execute()
+
+        let get (conn : IDbConnection) (entryId : Guid) : Entry option =
+            use cmd = conn.CreateCommand()
+            cmd.CommandText <- "
+                SELECT    entry_id
+                        , html_content
+                        , text_content
+                FROM      entry
+                WHERE     entry_id = @entry_id"
+
+            cmd.AddParameter ("entry_id", entryId)
+
+            cmd.Query (fun rd ->
+                { EntryId = rd.GetGuid(rd.GetOrdinal("entry_id"))
+                  HtmlContent = rd.GetString(rd.GetOrdinal("html_content"))
+                  TextContent = rd.GetString(rd.GetOrdinal("text_content")) })
+            |> List.tryHead
 
         let getAll (conn : IDbConnection) : EntrySummary list =
             use cmd = conn.CreateCommand()
             cmd.CommandText <- "
                 SELECT    entry_id
-                        , DATETIME(entry_date) AS entry_date
+                        , modified_date AS entry_date
                         , SUBSTR(text_content, 0, 50) AS summary
                 FROM      entry
-                ORDER BY  DATETIME(entry_date) DESC, DATETIME(modified_date) DESC"
+                ORDER BY  modified_date DESC"
 
             cmd.Query (fun rd ->
                 { EntryId = rd.GetGuid(rd.GetOrdinal("entry_id"))
@@ -71,6 +88,7 @@ module App =
 
     module Urls =
         let index = "/"
+        let notFound = "/notfound"
 
         let entryCreate = "/entry/create"
         let entryEdit entryId = sprintf "/entry/edit/%O" entryId
@@ -140,6 +158,16 @@ module App =
                 let mergedAttr = attr |> Attr.merge defaultAttr
                 Elem.input mergedAttr
 
+    module ErrorPages =
+        open Falco
+        open UI
+
+        let notFound =
+            let html =
+                layout "Not Found" [
+                    pageTitle "Not found" ]
+            Response.ofHtml html
+
     module EntryViews =
         open Falco.Markup
         open UI
@@ -152,13 +180,15 @@ module App =
                 pageTitle title
 
                 Elem.div [] [
-                    for e in entries do
-                        Elem.a [ Attr.href (Urls.entryEdit e.EntryId); Attr.class' "db mb4 no-underline white-90" ] [
-                            Elem.div [ Attr.class' "mb1 f6 code moon-gray" ] [
-                                Text.raw (e.EntryDate.ToString("yyyy/MM/dd HH:MM")) ]
-                            Elem.div [] [
-                                Text.raw e.Summary ]
-                            Elem.div [ Attr.class' "w1 mt3 bt b--moon-gray" ] [] ] ]
+                    if entries.Length = 0 then
+                        Elem.i [] [ Text.raw "No entries have been added" ]
+                    else
+                        for e in entries do
+                            Elem.a [ Attr.href (Urls.entryEdit e.EntryId); Attr.class' "db mb4 no-underline white-90" ] [
+                                Elem.div [ Attr.class' "mb1 f6 code moon-gray" ] [ Text.raw (e.EntryDate.ToString("yyyy/MM/dd HH:MM")) ]
+                                Elem.div [] [ Text.raw e.Summary ]
+                                Elem.div [ Attr.class' "w1 mt3 bt b--moon-gray" ] [] ] ]
+
             ]
 
         let save action entry =
@@ -189,9 +219,8 @@ module App =
                             htmlContent ]
 
                     Elem.input [ Attr.type' "hidden"; Attr.name "entry_id"; Attr.value (string entry.EntryId) ]
-                    Elem.input [ Attr.type' "hidden"; Attr.name "html_content" ]
-                    Elem.input [ Attr.type' "hidden"; Attr.name "text_content" ]
-                    Elem.input [ Attr.type' "hidden"; Attr.name "entry_date"; Attr.value (entry.EntryDate.ToString("yyyy-MM-dd"))]
+                    Elem.input [ Attr.type' "hidden"; Attr.name "html_content"; Attr.id "bullet-editor-html" ]
+                    Elem.input [ Attr.type' "hidden"; Attr.name "text_content"; Attr.id "bullet-editor-text" ]
                 ]
             ]
 
@@ -199,31 +228,58 @@ module App =
         open Falco
 
         /// GET /
-        let index : HttpHandler =
-            Services.inject<IDbConnectionFactory>(fun db ->
-                use conn = db.CreateConnection()
-                let entries = EntryStore.getAll conn
-                Response.ofHtml (EntryViews.index entries))
+        let index : HttpHandler = fun ctx ->
+            let db = ctx.GetService<IDbConnectionFactory>()
+            use conn = db.CreateConnection()
+            let entries = EntryStore.getAll conn
+            Response.ofHtml (EntryViews.index entries) ctx
 
         /// GET /entry/create
-        let create : HttpHandler =
+        let create : HttpHandler = fun ctx ->
             let newEntry : Entry =
                 { EntryId = Guid.NewGuid()
                   HtmlContent = String.Empty
-                  TextContent = String.Empty
-                  EntryDate = DateTime.Now }
+                  TextContent = String.Empty }
 
             let view = EntryViews.save Urls.entryCreate newEntry
 
-            Response.ofHtml view
+            Response.ofHtml view ctx
 
         /// GET /entry/edit/{id}
-        let edit : HttpHandler =
-            Response.ofPlainText "Entry edit"
+        let edit : HttpHandler = fun ctx ->
+            let query = Request.getRoute ctx
+            let entryId = query.TryGetGuid "id"
+
+            match entryId with
+            | Some entryId ->
+                let db = ctx.GetService<IDbConnectionFactory>()
+                use conn = db.CreateConnection()
+                match EntryStore.get conn entryId with
+                | Some entry ->
+                    let html = EntryViews.save (Urls.entryEdit entryId) entry
+                    Response.ofHtml html ctx
+
+                | None ->
+                    ErrorPages.notFound ctx
+
+            | None ->
+                Response.redirectTemporarily Urls.notFound ctx
 
         /// POST /entry/create, /entry/edit/{id}
-        let save : HttpHandler =
-            Response.ofPlainText "Entry save"
+        let save : HttpHandler = fun ctx ->
+            task {
+                let! form = Request.getForm ctx
+                let entry : Entry = {
+                    EntryId = form.GetGuid "entry_id"
+                    HtmlContent = form.GetString "html_content"
+                    TextContent = form.GetString "text_content" }
+
+                let db = ctx.GetService<IDbConnectionFactory>()
+                use conn = db.CreateConnection()
+                EntryStore.save conn entry
+
+                return Response.redirectTemporarily Urls.index ctx
+            }
 
 module Program =
     open Falco
@@ -245,6 +301,7 @@ module Program =
 
     module Endpoints =
         let index = Urls.index
+        let notFound = Urls.notFound
 
         let entryCreate = Urls.entryCreate
         let entryEdit = Urls.entryEdit "{id}"
@@ -272,6 +329,8 @@ module Program =
 
             add_service dbConnectionService
 
+            not_found ErrorPages.notFound
+
             endpoints [
                 get Endpoints.index EntryController.index
 
@@ -282,6 +341,8 @@ module Program =
                 all Endpoints.entryEdit [
                     GET, EntryController.edit
                     POST, EntryController.save ]
+
+                get Endpoints.notFound ErrorPages.notFound
             ]
         }
         0
