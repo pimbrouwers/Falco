@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param (
     [Parameter(HelpMessage="The action to execute.")]
-    [ValidateSet("Build", "Test", "Pack", "Sln")]
+    [ValidateSet("Build", "Test", "Pack", "Sln", "BuildSite", "DevelopSite")]
     [string] $Action = "Build",
 
     [Parameter(HelpMessage="The msbuild configuration to use.")]
@@ -22,10 +22,12 @@ $srcDir = Join-Path -Path $rootDir -ChildPath 'src'
 $testDir = Join-Path -Path $rootDir -ChildPath 'test'
 
 switch ($Action) {
-    "Test"  { $projectdir = Join-Path -Path $testDir -ChildPath 'Falco.Tests' }
-    "Pack"  { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
-    "Sln"   { $projectDir = $rootDir }
-    Default { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
+    "Test"        { $projectdir = Join-Path -Path $testDir -ChildPath 'Falco.Tests' }
+    "Pack"        { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
+    "Sln"         { $projectDir = $rootDir }
+    "BuildSite"   { $projectDir = Join-Path -Path $rootDir -ChildPath 'site' }
+    "DevelopSite" { $projectDir = Join-Path -Path $rootDir -ChildPath 'site' }
+    Default       { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
 }
 
 if (!$SkipClean.IsPresent)
@@ -35,7 +37,9 @@ if (!$SkipClean.IsPresent)
 }
 
 switch ($Action) {
-    "Test"  { RunCommand "dotnet test `"$projectDir`"" }
-    "Pack"  { RunCommand "dotnet pack `"$projectDir`" -c $Configuration --include-symbols --include-source" }
-    Default { RunCommand "dotnet build `"$projectDir`" -c $Configuration" }
+    "Test"        { RunCommand "dotnet test `"$projectDir`"" }
+    "Pack"        { RunCommand "dotnet pack `"$projectDir`" -c $Configuration --include-symbols --include-source" }
+    "BuildSite"   { RunCommand "dotnet build `"$projectDir`" -t:Generate" }
+    "DevelopSite" { RunCommand "dotnet build `"$projectDir`" -t:Develop" }
+    Default       { RunCommand "dotnet build `"$projectDir`" -c $Configuration" }
 }

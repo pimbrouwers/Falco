@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- /head -->
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width,initial-scale=1" name="viewport">
+  <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+  
+      <title>Falco - F# web toolkit for ASP.NET Core</title>
+    
+  <meta name="description" content="A functional-first toolkit for building brilliant ASP.NET Core applications using F#.">
+
+  <!-- /head/style -->
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link href="/prism.css" rel="stylesheet" />
+  <link href="/tachyons.css" rel="stylesheet" />
+  <link href="/style.css" rel="stylesheet" />
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-D62HSJHMNZ');
+  </script>
+</head>
+
+<!-- /body -->
+<body class="noto lh-copy">
+
+<div class="min-vh-100 mw9 center pa3 overflow-hidden">
+    <nav class="sidebar w-20-l fl-l mb3 mb0-l">
+        <div class="flex items-center">
+            <a href="/docs" class="db w3 w4-l">
+                <img src="/brand.svg" class="br3" />
+            </a>
+            <h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2>
+        </div>
+        <div class="dn db-l"><h3>Contents</h3>
+<ul class="nl3 f6">
+  <li><a href="get-started.html">Getting Started</a></li>
+  <li><a href="routing.html">Routing</a></li>
+  <li><a href="response.html">Writing responses</a>
+    <ul>
+      <li><a href="response.html#plain-text-responses">Plain Text responses</a></li>
+      <li><a href="response.html#html-responses">HTML responses</a></li>
+      <li><a href="response.html#json-responses">JSON responses</a></li>
+      <li><a href="response.html#redirect-301302-response">Redirect (301/302) Response</a></li>
+      <li><a href="response.html#content-disposition">Content Disposition</a></li>
+      <li><a href="response.html#response-modifiers">Response Modifiers</a></li>
+      <li><a href="response.html#debugging-requests">Debugging Requests</a></li>
+    </ul>
+  </li>
+  <li><a href="request.html">Accessing request data</a>
+    <ul>
+      <li><a href="request.html#route-binding">Route Binding</a></li>
+      <li><a href="request.html#query-binding">Query Binding</a></li>
+      <li><a href="request.html#form-binding">Form Binding</a></li>
+      <li><a href="request.html#json">JSON</a></li>
+    </ul>
+  </li>
+  <li><a href="markup.html">View engine</a></li>
+  <li><a href="host.html">Host configuration</a>
+    <ul>
+      <li><a href="host.html#registering-services">Registering Services</a></li>
+      <li><a href="host.html#activating-middleware">Activating Middleware</a></li>
+      <li><a href="host.html#custom-services">Custom Services and Middleware</a></li>
+      <li><a href="host.html#other-operations">Other Operations</a></li>
+    </ul>
+  </li>
+  <li><a href="security.html">Security</a>
+    <ul>
+      <li><a href="security.html#authentication">Authentication</a></li>
+      <li><a href="security.html#cross-site-scripting-xss-attacks">XSS Prevention</a></li>
+      <li><a href="security.html#cryptography">Cryptography</a></li>
+    </ul>
+  </li>
+  <li><a href="model-binding.html">Model Binding</a></li>
+  <li><a href="dependency-injection.html">Dependency Injection</a></li>
+</ul></div>
+    </nav>
+    <main class="w-80-l fl-l pl3-l"><h1 id="request-handling">Request Handling</h1>
+<p>Falco exposes a <strong>uniform API</strong> to obtain typed values from <code>IFormCollection</code>, <code>IQueryCollection</code>, <code>RouteValueDictionary</code>, <code>IHeaderCollection</code>, and <code>IRequestCookieCollection</code>. All implementations are derivatives of <code>StringCollectionReader</code> which is an abstraction intended to make it easier to work with the string-based key/value collections.</p>
+<h2 id="route-binding">Route Binding</h2>
+<pre><code class="language-fsharp">open Falco
+
+// Assuming a route pattern of /{Name}
+let manualRouteHandler : HttpHandler = fun ctx -&gt;
+    let r = Request.getRoute ctx
+    let name = r.GetString &quot;Name&quot;
+    Response.ofPlainText name ctx
+
+let mapRouteHandler : HttpHandler =
+    Request.mapRoute (fun r -&gt;
+        r.GetString &quot;Name&quot;)
+        Response.ofPlainText
+
+</code></pre>
+<h2 id="query-binding">Query Binding</h2>
+<pre><code class="language-fsharp">open Falco
+
+type Person =
+    { FirstName : string
+      LastName : string }
+
+let manualQueryHandler : HttpHandler = fun ctx -&gt;
+    let q = Request.getQuery ctx
+
+    let person =
+        { FirstName = q.GetString (&quot;FirstName&quot;, &quot;John&quot;) // Get value or return default value
+          LastName  = q.GetString (&quot;LastName&quot;, &quot;Doe&quot;) }
+
+    Response.ofJson person ctx
+
+let mapQueryHandler : HttpHandler =
+    Request.mapQuery (fun q -&gt;
+        let first = q.GetString (&quot;FirstName&quot;, &quot;John&quot;) // Get value or return default value
+        let last = q.GetString (&quot;LastName&quot;, &quot;Doe&quot;)
+        { FirstName = first; LastName = last })
+        Response.ofJson
+</code></pre>
+<h2 id="form-binding">Form Binding</h2>
+<p>The <code>FormCollectionReader</code> has full access to the <code>IFormFilesCollection</code> via the <code>_.Files</code> member.</p>
+<blockquote>
+<p>Note the addition of <code>Request.mapFormSecure</code>, which will automatically validate CSRF token for you.</p>
+</blockquote>
+<pre><code class="language-fsharp">type Person =
+    { FirstName : string
+      LastName : string }
+
+let manualFormHandler : HttpHandler = fun ctx -&gt;
+    task {
+        let! f : FormCollectionReader = Request.getForm ctx
+
+        let person =
+            { FirstName = f.GetString (&quot;FirstName&quot;, &quot;John&quot;) // Get value or return default value
+              LastName = f.GetString (&quot;LastName&quot;, &quot;Doe&quot;) }
+
+        return! Response.ofJson person ctx
+    }
+
+let mapFormHandler : HttpHandler =
+    Request.mapForm (fun f -&gt;
+        let first = f.GetString (&quot;FirstName&quot;, &quot;John&quot;) // Get value or return default value
+        let last = f.GetString (&quot;LastName&quot;, &quot;Doe&quot;)
+        { FirstName = first; LastName = last })
+        Response.ofJson
+
+let mapFormSecureHandler : HttpHandler =
+    Request.mapFormSecure (fun f -&gt;
+        let first = f.GetString (&quot;FirstName&quot;, &quot;John&quot;) // Get value or return default value
+        let last = f.GetString (&quot;LastName&quot;, &quot;Doe&quot;)
+        { FirstName = first; LastName = last })
+        Response.ofJson
+        (Response.withStatusCode 400 &gt;&gt; Response.ofEmpty)
+
+</code></pre>
+<h3 id="multipartform-data-binding"><code>multipart/form-data</code> Binding</h3>
+<p>Microsoft defines <a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads#upload-large-files-with-streaming">large upload</a> as anything <strong>&gt; 64KB</strong>, which well... is most uploads. Anything beyond this size and they recommend streaming the multipart data to avoid excess memory consumption.</p>
+<p>To make this process <strong>a lot</strong> easier Falco provides a set of <code>HttpHandler</code>'s analogous to the form handlers above, which utilize an <code>HttpContext</code> extension method called <code>TryStreamFormAsync()</code> that will attempt to stream multipart form data, or return an error message indicating the likely problem.</p>
+<pre><code class="language-fsharp">let imageUploadHandler : HttpHandler =
+    let formBinder (f : FormCollectionReader) : IFormFile option =
+        f.TryGetFormFile &quot;profile_image&quot;
+
+    let uploadImage (profileImage : IFormFile option) : HttpHandler =
+        // Process the uploaded file ...
+
+    // Safely buffer the multipart form submission
+    Request.mapFormStream formBinder uploadImage
+
+let secureImageUploadHandler : HttpHandler =
+    let formBinder (f : FormCollectionReader) : IFormFile option =
+        f.TryGetFormFile &quot;profile_image&quot;
+
+    let uploadImage (profileImage : IFormFile option) : HttpHandler =
+        // Process the uploaded file ...
+
+    let handleInvalidCsrf : HttpHandler =
+        Response.withStatusCode 400 &gt;&gt; Response.ofEmpty
+
+    // Safely buffer the multipart form submission
+    Request.mapFormStreamSecure formBinder uploadImage handleInvalidCsrf
+</code></pre>
+<h2 id="json">JSON</h2>
+<p>These handlers use the .NET built-in <code>System.Text.Json.JsonSerializer</code>.</p>
+<pre><code class="language-fsharp">type Person =
+    { FirstName : string
+      LastName : string }
+
+let jsonHandler : HttpHandler =
+    { FirstName = &quot;John&quot;
+      LastName = &quot;Doe&quot; }
+    |&gt; Response.ofJson
+
+let mapJsonHandler : HttpHandler =
+    let handleOk person : HttpHandler =
+        let message = sprintf &quot;hello %s %s&quot; person.First person.Last
+        Response.ofPlainText message
+
+    Request.mapJson handleOk
+
+let mapJsonOptionsHandler : HttpHandler =
+    let options = JsonSerializerOptions()
+    options.IgnoreNullValues &lt;- true
+
+    let handleOk person : HttpHandler =
+        let message = sprintf &quot;hello %s %s&quot; person.First person.Last
+        Response.ofPlainText message
+
+    Request.mapJson options handleOk
+</code></pre>
+</main>
+</div>
+
+<!-- /body/footer -->
+<footer class="cl mt4 pa3 bg-merlot">
+  <div class="dn-l white-90"><h3>Contents</h3>
+<ul class="nl3 f6">
+  <li><a href="get-started.html">Getting Started</a></li>
+  <li><a href="routing.html">Routing</a></li>
+  <li><a href="response.html">Writing responses</a>
+    <ul>
+      <li><a href="response.html#plain-text-responses">Plain Text responses</a></li>
+      <li><a href="response.html#html-responses">HTML responses</a></li>
+      <li><a href="response.html#json-responses">JSON responses</a></li>
+      <li><a href="response.html#redirect-301302-response">Redirect (301/302) Response</a></li>
+      <li><a href="response.html#content-disposition">Content Disposition</a></li>
+      <li><a href="response.html#response-modifiers">Response Modifiers</a></li>
+      <li><a href="response.html#debugging-requests">Debugging Requests</a></li>
+    </ul>
+  </li>
+  <li><a href="request.html">Accessing request data</a>
+    <ul>
+      <li><a href="request.html#route-binding">Route Binding</a></li>
+      <li><a href="request.html#query-binding">Query Binding</a></li>
+      <li><a href="request.html#form-binding">Form Binding</a></li>
+      <li><a href="request.html#json">JSON</a></li>
+    </ul>
+  </li>
+  <li><a href="markup.html">View engine</a></li>
+  <li><a href="host.html">Host configuration</a>
+    <ul>
+      <li><a href="host.html#registering-services">Registering Services</a></li>
+      <li><a href="host.html#activating-middleware">Activating Middleware</a></li>
+      <li><a href="host.html#custom-services">Custom Services and Middleware</a></li>
+      <li><a href="host.html#other-operations">Other Operations</a></li>
+    </ul>
+  </li>
+  <li><a href="security.html">Security</a>
+    <ul>
+      <li><a href="security.html#authentication">Authentication</a></li>
+      <li><a href="security.html#cross-site-scripting-xss-attacks">XSS Prevention</a></li>
+      <li><a href="security.html#cryptography">Cryptography</a></li>
+    </ul>
+  </li>
+  <li><a href="model-binding.html">Model Binding</a></li>
+  <li><a href="dependency-injection.html">Dependency Injection</a></li>
+</ul></div>
+  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2023 Pim Brouwers & contributors.</div>
+</footer>
+
+<!-- /body/script -->
+<script src="/prism.js"></script>
+
+</body>
+</html>

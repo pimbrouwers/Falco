@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- /head -->
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width,initial-scale=1" name="viewport">
+  <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+  
+      <title>Falco - F# web toolkit for ASP.NET Core</title>
+    
+  <meta name="description" content="A functional-first toolkit for building brilliant ASP.NET Core applications using F#.">
+
+  <!-- /head/style -->
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link href="/prism.css" rel="stylesheet" />
+  <link href="/tachyons.css" rel="stylesheet" />
+  <link href="/style.css" rel="stylesheet" />
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-D62HSJHMNZ');
+  </script>
+</head>
+
+<!-- /body -->
+<body class="noto lh-copy">
+
+<div class="min-vh-100 mw9 center pa3 overflow-hidden">
+    <nav class="sidebar w-20-l fl-l mb3 mb0-l">
+        <div class="flex items-center">
+            <a href="/docs" class="db w3 w4-l">
+                <img src="/brand.svg" class="br3" />
+            </a>
+            <h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2>
+        </div>
+        <div class="dn db-l"><h3>Contents</h3>
+<ul class="nl3 f6">
+  <li><a href="get-started.html">Getting Started</a></li>
+  <li><a href="routing.html">Routing</a></li>
+  <li><a href="response.html">Writing responses</a>
+    <ul>
+      <li><a href="response.html#plain-text-responses">Plain Text responses</a></li>
+      <li><a href="response.html#html-responses">HTML responses</a></li>
+      <li><a href="response.html#json-responses">JSON responses</a></li>
+      <li><a href="response.html#redirect-301302-response">Redirect (301/302) Response</a></li>
+      <li><a href="response.html#content-disposition">Content Disposition</a></li>
+      <li><a href="response.html#response-modifiers">Response Modifiers</a></li>
+      <li><a href="response.html#debugging-requests">Debugging Requests</a></li>
+    </ul>
+  </li>
+  <li><a href="request.html">Accessing request data</a>
+    <ul>
+      <li><a href="request.html#route-binding">Route Binding</a></li>
+      <li><a href="request.html#query-binding">Query Binding</a></li>
+      <li><a href="request.html#form-binding">Form Binding</a></li>
+      <li><a href="request.html#json">JSON</a></li>
+    </ul>
+  </li>
+  <li><a href="markup.html">View engine</a></li>
+  <li><a href="host.html">Host configuration</a>
+    <ul>
+      <li><a href="host.html#registering-services">Registering Services</a></li>
+      <li><a href="host.html#activating-middleware">Activating Middleware</a></li>
+      <li><a href="host.html#custom-services">Custom Services and Middleware</a></li>
+      <li><a href="host.html#other-operations">Other Operations</a></li>
+    </ul>
+  </li>
+  <li><a href="security.html">Security</a>
+    <ul>
+      <li><a href="security.html#authentication">Authentication</a></li>
+      <li><a href="security.html#cross-site-scripting-xss-attacks">XSS Prevention</a></li>
+      <li><a href="security.html#cryptography">Cryptography</a></li>
+    </ul>
+  </li>
+  <li><a href="model-binding.html">Model Binding</a></li>
+  <li><a href="dependency-injection.html">Dependency Injection</a></li>
+</ul></div>
+    </nav>
+    <main class="w-80-l fl-l pl3-l"><h1 id="security">Security</h1>
+<h2 id="authentication">Authentication</h2>
+<p>ASP.NET Core has amazing built-in support for authentication. Review the <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authentication">docs</a> for specific implementation details. Falco includes some authentication utilities.</p>
+<pre><code class="language-fsharp">open Falco.Security
+
+// Allow only authenticated access
+let secureResourceHandler : HttpHandler =
+    let handleAuth : HttpHandler =
+        Response.ofPlainText &quot;hello authenticated user&quot;
+
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403
+        &gt;&gt; Response.ofPlainText &quot;Forbidden&quot;
+
+    Request.ifAuthenticated handleAuth handleInvalid
+
+// Allow only non-authenticated access
+let anonResourceOnlyHandler : HttpHandler =
+    let handleAnon : HttpHandler =
+        Response.ofPlainText &quot;hello anonymous&quot;
+
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403
+        &gt;&gt; Response.ofPlainText &quot;Forbidden&quot;
+
+    Request.ifNotAuthenticated handleAnon handleInvalid
+
+// Allow only authenticated access when in certain role(s)
+let secureResourceHandler : HttpHandler =
+    let handleAuthInRole : HttpHandler =
+        Response.ofPlainText &quot;hello admin&quot;
+
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403
+        &gt;&gt; Response.ofPlainText &quot;Forbidden&quot;
+
+    let rolesAllowed = [ &quot;Admin&quot; ]
+
+    Request.ifAuthenticatedInRole rolesAllowed handleAuthInRole handleInvalid
+
+// Allow only authenticated acces with a certain scope
+let secureResourceHandler : HttpHandler =
+    let handleAuthHasScope : HttpHandler =
+        Response.ofPlainText &quot;user1, user2, user3&quot;
+
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 403
+        &gt;&gt; Response.ofPlainText &quot;Forbidden&quot;
+
+    let issuer = &quot;https://oauth2issuer.com&quot;
+    let scope = &quot;read:users&quot;
+
+    Request.ifAuthenticatedWithScope issuer scope handleAuthHasScope handleInvalid
+
+// Terminate authenticated session
+let logOut : HttpHandler =
+    let authScheme = &quot;...&quot;
+    let redirectTo = &quot;/login&quot;
+
+    Response.signOutAndRedirect authScheme redirectTo
+
+// Host configuration
+[&lt;EntryPoint&gt;]
+let main args =
+    webHost args {
+        // rest omitted
+        use_authentication
+        // rest omitted
+    }
+</code></pre>
+<h2 id="cross-site-scripting-xss-attacks">Cross-site Scripting (XSS) Attacks</h2>
+<p>Cross-site scripting attacks are extremely common since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.</p>
+<p>The <a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery">Microsoft.AspNetCore.Antiforgery</a> package provides the required utilities to easily protect yourself against such attacks.</p>
+<p>Falco provides a few handlers via <code>Falco.Security.Xss</code>:</p>
+<blockquote>
+<p>To use the Xss helpers, ensure the service has been registered using <code>add_antiforgery</code> in the <code>webHost {}</code> expression.</p>
+</blockquote>
+<pre><code class="language-fsharp">open Falco.Markup
+open Falco.Security
+
+let formView token =
+    Elem.html [] [
+        Elem.body [] [
+            Elem.form [ Attr.method &quot;post&quot; ] [
+                Elem.input [ Attr.name &quot;first_name&quot; ]
+
+                Elem.input [ Attr.name &quot;last_name&quot; ]
+
+                // using the CSRF HTML helper
+                Xss.antiforgeryInput token
+
+                Elem.input [ Attr.type' &quot;submit&quot;; Attr.value &quot;Submit&quot; ]
+            ]
+        ]
+    ]
+
+// A handler that demonstrates obtaining a
+// CSRF token and applying it to a view
+let csrfViewHandler : HttpHandler =
+    formView
+    |&gt; Response.ofHtmlCsrf
+
+// A handler that demonstrates validating
+// the request's CSRF token
+let mapFormSecureHandler : HttpHandler =
+    let mapPerson (form : FormCollectionReader) =
+        { FirstName = form.GetString &quot;first_name&quot; &quot;John&quot; // Get value or return default value
+          LastName = form.GetString &quot;first_name&quot; &quot;Doe&quot; }
+
+    let handleInvalid : HttpHandler =
+        Response.withStatusCode 400
+        &gt;&gt; Response.ofEmpty
+
+    Request.mapFormSecure mapPerson Response.ofJson handleInvalid
+
+// Host configuration
+[&lt;EntryPoint&gt;]
+let main args =
+    webHost args {
+        // rest omitted
+        add_antiforgery
+        // rest omitted
+    }
+</code></pre>
+<h2 id="cryptography">Cryptography</h2>
+<p>Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is important.</p>
+<pre><code class="language-fsharp">open Falco.Security
+
+// Generating salt,
+// using System.Security.Cryptography.RandomNumberGenerator,
+// create a random 16 byte salt and base 64 encode
+let salt = Crypto.createSalt 16
+
+// Generate random int for iterations
+let iterations = Crypto.randomInt 10000 50000
+
+// Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
+let password = &quot;5upe45ecure&quot;
+let hashedPassword = password |&gt; Crypto.sha256 iterations 32 salt
+</code></pre>
+</main>
+</div>
+
+<!-- /body/footer -->
+<footer class="cl mt4 pa3 bg-merlot">
+  <div class="dn-l white-90"><h3>Contents</h3>
+<ul class="nl3 f6">
+  <li><a href="get-started.html">Getting Started</a></li>
+  <li><a href="routing.html">Routing</a></li>
+  <li><a href="response.html">Writing responses</a>
+    <ul>
+      <li><a href="response.html#plain-text-responses">Plain Text responses</a></li>
+      <li><a href="response.html#html-responses">HTML responses</a></li>
+      <li><a href="response.html#json-responses">JSON responses</a></li>
+      <li><a href="response.html#redirect-301302-response">Redirect (301/302) Response</a></li>
+      <li><a href="response.html#content-disposition">Content Disposition</a></li>
+      <li><a href="response.html#response-modifiers">Response Modifiers</a></li>
+      <li><a href="response.html#debugging-requests">Debugging Requests</a></li>
+    </ul>
+  </li>
+  <li><a href="request.html">Accessing request data</a>
+    <ul>
+      <li><a href="request.html#route-binding">Route Binding</a></li>
+      <li><a href="request.html#query-binding">Query Binding</a></li>
+      <li><a href="request.html#form-binding">Form Binding</a></li>
+      <li><a href="request.html#json">JSON</a></li>
+    </ul>
+  </li>
+  <li><a href="markup.html">View engine</a></li>
+  <li><a href="host.html">Host configuration</a>
+    <ul>
+      <li><a href="host.html#registering-services">Registering Services</a></li>
+      <li><a href="host.html#activating-middleware">Activating Middleware</a></li>
+      <li><a href="host.html#custom-services">Custom Services and Middleware</a></li>
+      <li><a href="host.html#other-operations">Other Operations</a></li>
+    </ul>
+  </li>
+  <li><a href="security.html">Security</a>
+    <ul>
+      <li><a href="security.html#authentication">Authentication</a></li>
+      <li><a href="security.html#cross-site-scripting-xss-attacks">XSS Prevention</a></li>
+      <li><a href="security.html#cryptography">Cryptography</a></li>
+    </ul>
+  </li>
+  <li><a href="model-binding.html">Model Binding</a></li>
+  <li><a href="dependency-injection.html">Dependency Injection</a></li>
+</ul></div>
+  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2023 Pim Brouwers & contributors.</div>
+</footer>
+
+<!-- /body/script -->
+<script src="/prism.js"></script>
+
+</body>
+</html>
