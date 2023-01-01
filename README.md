@@ -47,7 +47,6 @@ Have an article or video that you want to share? We'd love to hear from you! To 
 
 ### Related Libraries
 
-- [FalcoDocs](https://github.com/pimbrouwers/FalcoDocs) - the [official documentation website](https://falcoframework.com/docs).
 - [Falco.Markup](https://github.com/pimbrouwers/Falco.Markup) - an XML markup module primary used as the syntax for [authoring HTML with Falco](https://www.falcoframework.com/docs/markup.html).
 - [Falco.Template](https://github.com/pimbrouwers/Falco.Template) - a .NET SDK [project template](https://learn.microsoft.com/en-us/dotnet/core/tools/custom-templates) to help get started with Falco quickly.
 - [Falco.Htmx](https://github.com/dpraimeyuu/Falco.Htmx) - An experimental Falco integration with [htmx JS package](https://htmx.org/).
