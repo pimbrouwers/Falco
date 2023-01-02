@@ -44,6 +44,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
+- `Response.debugRequest`, which pretty prints the content of the current request to the screen.
 - Related community projects and libraries to README.md.
 
 ### Fixed
@@ -54,12 +55,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
+- `StringCollectionReader.GetChildren`, safely retrieves a collection of readers. Intended to be used with the "dot notation" collection wire format (i.e., Person.First=John&Person.Last=Doe&Person.First=Jane&Person.Last=Doe).
+- `MultipartReader.StreamSectionsAsync` for async streaming of multipart/form-data, following MSFT [spec](https://learn.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads).
 - `Services.inject` helpers, for CPS-style dependency injection, supporting up to five generic input types.
+- `in_memory`, `required_ini`, `optional_ini`, `required_xml`, `optional_xml` custom operations added to the configuration builder.
 
 ### Changed
 
+- `StringCollectionReader` abstract attribute removed, to support nested readers.
+- `StringCollectionReader.Get{String|StringNonEmpty|Int16|Int32|Int|Int64|Boolean|Float|Decimal|DateTime|DateTimeOffset|Guid|TimeSpan}` default value made optional.
 - Upgraded host builder expression from `IWebHostBuilde` to `WebApplication`.
 
+### Removed
+
+- Additional `StringCollectionReader` constructors, per-collection type.
+- `StringCollectionReader.TryArrayString`, use `StringCollectionReader.GetStringArray`
+- `StringCollectionReader.TryArrayInt16`, use `StringCollectionReader.GetInt16Array`
+- `StringCollectionReader.TryArrayInt32`, use `StringCollectionReader.GetInt32Array`
+- `StringCollectionReader.TryArrayInt`, use `StringCollectionReader.GetIntArray`
+- `StringCollectionReader.TryArrayInt64`, use `StringCollectionReader.GetInt64Array`
+- `StringCollectionReader.TryArrayBoolean`, use `StringCollectionReader.GetBooleanArray`
+- `StringCollectionReader.TryArrayFloat`, use `StringCollectionReader.GetFloatArray`
+- `StringCollectionReader.TryArrayDecimal`, use `StringCollectionReader.GetDecimalArray`
+- `StringCollectionReader.TryArrayDateTime`, use `StringCollectionReader.GetDateTimeArray`
+- `StringCollectionReader.TryArrayDateTimeOffset`, use `StringCollectionReader.GetDateTimeOffsetArray`
+- `StringCollectionReader.TryArrayGuid`, use `StringCollectionReader.GetGuidArray`
+- `StringCollectionReader.TryArrayTimeSpan`, use `StringCollectionReader.GetTimeSpanArray`
+- `HttpRequest.IsMultipart`, `HttpRequest.TryStreamFormAsync`, use `HttpRequest.StreamFormAsync()`
+- `Request.tryBindRoute`, use `Request.getRoute`.
+- `Request.tryBindQuery`, use `Request.getQuery`.
+- `Request.tryBindForm`, use `Request.getForm`.
+- `Request.tryBindFormStream`, use `Request.tryStreamForm`.
+- `Request.tryBindCookie`, use `Request.getCookie`.
+- `Request.getJson`, use `Request.getJsonOptions Constants.defaultJsonOptions`.
+- `Request.tryBindJsonOptions`, use `Request.getJsonOptions`.
+- `Request.tryBindJson`, use `Request.getJsonOptions Constants.defaultJsonOptions`.
+- `Request.bindJson`, use `Request.mapJson`.
+- `Request.bindRoute`, use `Request.mapRoute`.
+- `Request.bindQuery`, use `Request.mapQuery`.
+- `Request.bindCookie`, use `Request.mapCookie`.
+- `Request.bindForm`, use `Request.mapForm`.
+- `Request.bindFormStream`, use `Request.mapFormStream`.
+- `Request.bindFormSecure`, use `Request.mapFormSecure`.
+- `Request.bindFormStreamSecure`, use `Request.mapFormStreamSecure`.
+- `Response.withHeader`, use `Response.withHeaders [ x ]`.
+- `Response.redirect`, use `Response.redirectTemporarily` or `Response.redirectPermanently`
 
 ## [3.1.14] - 4 months ago
 ## [3.1.13] - 5 months ago

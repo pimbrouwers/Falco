@@ -118,7 +118,7 @@ webHost [||] {
     endpoints [
         get &quot;/hello/{name:alpha}&quot; (fun ctx -&gt;
             let route = Request.getRoute ctx
-            let name = route.GetString &quot;name&quot; &quot;&quot;
+            let name = route.GetString &quot;name&quot;
             let message = sprintf &quot;Hello %s&quot; name
             Response.ofPlainText message ctx)
     ]

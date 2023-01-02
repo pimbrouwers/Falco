@@ -2,6 +2,8 @@ namespace Falco
 
 open System
 open System.Collections.Generic
+open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Routing
 open Falco.StringParser
 
 /// A safe string collection reader, with type utilities.
@@ -63,7 +65,9 @@ type StringCollectionReader (values : Map<string, string[]>) =
             |> List.map (Map.ofList >> StringCollectionReader)
 
 
+    // ------------
     // Primitive returning Option<'T>
+    // ------------
 
     /// Safely retrieves String option (alias for StringCollectionReader.TryGetString).
     member x.TryGet (name : string) =
@@ -122,7 +126,9 @@ type StringCollectionReader (values : Map<string, string[]>) =
         x.TryGetBind (fun v -> parseTimeSpan v) name
 
 
+    // ------------
     // Primitives - Get or Default
+    // ------------
 
     /// Safely retrieves named String or defaultValue.
     member x.Get (name : string, ?defaultValue : String) =
@@ -207,7 +213,9 @@ type StringCollectionReader (values : Map<string, string[]>) =
             (x.TryGetTimeSpan name)
 
 
+    // ------------
     // Array Primitives
+    // ------------
 
     /// Safely retrieves the named String[].
     member x.GetStringArray (name : string) =
@@ -268,8 +276,6 @@ type StringCollectionReader (values : Map<string, string[]>) =
 // ------------
 // Readers
 // ------------
-open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Routing
 
 /// Represents a readable collection of parsed form value.
 [<Sealed>]

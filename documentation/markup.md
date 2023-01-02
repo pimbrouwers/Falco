@@ -94,7 +94,7 @@ let divider =
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
         Elem.head [] [
-            Elem.title [] [ Text.raw "Sample App" ]
+            Elem.title [] [ Text.raw title ]
         ]
         Elem.body [] content
     ]
@@ -162,7 +162,7 @@ let heading (attrs : XmlAttribute list) (content : XmlNode list) =
 let master (title : string) (content : XmlNode list) =
     Elem.html [ Attr.lang "en" ] [
         Elem.head [] [
-            Elem.title [] [ Text.raw "Sample App" ]
+            Elem.title [] [ Text.raw title ]
         ]
         Elem.body [] content
     ]

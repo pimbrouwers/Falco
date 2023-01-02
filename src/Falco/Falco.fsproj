@@ -44,13 +44,13 @@
   <ItemGroup>
     <Compile Include="Core.fs" />
     <Compile Include="String.fs" />
-    <Compile Include="StringCollectionReader.fs" />
+    <Compile Include="Routing.fs" />
+    <Compile Include="Multipart.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="Security.fs" />
-    <Compile Include="Multipart.fs" />
+    <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
-    <Compile Include="Routing.fs" />
     <Compile Include="ConfigBuilder.fs" />
     <Compile Include="HostBuilder.fs" />
   </ItemGroup>
