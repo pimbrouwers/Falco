@@ -2,7 +2,6 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/Falco.svg)](https://www.nuget.org/packages/Falco)
 [![build](https://github.com/pimbrouwers/Falco/actions/workflows/build.yml/badge.svg)](https://github.com/pimbrouwers/Falco/actions/workflows/build.yml)
-[![Falco v4.0.3 badge][changelog-badge]][changelog] [![Version 4.0.3 Badge][version-badge]][changelog] [![Apache License Badge][license-badge]][license]
 
 ```fsharp
 open Falco
@@ -40,7 +39,7 @@ webHost [||] {
 
 ## Learn
 
-The best way to get started is by visiting the [documentation](https://falcoframework.com/docs). For questions and support please use [discussions](https://github.com/pimbrouwers/Falco/discussions). The issue list of this repo is **exclusively** for bug reports and feature requests.
+The best way to get started is by visiting the [documentation](https://falcoframework.com/docs). For questions and support please use [discussions](https://github.com/pimbrouwers/Falco/discussions). The issue list of this repo is **exclusively** for bug reports and feature requests. For chronological updates refer to the [changelog] is the best place to find chronological updates.
 
 If you want to stay in touch, feel free to reach out on [Twitter](https://twitter.com/falco_framework).
 
