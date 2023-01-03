@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Unused types `HttpContextAccessor` and `AsyncHttpContextAccessor`.
 
-## [4.0.3] - 2023/01/01
+## [4.0.3] - 2023-01-01
 
 ### Added
 
@@ -53,6 +53,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [4.0.0] - 2022-11-07
 
+The project no longer intends to support anything prior to net6.0, which enables the built-in `task {}` computation expression.
+
 ### Added
 
 - `StringCollectionReader.GetChildren`, safely retrieves a collection of readers. Intended to be used with the "dot notation" collection wire format (i.e., Person.First=John&Person.Last=Doe&Person.First=Jane&Person.Last=Doe).
@@ -68,6 +70,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Removed
 
+- `Falco.Markup`, module has been extracted into it's own [project](pimbrouwers/Falco.Markup).
 - Additional `StringCollectionReader` constructors, per-collection type.
 - `StringCollectionReader.TryArrayString`, use `StringCollectionReader.GetStringArray`
 - `StringCollectionReader.TryArrayInt16`, use `StringCollectionReader.GetInt16Array`
@@ -101,17 +104,93 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Response.withHeader`, use `Response.withHeaders [ x ]`.
 - `Response.redirect`, use `Response.redirectTemporarily` or `Response.redirectPermanently`
 
-## [3.1.14] - 4 months ago
-## [3.1.13] - 5 months ago
-## [3.1.12] - 7 months ago
+## [3.1.14] - 2022-08-29
+
+### Added
+
+- Embedded readme and project icon into NuGet package.
+- Additional obsolete attributes to functions in preparation for v4.x.
+
+### Fixed
+
+- `Request.mapJson` failing to invoke next handler, caused by a bad merge which left the valid function body commented out.
+
+## [3.1.13] - 2022-08-11
+
+### Added
+
+- Obsolete attributes to `Request.bind{Json|Route|Query|Cookie|Form|FormStream|FormSecure|FormStreamSecure} functions in preparation for v4.x.
+
+### Fixed
+
+- Typo in `Markup.Attr.httpEquiv`.
+
+## [3.1.12] - 2022-05-20
+
+### Added
+
+- `Auth.signInOptions` to establish an authenticated context for the provide scheme, options and principal
+- `Markup.Attr.open'`.
+- Missing .gitignore items for JetBrains.
+
 ## [3.1.11] - 2/8/2022
+
+### Added
+
+- `Auth.challenge` to challenge the specified authentication scheme.
+- `Response.challengeWithRedirect` to challenge the specified authentication scheme and redirect URI.
+
+### Fixed
+
+- Website to address certain accessibility issues.
+
 ## [3.1.10] - 12/14/2021
+
+### Changed
+
+- Incorporated built-in `System.Task` expression, with compiler directives to continue supporting Ply usage.
+
 ## [3.1.9] - 12/6/2021
+
+### Changed
+
+- `StringCollectionReader` lookups made case-insensitive.
+
 ## [3.1.8] - 12/3/2021
+
+### Added
+
+- `net6.0` support.
+
+### Changed
+
+- Embedded PDBs to faciliate sourcelink.
+
 ## [3.1.7] - 9/24/2021
+
+### Added
+
+- `HttpVerb.toHttpMethodMetadata` to properly capture the `HttpVerb.ANY` to produce an empty `HttpMethodData` (not `HttpMethodData [| "ANY" |]`).
+
 ## [3.1.6] - 9/24/2021
+
+### Removed
+
+- Mistakenly added `Request.signOut` function.
+
 ## [3.1.5] - 9/24/2021
+
+### Added
+
+- Route name metadata to support ASP.NET link generator.
+- Null check to internal `Response.writeString`.
+- Source link support.
+- Explicit starting size for the internal `StringBuilder` within `XmlNodeSerializer`
+
 ## [3.1.4] - 8/24/2021
+
+
+
 ## [3.1.3] - 8/4/2021
 ## [3.1.2] - 7/30/2021
 ## [3.1.1] - 7/27/2021
