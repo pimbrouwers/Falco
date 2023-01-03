@@ -39,7 +39,7 @@ webHost [||] {
 
 ## Learn
 
-The best way to get started is by visiting the [documentation](https://falcoframework.com/docs). For questions and support please use [discussions](https://github.com/pimbrouwers/Falco/discussions). The issue list of this repo is **exclusively** for bug reports and feature requests. For chronological updates refer to the [changelog] is the best place to find chronological updates.
+The best way to get started is by visiting the [documentation](https://falcoframework.com/docs). For questions and support please use [discussions](https://github.com/pimbrouwers/Falco/discussions). The issue list of this repo is **exclusively** for bug reports and feature requests. For chronological updates refer to the [changelog](CHANGELOG.md) is the best place to find chronological updates.
 
 If you want to stay in touch, feel free to reach out on [Twitter](https://twitter.com/falco_framework).
 
