@@ -243,10 +243,44 @@ The project no longer intends to support anything prior to net6.0, which enables
 - MVC and REST templates
 
 ## [3.0.5] - 6/14/2021
+
+### Added
+
+- PowerShell website build script.
+
+### Fixed
+
+- Null reference exception when consuming `IFormCollection.Files`.
+
 ## [3.0.4] - 5/5/2021
+
+### Added
+
+- `Response.signInAndRedirect`.
+- `IEndpointRouteBuilder` extension method `UserFalcoEndpoints`.
+
+
 ## [3.0.3] - 4/10/2021
+
+### Added
+
+- `Auth.hasScope`, `Auth.tryFindClaim`, `Auth.getClaim`.
+- `Request.ifAuthenticatedWithScope`.
+- `CookieCollectionReader`, accessible get `Request.getCookie`, `Request.tryBindCookie`, `Request.bindCookie`, `Request.mapCookie`.
+- `StringUtils.strSplit`.
+
 ## [3.0.2] - 12/8/2020
+
+### Added
+
+- `Markup.Elem.form`, `Markup.Elem.button`, `Markup.Elem.script`
+
 ## [3.0.1] - 12/1/2020
+
+### Fixed
+
+- `Markup.Templates.html5` not using provided language code.
+
 ## [3.0.0] - 11/27/2020
 ## [2.1.0] - 11/11/2020
 ## [2.0.4] - 11/9/2020
@@ -259,41 +293,3 @@ The project no longer intends to support anything prior to net6.0, which enables
 ## [1.2.1] - 6/28/2020
 ## [1.2.0] - 6/23/2020
 ## [1.1.0] - 6/6/2020
-
-[unreleased]: https://github.com/pimbrouwers/Falco/compare/v4.0.3...HEAD
-[4.0.3]: https://github.com/pimbrouwers/Falco/compare/v4.0.2...v4.0.3
-[4.0.2]: https://github.com/pimbrouwers/Falco/compare/v4.0.1...v4.0.2
-[4.0.1]: https://github.com/pimbrouwers/Falco/compare/v4.0.0...v4.0.1
-[4.0.0]: https://github.com/pimbrouwers/Falco/compare/v3.1.14...v4.0.0
-[3.1.14]: https://github.com/pimbrouwers/Falco/compare/v3.1.13...v3.1.14
-[3.1.13]: https://github.com/pimbrouwers/Falco/compare/v3.1.12...v3.1.13
-[3.1.12]: https://github.com/pimbrouwers/Falco/compare/v3.1.11...v3.1.12
-[3.1.11]: https://github.com/pimbrouwers/Falco/compare/v3.1.10...v3.1.11
-[3.1.10]: https://github.com/pimbrouwers/Falco/compare/v3.1.9...v3.1.10
-[3.1.9]: https://github.com/pimbrouwers/Falco/compare/v3.1.8...v3.1.9
-[3.1.8]: https://github.com/pimbrouwers/Falco/compare/v3.1.7...v3.1.8
-[3.1.7]: https://github.com/pimbrouwers/Falco/compare/v3.1.6...v3.1.7
-[3.1.6]: https://github.com/pimbrouwers/Falco/compare/v3.1.5...v3.1.6
-[3.1.5]: https://github.com/pimbrouwers/Falco/compare/v3.1.4...v3.1.5
-[3.1.4]: https://github.com/pimbrouwers/Falco/compare/v3.1.3...v3.1.4
-[3.1.3]: https://github.com/pimbrouwers/Falco/compare/v3.1.2...v3.1.3
-[3.1.2]: https://github.com/pimbrouwers/Falco/compare/v3.1.1...v3.1.2
-[3.1.1]: https://github.com/pimbrouwers/Falco/compare/v3.1.0...v3.1.1
-[3.1.0]: https://github.com/pimbrouwers/Falco/compare/v3.0.5...v3.1.0
-[3.0.5]: https://github.com/pimbrouwers/Falco/compare/v3.0.4...v3.0.5
-[3.0.4]: https://github.com/pimbrouwers/Falco/compare/v3.0.3...v3.0.4
-[3.0.3]: https://github.com/pimbrouwers/Falco/compare/v3.0.2...v3.0.3
-[3.0.2]: https://github.com/pimbrouwers/Falco/compare/v3.0.1...v3.0.2
-[3.0.1]: https://github.com/pimbrouwers/Falco/compare/v3.0.0...v3.0.1
-[3.0.0]: https://github.com/pimbrouwers/Falco/compare/v2.1.0...v3.0.0
-[2.1.0]: https://github.com/pimbrouwers/Falco/compare/v2.0.4...v2.1.0
-[2.0.4]: https://github.com/pimbrouwers/Falco/compare/v2.0.3...v2.0.4
-[2.0.3]: https://github.com/pimbrouwers/Falco/compare/v2.0.2...v2.0.3
-[2.0.2]: https://github.com/pimbrouwers/Falco/compare/v2.0.1...v2.0.2
-[2.0.1]: https://github.com/pimbrouwers/Falco/compare/v2.0.0...v2.0.1
-[2.0.0]: https://github.com/pimbrouwers/Falco/compare/v1.2.3...v2.0.0
-[1.2.3]: https://github.com/pimbrouwers/Falco/compare/v1.2.2...v1.2.3
-[1.2.2]: https://github.com/pimbrouwers/Falco/compare/v1.2.1...v1.2.2
-[1.2.1]: https://github.com/pimbrouwers/Falco/compare/v1.2.0...v1.2.1
-[1.2.0]: https://github.com/pimbrouwers/Falco/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/pimbrouwers/Falco/releases/tag/v1.1.0
