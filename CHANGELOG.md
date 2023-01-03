@@ -4,11 +4,7 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
-
-### Added
 
 ### Removed
 
@@ -70,7 +66,7 @@ The project no longer intends to support anything prior to net6.0, which enables
 
 ### Removed
 
-- `Falco.Markup`, module has been extracted into it's own [project](pimbrouwers/Falco.Markup).
+- `Falco.Markup`, module has been extracted into it's own [project](https://github.com/pimbrouwers/Falco.Markup).
 - Additional `StringCollectionReader` constructors, per-collection type.
 - `StringCollectionReader.TryArrayString`, use `StringCollectionReader.GetStringArray`
 - `StringCollectionReader.TryArrayInt16`, use `StringCollectionReader.GetInt16Array`
@@ -176,7 +172,7 @@ The project no longer intends to support anything prior to net6.0, which enables
 
 ### Removed
 
-- Mistakenly added `Request.signOut` function.
+- Mistakenly added, experimental `Request.signOut` function.
 
 ## [3.1.5] - 9/24/2021
 
@@ -184,17 +180,68 @@ The project no longer intends to support anything prior to net6.0, which enables
 
 - Route name metadata to support ASP.NET link generator.
 - Null check to internal `Response.writeString`.
-- Source link support.
 - Explicit starting size for the internal `StringBuilder` within `XmlNodeSerializer`
 
 ## [3.1.4] - 8/24/2021
 
+### Added
 
+- Comparative view engine benchmarks.
+- `XmlNodeSerializer` type.
+- Source link support.
 
 ## [3.1.3] - 8/4/2021
+
+### Added
+
+- Dependency on [Ply](https://github.com/crowded/ply).
+- `Request.authenticate` to authenticate the current request using the provided scheme.
+
+### Removed
+
+- TPL helpers.
+
 ## [3.1.2] - 7/30/2021
+
+### Changed
+
+- CSRF validation switched to occur _after_ form is streamed, which includes enabling buffering for the request body.
+
+
 ## [3.1.1] - 7/27/2021
+
+### Added
+
+- `stringf` function.
+
+### Removed
+
+- Dependency on Taskbuilder.fs, replaced with TPL helpers.
+
 ## [3.1.0] - 7/27/2021
+
+### Added
+
+- `FalcoEndpointDataSource` to properly integrate with ASP.NET endpoint routing.
+- Binary response handlers `Response.ofBinary`, `Response.ofAttachment`.
+- `Auth.getClaimValue`
+- `IServiceCollection` operations to the HostBuilder expression: `add_service`, `add_antiforgery`, `add_cookie`, `add_conf_cookies`, `add_authorization`, `add_data_protection`, `add_http_client`.
+- `IApplicationBuilder` operations to the HostBuilder expression:
+`use_middleware`, `use_if`, `use_ifnot`, `use_authentication`, `use_authorization`, `use_caching`, `use_compression`, `use_hsts`, `use_https`, `use_static_files`.
+- `not_found` operation added to HostBuilder expression to serve default document when no endpoints are matched.
+
+### Changed
+
+- Internal `Response.writeBytes` to use `BodyWriter`.
+
+### Fixed
+
+- Optional JSON config file fix, misassigned.
+
+### Removed
+
+- MVC and REST templates
+
 ## [3.0.5] - 6/14/2021
 ## [3.0.4] - 5/5/2021
 ## [3.0.3] - 4/10/2021
