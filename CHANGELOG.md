@@ -1,5 +1,3 @@
-> Work in progress!
-
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -216,7 +214,7 @@ The project no longer intends to support anything prior to net6.0, which enables
 
 ### Removed
 
-- Dependency on Taskbuilder.fs, replaced with TPL helpers.
+- Dependency on [Taskbuilder.fs](https://github.com/rspeele/Taskbuilder.fs), replaced with TPL helpers.
 
 ## [3.1.0] - 7/27/2021
 
@@ -224,6 +222,7 @@ The project no longer intends to support anything prior to net6.0, which enables
 
 - `FalcoEndpointDataSource` to properly integrate with ASP.NET endpoint routing.
 - Binary response handlers `Response.ofBinary`, `Response.ofAttachment`.
+- `IConfiguration` builder expression with JSON input hooks.
 - `Auth.getClaimValue`
 - `IServiceCollection` operations to the HostBuilder expression: `add_service`, `add_antiforgery`, `add_cookie`, `add_conf_cookies`, `add_authorization`, `add_data_protection`, `add_http_client`.
 - `IApplicationBuilder` operations to the HostBuilder expression:
@@ -282,12 +281,99 @@ The project no longer intends to support anything prior to net6.0, which enables
 - `Markup.Templates.html5` not using provided language code.
 
 ## [3.0.0] - 11/27/2020
+
+### Added
+
+- `net5.0` support.
+- `IHost` builder expression, `webHost [||] {}`.
+- `IServiceCollection.AddFalco`.
+- `IServiceCollection.AddFalco (routeOptions : RouteOptions -> unit)`.
+- `IApplicationBuilder.UseFalco (endpoints : HttpEndpoint list)`.
+- `IApplicationBuilder.UseFalcoExceptionHandler (exceptionHandler : HttpHandler)`.
+- `QueryCollectionReader`.
+- `HeaderCollectionReader`.
+- `RouteCollectionReader`.
+
+### Removed
+
+- Extensions, `HttpRequest.GetHeader`, `HttpRequest.GetRouteValues`, `HttpRequest.GetRouteReader`.
+- Exceptions. `ExceptionHandler`, `ExceptionHandlingMiddleware`.
+- Host module, `Host.defaultExceptionHandler`, `Host.defaultNotFoundHandler`, `Host.startWebHostDefault`, `Host.startWebHost`.
+- `IApplicationBuilder.UseHttpEndpoints (endpoints : HttpEndpoint list)` replaced by `IApplicationBuilder.UseFalco (endpoints : HttpEndpoint list)`.
+- `Request.getHeader`, `Request.getRouteValues` replaced by `Request.getRoute`, `Request.tryGetRouteValue`.
+- `StringCollectionReader` ? dynamic operator
+
 ## [2.1.0] - 11/11/2020
+
+### Added
+
+- Multimethod `HttpEndpoint` support.
+- `StringCollectionReader.TryGetStringNonEmpty` which returns `None` for empty, whitespace and null value strings.
+
 ## [2.0.4] - 11/9/2020
+
+### Added
+
+- `Request.tryBindRoute`, `Request.mapRoute` and `Request.bindRoute`.
+- `Request.bindQuery`.
+- `Request.bindJson` which uses `System.Text.Json`.
+
 ## [2.0.3] - 10/31/2020
+
+### Added
+
+- Dependency on [Taskbuilder.fs](https://github.com/rspeele/Taskbuilder.fs), with internal extesion for `Task<unit> -> Task` conversion.
+
 ## [2.0.2] - 7/31/2020
+
+### Added
+
+- `Request.validateCsrfToken` which uses `Microsoft.AspNetCore.Antiforgery`.
+- `Response.ofJson` which uses `System.Text.Json` and references `Constants.defaultJsonOptions`.
+- `Response.ofEmpty`.
+
 ## [2.0.1] - 7/20/2020
+
+### Changed
+
+- Parameter ordering for `Response.withCookieOptions`, `Response.ofJsonOptions` to ensure configuration uniformly occured first.
+
 ## [2.0.0] - 7/12/2020
+
+### Added
+
+- `HttpResponseModifier` defined as `HttpContext -> HttpContext` used to make non-IO modifications to the `HttpResponse`.
+- `Response` and `Request` modules, which provide functional access to the `HttpResponse` and `HttpRequest` respectively.
+
+    - `Request.getVerb`
+    - `Request.getRouteValues`
+    - `Request.tryGetRouteValue`
+    - `Request.getQuery`
+    - `Request.tryBindQuery`
+    - `Request.getForm`
+    - `Request.tryBindForm`
+    - `Request.tryStreamForm`
+    - `Request.tryBindJson`
+    - `Request.tryBindJsonOptions`
+    - `Response.redirect`
+    - `Response.withHeader`
+    - `Response.withContentLength`
+    - `Response.withContentType`
+    - `Response.withStatusCode`
+    - `Response.withCookie`
+    - `Response.withCookieOptions`
+    - `Response.ofString`
+    - `Response.ofPlainText`
+    - `Response.ofHtml`
+    - `Response.ofJson`
+    - `Response.ofJsonOptions    `
+
+### Changed
+
+- `HttpHandler` definition changed to `HttpContext -> Task`.
+- `Falco.ViewEngine` becomes `Falco.Markup`
+- Markup functions are now fully qualified (i.e., `Elem.h1` instead of `h1`).
+
 ## [1.2.3] - 7/2/2020
 ## [1.2.2] - 6/29/2020
 ## [1.2.1] - 6/28/2020
