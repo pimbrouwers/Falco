@@ -345,16 +345,6 @@ The project no longer intends to support anything prior to net6.0, which enables
 - `HttpResponseModifier` defined as `HttpContext -> HttpContext` used to make non-IO modifications to the `HttpResponse`.
 - `Response` and `Request` modules, which provide functional access to the `HttpResponse` and `HttpRequest` respectively.
 
-    - `Request.getVerb`
-    - `Request.getRouteValues`
-    - `Request.tryGetRouteValue`
-    - `Request.getQuery`
-    - `Request.tryBindQuery`
-    - `Request.getForm`
-    - `Request.tryBindForm`
-    - `Request.tryStreamForm`
-    - `Request.tryBindJson`
-    - `Request.tryBindJsonOptions`
     - `Response.redirect`
     - `Response.withHeader`
     - `Response.withContentLength`
@@ -367,15 +357,28 @@ The project no longer intends to support anything prior to net6.0, which enables
     - `Response.ofHtml`
     - `Response.ofJson`
     - `Response.ofJsonOptions    `
+    - `Request.getVerb`
+    - `Request.getRouteValues`
+    - `Request.tryGetRouteValue`
+    - `Request.getQuery`
+    - `Request.tryBindQuery`
+    - `Request.getForm`
+    - `Request.tryBindForm`
+    - `Request.tryStreamForm`
+    - `Request.tryBindJson`
+    - `Request.tryBindJsonOptions`
 
 ### Changed
 
 - `HttpHandler` definition changed to `HttpContext -> Task`.
 - `Falco.ViewEngine` becomes `Falco.Markup`
 - Markup functions are now fully qualified (i.e., `Elem.h1` instead of `h1`).
+- `webApp
 
 ## [1.2.3] - 7/2/2020
 ## [1.2.2] - 6/29/2020
 ## [1.2.1] - 6/28/2020
 ## [1.2.0] - 6/23/2020
 ## [1.1.0] - 6/6/2020
+
+Still kicking myself over this brainfart. Starting version `1.1` for the win 🙄.
