@@ -7,7 +7,6 @@ open System.Text.Json
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
-open Falco.Multipart
 open Falco.Security
 open Falco.StringUtils
 
@@ -58,14 +57,22 @@ let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
         return FormCollectionReader(form, files)
     }
 
-/// Attempts to bind request body using System.Text.Json and provided
-/// JsonSerializerOptions.
-let getJsonOptions<'T>
-    (options : JsonSerializerOptions)
-    (ctx : HttpContext) : Task<'T> =
-    JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options).AsTask()
+/// Retrieves the form collection from the request as an instance of
+/// FormCollectionReader, if the CSRF token is valid, otherwise it
+/// returns None.
+let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
+    task {
+        let! isAuth = Xss.validateToken ctx
+        if isAuth then
+            let! form = getForm ctx
+            return Some form
+        else
+            return None
 
-/// Streams the form collection for multipart form submissions.
+    }
+
+/// Streams the form collection from the request as an instance of
+/// FormCollectionReader. Intended to be used for multipart form submissions.
 let streamForm
     (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
@@ -73,6 +80,27 @@ let streamForm
         let files = if isNull(form.Files) then None else Some form.Files
         return FormCollectionReader(form, files)
     }
+
+/// Streams the form collection from the request as an instance of
+/// FormCollectionReader, if the CSRF token is valid. otherwise it returns
+/// None. Intended to be used for multipart form submissions.
+let streamFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
+    task {
+        let! isAuth = Xss.validateToken ctx
+        if isAuth then
+            let! form = streamForm ctx
+            return Some form
+        else
+            return None
+
+    }
+
+/// Attempts to bind request body using System.Text.Json and provided
+/// JsonSerializerOptions.
+let getJsonOptions<'T>
+    (options : JsonSerializerOptions)
+    (ctx : HttpContext) : Task<'T> =
+    JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options).AsTask()
 
 // ------------
 // Handlers
@@ -167,10 +195,19 @@ let validateCsrfToken
 let mapFormSecure
     (map : FormCollectionReader -> 'T)
     (next : 'T -> HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler =
-    validateCsrfToken
-        (mapForm map next)
-        handleInvalidToken
+    (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
+    task {
+        let! form = getFormSecure ctx
+
+        let respondWith =
+            match form with
+            | Some form ->
+                next (map form)
+            | None ->
+                handleInvalidToken
+
+        return! respondWith ctx
+    }
 
 /// Streams multipart/form-data into FormCollectionReader and projects onto 'T
 /// and provides to next HttpHandler.
@@ -181,10 +218,18 @@ let mapFormStreamSecure
     (map : FormCollectionReader -> 'T)
     (next : 'T -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
-    validateCsrfToken
-        (mapFormStream map next)
-        handleInvalidToken
-        ctx
+    task {
+        let! form = streamFormSecure ctx
+
+        let respondWith =
+            match form with
+            | Some form ->
+                next (map form)
+            | None ->
+                handleInvalidToken
+
+        return! respondWith ctx
+    }
 
 /// Projects JSON using custom JsonSerializerOptions
 /// onto 'T and provides to next HttpHandler, throws

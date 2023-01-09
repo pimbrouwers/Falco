@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `Request.getFormSecure` and `Request.streamFormSecure`.
+
 ### Removed
 
 - Unused types `HttpContextAccessor` and `AsyncHttpContextAccessor`.
