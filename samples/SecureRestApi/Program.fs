@@ -94,7 +94,7 @@ module UserStorage =
         |> Result.bind (fun _ -> storage.Remove id)
 
 // ------------
-// Haandlers
+// Handlers
 // ------------
 module ErrorPages =
     let unauthorized : HttpHandler =
