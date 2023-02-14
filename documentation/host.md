@@ -226,6 +226,7 @@ webHost [||] {
 | [use_compression](#use_compression) | Register Brotli + GZip HTTP Compression service and enable middleware. |
 | [use_hsts](#use_hsts) | Use automatic HSTS middleware (adds strict-transport-policy header). |
 | [use_https](#use_https) | Use automatic HTTPS redirection. |
+| [use_cors](#use_cors) | Set CORS (Cross Origin Resource Sharing) options and policy. |
 | [use_default_files](#use_default_files) | Use Default Files middleware. |
 | [use_static_files](#use_static_files) | Use Static Files middleware. |
 
@@ -374,6 +375,45 @@ webHost [||] {
     ]
 }
 ```
+
+### `use_cors`
+
+> Note: Typically, `use_static_files` is called before `use_cors`. But apps that use JavaScript to retrieve static files cross site must call `use_cors` before `use_static_files`.
+
+See [the official docs](https://learn.microsoft.com/en-us/aspnet/core/security/cors) for all the options. Only "[CORS with named policy and Middleware](https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-7.0#cors-with-named-policy-and-middleware)" is supported. 
+
+```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Cors.Infrastructure
+
+let corsPolicyName = "MyCorsPolicy"
+
+let corsPolicy (policyBuilder: CorsPolicyBuilder) =
+    // Note: This is a very lax setting, but a good fit for local development
+    policyBuilder
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()
+        // Note: The URLs must not end with a /
+        .WithOrigins("http://localhost:3000",
+                     "http://localhost:5001")
+    |> ignore
+
+let corsOptions (options : CorsOptions) =
+    options.AddPolicy(corsPolicyName, corsPolicy)
+
+webHost [||] {
+    use_cors corsPolicyName corsOptions
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+
+
 ### `use_default_files`
 
 ```fsharp
