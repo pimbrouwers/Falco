@@ -7,6 +7,7 @@ open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.DataProtection
 open Microsoft.AspNetCore.ResponseCompression
+open Microsoft.AspNetCore.Cors.Infrastructure
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
@@ -214,6 +215,13 @@ type HostBuilder(args : string[]) =
     [<CustomOperation("use_https")>]
     member x.UseHttps (conf : HostBuilderSpec) =
         x.Use (conf, fun app -> app.UseHttpsRedirection())
+
+    /// Set CORS header options and policy.
+    [<CustomOperation("use_cors")>]
+    member x.UseCors (conf : HostBuilderSpec, name: string, options : CorsOptions -> unit) =
+        { conf with
+               Services = conf.Services >> fun (s : IServiceCollection) -> s.AddCors(options)
+               Middleware = conf.Middleware >> fun app -> app.UseCors(name) }
 
     /// Uses Default File middleware. Must be called before use_static_files.
     [<CustomOperation("use_default_files")>]
