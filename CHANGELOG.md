@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `Request.getFormSecure` and `Request.streamFormSecure`.
+- `use_cors` to host builder (i.e., `webHost [||] { use_cors }`)
 
 ### Removed
 

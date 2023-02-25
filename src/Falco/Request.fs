@@ -68,7 +68,6 @@ let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
             return Some form
         else
             return None
-
     }
 
 /// Streams the form collection from the request as an instance of
@@ -92,7 +91,6 @@ let streamFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
             return Some form
         else
             return None
-
     }
 
 /// Attempts to bind request body using System.Text.Json and provided
