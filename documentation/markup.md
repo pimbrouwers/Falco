@@ -79,7 +79,7 @@ let markup =
 
 ## HTML
 
-Though Falco.Markup can be used to produce any markup. It is first and foremost and HTML library.
+Though Falco.Markup can be used to produce any markup. It is first and foremost an HTML library.
 
 ### Combining views to create complex output
 

@@ -358,6 +358,10 @@ webHost [||] {
 <td>Use automatic HTTPS redirection.</td>
 </tr>
 <tr>
+<td><a href="#use_cors">use_cors</a></td>
+<td>Set CORS (Cross Origin Resource Sharing) options and policy.</td>
+</tr>
+<tr>
 <td><a href="#use_default_files">use_default_files</a></td>
 <td>Use Default Files middleware.</td>
 </tr>
@@ -486,6 +490,40 @@ open Microsoft.AspNetCore.Builder
 
 webHost [||] {
     use_https
+
+    endpoints [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello world&quot;)
+    ]
+}
+</code></pre>
+<h3 id="use_cors"><code>use_cors</code></h3>
+<blockquote>
+<p>Note: Typically, <code>use_static_files</code> is called before <code>use_cors</code>. But apps that use JavaScript to retrieve static files cross site must call <code>use_cors</code> before <code>use_static_files</code>.</p>
+</blockquote>
+<p>See <a href="https://learn.microsoft.com/en-us/aspnet/core/security/cors">the official docs</a> for all the options. Only &quot;<a href="https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-7.0#cors-with-named-policy-and-middleware">CORS with named policy and Middleware</a>&quot; is supported.</p>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.AspNetCore.Cors.Infrastructure
+
+let corsPolicyName = &quot;MyCorsPolicy&quot;
+
+let corsPolicy (policyBuilder: CorsPolicyBuilder) =
+    // Note: This is a very lax setting, but a good fit for local development
+    policyBuilder
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()
+        // Note: The URLs must not end with a /
+        .WithOrigins(&quot;http://localhost:3000&quot;,
+                     &quot;http://localhost:5001&quot;)
+    |&gt; ignore
+
+let corsOptions (options : CorsOptions) =
+    options.AddPolicy(corsPolicyName, corsPolicy)
+
+webHost [||] {
+    use_cors corsPolicyName corsOptions
 
     endpoints [
         get &quot;/&quot; (Response.ofPlainText &quot;Hello world&quot;)
