@@ -147,3 +147,6 @@ let mapJsonOptionsHandler : HttpHandler =
 
     Request.mapJson options handleOk
 ```
+
+
+[Next: View engine](markup.md)

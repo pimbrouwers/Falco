@@ -188,11 +188,11 @@ let main args =
     let docsDir = DirectoryInfo(Path.Join(workingDir.FullName, "../documentation"))
     let docsBuildDir = DirectoryInfo(Path.Join(buildDirPath.FullName, "docs"))
 
-    Log.info "Downloading external markdown files..."
-    let markupMarkdown = http.GetStringAsync(@"https://raw.githubusercontent.com/pimbrouwers/Falco.Markup/master/README.md").Result
-    let markupFilename = Path.Join(docsDir.FullName, "markup.md")
-    if (File.Exists(markupFilename)) then File.Delete(markupFilename)
-    File.WriteAllText(markupFilename, markupMarkdown)
+    // Log.info "Downloading external markdown files..."
+    // let markupMarkdown = http.GetStringAsync(@"https://raw.githubusercontent.com/pimbrouwers/Falco.Markup/master/README.md").Result
+    // let markupFilename = Path.Join(docsDir.FullName, "markup.md")
+    // if (File.Exists(markupFilename)) then File.Delete(markupFilename)
+    // File.WriteAllText(markupFilename, markupMarkdown)
 
     Log.info "Rendering docs..."
     let readme = FileInfo(Path.Join(workingDir.FullName, "../readme.md"))

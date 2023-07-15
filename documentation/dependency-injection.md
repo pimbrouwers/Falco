@@ -1,3 +1,0 @@
-# Dependency Injection
-
-## Coming soon!

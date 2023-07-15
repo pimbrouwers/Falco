@@ -1,37 +1,6 @@
-# Falco.Markup
+# Markup
 
-[![NuGet Version](https://img.shields.io/nuget/v/Falco.Markup.svg)](https://www.nuget.org/packages/Falco.Markup)
-[![build](https://github.com/pimbrouwers/Falco.Markup/actions/workflows/build.yml/badge.svg)](https://github.com/pimbrouwers/Falco.Markup/actions/workflows/build.yml)
-
-```fsharp
-open Falco.Markup
-
-let doc =
-    Elem.html [] [
-        Elem.body [ Attr.class' "100-vh" ] [
-            Elem.h1 [] [ Text.raw "Hello world!" ] ] ]
-
-renderHtml doc
-```
-
-[Falco.Markup](https://github.com/pimbrouwers/Falco.Markup) is an XML markup module that can be used to produce _any_ form of angle-bracket markup (i.e. HTML, SVG, XML etc.).
-
-## Key Features
-
-- Use native F# to produce any form of angle-bracket markup.
-- Very simple to create reusable blocks of code (i.e., partial views and components).
-- Easily extended by creating custom tags and attributes.
-- Compiled as part of your assembly, leading to improved performance and simpler deployments.
-
-## Design Goals
-
-- Provide a tool to generate _any_ form of angle-bracket markup.
-- Should be simple, extensible and integrate with existing .NET libraries.
-- Can be easily learned.
-
-## Overview
-
-Falco.Markup is broken down into three primary modules. `Elem`, `Attr` and `Text`, which are used to generate elements, attributes and text nodes respectively. Each module contain a suite of functions mapping to the various element/attribute/node names. But can also be extended to create custom elements and attributes.
+Falco.Markup is broken down into three primary modules, `Elem`, `Attr` and `Text`, which are used to generate elements, attributes and text nodes respectively. Each module contain a suite of functions mapping to the various element/attribute/node names. But can also be extended to create custom elements and attributes.
 
 Primary elements are broken down into two types, `ParentNode` or `SelfClosingNode`.
 
@@ -233,10 +202,5 @@ let svgDrawing =
 let svg = renderNode svgDrawing
 ```
 
-## Find a bug?
 
-There's an [issue](https://github.com/pimbrouwers/Falco.Markup/issues) for that.
-
-## License
-
-Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON. Licensed under [Apache License 2.0](https://github.com/pimbrouwers/Falco.Markup/blob/master/LICENSE).
+[Next: App Configuration](config.md)

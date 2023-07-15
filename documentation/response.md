@@ -146,3 +146,6 @@ For debugging scenarios, the `Response.debugRequest` will pretty print the reque
 let debugHandler : HttpHandler =
     Response.debugRequest
 ```
+
+
+[Next: Accessing request data](request.md)
