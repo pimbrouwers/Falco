@@ -68,9 +68,9 @@ let jsonHandler : HttpHandler =
 
 let jsonOptionsHandler : HttpHandler =
     let options = JsonSerializerOptions()
-    options.IgnoreNullValues <- true
+    options.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
     let name = { First = "John"; Last = "Doe" }
-    Response.ofJson options name
+    Response.ofJsonOptions options name
 ```
 
 ## Redirect (301/302) Response

@@ -139,13 +139,13 @@ let mapJsonHandler : HttpHandler =
 
 let mapJsonOptionsHandler : HttpHandler =
     let options = JsonSerializerOptions()
-    options.IgnoreNullValues <- true
+    options.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
 
     let handleOk person : HttpHandler =
         let message = sprintf "hello %s %s" person.First person.Last
         Response.ofPlainText message
 
-    Request.mapJson options handleOk
+    Request.mapJsonOption options handleOk
 ```
 
 
