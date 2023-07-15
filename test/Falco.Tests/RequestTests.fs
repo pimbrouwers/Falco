@@ -3,6 +3,8 @@
 open System.Collections.Generic
 open System.IO
 open System.Text
+open System.Text.Json
+open System.Text.Json.Serialization
 open System.Threading.Tasks
 open Falco
 open FSharp.Control.Tasks.V2.ContextInsensitive
@@ -103,6 +105,23 @@ let ``Request.mapJson`` () =
         Response.ofEmpty
 
     Request.mapJson handle ctx
+
+[<Fact>]
+let ``Request.mapJsonOption`` () =
+    let ctx = getHttpContextWriteable false
+    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
+    ctx.Request.Body.Returns(ms) |> ignore
+
+    let handle json : HttpHandler =
+        json.Name |> should equal "falco"
+        Response.ofEmpty
+
+    let options = JsonSerializerOptions()
+    options.AllowTrailingCommas <- true
+    options.PropertyNameCaseInsensitive <- true
+    options.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
+
+    Request.mapJsonOption options handle ctx
 
 [<Fact>]
 let ``Request.mapRoute`` () =

@@ -380,7 +380,7 @@ webHost [||] {
 
 > Note: Typically, `use_static_files` is called before `use_cors`. But apps that use JavaScript to retrieve static files cross site must call `use_cors` before `use_static_files`.
 
-See [the official docs](https://learn.microsoft.com/en-us/aspnet/core/security/cors) for all the options. Only "[CORS with named policy and Middleware](https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-7.0#cors-with-named-policy-and-middleware)" is supported. 
+See [the official docs](https://learn.microsoft.com/en-us/aspnet/core/security/cors) for all the options. Only "[CORS with named policy and Middleware](https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-7.0#cors-with-named-policy-and-middleware)" is supported.
 
 ```fsharp
 open Falco
@@ -544,3 +544,6 @@ webHost [||] {
     ]
 }
 ```
+
+
+[Next: Security](security.md)

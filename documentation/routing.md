@@ -94,3 +94,6 @@ webHost [||] {
                       POST, Request.debug] // useful development tool
     ]
 }
+```
+
+[Next: Writing responses](response.md)
