@@ -137,9 +137,9 @@ let jsonHandler : HttpHandler =
 
 let jsonOptionsHandler : HttpHandler =
     let options = JsonSerializerOptions()
-    options.IgnoreNullValues &lt;- true
+    options.DefaultIgnoreCondition &lt;- JsonIgnoreCondition.WhenWritingNull
     let name = { First = &quot;John&quot;; Last = &quot;Doe&quot; }
-    Response.ofJson options name
+    Response.ofJsonOptions options name
 </code></pre>
 <h2 id="redirect-301302-response">Redirect (301/302) Response</h2>
 <pre><code class="language-fsharp">let oldUrlHandler : HttpHandler =

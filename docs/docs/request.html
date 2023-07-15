@@ -204,13 +204,13 @@ let mapJsonHandler : HttpHandler =
 
 let mapJsonOptionsHandler : HttpHandler =
     let options = JsonSerializerOptions()
-    options.IgnoreNullValues &lt;- true
+    options.DefaultIgnoreCondition &lt;- JsonIgnoreCondition.WhenWritingNull
 
     let handleOk person : HttpHandler =
         let message = sprintf &quot;hello %s %s&quot; person.First person.Last
         Response.ofPlainText message
 
-    Request.mapJson options handleOk
+    Request.mapJsonOption options handleOk
 </code></pre>
 <p><a href="markup.html">Next: View engine</a></p>
 </main>
