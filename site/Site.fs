@@ -208,4 +208,7 @@ let main args =
         let languageBuildDir = DirectoryInfo(Path.Join(docsBuildDir.FullName, languageCode))
         Docs.build template (languageDir.GetFiles()) languageBuildDir
 
+    // CNAME
+    let cname = FileInfo(Path.Join(workingDir.FullName, "../CNAME"))
+    cname.CopyTo (Path.Join(buildDirPath.FullName, "CNAME")) |> ignore
     0
