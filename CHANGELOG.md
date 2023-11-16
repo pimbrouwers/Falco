@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [4.0.5] - 2023-11-16
+
+- Execution order of configuration builder (i.e., `configuration { add_env }`) set to match [default](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration#alternative-hosting-approach) configuration behaviour.
 
 ## [4.0.4] - 2023-03-13
 
