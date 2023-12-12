@@ -15,7 +15,7 @@ webHost [||] {
 }
 ```
 
-[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast, functional-first and fault-tolerant web applications using F#.
+[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast and functional-first web applications using F#.
 
 - Built upon the high-performance components of ASP.NET Core.
 - Optimized for building HTTP applications quickly.
