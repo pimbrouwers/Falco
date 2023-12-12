@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.6] - 2023-12-12
+
+- `net7.0` and `net8.0` support added.
+- Added ability to configure `IWebHostBuilder` to host builder (i.e., `webHost [||] { web_host (fun webHost -> ...) }`).
+
 ## [4.0.5] - 2023-11-16
 
 - Execution order of configuration builder (i.e., `configuration { add_env }`) set to match [default](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration#alternative-hosting-approach) configuration behaviour.
@@ -11,7 +16,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `Request.getFormSecure` and `Request.streamFormSecure`.
-- `use_cors` to host builder (i.e., `webHost [||] { use_cors }`)
+- `use_cors` to host builder (i.e., `webHost [||] { use_cors }`).
 
 ### Removed
 

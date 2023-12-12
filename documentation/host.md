@@ -1,6 +1,6 @@
 # Host Configuration
 
-[Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel) is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people.
+The `webHost[||] { ... }` computation aims to provide a consistent methodology for creating .NET servers using [Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel). It's performant, secure, and maintained by the incredibly smart people on the ASP.NET Team at Microsoft.
 
 ## Config, Logging & Other Operations
 
