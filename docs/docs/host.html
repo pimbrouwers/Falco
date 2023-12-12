@@ -98,6 +98,10 @@
 <td>Configure the host via <code>IHostBuilder</code>.</td>
 </tr>
 <tr>
+<td><a href="#web_host">web_host</a></td>
+<td>Configure the host via <code>IHostBuilder</code>.</td>
+</tr>
+<tr>
 <td><a href="#logging">logging</a></td>
 <td>Configure logging via <code>ILoggingBuilder</code>.</td>
 </tr>
@@ -107,7 +111,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="logging"><code>logging</code></h3>
+<h3 id="host"><code>host</code></h3>
 <pre><code class="language-fsharp">open Falco
 open Falco.Routing
 open Falco.HostBuilder
@@ -126,6 +130,26 @@ webHost [||] {
     ]
 }
 </code></pre>
+<h3 id="web_host"><code>web_host</code></h3>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.Extensions.Hosting
+open Serilog
+
+let configureWebHost (webHost : IWebHostBuilder) =
+    webHost.UseHttpSys()
+    webHost
+
+webHost [||] {
+    web_host configureWebHost
+
+    endpoints [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello world&quot;)
+    ]
+}
+</code></pre>
+<h3 id="logging"><code>logging</code></h3>
 <pre><code class="language-fsharp">open Falco
 open Falco.Routing
 open Falco.HostBuilder

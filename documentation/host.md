@@ -7,10 +7,11 @@ The `webHost[||] { ... }` computation aims to provide a consistent methodology f
 | Operation | Description |
 | --------- | ----------- |
 | [host](#host) | Configure the host via `IHostBuilder`. |
+| [web_host](#web_host) | Configure the host via `IHostBuilder`. |
 | [logging](#logging) | Configure logging via `ILoggingBuilder`. |
 | [not_found](#not_found) | Include a catch-all (i.e., Not Found) HttpHandler (must be added last). |
 
-### `logging`
+### `host`
 
 ```fsharp
 open Falco
@@ -31,6 +32,30 @@ webHost [||] {
     ]
 }
 ```
+
+### `web_host`
+
+```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.Extensions.Hosting
+open Serilog
+
+let configureWebHost (webHost : IWebHostBuilder) =
+    webHost.UseHttpSys()
+    webHost
+
+webHost [||] {
+    web_host configureWebHost
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+
+### `logging`
 
 ```fsharp
 open Falco
