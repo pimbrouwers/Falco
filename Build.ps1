@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param (
     [Parameter(HelpMessage="The action to execute.")]
-    [ValidateSet("Build", "Test", "Pack", "Sln", "BuildSite", "DevelopSite")]
+    [ValidateSet("Build", "Test", "Pack", "BuildSite", "DevelopSite")]
     [string] $Action = "Build",
 
     [Parameter(HelpMessage="The msbuild configuration to use.")]
@@ -24,7 +24,6 @@ $testDir = Join-Path -Path $rootDir -ChildPath 'test'
 switch ($Action) {
     "Test"        { $projectdir = Join-Path -Path $testDir -ChildPath 'Falco.Tests' }
     "Pack"        { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
-    "Sln"         { $projectDir = $rootDir }
     "BuildSite"   { $projectDir = Join-Path -Path $rootDir -ChildPath 'site' }
     "DevelopSite" { $projectDir = Join-Path -Path $rootDir -ChildPath 'site' }
     Default       { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
