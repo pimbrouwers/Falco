@@ -9,8 +9,8 @@ window.onload = () => {
 
         bulletEditor.focus()
         bulletEditor.addEventListener('input', (e) => {
-            bulletEditorHtml.value = e.srcElement.innerHTML.trim()
-            bulletEditorText.value = e.srcElement.innerText.trim()
+            // bulletEditorHtml.value = e.target.innerHTML.trim()
+            bulletEditorText.value = e.target.innerText.trim()
         })
     }
 }

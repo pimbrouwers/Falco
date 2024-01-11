@@ -12,11 +12,10 @@ type EntrySummary =
       EntryDate : DateTime
       Summary   : string }
 
-module Db =
+module Infrastructure =
     open System.Data
 
-    type IDbConnectionFactory =
-        abstract member CreateConnection : unit -> IDbConnection
+    type CreateDbConnection = unit -> IDbConnection
 
     type IDbCommand with
         member x.AddParameter(name : string, value : obj) : unit =
@@ -39,8 +38,17 @@ module Db =
             use rd = x.ExecuteReader()
             [ while rd.Read() do yield map rd ]
 
+    module Sqlite =
+        open Microsoft.Data.Sqlite
+
+        let createDbConnection (connecitonString : string) : CreateDbConnection = fun () ->
+            let conn = new SqliteConnection(connecitonString)
+            conn.Open()
+            conn
+
     module EntryStore =
         let save (conn : IDbConnection) (entry : Entry) : unit =
+            printfn "%A" entry
             use cmd = conn.CreateCommand()
             cmd.CommandText <- "
                 INSERT OR REPLACE INTO entry (entry_id, html_content, text_content, modified_date)
@@ -83,16 +91,24 @@ module Db =
                   EntryDate = rd.GetDateTime(rd.GetOrdinal("entry_date"))
                   Summary = rd.GetString(rd.GetOrdinal("summary")) })
 
-module App =
-    open Db
+module Web =
+    open Infrastructure
 
-    module Urls =
+    /// Kestrel endpoint routes
+    module Route =
         let index = "/"
-        let notFound = "/notfound"
-
+        let notFound = "/not-found"
         let entryCreate = "/entry/create"
-        let entryEdit entryId = sprintf "/entry/edit/%O" entryId
+        let entryEdit = "/entry/edit/{entry_id}"
 
+    /// Urls to be used within features
+    module Urls =
+        let index = Route.index
+        let notFound = Route.notFound
+        let entryCreate = Route.entryCreate
+        let entryEdit (entryId : Guid) = Route.entryEdit.Replace("{entry_id}", entryId.ToString("d"))
+
+    /// Shared markup
     module UI =
         open Falco.Markup
 
@@ -158,15 +174,22 @@ module App =
                 let mergedAttr = attr |> Attr.merge defaultAttr
                 Elem.input mergedAttr
 
-    module ErrorPages =
+    module ErrorController =
         open Falco
         open UI
 
-        let notFound =
+
+        let badRequest : HttpHandler =
+            Response.withStatusCode 400
+            >> Response.ofPlainText "Bad request"
+
+        let notFound : HttpHandler =
             let html =
                 layout "Not Found" [
                     pageTitle "Not found" ]
-            Response.ofHtml html
+
+            Response.withStatusCode 404
+            >> Response.ofHtml html
 
     module EntryViews =
         open Falco.Markup
@@ -187,11 +210,9 @@ module App =
                             Elem.a [ Attr.href (Urls.entryEdit e.EntryId); Attr.class' "db mb4 no-underline white-90" ] [
                                 Elem.div [ Attr.class' "mb1 f6 code moon-gray" ] [ Text.raw (e.EntryDate.ToString("yyyy/MM/dd HH:MM")) ]
                                 Elem.div [] [ Text.raw e.Summary ]
-                                Elem.div [ Attr.class' "w1 mt3 bt b--moon-gray" ] [] ] ]
+                                Elem.div [ Attr.class' "w1 mt3 bt b--moon-gray" ] [] ] ] ]
 
-            ]
-
-        let save action entry =
+        let save action entry token =
             let title = "A place for your thoughts..."
 
             let htmlContent =
@@ -220,19 +241,16 @@ module App =
 
                     Elem.input [ Attr.type' "hidden"; Attr.name "entry_id"; Attr.value (string entry.EntryId) ]
                     Elem.input [ Attr.type' "hidden"; Attr.name "html_content"; Attr.id "bullet-editor-html" ]
-                    Elem.input [ Attr.type' "hidden"; Attr.name "text_content"; Attr.id "bullet-editor-text" ]
-                ]
-            ]
+                    Elem.input [ Attr.type' "hidden"; Attr.name "text_content"; Attr.id "bullet-editor-text" ] ] ]
 
     module EntryController =
         open Falco
 
         /// GET /
-        let index : HttpHandler = fun ctx ->
-            let db = ctx.GetService<IDbConnectionFactory>()
-            use conn = db.CreateConnection()
+        let index (createDbConnection : CreateDbConnection) : HttpHandler =
+            use conn = createDbConnection ()
             let entries = EntryStore.getAll conn
-            Response.ofHtml (EntryViews.index entries) ctx
+            Response.ofHtml (EntryViews.index entries)
 
         /// GET /entry/create
         let create : HttpHandler = fun ctx ->
@@ -243,72 +261,51 @@ module App =
 
             let view = EntryViews.save Urls.entryCreate newEntry
 
-            Response.ofHtml view ctx
+            Response.ofHtmlCsrf view ctx
 
         /// GET /entry/edit/{id}
-        let edit : HttpHandler = fun ctx ->
-            let query = Request.getRoute ctx
-            let entryId = query.TryGetGuid "id"
+        let edit (createDbConneciton : CreateDbConnection) : HttpHandler =
+            let readRoute (route : RouteCollectionReader) =
+                route.TryGetGuid "entry_id"
 
-            match entryId with
-            | Some entryId ->
-                let db = ctx.GetService<IDbConnectionFactory>()
-                use conn = db.CreateConnection()
-                match EntryStore.get conn entryId with
-                | Some entry ->
-                    let html = EntryViews.save (Urls.entryEdit entryId) entry
-                    Response.ofHtml html ctx
-
+            let handle (input : Guid option) =
+                match input with
+                | Some entryId ->
+                    use conn = createDbConneciton ()
+                    match EntryStore.get conn entryId with
+                    | Some entry ->
+                        let html = EntryViews.save (Urls.entryEdit entryId) entry
+                        Response.ofHtmlCsrf html
+                    | None ->
+                        ErrorController.notFound
                 | None ->
-                    ErrorPages.notFound ctx
-
-            | None ->
-                Response.redirectTemporarily Urls.notFound ctx
+                    Response.redirectTemporarily Urls.notFound
+            Request.mapRoute readRoute handle
 
         /// POST /entry/create, /entry/edit/{id}
-        let save : HttpHandler = fun ctx ->
-            task {
-                let! form = Request.getForm ctx
-                let entry : Entry = {
-                    EntryId = form.GetGuid "entry_id"
-                    HtmlContent = form.GetString "html_content"
-                    TextContent = form.GetString "text_content" }
+        let save (createDbConnection : CreateDbConnection) : HttpHandler =
+            let readForm (form : FormCollectionReader) =
+                { EntryId = form.GetGuid "entry_id"
+                  HtmlContent = form.GetString "html_content"
+                  TextContent = form.GetString "text_content" }
 
-                let db = ctx.GetService<IDbConnectionFactory>()
-                use conn = db.CreateConnection()
-                EntryStore.save conn entry
+            let handle (input : Entry) =
+                use conn = createDbConnection ()
+                EntryStore.save conn input
+                Response.redirectTemporarily Urls.index
 
-                return Response.redirectTemporarily Urls.index ctx
-            }
+            Request.mapForm readForm handle
 
 module Program =
     open Falco
     open Falco.Routing
     open Falco.HostBuilder
-    open Microsoft.AspNetCore.Builder
     open Microsoft.Extensions.Configuration
-    open Microsoft.Extensions.DependencyInjection
-    open Microsoft.Data.Sqlite
-    open Db
-    open App
-
-    type DbConnectionFactory (connectionString : string) =
-        interface IDbConnectionFactory with
-            member _.CreateConnection () =
-                let conn = new SqliteConnection(connectionString)
-                conn.Open()
-                conn
-
-    module Endpoints =
-        let index = Urls.index
-        let notFound = Urls.notFound
-
-        let entryCreate = Urls.entryCreate
-        let entryEdit = Urls.entryEdit "{id}"
+    open Infrastructure
+    open Web
 
     [<EntryPoint>]
     let main args =
-        /// App configuration, loaded on startup
         let config = configuration [||] {
             required_json "appsettings.json"
         }
@@ -318,31 +315,20 @@ module Program =
         if String.IsNullOrWhiteSpace(connectionString) then
             failwith "Invalid connection string [EMPTY]"
 
-        let dbConnectionService (svc : IServiceCollection) =
-            svc.AddSingleton<IDbConnectionFactory, DbConnectionFactory>(fun _ ->
-                DbConnectionFactory(connectionString))
+        let createDbConneciton = Sqlite.createDbConnection connectionString
 
         webHost args {
-            use_ifnot FalcoExtensions.IsDevelopment HstsBuilderExtensions.UseHsts
-            use_https
             use_static_files
-
-            add_service dbConnectionService
-
-            not_found ErrorPages.notFound
-
+            not_found ErrorController.notFound
             endpoints [
-                get Endpoints.index EntryController.index
-
-                all Endpoints.entryCreate [
+                get Route.index (EntryController.index createDbConneciton)
+                get Route.notFound ErrorController.notFound
+                all Route.entryCreate [
                     GET, EntryController.create
-                    POST, EntryController.save ]
-
-                all Endpoints.entryEdit [
-                    GET, EntryController.edit
-                    POST, EntryController.save ]
-
-                get Endpoints.notFound ErrorPages.notFound
+                    POST, (EntryController.save createDbConneciton) ]
+                all Route.entryEdit [
+                    GET, (EntryController.edit createDbConneciton)
+                    POST, (EntryController.save createDbConneciton) ]
             ]
         }
         0
