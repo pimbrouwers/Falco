@@ -20,10 +20,10 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore src/Falco
 
       - name: Build
-        run: dotnet build -c Release
+        run: dotnet build src/Falco -c Release
 
       - name: Test
-        run: dotnet test -c Release --no-build
+        run: dotnet test test/Falco.Tests -c Release
