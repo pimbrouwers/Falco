@@ -1,7 +1,6 @@
 namespace Falco
 
 open System
-open System.Collections.Generic
 
 module internal StringUtils =
     /// Checks if string is null or whitespace.

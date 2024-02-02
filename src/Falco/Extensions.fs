@@ -3,13 +3,9 @@ namespace Falco
 open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Routing
 open Microsoft.AspNetCore.WebUtilities
-open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Hosting
-open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Primitives
 open Microsoft.Net.Http.Headers
 open Falco.Multipart
@@ -51,9 +47,9 @@ module Extensions =
             let contentType = MediaTypeHeaderValue.Parse(StringSegment(x.ContentType))
             let boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary).Value;
             match boundary with
-            | b when isNull b               -> None
+            | b when isNull b -> None
             | b when b.Length > lengthLimit -> None
-            | b                             -> Some b
+            | b -> Some b
 
         /// Attempts to stream the HttpRequest body into IFormCollection.
         member x.StreamFormAsync () : Task<IFormCollection> =

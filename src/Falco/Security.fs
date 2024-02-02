@@ -64,8 +64,7 @@ module Crypto =
             (Encoding.UTF8.GetBytes strToHash)
 
 module Xss =
-    open System.Threading.Tasks
-    open Falco
+    open System.Threading.Tasks    
     open Falco.Markup
     open Microsoft.AspNetCore.Antiforgery
     open Microsoft.AspNetCore.Http

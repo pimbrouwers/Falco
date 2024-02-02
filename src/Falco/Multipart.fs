@@ -1,9 +1,7 @@
 namespace Falco
 
-open System
 open System.IO
 open System.Net
-open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.WebUtilities
 open Microsoft.Extensions.Primitives
