@@ -64,6 +64,7 @@
     </ul>
   </li>
   <li><a href="markup.html">View engine</a></li>
+  <li><a href="config.html">App Configuration</a></li>
   <li><a href="host.html">Host configuration</a>
     <ul>
       <li><a href="host.html#registering-services">Registering Services</a></li>
@@ -79,38 +80,10 @@
       <li><a href="security.html#cryptography">Cryptography</a></li>
     </ul>
   </li>
-  <li><a href="model-binding.html">Model Binding</a></li>
-  <li><a href="dependency-injection.html">Dependency Injection</a></li>
 </ul></div>
     </nav>
-    <main class="w-80-l fl-l pl3-l"><h1 id="falco.markup">Falco.Markup</h1>
-<p><a href="https://www.nuget.org/packages/Falco.Markup"><img src="https://img.shields.io/nuget/v/Falco.Markup.svg" alt="NuGet Version" /></a>
-<a href="https://github.com/pimbrouwers/Falco.Markup/actions/workflows/build.yml"><img src="https://github.com/pimbrouwers/Falco.Markup/actions/workflows/build.yml/badge.svg" alt="build" /></a></p>
-<pre><code class="language-fsharp">open Falco.Markup
-
-let doc =
-    Elem.html [] [
-        Elem.body [ Attr.class' &quot;100-vh&quot; ] [
-            Elem.h1 [] [ Text.raw &quot;Hello world!&quot; ] ] ]
-
-renderHtml doc
-</code></pre>
-<p><a href="https://github.com/pimbrouwers/Falco.Markup">Falco.Markup</a> is an XML markup module that can be used to produce <em>any</em> form of angle-bracket markup (i.e. HTML, SVG, XML etc.).</p>
-<h2 id="key-features">Key Features</h2>
-<ul>
-<li>Use native F# to produce any form of angle-bracket markup.</li>
-<li>Very simple to create reusable blocks of code (i.e., partial views and components).</li>
-<li>Easily extended by creating custom tags and attributes.</li>
-<li>Compiled as part of your assembly, leading to improved performance and simpler deployments.</li>
-</ul>
-<h2 id="design-goals">Design Goals</h2>
-<ul>
-<li>Provide a tool to generate <em>any</em> form of angle-bracket markup.</li>
-<li>Should be simple, extensible and integrate with existing .NET libraries.</li>
-<li>Can be easily learned.</li>
-</ul>
-<h2 id="overview">Overview</h2>
-<p>Falco.Markup is broken down into three primary modules. <code>Elem</code>, <code>Attr</code> and <code>Text</code>, which are used to generate elements, attributes and text nodes respectively. Each module contain a suite of functions mapping to the various element/attribute/node names. But can also be extended to create custom elements and attributes.</p>
+    <main class="w-80-l fl-l pl3-l"><h1 id="markup">Markup</h1>
+<p>Falco.Markup is broken down into three primary modules, <code>Elem</code>, <code>Attr</code> and <code>Text</code>, which are used to generate elements, attributes and text nodes respectively. Each module contain a suite of functions mapping to the various element/attribute/node names. But can also be extended to create custom elements and attributes.</p>
 <p>Primary elements are broken down into two types, <code>ParentNode</code> or <code>SelfClosingNode</code>.</p>
 <p><code>ParentNode</code> elements are those that can contain other elements. Represented as functions that receive two inputs: attributes and optionally elements.</p>
 <pre><code class="language-fsharp">let markup =
@@ -273,10 +246,7 @@ let svgDrawing =
 
 let svg = renderNode svgDrawing
 </code></pre>
-<h2 id="find-a-bug">Find a bug?</h2>
-<p>There's an <a href="https://github.com/pimbrouwers/Falco.Markup/issues">issue</a> for that.</p>
-<h2 id="license">License</h2>
-<p>Built with ♥ by <a href="https://github.com/pimbrouwers">Pim Brouwers</a> in Toronto, ON. Licensed under <a href="https://github.com/pimbrouwers/Falco.Markup/blob/master/LICENSE">Apache License 2.0</a>.</p>
+<p><a href="config.html">Next: App Configuration</a></p>
 </main>
 </div>
 
@@ -306,6 +276,7 @@ let svg = renderNode svgDrawing
     </ul>
   </li>
   <li><a href="markup.html">View engine</a></li>
+  <li><a href="config.html">App Configuration</a></li>
   <li><a href="host.html">Host configuration</a>
     <ul>
       <li><a href="host.html#registering-services">Registering Services</a></li>
@@ -321,10 +292,8 @@ let svg = renderNode svgDrawing
       <li><a href="security.html#cryptography">Cryptography</a></li>
     </ul>
   </li>
-  <li><a href="model-binding.html">Model Binding</a></li>
-  <li><a href="dependency-injection.html">Dependency Injection</a></li>
 </ul></div>
-  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2023 Pim Brouwers & contributors.</div>
+  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div>
 </footer>
 
 <!-- /body/script -->

@@ -29,11 +29,6 @@ type ConfigBuilder (args : string[]) =
     member _.Run(conf : ConfigBuilderSpec) =
         let mutable bldr = ConfigurationBuilder().SetBasePath(conf.BasePath)
 
-        bldr.AddCommandLine(args) |> ignore
-
-        if conf.AddEnvVars then
-            bldr.AddEnvironmentVariables() |> ignore
-
         for file in conf.RequiredFiles do
             match file with
             | IniFile file  -> bldr.AddIniFile(file, optional = false, reloadOnChange = true)
@@ -50,6 +45,11 @@ type ConfigBuilder (args : string[]) =
 
         if conf.InMemory.Keys.Count > 0 then
             bldr.AddInMemoryCollection(conf.InMemory) |> ignore
+
+        if conf.AddEnvVars then
+            bldr.AddEnvironmentVariables() |> ignore
+
+        bldr.AddCommandLine(args) |> ignore
 
         bldr.Build() :> IConfiguration
 

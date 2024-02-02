@@ -15,7 +15,7 @@ webHost [||] {
 }
 ```
 
-[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast, functional-first and fault-tolerant web applications using F#.
+[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast and functional-first web applications using F#.
 
 - Built upon the high-performance components of ASP.NET Core.
 - Optimized for building HTTP applications quickly.
@@ -23,13 +23,13 @@ webHost [||] {
 
 ## Key Features
 
-- Asynchronous [request handling](https://github.com/pimbrouwers/Falco/tree/master/doc/response.md).
-- Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/doc/routing.md) API.
-- Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/doc/host.md).
+- Asynchronous [request handling](https://github.com/pimbrouwers/Falco/tree/master/documentation/response.md).
+- Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/documentation/routing.md) API.
+- Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/documentation/host.md).
 - Native F# [view engine](https://github.com/pimbrouwers/Falco.Markup).
-- Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/doc/request.md).
-- [Authentication and security](https://github.com/pimbrouwers/Falco/tree/master/doc/security.md) utilities.
-- Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/doc/request.md#multipartform-data-binding) and [binary responses](https://github.com/pimbrouwers/Falco/tree/master/doc/response.md#content-disposition).
+- Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md).
+- [Authentication and security](https://github.com/pimbrouwers/Falco/tree/master/documentation/security.md) utilities.
+- Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md#multipartform-data-binding) and [binary responses](https://github.com/pimbrouwers/Falco/tree/master/documentation/response.md#content-disposition).
 
 ## Design Goals
 

@@ -1,16 +1,17 @@
 # Host Configuration
 
-[Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel) is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people.
+The `webHost[||] { ... }` computation aims to provide a consistent methodology for creating .NET servers using [Kestrel](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel). It's performant, secure, and maintained by the incredibly smart people on the ASP.NET Team at Microsoft.
 
 ## Config, Logging & Other Operations
 
 | Operation | Description |
 | --------- | ----------- |
 | [host](#host) | Configure the host via `IHostBuilder`. |
+| [web_host](#web_host) | Configure the host via `IHostBuilder`. |
 | [logging](#logging) | Configure logging via `ILoggingBuilder`. |
 | [not_found](#not_found) | Include a catch-all (i.e., Not Found) HttpHandler (must be added last). |
 
-### `logging`
+### `host`
 
 ```fsharp
 open Falco
@@ -31,6 +32,30 @@ webHost [||] {
     ]
 }
 ```
+
+### `web_host`
+
+```fsharp
+open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.Extensions.Hosting
+open Serilog
+
+let configureWebHost (webHost : IWebHostBuilder) =
+    webHost.UseHttpSys()
+    webHost
+
+webHost [||] {
+    web_host configureWebHost
+
+    endpoints [
+        get "/" (Response.ofPlainText "Hello world")
+    ]
+}
+```
+
+### `logging`
 
 ```fsharp
 open Falco
@@ -380,7 +405,7 @@ webHost [||] {
 
 > Note: Typically, `use_static_files` is called before `use_cors`. But apps that use JavaScript to retrieve static files cross site must call `use_cors` before `use_static_files`.
 
-See [the official docs](https://learn.microsoft.com/en-us/aspnet/core/security/cors) for all the options. Only "[CORS with named policy and Middleware](https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-7.0#cors-with-named-policy-and-middleware)" is supported. 
+See [the official docs](https://learn.microsoft.com/en-us/aspnet/core/security/cors) for all the options. Only "[CORS with named policy and Middleware](https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-7.0#cors-with-named-policy-and-middleware)" is supported.
 
 ```fsharp
 open Falco
@@ -544,3 +569,6 @@ webHost [||] {
     ]
 }
 ```
+
+
+[Next: Security](security.md)

@@ -68,7 +68,7 @@ let jsonHandler : HttpHandler =
 
 let jsonOptionsHandler : HttpHandler =
     let options = JsonSerializerOptions()
-    options.IgnoreNullValues <- true
+    options.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
     let name = { First = "John"; Last = "Doe" }
     Response.ofJsonOptions options name
 ```
@@ -146,3 +146,6 @@ For debugging scenarios, the `Response.debugRequest` will pretty print the reque
 let debugHandler : HttpHandler =
     Response.debugRequest
 ```
+
+
+[Next: Accessing request data](request.md)

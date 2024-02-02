@@ -64,6 +64,7 @@
     </ul>
   </li>
   <li><a href="markup.html">View engine</a></li>
+  <li><a href="config.html">App Configuration</a></li>
   <li><a href="host.html">Host configuration</a>
     <ul>
       <li><a href="host.html#registering-services">Registering Services</a></li>
@@ -79,12 +80,10 @@
       <li><a href="security.html#cryptography">Cryptography</a></li>
     </ul>
   </li>
-  <li><a href="model-binding.html">Model Binding</a></li>
-  <li><a href="dependency-injection.html">Dependency Injection</a></li>
 </ul></div>
     </nav>
     <main class="w-80-l fl-l pl3-l"><h1 id="host-configuration">Host Configuration</h1>
-<p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel">Kestrel</a> is the web server at the heart of ASP.NET. It's performant, secure, and maintained by incredibly smart people.</p>
+<p>The <code>webHost[||] { ... }</code> computation aims to provide a consistent methodology for creating .NET servers using <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel">Kestrel</a>. It's performant, secure, and maintained by the incredibly smart people on the ASP.NET Team at Microsoft.</p>
 <h2 id="config-logging-other-operations">Config, Logging &amp; Other Operations</h2>
 <table>
 <thead>
@@ -99,6 +98,10 @@
 <td>Configure the host via <code>IHostBuilder</code>.</td>
 </tr>
 <tr>
+<td><a href="#web_host">web_host</a></td>
+<td>Configure the host via <code>IHostBuilder</code>.</td>
+</tr>
+<tr>
 <td><a href="#logging">logging</a></td>
 <td>Configure logging via <code>ILoggingBuilder</code>.</td>
 </tr>
@@ -108,7 +111,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="logging"><code>logging</code></h3>
+<h3 id="host"><code>host</code></h3>
 <pre><code class="language-fsharp">open Falco
 open Falco.Routing
 open Falco.HostBuilder
@@ -127,6 +130,26 @@ webHost [||] {
     ]
 }
 </code></pre>
+<h3 id="web_host"><code>web_host</code></h3>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Falco.HostBuilder
+open Microsoft.Extensions.Hosting
+open Serilog
+
+let configureWebHost (webHost : IWebHostBuilder) =
+    webHost.UseHttpSys()
+    webHost
+
+webHost [||] {
+    web_host configureWebHost
+
+    endpoints [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello world&quot;)
+    ]
+}
+</code></pre>
+<h3 id="logging"><code>logging</code></h3>
 <pre><code class="language-fsharp">open Falco
 open Falco.Routing
 open Falco.HostBuilder
@@ -661,6 +684,7 @@ webHost [||] {
     ]
 }
 </code></pre>
+<p><a href="security.html">Next: Security</a></p>
 </main>
 </div>
 
@@ -690,6 +714,7 @@ webHost [||] {
     </ul>
   </li>
   <li><a href="markup.html">View engine</a></li>
+  <li><a href="config.html">App Configuration</a></li>
   <li><a href="host.html">Host configuration</a>
     <ul>
       <li><a href="host.html#registering-services">Registering Services</a></li>
@@ -705,10 +730,8 @@ webHost [||] {
       <li><a href="security.html#cryptography">Cryptography</a></li>
     </ul>
   </li>
-  <li><a href="model-binding.html">Model Binding</a></li>
-  <li><a href="dependency-injection.html">Dependency Injection</a></li>
 </ul></div>
-  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2023 Pim Brouwers & contributors.</div>
+  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div>
 </footer>
 
 <!-- /body/script -->

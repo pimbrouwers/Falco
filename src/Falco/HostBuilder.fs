@@ -2,18 +2,20 @@ namespace Falco.HostBuilder
 
 open System
 open Falco
-open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
-open Microsoft.AspNetCore.DataProtection
-open Microsoft.AspNetCore.ResponseCompression
+open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Cors.Infrastructure
+open Microsoft.AspNetCore.DataProtection
+open Microsoft.AspNetCore.Hosting
+open Microsoft.AspNetCore.ResponseCompression
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
 type HostBuilderSpec =
     { Host : IHostBuilder -> IHostBuilder
+      WebHost : IWebHostBuilder -> IWebHostBuilder
       Logging : ILoggingBuilder -> ILoggingBuilder
       Services : IServiceCollection -> IServiceCollection
       Middleware : IApplicationBuilder -> IApplicationBuilder
@@ -22,6 +24,7 @@ type HostBuilderSpec =
 
     static member Empty =
         { Host = id
+          WebHost = id
           Logging = id
           Services = id
           Middleware = id
@@ -35,6 +38,9 @@ type HostBuilder(args : string[]) =
     member _.Run(conf : HostBuilderSpec) =
         let configureHost (host : IHostBuilder) =
             host |> conf.Host |> ignore
+
+        let configureWebHost (webHost : IWebHostBuilder) =
+            webHost |> conf.WebHost |> ignore
 
         let configureLogging (log : ILoggingBuilder) =
             log |> conf.Logging |> ignore
@@ -61,6 +67,7 @@ type HostBuilder(args : string[]) =
 
         let builder = WebApplication.CreateBuilder(args)
         configureHost builder.Host
+        configureWebHost builder.WebHost
         configureLogging builder.Logging
         configureServices builder.Services
 
@@ -75,10 +82,15 @@ type HostBuilder(args : string[]) =
         { conf with Endpoints = endpoints }
 
 
-    /// Configures logging via ILogger.
+    /// Configures IHostBuilder directly.
     [<CustomOperation("host")>]
     member _.Host (conf : HostBuilderSpec, fn : IHostBuilder -> IHostBuilder) =
         { conf with Host = conf.Host >> fn }
+
+    /// Configures IWebHostBuilder directly.
+    [<CustomOperation("web_host")>]
+    member _.WebHost (conf : HostBuilderSpec, fn : IWebHostBuilder -> IWebHostBuilder) =
+        { conf with WebHost = conf.WebHost >> fn }
 
     /// Configures logging via ILoggingBuilder.
     [<CustomOperation("logging")>]

@@ -1,29 +1,29 @@
 name: build
 
-on: 
-  push: 
+on:
+  push:
     branches: [master]
-  pull_request: 
-  
+  pull_request:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: ['6.0.x']
+        dotnet-version: ['8.0.x']
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
-        uses: actions/setup-dotnet@v1.7.2
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-      
+
       - name: Install dependencies
-        run: dotnet restore
-      
+        run: dotnet restore src/Falco
+
       - name: Build
-        run: dotnet build -c Release
-      
+        run: dotnet build src/Falco -c Release
+
       - name: Test
-        run: dotnet test -c Release --no-build
+        run: dotnet test test/Falco.Tests -c Release

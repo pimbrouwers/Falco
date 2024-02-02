@@ -1,57 +1,37 @@
 module Falco.Scriban.Program
 
+open System
 open System.IO
 open System.Threading.Tasks
 open Falco
 open Falco.Routing
 open Falco.HostBuilder
-open Microsoft.Extensions.DependencyInjection
 open Scriban
 
-// ------------
-// View Engine
-// ------------
-type IViewEngine =
-    abstract member RenderAsync : view : string * model : 'a -> ValueTask<string>
-
-type ScribanViewEngine (views : Map<string, Template>) =
-    interface IViewEngine with
-        member _.RenderAsync(view : string, model : 'a) =
-            match Map.tryFind view views with
-            | Some template -> template.RenderAsync(model)
-            | None -> failwithf "View '%s' was not found" view
+type RenderTemplate = string -> obj -> ValueTask<string>
 
 // ------------
 // Pages
 // ------------
 module Pages =
-    let homepage : HttpHandler =
-        Services.inject<IViewEngine> (fun viewEngine ->
-            let queryMap (q: QueryCollectionReader) =
-                {| Name = q.Get "name" |}
+    let homepage (renderTemplate : RenderTemplate) : HttpHandler =
+        let queryMap (q: QueryCollectionReader) =
+            {| Name = q.Get "name" |}
 
-            let next model : HttpHandler = fun ctx ->
-                task {
-                    let! html = viewEngine.RenderAsync("Home", model)
-                    return Response.ofHtmlString html ctx
-                }
+        let next model : HttpHandler = fun ctx ->
+            task {
+                let! html = renderTemplate "Home" model
+                return Response.ofHtmlString html ctx
+            }
 
-            Request.mapQuery queryMap next)
+        Request.mapQuery queryMap next
 
 // ------------
-// Services
+// App
 // ------------
-let scribanService scribanTemplates (svc : IServiceCollection) =
-    svc.AddScoped<IViewEngine, ScribanViewEngine>(fun _ ->
-        new ScribanViewEngine(scribanTemplates))
-
-[<EntryPoint>]
-let main args =
-    let scribanTemplates =
-        let root = Directory.GetCurrentDirectory()
-        let viewsDirectory = Path.Combine(root, "Views")
-
-        Directory.EnumerateFiles(viewsDirectory)
+module Template =
+    let loadFrom (path : string) =
+        Directory.EnumerateFiles(path)
         |> Seq.map (fun file ->
             let viewName = Path.GetFileNameWithoutExtension(file)
             let viewContent = File.ReadAllText(file)
@@ -59,15 +39,23 @@ let main args =
             viewName, view)
         |> Map.ofSeq
 
+    let render (templates : Map<string, Template>) (name : string) (model : obj) =
+        match Map.tryFind name templates with
+        | Some template -> template.RenderAsync(model)
+        | None -> failwithf "Template '%s' was not found" name
 
-    webHost [||] {
+[<EntryPoint>]
+let main args =
+    let executionDirectory = Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])
+    let scribanTemplates = Template.loadFrom (Path.Combine(executionDirectory, "Views"))
+    let renderTemplate = Template.render scribanTemplates
+
+    webHost args {
         use_https
 
-        add_service (scribanService scribanTemplates)
-
         endpoints [
-            get "/" Pages.homepage
+            get "/" (Pages.homepage renderTemplate)
         ]
     }
 
-    0 // Exit code
+    0

@@ -64,6 +64,7 @@
     </ul>
   </li>
   <li><a href="markup.html">View engine</a></li>
+  <li><a href="config.html">App Configuration</a></li>
   <li><a href="host.html">Host configuration</a>
     <ul>
       <li><a href="host.html#registering-services">Registering Services</a></li>
@@ -79,8 +80,6 @@
       <li><a href="security.html#cryptography">Cryptography</a></li>
     </ul>
   </li>
-  <li><a href="model-binding.html">Model Binding</a></li>
-  <li><a href="dependency-injection.html">Dependency Injection</a></li>
 </ul></div>
     </nav>
     <main class="w-80-l fl-l pl3-l"><h1 id="request-handling">Request Handling</h1>
@@ -205,14 +204,15 @@ let mapJsonHandler : HttpHandler =
 
 let mapJsonOptionsHandler : HttpHandler =
     let options = JsonSerializerOptions()
-    options.IgnoreNullValues &lt;- true
+    options.DefaultIgnoreCondition &lt;- JsonIgnoreCondition.WhenWritingNull
 
     let handleOk person : HttpHandler =
         let message = sprintf &quot;hello %s %s&quot; person.First person.Last
         Response.ofPlainText message
 
-    Request.mapJson options handleOk
+    Request.mapJsonOption options handleOk
 </code></pre>
+<p><a href="markup.html">Next: View engine</a></p>
 </main>
 </div>
 
@@ -242,6 +242,7 @@ let mapJsonOptionsHandler : HttpHandler =
     </ul>
   </li>
   <li><a href="markup.html">View engine</a></li>
+  <li><a href="config.html">App Configuration</a></li>
   <li><a href="host.html">Host configuration</a>
     <ul>
       <li><a href="host.html#registering-services">Registering Services</a></li>
@@ -257,10 +258,8 @@ let mapJsonOptionsHandler : HttpHandler =
       <li><a href="security.html#cryptography">Cryptography</a></li>
     </ul>
   </li>
-  <li><a href="model-binding.html">Model Binding</a></li>
-  <li><a href="dependency-injection.html">Dependency Injection</a></li>
 </ul></div>
-  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2023 Pim Brouwers & contributors.</div>
+  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div>
 </footer>
 
 <!-- /body/script -->

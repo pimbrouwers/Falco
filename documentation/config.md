@@ -93,3 +93,6 @@ let config = configuration [||] {
     in_memory pairs
 }
 ```
+
+
+[Next: Host Configuration](host.md)
