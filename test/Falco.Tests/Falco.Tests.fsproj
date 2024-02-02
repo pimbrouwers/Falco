@@ -14,7 +14,6 @@
     <Compile Include="MultipartTests.fs" />
     <Compile Include="ResponseTests.fs" />
     <Compile Include="RequestTests.fs" />
-    <Compile Include="ConfigBuilderTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -36,11 +35,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="appsettings.json;appsettings.ini;appsettings.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 </Project>
