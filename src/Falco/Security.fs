@@ -69,6 +69,7 @@ module Xss =
     open Falco.Markup
     open Microsoft.AspNetCore.Antiforgery
     open Microsoft.AspNetCore.Http
+    open Microsoft.Extensions.DependencyInjection
 
     /// Outputs an antiforgery <input type="hidden" />.
     let antiforgeryInput
@@ -81,12 +82,12 @@ module Xss =
     /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery
     /// package.
     let getToken (ctx : HttpContext) : AntiforgeryTokenSet =
-        let antiFrg = ctx.GetService<IAntiforgery>()
+        let antiFrg = ctx.RequestServices.GetRequiredService<IAntiforgery>()
         antiFrg.GetAndStoreTokens ctx
 
     /// Validates the Antiforgery token within the provided HttpContext.
     let validateToken (ctx : HttpContext) : Task<bool> =
-        let antiFrg = ctx.GetService<IAntiforgery>()
+        let antiFrg = ctx.RequestServices.GetRequiredService<IAntiforgery>()
         antiFrg.IsRequestValidAsync ctx
 
 module Auth =
