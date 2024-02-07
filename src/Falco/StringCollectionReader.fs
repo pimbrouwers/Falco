@@ -2,11 +2,54 @@ namespace Falco
 
 open System
 open System.Collections.Generic
-open Falco.StringParser
 
 /// A safe string collection reader, with type utilities.
 type StringCollectionReader (values : IDictionary<string, string seq>) =
     let valuesI = Dictionary(values, StringComparer.OrdinalIgnoreCase)
+
+    let tryParseWith (tryParseFunc: string -> bool * _) (str : string) =
+        let parsedResult = tryParseFunc str
+        match parsedResult with
+        | true, v    -> Some v
+        | false, _   -> None
+
+    let parseInt16          = tryParseWith Int16.TryParse
+    let parseInt64          = tryParseWith Int64.TryParse
+    let parseInt32          = tryParseWith Int32.TryParse
+    let parseFloat          = tryParseWith Double.TryParse
+    let parseDecimal        = tryParseWith Decimal.TryParse
+    let parseDateTime       = tryParseWith DateTime.TryParse
+    let parseDateTimeOffset = tryParseWith DateTimeOffset.TryParse
+    let parseTimeSpan       = tryParseWith TimeSpan.TryParse
+    let parseGuid           = tryParseWith Guid.TryParse
+
+    let parseNonEmptyString x =
+        if StringUtils.strEmpty x then None
+        else Some x
+
+    let parseBoolean (value : string) =
+        let v = value.ToUpperInvariant()
+
+        match v with
+        | "ON" | "YES" | "1" -> Some true
+        | "OFF" | "NO" | "0" -> Some false
+        | v -> tryParseWith Boolean.TryParse v
+
+    let parseOrFail parser msg v =
+        match parser v with
+        | Some v -> v
+        | None   -> failwith msg
+
+    let tryParseSeq (parser : string -> 'b option) seq =
+        seq
+        |> Seq.fold (fun (acc : List<'b>) (a : string) ->
+            // accumulate successful parses
+            match parser a with
+            | Some b ->
+                acc.Add(b) |> ignore
+                acc
+            | None -> acc) (List<'b>())
+        |> Seq.cast
 
     member private _.TryGetValue (name : string) =
         match valuesI.ContainsKey name with
@@ -40,7 +83,7 @@ type StringCollectionReader (values : IDictionary<string, string seq>) =
         |> Seq.iter (fun (truncatedKey, keyValues) ->
             keyValues
             |> Seq.iteri (fun i value ->
-                if childReaderIndexed.ContainsKey i then 
+                if childReaderIndexed.ContainsKey i then
                     childReaderIndexed[i][truncatedKey] <- seq { value }
                 else
                     childReaderIndexed.Add(i, Dictionary(dict [ truncatedKey, seq { value } ], StringComparer.OrdinalIgnoreCase))))

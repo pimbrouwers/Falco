@@ -3,7 +3,6 @@ module HelloWorld.Program
 open Falco
 open Falco.Markup
 open Falco.Routing
-open Falco.HostBuilder
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Hosting
 
@@ -31,19 +30,16 @@ let handleGreet : HttpHandler = fun ctx ->
     let greeting = sprintf "Hello %s" (route.Get "name")
     Response.ofPlainText greeting ctx
 
-
 [<EntryPoint>]
 let main args =
-    webHost args {
-
-        use_static_files
-
-        endpoints [
+    let bldr = WebApplication.CreateBuilder(args)
+    let wapp = bldr.Build()
+    wapp.UseStaticFiles()
+        .UseFalco([
             get "/" handlePlainText
             get "/json" handleJson
             get "/html" handleHtml
             get "/greet/{name}" handleGreet
-        ]
-    }
-
+        ]) |> ignore
+    wapp.Run()
     0 // Exit code

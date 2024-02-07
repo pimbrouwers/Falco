@@ -22,17 +22,10 @@ open Microsoft.Net.Http.Headers
 /// Sets multiple headers for response.
 let withHeaders
     (headers : (string * string) list) : HttpResponseModifier = fun ctx ->
-    let setHeader (name, content : string) =
-        if not(ctx.Response.Headers.ContainsKey(name)) then
-            ctx.Response.Headers.Add(name, StringValues(content))
-
-    headers |> List.iter setHeader
+    headers
+    |> List.iter (fun (name, content : string) ->
+        ctx.Response.Headers[name] <- StringValues(content))
     ctx
-
-/// Sets ContentLength for response.
-let withContentLength
-    (contentLength : int64) : HttpResponseModifier =
-    withHeaders [ HeaderNames.ContentLength, (string contentLength) ]
 
 /// Sets ContentType header for response.
 let withContentType
@@ -89,12 +82,34 @@ let redirectPermanently (url: string) =
 let redirectTemporarily (url: string) =
     redirect (TemporarilyTo url)
 
-let private writeBytes
-    (bytes : byte[])
+let private setContentLength 
+    (contentLength : int64)
     (ctx : HttpContext) =
-    let byteLen = bytes.Length
-    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
-    ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes)).AsTask() :> Task
+    #if NET7_0_OR_GREATER
+        ctx.Response.ContentLength <- contentLength
+    #else
+        match ctx.Request.Method, ctx.Response.StatusCode with
+        | _, 204 -> ()
+        | _, sc when sc >= 100 && sc < 200 -> ()
+        | "CONNECT", sc when sc >= 200 && sc <= 300 -> ()
+        | _, 205 when contentLength = 0L -> ()
+        | _ -> ctx.Response.ContentLength <- contentLength
+    #endif
+
+let private writeBytes
+    (bytes : byte[]) : HttpHandler = fun ctx ->
+        task {
+            setContentLength bytes.LongLength ctx
+            do! ctx.Response.Body.WriteAsync(bytes, 0, bytes.Length)
+        }
+
+let private writeStream
+    (str : Stream) : HttpHandler = fun ctx ->
+        task {
+            setContentLength str.Length ctx
+            str.Position <- 0
+            do! str.CopyToAsync(ctx.Response.Body)
+        }
 
 /// Returns an inline binary (i.e., Byte[]) response with the specified
 /// Content-Type.
@@ -132,20 +147,12 @@ let ofAttachment
     >> withHeaders headers
     >> writeBytes bytes
 
-let private writeString
-    (encoding : Encoding)
-    (httpBodyStr : string)
-    (ctx : HttpContext) =
-    if isNull httpBodyStr then Task.CompletedTask
-    else
-        let httpBodyBytes = encoding.GetBytes httpBodyStr
-        writeBytes httpBodyBytes ctx
-
 /// Writes string to response body with provided encoding.
 let ofString
     (encoding : Encoding)
-    (str : string) : HttpHandler = fun ctx ->
-    writeString encoding str ctx
+    (str : string) : HttpHandler =
+    if isNull str then ofEmpty
+    else writeBytes (encoding.GetBytes(str))
 
 /// Returns a "text/plain; charset=utf-8" response with provided string to
 /// client.
@@ -180,20 +187,14 @@ let ofHtmlCsrf
 /// serialized object provided to the client.
 let ofJsonOptions
     (options : JsonSerializerOptions)
-    (obj : 'T) : HttpHandler =
-    let jsonHandler : HttpHandler = fun ctx ->
-        task {
-            use str = new MemoryStream()
-            do! JsonSerializer.SerializeAsync(str, obj, options = options)
-            let bytes = str.ToArray()
-            let byteLen = bytes.Length
-            ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
-            let! _ = ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes))
-            return()
-        }
-
-    withContentType "application/json; charset=utf-8"
-    >> jsonHandler
+    (obj : 'T) : HttpHandler = fun ctx ->
+    task {
+        use str = new MemoryStream()
+        do! JsonSerializer.SerializeAsync(str, obj, options)
+        return!
+            withContentType "application/json; charset=utf-8" ctx
+            |> writeStream str
+    }
 
 /// Returns a "application/json; charset=utf-8" response with the serialized
 /// object provided to the client.
