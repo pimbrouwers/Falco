@@ -68,8 +68,7 @@ let getHttpContextWriteable (authenticated : bool) =
     resp.Headers.Returns(Substitute.For<HeaderDictionary>()) |> ignore
     resp.BodyWriter.Returns(PipeWriter.Create(respBody)) |> ignore
     resp.Body <- respBody
-    resp.StatusCode <- 200
-
+    
     let serviceCollection = ServiceCollection()
 
     let antiforgery = Substitute.For<IAntiforgery>()

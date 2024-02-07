@@ -127,7 +127,7 @@ let ``Response.ofPlainText produces text/plain result`` () =
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "text/plain; charset=utf-8"
     }
 
@@ -146,7 +146,7 @@ let ``Response.ofJson produces applicaiton/json result`` () =
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "application/json; charset=utf-8"
     }
 
@@ -168,7 +168,7 @@ let ``Response.ofJsonOptions produces applicaiton/json result ignoring nulls`` (
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "application/json; charset=utf-8"
     }
 
@@ -194,7 +194,7 @@ let ``Response.ofHtml produces text/html result`` () =
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "text/html; charset=utf-8"
     }
 
@@ -213,7 +213,7 @@ let ``Response.ofHtmlString produces text/html result`` () =
         let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "text/html; charset=utf-8"
     }
 
