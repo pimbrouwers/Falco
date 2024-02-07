@@ -1,6 +1,7 @@
 namespace Falco
 
 open System
+open System.Collections.Generic
 
 module internal StringUtils =
     /// Checks if string is null or whitespace.
@@ -16,10 +17,10 @@ module internal StringUtils =
         String.Equals(s1, s2, StringComparison.InvariantCultureIgnoreCase)
 
     /// Concats strings.
-    let strConcat (list : string seq) =
+    let strConcat (lst : string seq) =
         // String.Concat uses a StringBuilder when provided an IEnumerable
         // Url: https://github.com/microsoft/referencesource/blob/master/mscorlib/system/string.cs#L161
-        String.Concat(list)
+        String.Concat(lst)
 
     /// Splits string into substrings based on separator.
     let strSplit (sep : char array) (str : string) =
@@ -66,13 +67,13 @@ module internal StringParser =
         | None   -> failwith msg
 
     /// Attempts to parse array, returns none for failure.
-    let tryParseArray parser ary =
-        ary
-        |> List.ofArray
-        |> List.fold (fun acc i ->
+    let tryParseSeq (parser : string -> 'b option) seq =
+        seq        
+        |> Seq.fold (fun (acc : List<'b>) (a : string) ->
             // accumulate successful parses
-            match (parser i, acc) with
-            | Some i, acc -> i :: acc
-            | None, acc -> acc) []
-        |> List.rev
-        |> Array.ofList
+            match parser a with
+            | Some b -> 
+                acc.Add(b) |> ignore
+                acc
+            | None -> acc) (List<'b>())
+        |> Seq.cast

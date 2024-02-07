@@ -2,68 +2,53 @@ namespace Falco
 
 open System
 open System.Collections.Generic
-open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Routing
 open Falco.StringParser
 
 /// A safe string collection reader, with type utilities.
-type StringCollectionReader (values : Map<string, string[]>) =
-    member private _.TryGetValue (name : string) =
-        let found =
-            values
-            |> Map.tryPick (fun key value ->
-                if StringUtils.strEquals key name then Some value else None)
+type StringCollectionReader (values : IDictionary<string, string seq>) =
+    let valuesI = Dictionary(values, StringComparer.OrdinalIgnoreCase)
 
-        match found with
-        | Some v when v.Length > 0 -> Some v
-        | _                        -> None
+    member private _.TryGetValue (name : string) =
+        match valuesI.ContainsKey name with
+        | true when not(Seq.isEmpty valuesI[name]) -> Some valuesI[name]
+        | _ -> None
 
     member private x.TryGetBind (binder : string -> 'T option) (name : string) =
-        x.TryGetValue name |> Option.bind (fun ary -> binder ary.[0])
+        x.TryGetValue name
+        |> Option.bind (Seq.tryHead >> Option.bind binder)
 
     member private x.TryGetMapArray (binder : string -> 'T option) (name : string) =
-        x.TryGetValue name |> Option.map (tryParseArray binder) |> Option.defaultValue [||]
+        x.TryGetValue name
+        |> Option.map (tryParseSeq binder)
+        |> Option.defaultValue Seq.empty
+        |> Array.ofSeq
 
     /// The keys in the collection reader.
-    member _.Keys = values.Keys
+    member _.Keys = valuesI.Keys
 
     /// Safely retrieves a collection of readers.
     ///
     /// Intended to be used with the "dot notation" collection wire format.
     /// (i.e., Person.First=John&Person.Last=Doe&Person.First=Jane&Person.Last=Doe)
     member _.GetChildren (name : string) =
-        let childMap =
-            values
-            |> Map.filter (fun key _ ->
-                key.StartsWith(name + ".", StringComparison.OrdinalIgnoreCase))
+        let childReaderIndexed = Dictionary<int, Dictionary<string, string seq>>()
+        valuesI.Keys
+        |> Seq.choose (fun key ->
+            match key.StartsWith(name + ".", StringComparison.OrdinalIgnoreCase) with
+            | true -> Some (key.Substring(name.Length + 1), valuesI[key])
+            | false -> None)
+        |> Seq.iter (fun (truncatedKey, keyValues) ->
+            keyValues
+            |> Seq.iteri (fun i value ->
+                if childReaderIndexed.ContainsKey i then 
+                    childReaderIndexed[i][truncatedKey] <- seq { value }
+                else
+                    childReaderIndexed.Add(i, Dictionary(dict [ truncatedKey, seq { value } ], StringComparer.OrdinalIgnoreCase))))
 
-        if Map.isEmpty childMap then []
-        else
-            let dict = Dictionary<int, Dictionary<string, string list>>()
-
-            for key in childMap.Keys do
-                for i = 0 to childMap.[key].Length - 1 do
-                    let newKey = key.Substring(name.Length + 1)
-                    let newValue = childMap.[key].[i]
-
-                    if dict.ContainsKey i && dict.[i].ContainsKey newKey then
-                        dict.[i].[newKey] <- newValue :: dict.[i].[newKey]
-                    elif dict.ContainsKey i then
-                        dict.[i].Add(newKey,[newValue])
-                    else
-                        let newDict = Dictionary<string, string list>()
-                        newDict.Add(newKey, [newValue])
-                        dict.Add(i, newDict)
-
-            [
-                for KeyValue (_, childDict) in dict do
-                    [
-                        for KeyValue (key, value) in childDict do
-                            key, Array.ofList value
-                    ]
-            ]
-            |> List.map (Map.ofList >> StringCollectionReader)
-
+        seq {
+            for key in childReaderIndexed.Keys do
+                StringCollectionReader(childReaderIndexed[key])
+        }
 
     // ------------
     // Primitive returning Option<'T>
@@ -276,13 +261,15 @@ type StringCollectionReader (values : Map<string, string[]>) =
 // ------------
 // Readers
 // ------------
+open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Routing
 
 /// Represents a readable collection of parsed form value.
 [<Sealed>]
 type FormCollectionReader (form : IFormCollection, files : IFormFileCollection option) =
     inherit StringCollectionReader(
         form
-        |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToArray())
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> string seq)
         |> Map.ofSeq)
 
     /// The IFormFileCollection submitted in the request.
@@ -306,16 +293,16 @@ type FormCollectionReader (form : IFormCollection, files : IFormFileCollection o
 type HeaderCollectionReader (headers : IHeaderDictionary) =
     inherit StringCollectionReader (
         headers
-        |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToArray())
-        |> Map.ofSeq)
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> string seq)
+        |> dict)
 
 /// Represents a readable collection of query string values.
 [<Sealed>]
 type QueryCollectionReader (query : IQueryCollection) =
     inherit StringCollectionReader (
         query
-        |> Seq.map (fun kvp -> kvp.Key, kvp.Value.ToArray())
-        |> Map.ofSeq)
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> string seq)
+        |> dict)
 
 /// Represents a readable collection of route values.
 [<Sealed>]
@@ -324,8 +311,8 @@ type RouteCollectionReader (route : RouteValueDictionary, query : IQueryCollecti
         route
         |> Seq.map (fun kvp ->
             kvp.Key,
-            [|Convert.ToString(kvp.Value, Globalization.CultureInfo.InvariantCulture)|])
-        |> Map.ofSeq)
+            seq { Convert.ToString(kvp.Value, Globalization.CultureInfo.InvariantCulture) })
+        |> dict)
 
     member _.Query = QueryCollectionReader(query)
 
@@ -334,5 +321,5 @@ type RouteCollectionReader (route : RouteValueDictionary, query : IQueryCollecti
 type CookieCollectionReader (cookies: IRequestCookieCollection) =
     inherit StringCollectionReader(
         cookies
-        |> Seq.map (fun kvp -> kvp.Key, [|kvp.Value|])
-        |> Map.ofSeq)
+        |> Seq.map (fun kvp -> kvp.Key, seq { kvp.Value })
+        |> dict)

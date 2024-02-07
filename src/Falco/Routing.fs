@@ -6,7 +6,7 @@ open Microsoft.Extensions.FileProviders
 open Falco.StringUtils
 
 [<Sealed>]
-type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint list) =
+type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
     inherit EndpointDataSource()
 
     [<Literal>]
@@ -41,7 +41,7 @@ module Routing =
     /// Constructor for multi-method HttpEndpoint.
     let all
         (pattern : string)
-        (handlers : (HttpVerb * HttpHandler) list) : HttpEndpoint =
+        (handlers : (HttpVerb * HttpHandler) seq) : HttpEndpoint =
         { Pattern  = pattern; Handlers = handlers }
 
     /// Constructor for a singular HttpEndpoint.

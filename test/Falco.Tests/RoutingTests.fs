@@ -15,7 +15,7 @@ let ``route function should return valid HttpEndpoint`` () =
     let endpoint = route routeVerb routePattern emptyHandler
     endpoint.Pattern |> should equal routePattern
 
-    let (verb, handler) = endpoint.Handlers.Head
+    let (verb, handler) = Seq.head endpoint.Handlers
     verb |> should equal routeVerb
     handler |> should be instanceOfType<HttpHandler>
 
@@ -27,7 +27,7 @@ let ``any function returns HttpEndpoint matching ANY HttpVerb`` () =
         let pattern = "/"
         let endpoint = mapEndPoint pattern emptyHandler
         endpoint.Pattern |> should equal pattern
-        let (verb, handler) = endpoint.Handlers.Head
+        let (verb, handler) = Seq.head endpoint.Handlers
         verb |> should equal verb
         handler |> should be instanceOfType<HttpHandler>
 

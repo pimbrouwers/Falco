@@ -17,13 +17,13 @@ exception InvalidDependencyException of string
 module Extensions =
     type IEndpointRouteBuilder with
         /// Activates Falco Endpoint integration.
-        member x.UseFalcoEndpoints (endpoints : HttpEndpoint list) =
+        member x.UseFalcoEndpoints (endpoints : HttpEndpoint seq) =
             let dataSource = FalcoEndpointDatasource(endpoints)
             x.DataSources.Add(dataSource)
 
     type IApplicationBuilder with
         /// Activates Falco integration with IEndpointRouteBuilder.
-        member x.UseFalco (endpoints : HttpEndpoint list) =
+        member x.UseFalco (endpoints : HttpEndpoint seq) =
             x.UseRouting()
              .UseEndpoints(fun r -> r.UseFalcoEndpoints(endpoints))
 

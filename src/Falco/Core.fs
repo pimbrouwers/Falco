@@ -43,4 +43,4 @@ type HttpVerb =
 /// HttpEndpointHandler.
 type HttpEndpoint =
     { Pattern  : string
-      Handlers : (HttpVerb * HttpHandler) list }
+      Handlers : (HttpVerb * HttpHandler) seq }
