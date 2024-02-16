@@ -49,11 +49,11 @@
     <Compile Include="String.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Multipart.fs" />
-    <Compile Include="Extensions.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
+    <Compile Include="Hosting.fs" />
   </ItemGroup>
 
   <ItemGroup>

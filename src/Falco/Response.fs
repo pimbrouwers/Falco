@@ -85,17 +85,8 @@ let redirectTemporarily (url: string) =
 let private setContentLength 
     (contentLength : int64)
     (ctx : HttpContext) =
-    #if NET7_0_OR_GREATER
-        ctx.Response.ContentLength <- contentLength
-    #else
-        match ctx.Request.Method, ctx.Response.StatusCode with
-        | _, 204 -> ()
-        | _, sc when sc >= 100 && sc < 200 -> ()
-        | "CONNECT", sc when sc >= 200 && sc <= 300 -> ()
-        | _, 205 when contentLength = 0L -> ()
-        | _ -> ctx.Response.ContentLength <- contentLength
-    #endif
-
+    ctx.Response.ContentLength <- contentLength
+    
 let private writeBytes
     (bytes : byte[]) : HttpHandler = fun ctx ->
         task {
