@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.0] - ????-??-??
+- `net6.0` support dropped (end of life 2024-11-12).
+- `webHost [||] {}` removed.
+- `config {}` removed.
+- `HttpContext.GetService<T>()`, `HttpContext.GetLogger<T>()` extensions removed.
+- `IApplicationBuilder.IsDevelopment()`, `IApplicationBuilder.UseWhen()` extensions removed.
+- `Services.inject<T>` and overloads removed.
+- `Response.withContentLength` removed.
+
 ## [4.0.6] - 2023-12-12
 
 - `net7.0` and `net8.0` support added.

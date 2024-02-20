@@ -2,20 +2,32 @@ namespace FalcoTutorial
 
 open System
 
-type Entry =
-    { EntryId      : Guid
-      HtmlContent  : string
-      TextContent  : string }
+module Domain =
+    module EntryModel =         
+        type Entry =
+            { EntryId      : Guid
+              HtmlContent  : string
+              TextContent  : string }
 
-type EntrySummary =
-    { EntryId   : Guid
-      EntryDate : DateTime
-      Summary   : string }
+        type EntrySummary =
+            { EntryId   : Guid
+              EntryDate : DateTime
+              Summary   : string }
+
+        let newEntry () = 
+            { EntryId = Guid.NewGuid()
+              HtmlContent = String.Empty
+              TextContent = String.Empty }
 
 module Infrastructure =
     open System.Data
 
-    type CreateDbConnection = unit -> IDbConnection
+    type IDbConnection with
+        member x.CreateCommandText(commandText : string) =
+            let cmd = x.CreateCommand()
+            cmd.CommandType <- CommandType.Text
+            cmd.CommandText <- commandText
+            cmd
 
     type IDbCommand with
         member x.AddParameter(name : string, value : obj) : unit =
@@ -25,34 +37,34 @@ module Infrastructure =
             else p.Value <- value
             x.Parameters.Add p |> ignore
 
-        member private x.Prepare() : unit =
-            if x.Connection.State = ConnectionState.Closed then
-                x.Connection.Open()
-
         member x.Execute() : unit =
-            x.Prepare()
             x.ExecuteNonQuery() |> ignore
 
         member x.Query(map : IDataRecord -> 'a) : 'a list =
-            x.Prepare()
             use rd = x.ExecuteReader()
-            [ while rd.Read() do yield map rd ]
+            [ while rd.Read() do 
+                yield map rd ]
 
-    module Sqlite =
+    type IDbConnectionFactory =
+        abstract member Create : unit -> IDbConnection
+
+    module SqliteConnectionFactory =
         open Microsoft.Data.Sqlite
 
-        let createDbConnection (connecitonString : string) : CreateDbConnection = fun () ->
-            let conn = new SqliteConnection(connecitonString)
-            conn.Open()
-            conn
+        let create (connectionString : string) =
+            { new IDbConnectionFactory with
+                member _.Create() =
+                    let conn = new SqliteConnection(connectionString)
+                    conn.Open()
+                    conn }
 
     module EntryStore =
+        open Domain.EntryModel
+
         let save (conn : IDbConnection) (entry : Entry) : unit =
-            printfn "%A" entry
-            use cmd = conn.CreateCommand()
-            cmd.CommandText <- "
+            use cmd = conn.CreateCommandText("
                 INSERT OR REPLACE INTO entry (entry_id, html_content, text_content, modified_date)
-                VALUES (@entry_id, @html_content, @text_content, DATETIME('now'));"
+                VALUES (@entry_id, @html_content, @text_content, DATETIME('now'));")
 
             cmd.AddParameter ("entry_id", entry.EntryId)
             cmd.AddParameter ("html_content", entry.HtmlContent)
@@ -61,13 +73,12 @@ module Infrastructure =
             cmd.Execute()
 
         let get (conn : IDbConnection) (entryId : Guid) : Entry option =
-            use cmd = conn.CreateCommand()
-            cmd.CommandText <- "
+            use cmd = conn.CreateCommandText("
                 SELECT    entry_id
                         , html_content
                         , text_content
                 FROM      entry
-                WHERE     entry_id = @entry_id"
+                WHERE     entry_id = @entry_id")
 
             cmd.AddParameter ("entry_id", entryId)
 
@@ -78,22 +89,39 @@ module Infrastructure =
             |> List.tryHead
 
         let getAll (conn : IDbConnection) : EntrySummary list =
-            use cmd = conn.CreateCommand()
-            cmd.CommandText <- "
+            use cmd = conn.CreateCommandText("
                 SELECT    entry_id
                         , modified_date AS entry_date
                         , SUBSTR(text_content, 0, 50) AS summary
                 FROM      entry
-                ORDER BY  modified_date DESC"
+                ORDER BY  modified_date DESC")
 
             cmd.Query (fun rd ->
                 { EntryId = rd.GetGuid(rd.GetOrdinal("entry_id"))
                   EntryDate = rd.GetDateTime(rd.GetOrdinal("entry_date"))
                   Summary = rd.GetString(rd.GetOrdinal("summary")) })
 
-module Web =
+module Service = 
     open Infrastructure
 
+    module EntryService = 
+        open Domain.EntryModel
+
+        let getAll (dbConnection : IDbConnectionFactory) =
+            use conn = dbConnection.Create ()
+            EntryStore.getAll conn
+
+        let get (dbConnection : IDbConnectionFactory) (id : Guid) = 
+            use conn = dbConnection.Create ()
+            EntryStore.get conn id
+
+        let save (dbConnection : IDbConnectionFactory) (input : Entry) =
+            use conn = dbConnection.Create ()
+            EntryStore.save conn input
+
+module Web =
+    open Domain
+   
     /// Kestrel endpoint routes
     module Route =
         let index = "/"
@@ -101,7 +129,7 @@ module Web =
         let entryCreate = "/entry/create"
         let entryEdit = "/entry/edit/{entry_id}"
 
-    /// Urls to be used within features
+    /// Url factories
     module Urls =
         let index = Route.index
         let notFound = Route.notFound
@@ -109,7 +137,7 @@ module Web =
         let entryEdit (entryId : Guid) = Route.entryEdit.Replace("{entry_id}", entryId.ToString("d"))
 
     /// Shared markup
-    module UI =
+    module View =
         open Falco.Markup
 
         /// Master layout which accepts a title and content for <body></body>
@@ -176,8 +204,7 @@ module Web =
 
     module ErrorController =
         open Falco
-        open UI
-
+        open View
 
         let badRequest : HttpHandler =
             Response.withStatusCode 400
@@ -193,7 +220,9 @@ module Web =
 
     module EntryViews =
         open Falco.Markup
-        open UI
+        open Falco.Security
+        open Domain.EntryModel
+        open View
 
         let index (entries : EntrySummary list) =
             let title = "Journal Entries"
@@ -227,52 +256,43 @@ module Web =
 
                 pageTitle title
 
-                Elem.form [
-                    Attr.id "entry-editor"
-                    Attr.class' "lh-copy"
-                    Attr.method "post"
-                    Attr.action action ] [
-
+                Elem.form [ Attr.id "entry-editor"; Attr.class' "lh-copy"; Attr.method "post"; Attr.action action ] [
+                    Xss.antiforgeryInput token
                     Elem.ul [
                         Attr.id "bullet-editor"
                         Attr.class' "mh0 pl3 outline-0"
                         Attr.create "contenteditable" "true" ] [
                             htmlContent ]
-
                     Elem.input [ Attr.type' "hidden"; Attr.name "entry_id"; Attr.value (string entry.EntryId) ]
                     Elem.input [ Attr.type' "hidden"; Attr.name "html_content"; Attr.id "bullet-editor-html" ]
                     Elem.input [ Attr.type' "hidden"; Attr.name "text_content"; Attr.id "bullet-editor-text" ] ] ]
 
     module EntryController =
         open Falco
+        open Domain.EntryModel
+        open Infrastructure
+        open Service
 
         /// GET /
-        let index (createDbConnection : CreateDbConnection) : HttpHandler =
-            use conn = createDbConnection ()
-            let entries = EntryStore.getAll conn
+        let index (dbConnection : IDbConnectionFactory) : HttpHandler =
+            let entries = EntryService.getAll dbConnection
             Response.ofHtml (EntryViews.index entries)
 
         /// GET /entry/create
         let create : HttpHandler = fun ctx ->
-            let newEntry : Entry =
-                { EntryId = Guid.NewGuid()
-                  HtmlContent = String.Empty
-                  TextContent = String.Empty }
-
+            let newEntry = EntryModel.newEntry ()
             let view = EntryViews.save Urls.entryCreate newEntry
-
             Response.ofHtmlCsrf view ctx
 
         /// GET /entry/edit/{id}
-        let edit (createDbConneciton : CreateDbConnection) : HttpHandler =
+        let edit (dbConnection : IDbConnectionFactory) : HttpHandler =
             let readRoute (route : RouteCollectionReader) =
                 route.TryGetGuid "entry_id"
 
             let handle (input : Guid option) =
                 match input with
-                | Some entryId ->
-                    use conn = createDbConneciton ()
-                    match EntryStore.get conn entryId with
+                | Some entryId ->                    
+                    match EntryService.get dbConnection entryId with
                     | Some entry ->
                         let html = EntryViews.save (Urls.entryEdit entryId) entry
                         Response.ofHtmlCsrf html
@@ -280,18 +300,18 @@ module Web =
                         ErrorController.notFound
                 | None ->
                     Response.redirectTemporarily Urls.notFound
+
             Request.mapRoute readRoute handle
 
         /// POST /entry/create, /entry/edit/{id}
-        let save (createDbConnection : CreateDbConnection) : HttpHandler =
+        let save (dbConnection : IDbConnectionFactory) : HttpHandler =
             let readForm (form : FormCollectionReader) =
                 { EntryId = form.GetGuid "entry_id"
                   HtmlContent = form.GetString "html_content"
                   TextContent = form.GetString "text_content" }
 
             let handle (input : Entry) =
-                use conn = createDbConnection ()
-                EntryStore.save conn input
+                EntryService.save dbConnection input
                 Response.redirectTemporarily Urls.index
 
             Request.mapForm readForm handle
@@ -299,36 +319,51 @@ module Web =
 module Program =
     open Falco
     open Falco.Routing
-    open Falco.HostBuilder
+    open Microsoft.AspNetCore.Builder
+    open Microsoft.Extensions.DependencyInjection
+    open Microsoft.Extensions.Hosting
     open Microsoft.Extensions.Configuration
     open Infrastructure
     open Web
 
-    [<EntryPoint>]
-    let main args =
-        let config = configuration [||] {
-            required_json "appsettings.json"
-        }
-
-        let connectionString = config.GetConnectionString("Default")
-
-        if String.IsNullOrWhiteSpace(connectionString) then
-            failwith "Invalid connection string [EMPTY]"
-
-        let createDbConneciton = Sqlite.createDbConnection connectionString
-
-        webHost args {
-            use_static_files
-            not_found ErrorController.notFound
-            endpoints [
-                get Route.index (EntryController.index createDbConneciton)
+    type App(dbConnection : IDbConnectionFactory) =
+        member _.Endpoints =
+            seq {
+                get Route.index (EntryController.index dbConnection)
                 get Route.notFound ErrorController.notFound
                 all Route.entryCreate [
                     GET, EntryController.create
-                    POST, (EntryController.save createDbConneciton) ]
+                    POST, (EntryController.save dbConnection) ]
                 all Route.entryEdit [
-                    GET, (EntryController.edit createDbConneciton)
-                    POST, (EntryController.save createDbConneciton) ]
-            ]
-        }
+                    GET, (EntryController.edit dbConnection)
+                    POST, (EntryController.save dbConnection) ]
+            }
+
+        member _.NotFound =
+            Response.withStatusCode 404
+            >> Response.ofPlainText "Not Found"
+
+    [<EntryPoint>]
+    let main args =
+        let bldr = WebApplication.CreateBuilder(args)
+
+        bldr.Services
+            .AddAntiforgery()
+            |> ignore
+
+        let dbConnection =
+            let connectionString = bldr.Configuration.GetConnectionString("Default")
+            SqliteConnectionFactory.create connectionString
+
+        let app =
+            App(dbConnection)
+
+        let wapp = bldr.Build()
+
+        wapp.UseStaticFiles()
+            .UseFalco(app.Endpoints)
+            .Run(app.NotFound)
+            |> ignore
+
+        wapp.Run()
         0

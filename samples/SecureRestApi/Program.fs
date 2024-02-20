@@ -3,205 +3,228 @@ module AuthExample.Program
 open System
 open Falco
 open Falco.Routing
-open Falco.HostBuilder
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.AspNetCore.Authentication.JwtBearer
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
 open Microsoft.IdentityModel.Tokens
 open System.Security.Claims
 
-// ------------
-// Entities
-// ------------
-type User =
-    { Id        : string
-      Username  : string
-      Name      : string
-      Surname   : string }
+module Domain = 
+    type Error =
+        { Code      : string
+          Message   : string }
+        
+    module UserModel = 
+        type User =
+            { Id        : string
+              Username  : string
+              Name      : string
+              Surname   : string }
 
-type UserDto =
-    { Username  : string
-      Name      : string
-      Surname   : string }
+        type UserDto =
+            { Username  : string
+              Name      : string
+              Surname   : string }
 
-type Error =
-    { Code      : string
-      Message   : string }
+module Infrastructure = 
+    open System.Collections.Generic
+    open Domain 
+    open Domain.UserModel 
+    
+    type IUserStorage =
+        abstract member GetAll : unit -> Result<User seq, Error>
+        abstract member Add : string -> UserDto -> Result<User, Error>
+        abstract member Update : string -> UserDto -> Result<User, Error>
+        abstract member Remove : string -> Result<User, Error>
 
-// ------------
-// Storage
-// ------------
-type IStorage =
-    abstract member GetAll : unit   -> Result<User seq, Error>
-    abstract member Add    : string -> UserDto -> Result<User, Error>
-    abstract member Update : string -> UserDto -> Result<User, Error>
-    abstract member Remove : string -> Result<User, Error>
+    type UserMemoryStorage(initialValues : User seq) =
+        let mutable store = 
+            Dictionary<string, User>(initialValues |> Seq.map (fun x -> x.Id, x) |> Map.ofSeq)
+        
+        interface IUserStorage with
+            member _.GetAll() =
+                Result.Ok store.Values
+            
+            member _.Add(id : string) (userDto : UserDto) =
+                if not(store.ContainsKey(id)) then
+                    let user = { Id = id; Username = userDto.Username; Name = userDto.Name; Surname = userDto.Surname }
+                    store.Add(id, user) |> ignore
+                    Result.Ok user
+                else
+                    Result.Error { Code = "Not found"; Message = "Could not add user" }
+                
+            member _.Update(id: string) (userDto: UserDto) =
+                let user = { Id = id; Username = userDto.Username; Name = userDto.Name; Surname = userDto.Surname }
+                if store.ContainsKey(id) then 
+                    store[id] <- user
+                    Result.Ok user
+                else
+                    Result.Error { Code = "Not found"; Message = "Could not update user" }
+                
+            member _.Remove(id: string) =
+                if store.ContainsKey(id) then
+                    let user = store[id]
+                    store.Remove(id) |> ignore
+                    Result.Ok user
+                else
+                    Result.Error { Code = "Not found"; Message = "Could not remove user" }
 
-type MemoryStorage() =
-    let mutable values = [
-        { Id = "d19bc3e4-4b72-488b-a739-df812bd892c9"; Username = "user1"; Name = "John"; Surname = "Doe" }
-        { Id = "11beebd6-6a0b-42f7-bf70-56b168cdd55c"; Username = "user2"; Name = "Mario"; Surname = "Rossi" }
-        { Id = "096527f3-ceed-4d27-bcd9-d4c1da7798ab"; Username = "user3"; Name = "Stephen"; Surname = "Knight" }
-    ]
-    interface IStorage with
-        member _.GetAll() =
-            values |> Seq.map id |> Result.Ok
-        member _.Add(id : string) (userDto : UserDto) =
-            let user = { Id = id; Username = userDto.Username; Name = userDto.Name; Surname = userDto.Surname }
-            values <- List.append values [user]
-            Result.Ok user
-        member _.Update(id: string) (userDto: UserDto) =
-            let user = { Id = id; Username = userDto.Username; Name = userDto.Name; Surname = userDto.Surname }
-            values <- values |> List.map (fun u -> if u.Id = id then user else u)
-            Result.Ok user
-        member _.Remove(id: string) =
-            let user = values |> List.find (fun u -> u.Id = id)
-            values <- values |> List.filter (fun u -> u.Id <> id)
-            Result.Ok user
+module Service = 
+    open Domain
+    open Infrastructure
 
-// ------------
-// User Storage
-// ------------
-module UserStorage =
-    let getAll (storage : IStorage) () =
-        storage.GetAll()
+    module UserService =
+        open Domain.UserModel
 
-    let create (storage : IStorage) (userDto : UserDto) =
-        let id = Guid.NewGuid().ToString()
-        storage.Add id userDto
+        let getAll (storage : IUserStorage) () =
+            storage.GetAll()
 
-    let update (storage : IStorage) (id : string) (userDto : UserDto) =
-        let checkUserExist users =
-            users
-            |> Seq.tryFind (fun user -> user.Id = id)
-            |> function
-                | Some user -> Result.Ok user
-                | None      -> Result.Error { Code = "123"; Message = "User to update not found!" }
+        let create (storage : IUserStorage) (userDto : UserDto) =
+            let id = Guid.NewGuid().ToString()
+            storage.Add id userDto
 
-        storage.GetAll()
-        |> Result.bind checkUserExist
-        |> Result.bind (fun _ -> storage.Update id userDto)
+        let update (storage : IUserStorage) (id : string) (userDto : UserDto) =
+            let checkUserExist users =
+                users
+                |> Seq.tryFind (fun user -> user.Id = id)
+                |> function
+                    | Some user -> Result.Ok user
+                    | None      -> Result.Error { Code = "123"; Message = "User to update not found!" }
 
-    let delete (storage : IStorage) (id : string) =
-        let checkUserExist users =
-            users
-            |> Seq.tryFind (fun user -> user.Id = id)
-            |> function
-                | Some user -> Result.Ok user
-                | None      -> Result.Error { Code = "456"; Message = "User to delete not found!" }
+            storage.GetAll()
+            |> Result.bind checkUserExist
+            |> Result.bind (fun _ -> storage.Update id userDto)
 
-        storage.GetAll()
-        |> Result.bind checkUserExist
-        |> Result.bind (fun _ -> storage.Remove id)
+        let delete (storage : IUserStorage) (id : string) =
+            let checkUserExist users =
+                users
+                |> Seq.tryFind (fun user -> user.Id = id)
+                |> function
+                    | Some user -> Result.Ok user
+                    | None      -> Result.Error { Code = "456"; Message = "User to delete not found!" }
 
-// ------------
-// Handlers
-// ------------
-module ErrorPages =
-    let unauthorized : HttpHandler =
-        Response.withStatusCode 401
-        >> Response.ofPlainText "Unauthorized"
+            storage.GetAll()
+            |> Result.bind checkUserExist
+            |> Result.bind (fun _ -> storage.Remove id)
 
-    let forbidden : HttpHandler =
-        Response.withStatusCode 403
-        >> Response.ofPlainText "Forbidden"
+module Web =
+    open Domain
+    open Infrastructure
+    open Service
 
-    let badRequest : HttpHandler =
-        Response.withStatusCode 400
-        >> Response.ofPlainText "Bad request"
+    module ErrorController =
+        let badRequest : HttpHandler =
+            Response.withStatusCode 400
+            >> Response.ofPlainText "Bad Request"
+        
+        let unauthorized : HttpHandler =
+            Response.withStatusCode 401
+            >> Response.ofPlainText "Unauthorized"
 
-    let serverError : HttpHandler =
-        Response.withStatusCode 500
-        >> Response.ofPlainText "Server Error"
+        let forbidden : HttpHandler =
+            Response.withStatusCode 403
+            >> Response.ofPlainText "Forbidden"
 
-module UserHandlers =
-    let private jsonError json : HttpHandler =
-        Response.withStatusCode 400 >> Response.ofJson json
+        let notFound : HttpHandler =
+            Response.withStatusCode 404
+            >> Response.ofPlainText "Not Found"
 
-    let private handleResult result =
-        match result with
-        | Ok result   -> Response.ofJson result
-        | Error error -> jsonError error
+        let serverError : HttpHandler =
+            Response.withStatusCode 500
+            >> Response.ofPlainText "Server Error"
 
-    let index : HttpHandler =
-        Response.ofPlainText "Hello World, by Falco"
+    module UserController =
+        open Domain.UserModel
 
-    let create : HttpHandler =
-        Services.inject<IStorage> (fun storage ->
+        let private jsonError json : HttpHandler =
+            Response.withStatusCode 400 >> Response.ofJson json
+
+        let private handleResult result =
+            match result with
+            | Ok result   -> Response.ofJson result
+            | Error error -> jsonError error
+
+        let index : HttpHandler =
+            Response.ofPlainText "Hello World, by Falco"
+
+        let create (storage : IUserStorage): HttpHandler =
             Request.mapJson (fun json ->
-                handleResult (UserStorage.create storage json)))
+                handleResult (UserService.create storage json))
 
-    let readAll : HttpHandler =
-        Services.inject<IStorage> (fun storage ->
-            handleResult (UserStorage.getAll storage ()))
+        let readAll (storage : IUserStorage): HttpHandler =
+            handleResult (UserService.getAll storage ())
 
-    let private idFromRoute (r : RouteCollectionReader) =
-        r.GetString "id"
+        let private idFromRoute (r : RouteCollectionReader) =
+            r.GetString "id"
 
-    let update : HttpHandler =
-        Services.inject<IStorage> (fun storage ->
+        let update (storage : IUserStorage): HttpHandler =
             Request.mapRoute idFromRoute (fun id ->
                 Request.mapJson (fun (userDto : UserDto) ->
-                    handleResult (UserStorage.update storage id userDto))))
+                    handleResult (UserService.update storage id userDto)))
 
-    let delete : HttpHandler =
-        Services.inject<IStorage> (fun storage ->
+        let delete (storage : IUserStorage): HttpHandler =
             Request.mapRoute idFromRoute (fun id ->
-                handleResult (UserStorage.delete storage id)))
+                handleResult (UserService.delete storage id))
 
-// ------------
-// Auth
-// ------------
-module AuthConfig =
-    let authority = "https://falco-auth-test.us.auth0.com/"
-    let audience = "https://users/api"
+module Program = 
+    open Falco
+    open Falco.Routing
+    open Infrastructure
+    open Web
 
-    let createUsersPolicy = "create:users"
-    let readUsersPolicy = "read:users"
-    let updateUsersPolicy = "update:users"
-    let deleteUsersPolicy = "delete:users"
+    type App(userStorage : IUserStorage) =
+        let authority = "https://falco-auth-test.us.auth0.com/"
+        let audience = "https://users/api"
 
-module Auth =
-    let hasScope (scope : string) (next : HttpHandler) : HttpHandler =
-        Request.ifAuthenticatedWithScope AuthConfig.authority scope next ErrorPages.forbidden
+        let createUsersPolicy = "create:users"
+        let readUsersPolicy = "read:users"
+        let updateUsersPolicy = "update:users"
+        let deleteUsersPolicy = "delete:users"
 
-// ------------
-// Register services
-// ------------
-let authService (svc : IServiceCollection) =
-    let createTokenValidationParameters () =
-        let tvp = new TokenValidationParameters()
-        tvp.NameClaimType <- ClaimTypes.NameIdentifier
-        tvp
+        let hasScope (scope : string) (next : HttpHandler) : HttpHandler =
+            Request.ifAuthenticatedWithScope authority scope next ErrorController.forbidden
 
-    svc.AddAuthentication(fun options ->
-        options.DefaultAuthenticateScheme <- JwtBearerDefaults.AuthenticationScheme
-        options.DefaultChallengeScheme <- JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(fun options ->
-            options.Authority <- AuthConfig.authority
-            options.Audience <- AuthConfig.audience
-            options.TokenValidationParameters <- createTokenValidationParameters()) |> ignore
+        member _.Auth =
+            {| Authority = authority; Audience = audience |}
 
-    svc
+        member _.Endpoints = seq {
+            get "/" UserController.index
+            get "/users" (hasScope readUsersPolicy (UserController.readAll userStorage))
+            post "/users" (hasScope createUsersPolicy (UserController.create userStorage))
+            put "/users/{id:guid}" (hasScope updateUsersPolicy (UserController.update userStorage))
+            delete "/users/{id:guid}" (hasScope deleteUsersPolicy (UserController.delete userStorage))
+        }
 
-let memoryStorageService (svc : IServiceCollection) =
-    svc.AddSingleton<IStorage, MemoryStorage>(fun _ -> MemoryStorage())
+        member _.NotFound = ErrorController.notFound
 
-webHost [||] {
-    add_service authService
-    add_service memoryStorageService
+    [<EntryPoint>]
+    let main args = 
+        let app =
+            let userStorage = UserMemoryStorage(Seq.empty) 
+            App(userStorage)
 
-    use_ifnot FalcoExtensions.IsDevelopment (FalcoExtensions.UseFalcoExceptionHandler ErrorPages.serverError)
-    use_authentication
+        let bldr = WebApplication.CreateBuilder(args)
+            
+        bldr.Services            
+            .AddAuthentication(fun options ->         
+                options.DefaultAuthenticateScheme <- JwtBearerDefaults.AuthenticationScheme
+                options.DefaultChallengeScheme <- JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(fun options ->
+                    let createTokenValidationParameters () =
+                        let tvp = new TokenValidationParameters()
+                        tvp.NameClaimType <- ClaimTypes.NameIdentifier
+                        tvp
+                    options.Authority <- app.Auth.Authority
+                    options.Audience <- app.Auth.Audience
+                    options.TokenValidationParameters <- createTokenValidationParameters())
+            |> ignore    
 
-    endpoints [
-        get "/" UserHandlers.index
+        let wapp = bldr.Build()
+        wapp.UseFalco(app.Endpoints)
+            .Run(app.NotFound)
+            |> ignore
 
-        get "/users" (Auth.hasScope AuthConfig.readUsersPolicy UserHandlers.readAll)
-
-        post "/users" (Auth.hasScope AuthConfig.createUsersPolicy UserHandlers.create)
-
-        put "/users/{id:guid}" (Auth.hasScope AuthConfig.updateUsersPolicy UserHandlers.update)
-
-        delete "/users/{id:guid}" (Auth.hasScope AuthConfig.deleteUsersPolicy UserHandlers.delete)
-    ]
-}
+        wapp.Run()
+        0

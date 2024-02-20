@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,7 +9,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.*" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="../../src/Falco/Falco.fsproj" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.*" />
   </ItemGroup>
 </Project>
