@@ -146,9 +146,13 @@ let ``StringCollectionReader.GetChildren should produce list of StringCollection
     |> Seq.length
     |> should equal 3
 
-    // for i = 0 to 2 do
-    //     lst.[i].Get "first_name" |> should equal (sprintf "first%i" (i+1))
-    //     lst.[i].Get "last_name"  |> should equal (sprintf "last%i" (i+1))
+    lst
+    |> Seq.iteri (fun i x ->
+        match i with
+        | 0 -> x.Get "first_name" |> should equal "first1"
+        | 1 -> x.Get "first_name" |> should equal "first2"
+        | 2 -> x.Get "first_name" |> should equal "first3"
+        | _ -> failwith "unexpected index")
 
 [<Fact>]
 let ``StringCollectionReader.GetChildren should produce list of StringCollectionReader for jagged map`` () =
@@ -164,7 +168,10 @@ let ``StringCollectionReader.GetChildren should produce list of StringCollection
     |> Seq.length
     |> should equal 3
 
-    // for i = 0 to 2 do
-    //     lst.[i].Get "first_name"
-    //     |> if i = 2 then should equal "" else should equal (sprintf "first%i" (i+1))
-    //     lst.[i].Get "last_name" |> should equal (sprintf "last%i" (i+1))
+    lst
+    |> Seq.iteri (fun i x ->
+        match i with
+        | 0 -> x.Get "first_name" |> should equal "first1"
+        | 1 -> x.Get "first_name" |> should equal "first2"
+        | 2 -> x.Get "first_name" |> should equal ""
+        | _ -> failwith "unexpected index")    
