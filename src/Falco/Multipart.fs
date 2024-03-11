@@ -3,6 +3,7 @@ namespace Falco
 open System
 open System.IO
 open System.Net
+open System.Threading
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.WebUtilities
@@ -28,12 +29,12 @@ module Multipart =
             | false, _     -> None
             | true, parsed -> Some parsed
 
-        member private x.StreamSectionAsync() =
+        member private x.StreamSectionAsync(ct : CancellationToken) =
             task {
                 match MultipartSection.TryGetContentDisposition(x) with
                 | Some cd when cd.IsFileDisposition() ->
                     let str = new MemoryStream()
-                    do! x.Body.CopyToAsync(str)
+                    do! x.Body.CopyToAsync(str, ct)
 
                     let safeFileName = WebUtility.HtmlEncode cd.FileName.Value
                     let file = new FormFile(str, int64 0, str.Length, cd.Name.Value, safeFileName)
@@ -62,7 +63,7 @@ module Multipart =
             }
 
     type MultipartReader with
-        member x.StreamSectionsAsync() =
+        member x.StreamSectionsAsync(ct : CancellationToken) =
             task {
                 let formData = new KeyValueAccumulator()
                 let formFiles = new FormFileCollection()
@@ -70,14 +71,14 @@ module Multipart =
                 let mutable shouldContinue = true
 
                 while shouldContinue do
-                    let! section = x.ReadNextSectionAsync()
+                    let! section = x.ReadNextSectionAsync(ct)
 
                     match isNull section with
                     | true ->
                         shouldContinue <- false
 
                     | false ->
-                        let! sectionData = section.StreamSectionAsync()
+                        let! sectionData = section.StreamSectionAsync(ct)
 
                         match sectionData with
                         | FormFileData file          -> formFiles.Add(file)
@@ -105,12 +106,12 @@ module Multipart =
             | b -> Some b
 
         /// Attempts to stream the HttpRequest body into IFormCollection.
-        member x.StreamFormAsync () : Task<IFormCollection> =
+        member x.StreamFormAsync (ct : CancellationToken) : Task<IFormCollection> =
             task {
                 match x.IsMultipart(), x.GetBoundary() with
                 | true, Some boundary ->
                     let multipartReader = new MultipartReader(boundary, x.Body)
-                    let! formCollection = multipartReader.StreamSectionsAsync()
+                    let! formCollection = multipartReader.StreamSectionsAsync(ct)
                     return formCollection
 
                 | _, None

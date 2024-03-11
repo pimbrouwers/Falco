@@ -5,6 +5,7 @@ open System
 open System.IO
 open System.Text
 open System.Text.Json
+open System.Threading
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
@@ -54,7 +55,8 @@ let getQuery (ctx : HttpContext) : QueryCollectionReader =
 /// FormCollectionReader.
 let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
-        let! form = ctx.Request.ReadFormAsync()
+        use tokenSource = new CancellationTokenSource()
+        let! form = ctx.Request.ReadFormAsync(tokenSource.Token)
         let files = if isNull(form.Files) then None else Some form.Files
         return FormCollectionReader(form, files)
     }
@@ -77,7 +79,8 @@ let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
 let streamForm
     (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
-        let! form = ctx.Request.StreamFormAsync()
+        use tokenSource = new CancellationTokenSource()
+        let! form = ctx.Request.StreamFormAsync(tokenSource.Token)
         let files = if isNull(form.Files) then None else Some form.Files
         return FormCollectionReader(form, files)
     }
@@ -99,8 +102,10 @@ let streamFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
 /// JsonSerializerOptions.
 let getJsonOptions<'T>
     (options : JsonSerializerOptions)
-    (ctx : HttpContext) : Task<'T> =
-    JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options).AsTask()
+    (ctx : HttpContext) : Task<'T> = task {
+        use tokenSource = new CancellationTokenSource()
+        return! JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options, tokenSource.Token).AsTask()
+    }
 
 // ------------
 // Handlers
