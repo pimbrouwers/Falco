@@ -8,6 +8,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Program.fs" />
+    <Compile Include="HelloWorld.fs" />
   </ItemGroup>
 </Project>

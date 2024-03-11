@@ -6,6 +6,6 @@
     <ProjectReference Include="../../src/Falco/Falco.fsproj" />
   </ItemGroup>
   <ItemGroup>    
-    <Compile Include="Program.fs" />
+    <Compile Include="StringCollectionReader.fs" />
   </ItemGroup>
 </Project>

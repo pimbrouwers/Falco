@@ -3,7 +3,7 @@ namespace FalcoTutorial
 open System
 
 module Domain =
-    module EntryModel =         
+    module EntryModel =
         type Entry =
             { EntryId      : Guid
               HtmlContent  : string
@@ -14,7 +14,7 @@ module Domain =
               EntryDate : DateTime
               Summary   : string }
 
-        let newEntry () = 
+        let newEntry () =
             { EntryId = Guid.NewGuid()
               HtmlContent = String.Empty
               TextContent = String.Empty }
@@ -42,7 +42,7 @@ module Infrastructure =
 
         member x.Query(map : IDataRecord -> 'a) : 'a list =
             use rd = x.ExecuteReader()
-            [ while rd.Read() do 
+            [ while rd.Read() do
                 yield map rd ]
 
     type IDbConnectionFactory =
@@ -86,7 +86,7 @@ module Infrastructure =
                 { EntryId = rd.GetGuid(rd.GetOrdinal("entry_id"))
                   HtmlContent = rd.GetString(rd.GetOrdinal("html_content"))
                   TextContent = rd.GetString(rd.GetOrdinal("text_content")) })
-            |> List.tryHead
+            |> Seq.tryHead
 
         let getAll (conn : IDbConnection) : EntrySummary list =
             use cmd = conn.CreateCommandText("
@@ -101,17 +101,17 @@ module Infrastructure =
                   EntryDate = rd.GetDateTime(rd.GetOrdinal("entry_date"))
                   Summary = rd.GetString(rd.GetOrdinal("summary")) })
 
-module Service = 
+module Service =
     open Infrastructure
 
-    module EntryService = 
+    module EntryService =
         open Domain.EntryModel
 
         let getAll (dbConnection : IDbConnectionFactory) =
             use conn = dbConnection.Create ()
             EntryStore.getAll conn
 
-        let get (dbConnection : IDbConnectionFactory) (id : Guid) = 
+        let get (dbConnection : IDbConnectionFactory) (id : Guid) =
             use conn = dbConnection.Create ()
             EntryStore.get conn id
 
@@ -121,7 +121,7 @@ module Service =
 
 module Web =
     open Domain
-   
+
     /// Kestrel endpoint routes
     module Route =
         let index = "/"
@@ -291,7 +291,7 @@ module Web =
 
             let handle (input : Guid option) =
                 match input with
-                | Some entryId ->                    
+                | Some entryId ->
                     match EntryService.get dbConnection entryId with
                     | Some entry ->
                         let html = EntryViews.save (Urls.entryEdit entryId) entry

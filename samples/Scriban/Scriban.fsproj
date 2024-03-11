@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Program.fs" />
+    <Compile Include="Scriban.fs" />
   </ItemGroup>
 
   <ItemGroup>
