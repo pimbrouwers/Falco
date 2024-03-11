@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `IApplicationBuilder.IsDevelopment()`, `IApplicationBuilder.UseWhen()` extensions removed.
 - `Services.inject<T>` and overloads removed.
 - `Response.withContentLength` removed.
+- `StringCollectionReader.GetChildren()` removed.
 
 ## [4.0.6] - 2023-12-12
 

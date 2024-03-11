@@ -69,30 +69,6 @@ type StringCollectionReader (values : IDictionary<string, string seq>) =
     /// The keys in the collection reader.
     member _.Keys = valuesI.Keys
 
-    /// Safely retrieves a collection of readers.
-    ///
-    /// Intended to be used with the "dot notation" collection wire format.
-    /// (i.e., Person.First=John&Person.Last=Doe&Person.First=Jane&Person.Last=Doe)
-    member _.GetChildren (name : string) =
-        let childReaderIndexed = Dictionary<int, Dictionary<string, string seq>>()
-        valuesI.Keys
-        |> Seq.choose (fun key ->
-            match key.StartsWith(name + ".", StringComparison.OrdinalIgnoreCase) with
-            | true -> Some (key.Substring(name.Length + 1), valuesI[key])
-            | false -> None)
-        |> Seq.iter (fun (truncatedKey, keyValues) ->
-            keyValues
-            |> Seq.iteri (fun i value ->
-                if childReaderIndexed.ContainsKey i then
-                    childReaderIndexed[i][truncatedKey] <- seq { value }
-                else
-                    childReaderIndexed.Add(i, Dictionary(dict [ truncatedKey, seq { value } ], StringComparer.OrdinalIgnoreCase))))
-
-        seq {
-            for key in childReaderIndexed.Keys do
-                StringCollectionReader(childReaderIndexed[key])
-        }
-
     // ------------
     // Primitive returning Option<'T>
     // ------------

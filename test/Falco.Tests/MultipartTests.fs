@@ -2,9 +2,10 @@ module Falco.Tests.Multipart
 
 open System.IO
 open System.Text
+open System.Threading
+open System.Threading.Tasks
 open Falco
 open Falco.Multipart
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Xunit
 open Microsoft.AspNetCore.WebUtilities
@@ -23,7 +24,8 @@ let ``MultipartReader.StreamSectionsAsync()`` () =
     let rd = new MultipartReader("9051914041544843365972754266", body)
 
     task {
-        let! form = rd.StreamSectionsAsync()
+        use tokenSource = new CancellationTokenSource()
+        let! form = rd.StreamSectionsAsync(tokenSource.Token)
         form.Files.Count |> should equal 0
 
         let formReader = FormCollectionReader(form, Some form.Files)
@@ -57,7 +59,8 @@ let ``MultipartReader.StreamSectionsAsync() with 3-part body`` () =
     let rd = new MultipartReader("9051914041544843365972754266", body)
 
     task {
-        let! form = rd.StreamSectionsAsync()
+        use tokenSource = new CancellationTokenSource()
+        let! form = rd.StreamSectionsAsync(tokenSource.Token)
         form.Files.Count |> should equal 2
 
         // can we access the files?

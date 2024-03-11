@@ -6,7 +6,6 @@ open System.IO
 open System.IO.Pipelines
 open System.Security.Claims
 open System.Threading.Tasks
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication

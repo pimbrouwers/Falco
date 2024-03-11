@@ -7,7 +7,6 @@ open System.Text.Json
 open System.Text.Json.Serialization
 open System.Threading.Tasks
 open Falco
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open NSubstitute
 open Xunit
