@@ -27,6 +27,9 @@ module internal StringUtils =
         str.Split(sep)
 
 module internal StringParser =
+    let trueValues = HashSet<string>(seq { "true"; "1"; "1.0"; "on"; "yes" }, StringComparer.OrdinalIgnoreCase)
+    let falseValues = HashSet<string>(seq { "false"; "0"; "0.0"; "off"; "no" }, StringComparer.OrdinalIgnoreCase)
+
     /// Helper to wrap .NET tryParser's.
     let tryParseWith (tryParseFunc: string -> bool * _) (str : string) =
         let parsedResult = tryParseFunc str
@@ -56,8 +59,8 @@ module internal StringParser =
         let v = value.ToUpperInvariant()
 
         match v with
-        | "ON" | "YES" | "1" -> Some true
-        | "OFF" | "NO" | "0" -> Some false
+        | x when trueValues.Contains x -> Some true
+        | x when falseValues.Contains x -> Some false
         | v -> tryParseWith Boolean.TryParse v
 
     /// Attempts to parse, or failwith message.
@@ -68,18 +71,18 @@ module internal StringParser =
 
     /// Attempts to parse array, returns none for failure.
     let tryParseSeq (parser : string -> 'b option) seq =
-        seq        
+        seq
         |> Seq.fold (fun (acc : List<'b>) (a : string) ->
             // accumulate successful parses
             match parser a with
-            | Some b -> 
+            | Some b ->
                 acc.Add(b) |> ignore
                 acc
             | None -> acc) (List<'b>())
         |> Seq.cast
 
 
-module internal StringPatterns = 
+module internal StringPatterns =
     let (|IsInt16|_|) = StringParser.parseInt16
     let (|IsInt64|_|) = StringParser.parseInt64
     let (|IsInt32|_|) = StringParser.parseInt32
@@ -95,14 +98,12 @@ module internal StringPatterns =
         | true -> Some ()
         | false -> None
 
-    let (|IsTrue|_|) (x : string) =
-        let trueValues = HashSet<string>(seq { "true"; "1"; "on"; "yes" }, StringComparer.OrdinalIgnoreCase)
-        match trueValues.Contains(x) with
-        | true -> Some true
-        | false -> None
+    let (|IsTrue|_|) (x : string) = 
+        match StringParser.parseBoolean x with
+        | Some true -> Some true
+        | _ -> None
 
     let (|IsFalse|_|) (x : string) =
-        let falseValues = HashSet<string>(seq { "false"; "0"; "off"; "no" }, StringComparer.OrdinalIgnoreCase)
-        match falseValues.Contains(x) with
-        | true -> Some false
-        | false -> None
+        match StringParser.parseBoolean x with
+        | Some false -> Some false
+        | _ -> None

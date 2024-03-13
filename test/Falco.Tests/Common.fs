@@ -1,6 +1,8 @@
 ﻿[<AutoOpen>]
 module Falco.Tests.Common
 
+#nowarn "44"
+
 open System
 open System.IO
 open System.IO.Pipelines
