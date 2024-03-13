@@ -12,7 +12,8 @@
     <Compile Include="SecurityTests.fs" />
     <Compile Include="MultipartTests.fs" />
     <Compile Include="ResponseTests.fs" />
-    <Compile Include="RequestTests.fs" />
+    <Compile Include="RequestTests.fs" />   
+    <Compile Include="FormsTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

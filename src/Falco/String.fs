@@ -77,3 +77,32 @@ module internal StringParser =
                 acc
             | None -> acc) (List<'b>())
         |> Seq.cast
+
+
+module internal StringPatterns = 
+    let (|IsInt16|_|) = StringParser.parseInt16
+    let (|IsInt64|_|) = StringParser.parseInt64
+    let (|IsInt32|_|) = StringParser.parseInt32
+    let (|IsFloat|_|) = StringParser.parseFloat
+    let (|IsDecimal|_|) = StringParser.parseDecimal
+    let (|IsDateTime|_|) = StringParser.parseDateTime
+    let (|IsDateTimeOffset|_|) = StringParser.parseDateTimeOffset
+    let (|IsTimeSpan|_|) = StringParser.parseTimeSpan
+    let (|IsGuid|_|) = StringParser.parseGuid
+
+    let (|IsNullOrWhiteSpace|_|) (x : string) =
+        match String.IsNullOrWhiteSpace x with
+        | true -> Some ()
+        | false -> None
+
+    let (|IsTrue|_|) (x : string) =
+        let trueValues = HashSet<string>(seq { "true"; "1"; "on"; "yes" }, StringComparer.OrdinalIgnoreCase)
+        match trueValues.Contains(x) with
+        | true -> Some true
+        | false -> None
+
+    let (|IsFalse|_|) (x : string) =
+        let falseValues = HashSet<string>(seq { "false"; "0"; "off"; "no" }, StringComparer.OrdinalIgnoreCase)
+        match falseValues.Contains(x) with
+        | true -> Some false
+        | false -> None
