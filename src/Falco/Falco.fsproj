@@ -51,6 +51,7 @@
     <Compile Include="Multipart.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="Security.fs" />
+    <Compile Include="Forms.fs" />
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />

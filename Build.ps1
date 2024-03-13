@@ -14,7 +14,7 @@ param (
 function RunCommand {
     param ([string] $CommandExpr)
     Write-Verbose "  $CommandExpr"
-    Invoke-Expression $CommandExpr
+    Invoke-Expression "$CommandExpr --no-restore"
 }
 
 $rootDir = $PSScriptRoot
@@ -31,8 +31,8 @@ switch ($Action) {
 
 if (!$SkipClean.IsPresent)
 {
-    RunCommand "dotnet restore $projectDir --force --force-evaluate --nologo --verbosity quiet"
-    RunCommand "dotnet clean $projectDir -c $Configuration --nologo --verbosity quiet"
+    # RunCommand "dotnet restore $projectDir --force --force-evaluate --nologo --verbosity quiet"
+    # RunCommand "dotnet clean $projectDir -c $Configuration --nologo --verbosity quiet"
 }
 
 switch ($Action) {

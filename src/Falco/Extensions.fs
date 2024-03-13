@@ -79,7 +79,7 @@ module Extensions =
 
     type HttpRequest with
         /// Determines if the content type contains multipart.
-        member private x.IsMultipart () : bool =
+        member internal x.IsMultipart () : bool =
             x.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
 
         member private x.GetBoundary() =

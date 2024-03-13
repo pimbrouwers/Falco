@@ -1,12 +1,16 @@
 [<RequireQualifiedAccess>]
 module Falco.Request
 
+#nowarn "44"
+ 
+open System
 open System.IO
 open System.Text
 open System.Text.Json
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
+open Falco.Forms
 open Falco.Security
 open Falco.StringUtils
 
@@ -50,9 +54,17 @@ let getQuery (ctx : HttpContext) : QueryCollectionReader =
 
 /// Retrieves the form collection from the request as an instance of
 /// FormCollectionReader.
+/// 
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
 let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
-        let! form = ctx.Request.ReadFormAsync()
+        let! form = 
+            if ctx.Request.IsMultipart() then 
+                ctx.Request.StreamFormAsync()
+            else 
+                ctx.Request.ReadFormAsync()
+
         let files = if isNull(form.Files) then None else Some form.Files
         return FormCollectionReader(form, files)
     }
@@ -60,6 +72,9 @@ let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
 /// Retrieves the form collection from the request as an instance of
 /// FormCollectionReader, if the CSRF token is valid, otherwise it
 /// returns None.
+/// 
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
 let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
     task {
         let! isAuth = Xss.validateToken ctx
@@ -72,6 +87,7 @@ let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
 
 /// Streams the form collection from the request as an instance of
 /// FormCollectionReader. Intended to be used for multipart form submissions.
+[<Obsolete("getForm automatically detects multipart/form-data requests.")>]
 let streamForm
     (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
@@ -83,11 +99,44 @@ let streamForm
 /// Streams the form collection from the request as an instance of
 /// FormCollectionReader, if the CSRF token is valid. otherwise it returns
 /// None. Intended to be used for multipart form submissions.
+[<Obsolete("getForm automatically detects multipart/form-data requests.")>]
 let streamFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
     task {
         let! isAuth = Xss.validateToken ctx
         if isAuth then
             let! form = streamForm ctx
+            return Some form
+        else
+            return None
+    }
+
+/// Retrieves the form collection from the request as an instance of
+/// FormData.
+/// 
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
+let getFormData (ctx : HttpContext) : Task<FormData> =
+    task {
+        let! form = 
+            if ctx.Request.IsMultipart() then 
+                ctx.Request.StreamFormAsync()
+            else 
+                ctx.Request.ReadFormAsync()
+        let files = if isNull(form.Files) then None else Some form.Files
+        return FormData(form, files)
+    }
+    
+/// Retrieves the form collection from the request as an instance of
+/// FormData, if the CSRF token is valid, otherwise it
+/// returns None.
+/// 
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
+let getFormDataSecure (ctx : HttpContext) : Task<FormData option> =
+    task {
+        let! isAuth = Xss.validateToken ctx
+        if isAuth then
+            let! form = getFormData ctx
             return Some form
         else
             return None
@@ -152,6 +201,9 @@ let mapQuery
 
 /// Projects FormCollectionReader onto 'T and provides
 /// to next HttpHandler.
+/// 
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
 let mapForm
     (map : FormCollectionReader -> 'T)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
@@ -160,11 +212,25 @@ let mapForm
         return! next (map form) ctx
     }
 
+/// Projects FormData onto 'T and provides
+/// to next HttpHandler.
+/// 
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
+let mapFormData
+    (map : FormData -> 'T)
+    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
+    task {
+        let! form = getFormData ctx
+        return! next (map form) ctx
+    }
+
 /// Streams multipart/form-data into FormCollectionReader and projects onto 'T
 /// and provides to next HttpHandler.
 ///
 /// Important: This is intended to be used with multipart/form-data submissions
 /// and will not work if this content-type is not present.
+[<Obsolete("Use mapForm or mapFormData instead.")>]
 let mapFormStream
     (map : FormCollectionReader -> 'T)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
@@ -172,6 +238,7 @@ let mapFormStream
         let! form = streamForm ctx
         return! next (map form) ctx
     }
+
 
 /// Validates the CSRF of the current request.
 let validateCsrfToken
@@ -190,6 +257,9 @@ let validateCsrfToken
 
 /// Projects FormCollectionReader onto 'T and provides
 /// to next HttpHandler.
+/// 
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
 let mapFormSecure
     (map : FormCollectionReader -> 'T)
     (next : 'T -> HttpHandler)
@@ -207,11 +277,34 @@ let mapFormSecure
         return! respondWith ctx
     }
 
+/// Projects FormData onto 'T and provides
+/// to next HttpHandler.
+/// 
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
+let mapFormDataSecure
+    (map : FormData -> 'T)
+    (next : 'T -> HttpHandler)
+    (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
+    task {
+        let! form = getFormDataSecure ctx
+
+        let respondWith =
+            match form with
+            | Some form ->
+                next (map form)
+            | None ->
+                handleInvalidToken
+
+        return! respondWith ctx
+    }
+
 /// Streams multipart/form-data into FormCollectionReader and projects onto 'T
 /// and provides to next HttpHandler.
 ///
 /// Important: This is intended to be used with multipart/form-data submissions
 /// and will not work if this content-type is not present.
+[<Obsolete("Use mapFormSecure or mapFormDataSecure instead.")>]
 let mapFormStreamSecure
     (map : FormCollectionReader -> 'T)
     (next : 'T -> HttpHandler)
