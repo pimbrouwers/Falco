@@ -54,7 +54,7 @@
     <Compile Include="StringCollectionReader.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
-    <Compile Include="Hosting.fs" />
+    <Compile Include="App.fs" />
   </ItemGroup>
 
   <ItemGroup>
