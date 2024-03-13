@@ -320,9 +320,10 @@ module Program =
     open Falco
     open Falco.Routing
     open Microsoft.AspNetCore.Builder
+    open Microsoft.Extensions.Configuration
     open Microsoft.Extensions.DependencyInjection
     open Microsoft.Extensions.Hosting
-    open Microsoft.Extensions.Configuration
+    open Microsoft.Extensions.Logging
     open Infrastructure
     open Web
 
@@ -340,30 +341,25 @@ module Program =
             }
 
         member _.NotFound =
-            Response.withStatusCode 404
-            >> Response.ofPlainText "Not Found"
+            Response.withStatusCode 404 >> Response.ofPlainText "Not Found"
 
     [<EntryPoint>]
     let main args =
-        let bldr = WebApplication.CreateBuilder(args)
+        Falco(args)
+        |> Falco.addService AntiforgeryServiceCollectionExtensions.AddAntiforgery
+        |> Falco.addSingleton'<IDbConnectionFactory>(fun conf _ ->
+            conf.GetConnectionString("Default")
+            |> SqliteConnectionFactory.create)
+        |> Falco.middleware StaticFileExtensions.UseStaticFiles
+        |> Falco.get Route.index (Falco.plug<IDbConnectionFactory> EntryController.index)
+        |> Falco.get Route.notFound ErrorController.notFound
+        |> Falco.all Route.entryCreate [
+            GET, EntryController.create
+            POST, (Falco.plug<IDbConnectionFactory> EntryController.save) ]
+        |> Falco.all Route.entryEdit [
+            GET, (Falco.plug<IDbConnectionFactory> EntryController.edit)
+            POST, (Falco.plug<IDbConnectionFactory> EntryController.save) ]
+        |> Falco.notFound (Response.withStatusCode 404 >> Response.ofPlainText "Not Found")
+        |> Falco.run
 
-        bldr.Services
-            .AddAntiforgery()
-            |> ignore
-
-        let dbConnection =
-            let connectionString = bldr.Configuration.GetConnectionString("Default")
-            SqliteConnectionFactory.create connectionString
-
-        let app =
-            App(dbConnection)
-
-        let wapp = bldr.Build()
-
-        wapp.UseStaticFiles()
-            .UseFalco(app.Endpoints)
-            .Run(app.NotFound)
-            |> ignore
-
-        wapp.Run()
         0
