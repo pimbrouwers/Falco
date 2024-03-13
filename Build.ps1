@@ -14,7 +14,7 @@ param (
 function RunCommand {
     param ([string] $CommandExpr)
     Write-Verbose "  $CommandExpr"
-    Invoke-Expression $CommandExpr
+    Invoke-Expression "$CommandExpr"
 }
 
 $rootDir = $PSScriptRoot

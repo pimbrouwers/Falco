@@ -17,8 +17,7 @@ module Extensions =
     type IApplicationBuilder with
         /// Activates Falco integration with IEndpointRouteBuilder.
         member x.UseFalco (endpoints : HttpEndpoint seq) =
-            x.UseRouting()
-             .UseEndpoints(fun r -> r.UseFalcoEndpoints(endpoints))
+            x.UseEndpoints(fun r -> r.UseFalcoEndpoints(endpoints))
 
         /// Registers a Falco HttpHandler as exception handler lambda.
         /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda

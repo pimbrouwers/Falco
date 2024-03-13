@@ -172,7 +172,7 @@ let ``Request.mapForm`` () =
     Request.mapFormSecure (fun f -> f.GetString "name") handle Response.ofEmpty ctx |> ignore
 
 [<Fact>]
-let ``Request.mapFormStream`` () =
+let ``Request.getForm from Stream`` () =
     let ctx = getHttpContextWriteable false
     let body =
         "--9051914041544843365972754266\r\n" +
@@ -214,5 +214,5 @@ let ``Request.mapFormStream`` () =
             st1.CopyTo(ms))
         Response.ofEmpty
 
-    Request.mapFormStream (fun f -> f.GetString "name", f.Files) handle ctx |> ignore
-    Request.mapFormStreamSecure (fun f -> f.GetString "name", f.Files) handle Response.ofEmpty ctx |> ignore
+    Request.mapForm (fun f -> f.GetString "name", f.Files) handle ctx |> ignore
+    Request.mapFormSecure (fun f -> f.GetString "name", f.Files) handle Response.ofEmpty ctx |> ignore
