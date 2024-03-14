@@ -6,13 +6,10 @@
 ```fsharp
 open Falco
 open Falco.Routing
-open Falco.HostBuilder
 
-webHost [||] {
-    endpoints [
-        get "/" (Response.ofPlainText "Hello World")
-    ]
-}
+Falco()
+|> Falco.get "/" (Response.ofPlainText "Hello World")
+|> Falco.run
 ```
 
 [Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast and functional-first web applications using F#.

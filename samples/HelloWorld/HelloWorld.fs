@@ -4,7 +4,6 @@ open Falco
 open Falco.Markup
 open Falco.Routing
 open Microsoft.AspNetCore.Builder
-open Microsoft.Extensions.Hosting
 
 /// GET /
 let handlePlainText : HttpHandler =
@@ -32,14 +31,12 @@ let handleGreet : HttpHandler = fun ctx ->
 
 [<EntryPoint>]
 let main args =
-    let bldr = WebApplication.CreateBuilder(args)
-    let wapp = bldr.Build()
-    wapp.UseStaticFiles()
-        .UseFalco([
-            get "/" handlePlainText
-            get "/json" handleJson
-            get "/html" handleHtml
-            get "/greet/{name}" handleGreet
-        ]) |> ignore
-    wapp.Run()
+    Falco(args)
+    |> Falco.middleware.add StaticFileExtensions.UseStaticFiles
+    |> Falco.endpoints [
+        get "/" handlePlainText
+        get "/json" handleJson
+        get "/html" handleHtml
+        get "/greet/{name}" handleGreet ]
+    |> Falco.run
     0 // Exit code
