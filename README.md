@@ -5,7 +5,6 @@
 
 ```fsharp
 open Falco
-open Falco.Routing
 
 Falco()
 |> Falco.get "/" (Response.ofPlainText "Hello World")

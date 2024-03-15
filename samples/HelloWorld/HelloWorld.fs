@@ -31,8 +31,8 @@ let handleGreet : HttpHandler = fun ctx ->
 
 [<EntryPoint>]
 let main args =
-    Falco(args)
-    |> Falco.middleware.add StaticFileExtensions.UseStaticFiles
+    Falco args
+    |> Falco.Middleware.add StaticFileExtensions.UseStaticFiles
     |> Falco.endpoints [
         get "/" handlePlainText
         get "/json" handleJson

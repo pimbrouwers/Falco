@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Domain.fs" />
+    <Compile Include="Infrastructure.fs" />
+    <Compile Include="Service.fs" />
+    <Compile Include="Web.fs" />
     <Compile Include="Tutorial.fs" />
   </ItemGroup>
 
