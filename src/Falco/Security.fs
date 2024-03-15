@@ -64,11 +64,11 @@ module Crypto =
             (Encoding.UTF8.GetBytes strToHash)
 
 module Xss =
-    open System.Threading.Tasks    
+    open System.Threading.Tasks
     open Falco.Markup
     open Microsoft.AspNetCore.Antiforgery
     open Microsoft.AspNetCore.Http
-    open Microsoft.Extensions.DependencyInjection
+    open Falco
 
     /// Outputs an antiforgery <input type="hidden" />.
     let antiforgeryInput
@@ -81,12 +81,12 @@ module Xss =
     /// Generates a CSRF token using the Microsoft.AspNetCore.Antiforgery
     /// package.
     let getToken (ctx : HttpContext) : AntiforgeryTokenSet =
-        let antiFrg = ctx.RequestServices.GetRequiredService<IAntiforgery>()
+        let antiFrg = ctx.GetService<IAntiforgery>()
         antiFrg.GetAndStoreTokens ctx
 
     /// Validates the Antiforgery token within the provided HttpContext.
     let validateToken (ctx : HttpContext) : Task<bool> =
-        let antiFrg = ctx.RequestServices.GetRequiredService<IAntiforgery>()
+        let antiFrg = ctx.GetService<IAntiforgery>()
         antiFrg.IsRequestValidAsync ctx
 
 module Auth =

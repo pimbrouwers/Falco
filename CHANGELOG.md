@@ -3,14 +3,31 @@
 All notable changes to this project will be documented in this file.
 
 ## [5.0.0] - ????-??-??
+
+### Add
+
+- `FormValue` to support complex form submissions, provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
+  - `FormData` which contains parsed `FormValue` and method to retrieve `IFormFile` by name.
+- `Request.mapFormData` and `Request.mapFormDataSecure` which parses the request body into `FormData` and provides a mapping continuation.
+- `WebApplication.UseFalco()` extension method.
+- `Falco.plug<T>`, `Falco.plug<T1,T2>`, `Falco.plug<T1,T2,T3>`, `Falco.plug<T1,T2,T3,T4>` and `Falco.plug<T1,T2,T3,T4,T5>` to enable dependency injection via continuation.
+- Falco App builder, as an improved means of constructing `WebApplication`'s.
+
+### Fixed
+
+- Missing cancellation token pass-through during form reading, `multipart/form-data` streaming and JSON serialization/deserialization.
+
+### Removed
+
 - `net6.0` support dropped (end of life 2024-11-12).
 - `webHost [||] {}` removed.
 - `config {}` removed.
-- `HttpContext.GetService<T>()`, `HttpContext.GetLogger<T>()` extensions removed.
+- `HttpContext.GetLogger<T>()` extension removed.
 - `IApplicationBuilder.IsDevelopment()`, `IApplicationBuilder.UseWhen()` extensions removed.
-- `Services.inject<T>` and overloads removed.
+- `Services.inject<T>` (and overloads) removed.
 - `Response.withContentLength` removed.
 - `StringCollectionReader.GetChildren()` removed.
+- `Request.streamForm`, `Request.streamFormSecure`, `Request.mapFormStream` and `Request.mapFormStreamSecure` removed.
 
 ## [4.0.6] - 2023-12-12
 

@@ -48,10 +48,11 @@
     <Compile Include="Core.fs" />
     <Compile Include="String.fs" />
     <Compile Include="Routing.fs" />
+    <Compile Include="Extensions.fs" />
     <Compile Include="Multipart.fs" />
-    <Compile Include="Security.fs" />
     <Compile Include="Forms.fs" />
     <Compile Include="StringCollectionReader.fs" />
+    <Compile Include="Security.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
     <Compile Include="App.fs" />
