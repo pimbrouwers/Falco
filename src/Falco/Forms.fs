@@ -121,8 +121,8 @@ type internal FormValueParser(formValues : IDictionary<string, string seq>) =
         parseKeyValues ()
 
 module FormValueParser =
-    let parse (requestBody : string) : FormValue =
-        let decoded = WebUtility.UrlDecode requestBody
+    let parse (keyValueString : string) : FormValue =
+        let decoded = WebUtility.UrlDecode keyValueString
         let keyValues = decoded.Split('&')
         let formValuePairs = Dictionary<string, IList<string>>()
         let addOrSet (acc : Dictionary<string, IList<string>>) key value =
