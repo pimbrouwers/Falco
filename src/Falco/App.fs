@@ -26,9 +26,7 @@ type Falco(bldr : WebApplicationBuilder) =
         Middleware = id
         TerminalHandler = Response.withStatusCode 404 >> Response.ofEmpty } with get, set
 
-[<RequireQualifiedAccess>]
-module Falco =
-    let run (app : Falco) =
+    static member run (app : Falco) =
         let wapp = app.Builder.Build()
 
         wapp
@@ -40,56 +38,79 @@ module Falco =
 
         wapp.Run()
 
-    let logging (fn : ILoggingBuilder -> ILoggingBuilder) (app : Falco) =
+    static member logging (fn : ILoggingBuilder -> ILoggingBuilder) (app : Falco) =
         fn app.Builder.Logging |> ignore
         app
 
-    let configuration (fn : IConfigurationBuilder -> IConfigurationBuilder) (app : Falco) =
+    static member configuration (fn : IConfigurationBuilder -> IConfigurationBuilder) (app : Falco) =
         fn app.Builder.Configuration |> ignore
         app
 
-    let notFound (handler : HttpHandler) (app : Falco)=
+    static member notFound (handler : HttpHandler) (app : Falco)=
         app.Config <- { app.Config with TerminalHandler = handler }
         app
 
-    let endpoints (endpoints : HttpEndpoint seq) (app : Falco) =
+    static member endpoints (endpoints : HttpEndpoint seq) (app : Falco) =
         app.Config <- { app.Config with Endpoints =  Seq.append endpoints app.Config.Endpoints }
         app
 
-    let all (pattern : string) (handlers : (HttpVerb * HttpHandler) seq) (app : Falco) =
+    static member all (pattern : string) (handlers : (HttpVerb * HttpHandler) seq) (app : Falco) =
         app.Config <- { app.Config with Endpoints =  Seq.append (Seq.singleton (Routing.all pattern handlers)) app.Config.Endpoints }
         app
 
-    let route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) (app : Falco) =
-        all pattern [verb, handler] app
+    static member route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.all pattern [verb, handler] app
 
-    let any (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route ANY pattern handler app
+    static member any (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route ANY pattern handler app
 
-    let get (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route GET pattern handler app
+    static member get (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route GET pattern handler app
 
-    let head (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route HEAD pattern handler app
+    static member head (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route HEAD pattern handler app
 
-    let post (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route POST pattern handler app
+    static member post (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route POST pattern handler app
 
-    let put (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route PUT pattern handler app
+    static member put (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route PUT pattern handler app
 
-    let patch (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route PATCH pattern handler app
+    static member patch (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route PATCH pattern handler app
 
-    let delete (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route DELETE pattern handler app
+    static member delete (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route DELETE pattern handler app
 
-    let options (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route OPTIONS pattern handler app
+    static member options (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route OPTIONS pattern handler app
 
-    let trace (pattern : string) (handler : HttpHandler) (app : Falco) =
-        route TRACE pattern handler app
+    static member trace (pattern : string) (handler : HttpHandler) (app : Falco) =
+        Falco.route TRACE pattern handler app
 
+    static member plug<'a> handler : HttpHandler = fun ctx ->
+        let a = ctx.RequestServices.GetRequiredService<'a>()
+        handler a ctx
+
+    static member plug<'a, 'b> handler : HttpHandler = fun ctx ->
+        let b = ctx.RequestServices.GetRequiredService<'b>()
+        Falco.plug<'a> (fun a -> handler a b) ctx
+
+    static member plug<'a, 'b, 'c> handler : HttpHandler = fun ctx ->
+        let c = ctx.RequestServices.GetRequiredService<'c>()
+        Falco.plug<'a, 'b> (fun a b -> handler a b c) ctx
+
+    static member plug<'a, 'b, 'c, 'd> handler : HttpHandler = fun ctx ->
+        let d = ctx.RequestServices.GetRequiredService<'d>()
+        Falco.plug<'a, 'b, 'c> (fun a b c -> handler a b c d) ctx
+
+
+    static member plug<'a, 'b, 'c, 'd, 'e> handler : HttpHandler = fun ctx ->
+        let e = ctx.RequestServices.GetRequiredService<'d>()
+        Falco.plug<'a, 'b, 'c, 'd> (fun a b c d -> handler a b c d e) ctx
+
+[<RequireQualifiedAccess>]
+module Falco =    
     type Services =
         static member add (fn : IServiceCollection -> IServiceCollection) (app : Falco) =
             fn app.Builder.Services |> ignore
@@ -194,25 +215,3 @@ module Falco =
         static member addPropsIf<'a> ([<ParamArray>] props : obj array) = fun (predicate : bool) (app : Falco) ->
             if predicate then Middleware.addProps<'a> props app
             else app
-
-type Falco with
-    static member plug<'a> handler : HttpHandler = fun ctx ->
-        let a = ctx.RequestServices.GetRequiredService<'a>()
-        handler a ctx
-
-    static member plug<'a, 'b> handler : HttpHandler = fun ctx ->
-        let b = ctx.RequestServices.GetRequiredService<'b>()
-        Falco.plug<'a> (fun a -> handler a b) ctx
-
-    static member plug<'a, 'b, 'c> handler : HttpHandler = fun ctx ->
-        let c = ctx.RequestServices.GetRequiredService<'c>()
-        Falco.plug<'a, 'b> (fun a b -> handler a b c) ctx
-
-    static member plug<'a, 'b, 'c, 'd> handler : HttpHandler = fun ctx ->
-        let d = ctx.RequestServices.GetRequiredService<'d>()
-        Falco.plug<'a, 'b, 'c> (fun a b c -> handler a b c d) ctx
-
-
-    static member plug<'a, 'b, 'c, 'd, 'e> handler : HttpHandler = fun ctx ->
-        let e = ctx.RequestServices.GetRequiredService<'d>()
-        Falco.plug<'a, 'b, 'c, 'd> (fun a b c d -> handler a b c d e) ctx
