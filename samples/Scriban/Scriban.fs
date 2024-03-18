@@ -1,71 +1,79 @@
 module Falco.Scriban.Program
 
 open System
-open System.Collections.Generic
 open System.IO
 open System.Threading.Tasks
 open Falco
 open Falco.Routing
-open Microsoft.AspNetCore.Builder
-open Microsoft.Extensions.Hosting
+open Microsoft.Extensions.Configuration
 open Scriban
 
-type ITemplateSerice =
+type ITemplates = 
+    abstract member TryGet : string -> string option
+
+type ITemplateService =
     abstract member Render : name: string * model: obj -> ValueTask<string>
 
-type ScribanTemplateService(templates : IDictionary<string, Template>) = 
-    interface ITemplateSerice with 
-        member _.Render(name, model) = 
-            let found, template = templates.TryGetValue(name)
-            if found then template.RenderAsync(model)
-            else failwithf "Template '%s' was not found" name
-
 module PageController =
-    let homepage (templateServce : ITemplateSerice) : HttpHandler =
+    let homepage : HttpHandler =
+        Falco.plug<ITemplateService> <| fun templateService ->
         let queryMap (q: QueryCollectionReader) =
             {| Name = q.Get("name", "World") |}
 
         let next model : HttpHandler = fun ctx ->
             task {
-                let! html = templateServce.Render("Home", model)
+                let! html = templateService.Render("Home", model)
                 return Response.ofHtmlString html ctx
             }
 
         Request.mapQuery queryMap next
 
-type App(templateService : ITemplateSerice) = 
-    member _.Endpoints = 
-        seq { 
-            get "/" (PageController.homepage templateService)
-        }
+module app =
+    let endpoints = 
+        [ get "/" PageController.homepage ]
 
-    member _.NotFound = 
+    let notFound = 
         Response.withStatusCode 404 
         >> Response.ofPlainText "Not Found"
 
+type ScribanTemplates(templates : (string * string) seq) = 
+    interface ITemplates with 
+        member _.TryGet(name) = 
+            templates
+            |> Seq.tryPick (fun (tmplName, tmpl) -> 
+                match String.Equals(name, tmplName, StringComparison.OrdinalIgnoreCase) with 
+                | true -> Some tmpl
+                | _ -> None)
+
+type ScribanTemplateService(templates : ITemplates) = 
+    interface ITemplateService with 
+        member _.Render(name, model) = 
+            match templates.TryGet name with 
+            | Some template ->
+                let tmpl = Template.Parse template
+                tmpl.RenderAsync(model)
+            | None -> failwithf "Template '%s' was not found" name
+
 [<EntryPoint>]
-let main args =
-    let executionDirectory = Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])
+let main args =    
+    let executionPath = Environment.GetCommandLineArgs()[0]
+    let executionDirectory = Path.GetDirectoryName executionPath
     
-    let bldr = WebApplication.CreateBuilder(args)
+    let scribanTemplates (conf : IConfiguration) _ = 
+        let viewsDirectoryName = conf.GetValue<string>("ViewsDirectory")
+        let viewsDirectory = Path.Combine (executionDirectory, viewsDirectoryName)
+        ScribanTemplates [ 
+            for file in Directory.EnumerateFiles viewsDirectory do 
+                let viewName = Path.GetFileNameWithoutExtension file 
+                let viewContent = File.ReadAllText file                
+                viewName, viewContent 
+        ] :> ITemplates
+
+    Falco args
+    |> Falco.Services.addSingletonConfigured<ITemplates> scribanTemplates
+    |> Falco.Services.addSingleton<ITemplateService, ScribanTemplateService>
+    |> Falco.endpoints app.endpoints
+    |> Falco.notFound app.notFound
+    |> Falco.run 
     
-    let app =
-        let scribanTemplates = 
-            Directory.EnumerateFiles(Path.Combine(executionDirectory, "Views"))
-            |> Seq.map (fun file ->
-                let viewName = Path.GetFileNameWithoutExtension(file)
-                let viewContent = File.ReadAllText(file)
-                let view = Template.Parse(viewContent)
-                viewName, view)
-            |> Map.ofSeq
-        let templateService = ScribanTemplateService(scribanTemplates) 
-        App(templateService)
-        
-    let wapp = bldr.Build()
-    
-    wapp.UseFalco(app.Endpoints)
-        .Run(app.NotFound) 
-        |> ignore
-    
-    wapp.Run()
     0 // Exit code

@@ -9,7 +9,7 @@ open Falco.StringPatterns
 
 type FormValue =
     | FNull
-    | FBool of bool    
+    | FBool of bool
     | FNumber of float
     | FString of string
     | FList of FormValue list
@@ -97,7 +97,7 @@ type internal FormValueParser(formValues : IDictionary<string, string seq>) =
         match decoded with
         | IsNullOrWhiteSpace _ -> FNull
         | IsTrue x
-        | IsFalse x -> FBool x        
+        | IsFalse x -> FBool x
         | IsFloat x -> FNumber x
         | x -> FString x
 
@@ -120,7 +120,13 @@ type internal FormValueParser(formValues : IDictionary<string, string seq>) =
     member _.Parse() : FormValue =
         parseKeyValues ()
 
-module FormValueParser =
+module FormValue =
+    open Falco
+
+    let parseKeyValues (keyValues : (string * string seq) seq) : FormValue =
+        let formValues = dict keyValues
+        FormValueParser(formValues).Parse()
+
     let parse (keyValueString : string) : FormValue =
         let decoded = WebUtility.UrlDecode keyValueString
         let keyValues = decoded.Split('&')
@@ -140,40 +146,12 @@ module FormValueParser =
             | key :: values when values.Length = 0 -> addOrSet formValuePairs key String.Empty
             | key :: value :: _ -> addOrSet formValuePairs key value
 
-        let formValues =
-            formValuePairs
-            |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> IEnumerable<string>)
-            |> dict
-
-        FormValueParser(formValues).Parse()
-
-    let parseForm (formCollection : IFormCollection) : FormValue =
-        let formValues =
-            formCollection
-            |> Seq.map (fun kvp -> kvp.Key, Seq.ofArray (kvp.Value.ToArray()))
-            |> dict
-
-        FormValueParser(formValues).Parse()
-
-[<Sealed>]
-type FormData(form : IFormCollection, files : IFormFileCollection option) =
-    member _.Values =
-        FormValueParser.parseForm form
-
-    member _.TryGetFile(name : string) =
-        match files, name with
-        | _, IsNullOrWhiteSpace _
-        | None, _ -> None
-        | Some files, name ->
-            match files.GetFile name with
-            | f when isNull f -> None
-            | f -> Some f
-
-module FormValue =
-    open Falco 
+        formValuePairs
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> IEnumerable<string>)
+        |> parseKeyValues
 
     let private epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
- 
+
     let inline private floatInRange min max (f : float) =
         let _min = float min
         let _max = float max
@@ -249,28 +227,18 @@ module FormValue =
 module FormValueExtensions =
     open System.Runtime.CompilerServices
 
-    let inline private convertOrFail
-        (typeName : string)
-        (ctor : FormValue -> 'a option)
-        (f : FormValue): 'a =
-        match ctor f with
+    let inline private convertOrNone ctor formValue =
+        match formValue with 
+        | FNull -> None
+        | f -> ctor f
+
+    let inline private convertOrDefault (ctor : FormValue -> 'a option) (defaultValue : 'a) formValue =
+        match ctor formValue with
         | Some s -> s
-        | None   -> failwithf "%A is not an %s" f typeName
+        | None -> defaultValue
 
     [<Extension>]
     type FormValueExtensions() =
-        [<Extension>]
-        static member AsObject (f : FormValue) =
-            match f with
-            | FObject properties -> properties
-            | _ -> []
-
-        [<Extension>]
-        static member AsList (f : FormValue) : FormValue list =
-            match f with
-            | FList a -> a
-            | _ -> []
-
         [<Extension>]
         static member TryGet (this : FormValue, name : string) : FormValue option =
             match this with
@@ -284,51 +252,101 @@ module FormValueExtensions =
         static member Get (this : FormValue, name : string) : FormValue =
             match this.TryGet name with
             | Some prop -> prop
-            | None -> failwithf "Property %s does not exist" name
+            | None -> FNull
 
         [<Extension>]
-        static member AsString (f : FormValue) : string = 
-            convertOrFail "string" FormValue.asString f
+        static member AsObject formValue =
+            match formValue with
+            | FObject properties -> properties
+            | _ -> []
 
         [<Extension>]
-        static member AsInt16 (f : FormValue) : Int16 = 
-            convertOrFail "Int16" FormValue.asInt16 f
+        static member AsList formValue =
+            match formValue with
+            | FList a -> a
+            | _ -> []
 
         [<Extension>]
-        static member AsInt32 (f : FormValue) : Int32 = 
-            convertOrFail "Int32" FormValue.asInt32 f
+        static member AsString formValue = convertOrDefault FormValue.asString "" formValue
 
         [<Extension>]
-        static member AsInt (f : FormValue) : int = 
-            convertOrFail "Int" FormValue.asInt f
+        static member AsInt16 formValue = convertOrDefault FormValue.asInt16 0s formValue
 
         [<Extension>]
-        static member AsInt64 (f : FormValue) : Int64 = 
-            convertOrFail "Int64" FormValue.asInt64 f
+        static member AsInt32 formValue = convertOrDefault FormValue.asInt32 0 formValue
 
         [<Extension>]
-        static member AsFloat (f : FormValue) : float = 
-            convertOrFail "Float" FormValue.asFloat f
+        static member AsInt formValue = FormValueExtensions.AsInt32 formValue
 
         [<Extension>]
-        static member AsDecimal (f : FormValue) : Decimal = 
-            convertOrFail "Decimal" FormValue.asDecimal f
+        static member AsInt64 formValue = convertOrDefault FormValue.asInt64 0L formValue
 
         [<Extension>]
-        static member AsDateTime (f : FormValue) : DateTime = 
-            convertOrFail "DateTime" FormValue.asDateTime f
+        static member AsFloat formValue = convertOrDefault FormValue.asFloat 0. formValue
 
         [<Extension>]
-        static member AsDateTimeOffset (f : FormValue) : DateTimeOffset = 
-            convertOrFail "DateTimeOffset" FormValue.asDateTimeOffset f
+        static member AsDecimal formValue = convertOrDefault FormValue.asDecimal 0.M formValue
 
         [<Extension>]
-        static member AsTimeSpan (f : FormValue) : TimeSpan = 
-            convertOrFail "TimeSpan" FormValue.asTimeSpan f
+        static member AsDateTime formValue = convertOrDefault FormValue.asDateTime DateTime.MinValue formValue
 
         [<Extension>]
-        static member AsGuid (f : FormValue) : Guid = 
-            convertOrFail "Guid" FormValue.asGuid f
+        static member AsDateTimeOffset formValue = convertOrDefault FormValue.asDateTimeOffset DateTimeOffset.MinValue formValue
 
-    let (?) (form : FormValue) (name : string) : FormValue =
-        form.Get name
+        [<Extension>]
+        static member AsTimeSpan formValue = convertOrDefault FormValue.asTimeSpan TimeSpan.MinValue formValue
+
+        [<Extension>]
+        static member AsGuid formValue = convertOrNone FormValue.asGuid formValue
+
+        [<Extension>]
+        static member AsStringOption formValue = convertOrNone FormValue.asString formValue
+
+        [<Extension>]
+        static member AsInt16Option formValue = convertOrNone FormValue.asInt16 formValue
+
+        [<Extension>]
+        static member AsInt32Option formValue = convertOrNone FormValue.asInt32 formValue
+
+        [<Extension>]
+        static member AsIntOption formValue = FormValueExtensions.AsInt32Option formValue
+
+        [<Extension>]
+        static member AsInt64Option formValue = convertOrNone FormValue.asInt64 formValue
+
+        [<Extension>]
+        static member AsFloatOption formValue = convertOrNone FormValue.asFloat formValue
+
+        [<Extension>]
+        static member AsDecimalOption formValue = convertOrNone FormValue.asDecimal formValue
+
+        [<Extension>]
+        static member AsDateTimeOption formValue = convertOrNone FormValue.asDateTime formValue
+
+        [<Extension>]
+        static member AsDateTimeOffsetOption formValue = convertOrNone FormValue.asDateTimeOffset formValue
+
+        [<Extension>]
+        static member AsTimeSpanOption formValue = convertOrNone FormValue.asTimeSpan formValue
+
+        [<Extension>]
+        static member AsGuidOption formValue = convertOrNone FormValue.asGuid formValue
+
+    let inline (?) (formValue : FormValue) (name : string) =
+        formValue.Get name
+
+[<Sealed>]
+type FormData(form : IFormCollection, files : IFormFileCollection option) =
+    member _.Values =
+        form
+        |> Seq.map (fun kvp -> kvp.Key, Seq.cast kvp.Value)
+        |> FormValue.parseKeyValues
+
+    member _.TryGetFile(name : string) =
+        match files, name with
+        | _, IsNullOrWhiteSpace _
+        | None, _ -> None
+        | Some files, name ->
+            match files.GetFile name with
+            | f when isNull f -> None
+            | f -> Some f

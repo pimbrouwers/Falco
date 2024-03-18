@@ -15,7 +15,7 @@ open Microsoft.Extensions.Primitives
 let ``FormValue should return empty FObject for incomplete request body`` () =
     let expected = FObject []
     ""
-    |> FormValueParser.parse
+    |> FormValue.parse
     |> should equal expected 
 
 [<Fact>]
@@ -23,7 +23,7 @@ let ``FormValue should parse simple pair`` () =
     let expected = FObject [ "name", FString "john doe" ]
 
     "name=john%20doe"
-    |> FormValueParser.parse 
+    |> FormValue.parse 
     |> should equal expected
 
 [<Fact>]
@@ -33,7 +33,7 @@ let ``FormValue should parse multiple simple pairs`` () =
         "orders", FNumber 2 ]
 
     "season=summer&orders=2"
-    |> FormValueParser.parse 
+    |> FormValue.parse 
     |> should equal expected
 
 [<Fact>]
@@ -68,9 +68,8 @@ let ``FormValue should parse complex`` () =
     |> Seq.map (fun (k, v) -> k, StringValues(Array.ofSeq v))
     |> Seq.iter (fun kvp -> formDict.Add(kvp))
 
-    FormCollection(formDict)
-    |> FormValueParser.parseForm
-    |> should equal expected
+    let formData = FormData(FormCollection(formDict), None)
+    formData.Values |> should equal expected
 
 [<Fact>]
 let ``Can make FormData from IFormCollection`` () =
@@ -104,7 +103,7 @@ let ``Can safely get IFormFile from IFormCollection`` () =
     emptyFormData.TryGetFile formFileName
     |> shouldBeNone
 
-type City = { Name : string }
+type City = { Name : string; YearFounded : int option }
 type CityResult = { Count : int; Results : City list }
 type Weather = { Season : string; Temperature : float; Effects : string list; Cities : CityResult }
 
@@ -116,7 +115,7 @@ let ``FormValue extensions should work`` () =
           Effects = [ "overcast"; "wind gusts" ]
           Cities = {
             Count = 2
-            Results = [ { Name = "Toronto" }; { Name = "Tokyo"} ] } }
+            Results = [ { Name = "Toronto"; YearFounded = Some 123 }; { Name = "Tokyo"; YearFounded = None } ] } }
 
     let f = FObject [
         "season", FString "summer"        
@@ -125,7 +124,7 @@ let ``FormValue extensions should work`` () =
         "cities", FObject [
             "count", FNumber 2
             "results", FList [
-                FObject [ "name", FString "Toronto" ]
+                FObject [ "name", FString "Toronto"; "year_founded", FNumber 123 ]
                 FObject [ "name", FString "Tokyo" ] ] ] ]
 
     { Season = f?season.AsString() 
@@ -137,5 +136,6 @@ let ``FormValue extensions should work`` () =
         Count = f?cities?count.AsInt()
         Results = [ 
             for c in f?cities?results.AsList() do
-                { Name = c?name.AsString() } ] } }
+                { Name = c?name.AsString()
+                  YearFounded = c?year_founded.AsIntOption() } ] } }
     |> should equal expected

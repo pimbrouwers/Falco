@@ -31,9 +31,9 @@ type Falco(bldr : WebApplicationBuilder) =
 
         wapp
         :> IApplicationBuilder
-        |> fun x -> x.UseFalco(app.Config.Endpoints)
+        |> _.UseFalco(app.Config.Endpoints)
         |> app.Config.Middleware
-        |> fun x -> x.Run(app.Config.TerminalHandler)
+        |> _.Run(app.Config.TerminalHandler)
         |> ignore
 
         wapp.Run()

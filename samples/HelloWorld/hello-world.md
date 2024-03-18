@@ -1,9 +1,7 @@
-# Falco Hello World app 4 ways
+# Falco Hello World 
 
-The goal of this program is to demonstrate some of the recommended patterns
-using the simplest cases as examples. It is completely overblown on purpose.
-
-You could write the most basic hello world as:
+The goal of this program is to demonstrate the absolute bare bones hello world
+application, using as little code as possible.
 
 ```fsharp
 Falco ()
