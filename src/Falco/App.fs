@@ -33,8 +33,8 @@ module Falco =
 
         wapp
         :> IApplicationBuilder
-        |> fun x -> x.UseFalco(app.Config.Endpoints)
         |> app.Config.Middleware
+        |> fun x -> x.UseFalco(app.Config.Endpoints)
         |> fun x -> x.Run(app.Config.TerminalHandler)
         |> ignore
 
@@ -211,7 +211,6 @@ type Falco with
     static member plug<'a, 'b, 'c, 'd> handler : HttpHandler = fun ctx ->
         let d = ctx.RequestServices.GetRequiredService<'d>()
         Falco.plug<'a, 'b, 'c> (fun a b c -> handler a b c d) ctx
-
 
     static member plug<'a, 'b, 'c, 'd, 'e> handler : HttpHandler = fun ctx ->
         let e = ctx.RequestServices.GetRequiredService<'d>()
