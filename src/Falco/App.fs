@@ -215,27 +215,3 @@ module Falco =
         static member addPropsIf<'a> ([<ParamArray>] props : obj array) = fun (predicate : bool) (app : Falco) ->
             if predicate then Middleware.addProps<'a> props app
             else app
-<<<<<<< HEAD
-
-type Falco with
-    static member plug<'a> handler : HttpHandler = fun ctx ->
-        let a = ctx.RequestServices.GetRequiredService<'a>()
-        handler a ctx
-
-    static member plug<'a, 'b> handler : HttpHandler = fun ctx ->
-        let b = ctx.RequestServices.GetRequiredService<'b>()
-        Falco.plug<'a> (fun a -> handler a b) ctx
-
-    static member plug<'a, 'b, 'c> handler : HttpHandler = fun ctx ->
-        let c = ctx.RequestServices.GetRequiredService<'c>()
-        Falco.plug<'a, 'b> (fun a b -> handler a b c) ctx
-
-    static member plug<'a, 'b, 'c, 'd> handler : HttpHandler = fun ctx ->
-        let d = ctx.RequestServices.GetRequiredService<'d>()
-        Falco.plug<'a, 'b, 'c> (fun a b c -> handler a b c d) ctx
-
-    static member plug<'a, 'b, 'c, 'd, 'e> handler : HttpHandler = fun ctx ->
-        let e = ctx.RequestServices.GetRequiredService<'d>()
-        Falco.plug<'a, 'b, 'c, 'd> (fun a b c d -> handler a b c d e) ctx
-=======
->>>>>>> 83057cecf3dd2d5c58fc55cd292971be3e4bfb2e
