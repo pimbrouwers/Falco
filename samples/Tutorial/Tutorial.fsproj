@@ -9,7 +9,7 @@
     <Compile Include="Infrastructure.fs" />
     <Compile Include="Service.fs" />
     <Compile Include="Web.fs" />
-    <Compile Include="Tutorial.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>

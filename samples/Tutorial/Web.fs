@@ -167,7 +167,8 @@ module EntryController =
         Response.ofHtmlCsrf view ctx
 
     /// GET /entry/edit/{id}
-    let edit : HttpHandler = Falco.plug<IDbConnectionFactory> <| fun dbConnection ->
+    let edit : HttpHandler = 
+        Falco.plug<IDbConnectionFactory> <| fun dbConnection ->
         let readRoute (route : RouteCollectionReader) =
             route.TryGetGuid "entry_id"
 

@@ -5,7 +5,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Falco/Falco.fsproj" />
   </ItemGroup>
-  <ItemGroup>    
-    <Compile Include="StringCollectionReader.fs" />
+  <ItemGroup>
+    <Compile Include="HelloWorldMvc.fs" />    
   </ItemGroup>
 </Project>

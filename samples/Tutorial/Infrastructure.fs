@@ -7,8 +7,7 @@ module DbExtensions =
     
     type IDbConnection with
         member x.CreateCommandText(commandText : string) =
-            let cmd = x.CreateCommand()
-            cmd.CommandType <- CommandType.Text
+            let cmd = x.CreateCommand()            
             cmd.CommandText <- commandText
             cmd
 
