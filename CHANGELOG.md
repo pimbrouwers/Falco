@@ -8,10 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - `FormValue` to support complex form submissions, provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
   - `FormData` which contains parsed `FormValue` and method to retrieve `IFormFile` by name.
+- `Forms` module, for typed HTML form creation.
 - `Request.mapFormData` and `Request.mapFormDataSecure` which parses the request body into `FormData` and provides a mapping continuation.
 - `WebApplication.UseFalco()` extension method.
 - `Falco.plug<T>`, `Falco.plug<T1,T2>`, `Falco.plug<T1,T2,T3>`, `Falco.plug<T1,T2,T3,T4>` and `Falco.plug<T1,T2,T3,T4,T5>` to enable dependency injection via continuation.
-- Falco App builder, as an improved means of constructing `WebApplication`'s.
+- Falco App builder, as a simplified means of constructing `WebApplication`'s.
 
 ### Fixed
 
