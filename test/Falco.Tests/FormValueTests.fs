@@ -1,4 +1,4 @@
-module Falco.Tests.Forms
+module Falco.Tests.FormValue
 
 open System
 open System.Collections.Generic
@@ -16,31 +16,31 @@ let ``FormValue should return empty FObject for incomplete request body`` () =
     let expected = FObject []
     ""
     |> FormValue.parse
-    |> should equal expected 
+    |> should equal expected
 
 [<Fact>]
 let ``FormValue should parse simple pair`` () =
     let expected = FObject [ "name", FString "john doe" ]
 
     "name=john%20doe"
-    |> FormValue.parse 
+    |> FormValue.parse
     |> should equal expected
 
 [<Fact>]
 let ``FormValue should parse multiple simple pairs`` () =
-    let expected = FObject [ 
+    let expected = FObject [
         "season", FString "summer"
         "orders", FNumber 2 ]
 
     "season=summer&orders=2"
-    |> FormValue.parse 
+    |> FormValue.parse
     |> should equal expected
 
 [<Fact>]
-let ``FormValue should parse complex`` () = 
+let ``FormValue should parse complex`` () =
     let expected = FObject [
         "season", FString "summer"
-        "orders", FNumber 2                
+        "orders", FNumber 2
         "tags", FList [ FString "clothing"; FString "shoes"]
         "user", FObject [
             "name", FString "john"
@@ -52,7 +52,7 @@ let ``FormValue should parse complex`` () =
                     "kind", FString "visa" ]
                 FObject [
                     "num", FNumber 456
-                    "kind", FString "visa" ] ] ] ] 
+                    "kind", FString "visa" ] ] ] ]
 
     let formDict = Dictionary<string, StringValues>()
     [
@@ -77,15 +77,15 @@ let ``Can make FormData from IFormCollection`` () =
     |> should not' throw
 
 [<Fact>]
-let ``Can safely get IFormFile from IFormCollection`` () = 
+let ``Can safely get IFormFile from IFormCollection`` () =
     let formFileName = "abc.txt"
 
     let emptyFormData = FormData(FormCollection(Dictionary()), Some (FormFileCollection() :> IFormFileCollection))
     emptyFormData.TryGetFile formFileName
     |> shouldBeNone
 
-    let formFile = 
-        { new IFormFile with 
+    let formFile =
+        { new IFormFile with
             member _.ContentDisposition = String.Empty
             member _.ContentType = String.Empty
             member _.FileName = String.Empty
@@ -107,9 +107,9 @@ type City = { Name : string; YearFounded : int option }
 type CityResult = { Count : int; Results : City list }
 type Weather = { Season : string; Temperature : float; Effects : string list; Cities : CityResult }
 
-[<Fact>]    
-let ``FormValue extensions should work`` () = 
-    let expected = 
+[<Fact>]
+let ``FormValue extensions should work`` () =
+    let expected =
         { Season = "summer"
           Temperature = 23.5
           Effects = [ "overcast"; "wind gusts" ]
@@ -118,7 +118,7 @@ let ``FormValue extensions should work`` () =
             Results = [ { Name = "Toronto"; YearFounded = Some 123 }; { Name = "Tokyo"; YearFounded = None } ] } }
 
     let f = FObject [
-        "season", FString "summer"        
+        "season", FString "summer"
         "temperature", FNumber 23.5
         "effects", FList [ FString "overcast"; FString "wind gusts"]
         "cities", FObject [
@@ -127,14 +127,14 @@ let ``FormValue extensions should work`` () =
                 FObject [ "name", FString "Toronto"; "year_founded", FNumber 123 ]
                 FObject [ "name", FString "Tokyo" ] ] ] ]
 
-    { Season = f?season.AsString() 
+    { Season = f?season.AsString()
       Temperature = f?temperature.AsFloat()
-      Effects = [ 
-        for e in f?effects.AsList() do 
+      Effects = [
+        for e in f?effects.AsList() do
             e.AsString() ]
       Cities = {
         Count = f?cities?count.AsInt()
-        Results = [ 
+        Results = [
             for c in f?cities?results.AsList() do
                 { Name = c?name.AsString()
                   YearFounded = c?year_founded.AsIntOption() } ] } }
