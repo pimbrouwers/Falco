@@ -1,4 +1,4 @@
-namespace Falco.Forms
+namespace Falco
 
 open System
 open System.Collections.Generic
@@ -228,7 +228,7 @@ module FormValueExtensions =
     open System.Runtime.CompilerServices
 
     let inline private convertOrNone ctor formValue =
-        match formValue with 
+        match formValue with
         | FNull -> None
         | f -> ctor f
 

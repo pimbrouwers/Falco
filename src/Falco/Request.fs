@@ -9,7 +9,6 @@ open System.Threading
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
-open Falco.Forms
 open Falco.Multipart
 open Falco.Security
 open Falco.StringUtils
@@ -54,17 +53,17 @@ let getQuery (ctx : HttpContext) : QueryCollectionReader =
 
 /// Retrieves the form collection from the request as an instance of
 /// FormCollectionReader.
-/// 
+///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
     task {
         use tokenSource = new CancellationTokenSource()
 
-        let! form = 
-            if ctx.Request.IsMultipart() then 
+        let! form =
+            if ctx.Request.IsMultipart() then
                 ctx.Request.StreamFormAsync(tokenSource.Token)
-            else 
+            else
                 ctx.Request.ReadFormAsync(tokenSource.Token)
 
         let files = if isNull(form.Files) then None else Some form.Files
@@ -74,7 +73,7 @@ let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
 /// Retrieves the form collection from the request as an instance of
 /// FormCollectionReader, if the CSRF token is valid, otherwise it
 /// returns None.
-/// 
+///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
@@ -89,25 +88,25 @@ let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
 
 /// Retrieves the form collection from the request as an instance of
 /// FormData.
-/// 
+///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let getFormData (ctx : HttpContext) : Task<FormData> =
     task {
         use tokenSource = new CancellationTokenSource()
-        let! form = 
-            if ctx.Request.IsMultipart() then 
+        let! form =
+            if ctx.Request.IsMultipart() then
                 ctx.Request.StreamFormAsync(tokenSource.Token)
-            else 
+            else
                 ctx.Request.ReadFormAsync(tokenSource.Token)
         let files = if isNull(form.Files) then None else Some form.Files
         return FormData(form, files)
     }
-    
+
 /// Retrieves the form collection from the request as an instance of
 /// FormData, if the CSRF token is valid, otherwise it
 /// returns None.
-/// 
+///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let getFormDataSecure (ctx : HttpContext) : Task<FormData option> =
@@ -181,7 +180,7 @@ let mapQuery
 
 /// Projects FormCollectionReader onto 'T and provides
 /// to next HttpHandler.
-/// 
+///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let mapForm
@@ -194,7 +193,7 @@ let mapForm
 
 /// Projects FormData onto 'T and provides
 /// to next HttpHandler.
-/// 
+///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let mapFormData
@@ -222,7 +221,7 @@ let validateCsrfToken
 
 /// Projects FormCollectionReader onto 'T and provides
 /// to next HttpHandler.
-/// 
+///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let mapFormSecure
@@ -244,7 +243,7 @@ let mapFormSecure
 
 /// Projects FormData onto 'T and provides
 /// to next HttpHandler.
-/// 
+///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let mapFormDataSecure

@@ -5,7 +5,7 @@ open System.Collections.Generic
 open System.IO
 open System.Threading
 open System.Threading.Tasks
-open Falco.Forms
+open Falco
 open FsUnit.Xunit
 open Xunit
 open Microsoft.AspNetCore.Http
