@@ -54,7 +54,6 @@
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
     <Compile Include="Routing.fs" />
-    <Compile Include="Forms.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
