@@ -8,7 +8,9 @@ param (
     [ValidateSet("Debug", "Release")]
     [string] $Configuration = "Debug",
 
-    [switch] $SkipClean
+    [switch] $NoRestore,
+    
+    [switch] $Clean
 )
 
 function RunCommand {
@@ -29,9 +31,12 @@ switch ($Action) {
     Default       { $projectDir = Join-Path -Path $srcDir -ChildPath 'Falco' }
 }
 
-if (!$SkipClean.IsPresent)
-{
+if(!$NoRestore.IsPresent) {
     RunCommand "dotnet restore $projectDir --force --force-evaluate --nologo --verbosity quiet"
+}
+
+if ($Clean)
+{
     RunCommand "dotnet clean $projectDir -c $Configuration --nologo --verbosity quiet"
 }
 

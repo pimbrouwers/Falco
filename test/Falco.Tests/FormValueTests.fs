@@ -15,7 +15,7 @@ open Microsoft.Extensions.Primitives
 let ``FormValue should return empty FObject for incomplete request body`` () =
     let expected = FObject []
     ""
-    |> FormValue.parse
+    |> FormValueParser.parse
     |> should equal expected
 
 [<Fact>]
@@ -23,7 +23,7 @@ let ``FormValue should parse simple pair`` () =
     let expected = FObject [ "name", FString "john doe" ]
 
     "name=john%20doe"
-    |> FormValue.parse
+    |> FormValueParser.parse
     |> should equal expected
 
 [<Fact>]
@@ -33,8 +33,59 @@ let ``FormValue should parse multiple simple pairs`` () =
         "orders", FNumber 2 ]
 
     "season=summer&orders=2"
-    |> FormValue.parse
+    |> FormValueParser.parse
     |> should equal expected
+
+[<Fact>]
+let ``FormValue should parse explicit list`` () =
+    let expected = FObject [
+        "season", FList [ FString "summer"; FString "winter" ] ]
+    "season[]=summer&season[]=winter"
+    |> FormValueParser.parse
+    |> should equal expected
+
+[<Fact>]
+let ``FormValue should parse indexed list`` () =
+    let expected = FObject [
+        "season", FList [ FString "summer"; FString "winter" ] ]
+    "season[0]=summer&season[1]=winter"
+    |> FormValueParser.parse
+    |> should equal expected
+
+[<Fact>]
+let ``FormValue should parse out-of-order indexed list`` () =
+    let expected = FObject [
+        "season", FList [ FString "summer"; FString "winter" ] ]
+    "season[1]=winter&season[0]=summer"
+    |> FormValueParser.parse
+    |> should equal expected
+
+[<Fact>]
+let ``FormValue should parse jagged indexed list`` () =
+    let expected = FObject [
+        "season", FList [ FString "summer"; FNull; FString "winter" ] ]
+    "season[0]=summer&season[2]=winter"
+    |> FormValueParser.parse
+    |> should equal expected
+
+[<Fact>]
+let ``FormValue should parse out-of-order, jagged indexed list`` () =
+    let expected = FObject [
+        "season", FList [ FString "summer"; FNull; FString "winter" ] ]
+    "season[2]=winter&season[0]=summer"
+    |> FormValueParser.parse
+    |> should equal expected
+
+[<Fact>]
+let ``FormValue should parse object with indexed list`` () =
+    let expected = FObject [
+        "user", FObject [
+            "name", FString "john doe"
+            "hobbies", FList [ FString "cycling"; FString "hiking" ] ] ]
+    "user.name=john%20doe&user.hobbies[0]=cycling&user.hobbies[1]=hiking"
+    |> FormValueParser.parse
+    |> should equal expected
+
 
 [<Fact>]
 let ``FormValue should parse complex`` () =
@@ -56,14 +107,14 @@ let ``FormValue should parse complex`` () =
 
     let formDict = Dictionary<string, StringValues>()
     [
-        "season", seq { "summer" }
-        "orders", seq { "2" }
-        "tags[]", seq { "clothing"; "shoes" }
-        "user.name", seq { "john" }
-        "user.age", seq { "97" }
-        "user.hobbies[]", seq { "cycling"; "hiking" }
-        "user.cards[].num", seq { "123"; "456" }
-        "user.cards[].kind", seq { "visa"; "amex" }
+        "season", [ "summer" ]
+        "orders", [ "2" ]
+        "tags[]", [ "clothing"; "shoes" ]
+        "user.name", [ "john" ]
+        "user.age", [ "97" ]
+        "user.hobbies[]", [ "cycling"; "hiking" ]
+        "user.cards[].num", [ "123"; "456" ]
+        "user.cards[].kind", [ "visa"; "amex" ]
     ]
     |> Seq.map (fun (k, v) -> k, StringValues(Array.ofSeq v))
     |> Seq.iter (fun kvp -> formDict.Add(kvp))

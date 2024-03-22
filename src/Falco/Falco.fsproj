@@ -47,8 +47,9 @@
   <ItemGroup>
     <Compile Include="Core.fs" />
     <Compile Include="String.fs" />
-    <Compile Include="FormValue.fs" />
     <Compile Include="StringCollectionReader.fs" />
+    <Compile Include="FormValue.fs" />
+    <Compile Include="RequestData.fs" />
     <Compile Include="Multipart.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="Request.fs" />
