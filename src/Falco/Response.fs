@@ -7,6 +7,7 @@ open System.Security.Claims
 open System.Text
 open System.Text.Json
 open Falco.Markup
+open Falco.Security
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http

@@ -1,8 +1,8 @@
-﻿namespace Falco.Tests
+﻿module Falco.Tests.SecurityTests
 
 open FsUnit.Xunit
 open Xunit
-open Falco
+open Falco.Security
 open Falco.Markup
 open Microsoft.AspNetCore.Antiforgery
 open System.Security.Claims

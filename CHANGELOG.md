@@ -30,9 +30,7 @@ All notable changes to this project will be documented in this file.
 - `Response.withContentLength` removed.
 - `StringCollectionReader.GetChildren()` removed.
 - `Request.streamForm`, `Request.streamFormSecure`, `Request.mapFormStream` and `Request.mapFormStreamSecure` removed.
-- `Falco.Security` namespace,
-  - `Crypto` module also removed.
-  - `Xss` and `Auth` modules elevated to `Falco` namespace.
+- `Falco.Security.Crypto` module removed.
 
 ## [4.0.6] - 2023-12-12
 

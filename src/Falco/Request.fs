@@ -1,7 +1,6 @@
 [<RequireQualifiedAccess>]
 module Falco.Request
 
-open System
 open System.IO
 open System.Text
 open System.Text.Json
@@ -10,6 +9,7 @@ open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
 open Falco.Multipart
+open Falco.Security
 open Falco.StringUtils
 
 /// Obtains the HttpVerb of the request

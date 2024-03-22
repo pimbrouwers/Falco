@@ -1,4 +1,4 @@
-namespace Falco
+namespace Falco.Security
 
 module Xss =
     open System.Threading.Tasks
