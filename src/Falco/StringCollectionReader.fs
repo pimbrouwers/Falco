@@ -13,16 +13,6 @@ type StringCollectionReader (values : IDictionary<string, string seq>) =
         | true, v    -> Some v
         | false, _   -> None
 
-    let parseInt16          = tryParseWith Int16.TryParse
-    let parseInt64          = tryParseWith Int64.TryParse
-    let parseInt32          = tryParseWith Int32.TryParse
-    let parseFloat          = tryParseWith Double.TryParse
-    let parseDecimal        = tryParseWith Decimal.TryParse
-    let parseDateTime       = tryParseWith DateTime.TryParse
-    let parseDateTimeOffset = tryParseWith DateTimeOffset.TryParse
-    let parseTimeSpan       = tryParseWith TimeSpan.TryParse
-    let parseGuid           = tryParseWith Guid.TryParse
-
     let parseNonEmptyString x =
         if StringUtils.strEmpty x then None
         else Some x
@@ -83,15 +73,15 @@ type StringCollectionReader (values : IDictionary<string, string seq>) =
 
     /// Safely retrieves non-empty String option.
     member x.TryGetStringNonEmpty (name : string) =
-        x.TryGetBind (fun v -> parseNonEmptyString v) name
+        x.TryGetBind (fun v -> StringParser.parseNonEmptyString v) name
 
     /// Safely retrieves Int16 option.
     member x.TryGetInt16 (name : string) =
-        x.TryGetBind (fun v -> parseInt16 v) name
+        x.TryGetBind (fun v -> StringParser.parseInt16 v) name
 
     /// Safely retrieves Int32 option.
     member x.TryGetInt32 (name : string) =
-        x.TryGetBind (fun v -> parseInt32 v) name
+        x.TryGetBind (fun v -> StringParser.parseInt32 v) name
 
     /// Safely retrieves Int option.
     member x.TryGetInt (name : string) =
@@ -99,35 +89,35 @@ type StringCollectionReader (values : IDictionary<string, string seq>) =
 
     /// Safely retrieves Int64 option.
     member x.TryGetInt64 (name : string) =
-        x.TryGetBind (fun v -> parseInt64 v) name
+        x.TryGetBind (fun v -> StringParser.parseInt64 v) name
 
     /// Safely retrieves Boolean option.
     member x.TryGetBoolean (name : string) =
-        x.TryGetBind (fun v -> parseBoolean v) name
+        x.TryGetBind (fun v -> StringParser.parseBoolean v) name
 
     /// Safely retrieves Float option.
     member x.TryGetFloat (name : string) =
-        x.TryGetBind (fun v -> parseFloat v) name
+        x.TryGetBind (fun v -> StringParser.parseFloat v) name
 
     /// Safely retrieves Decimal option.
     member x.TryGetDecimal (name : string) =
-        x.TryGetBind (fun v -> parseDecimal v) name
+        x.TryGetBind (fun v -> StringParser.parseDecimal v) name
 
     /// Safely retrieves DateTime option.
     member x.TryGetDateTime (name : string) =
-        x.TryGetBind (fun v -> parseDateTime v) name
+        x.TryGetBind (fun v -> StringParser.parseDateTime v) name
 
     /// Safely retrieves DateTimeOffset option.
     member x.TryGetDateTimeOffset (name : string) =
-        x.TryGetBind (fun v -> parseDateTimeOffset v) name
+        x.TryGetBind (fun v -> StringParser.parseDateTimeOffset v) name
 
     /// Safely retrieves Guid option.
     member x.TryGetGuid (name : string) =
-        x.TryGetBind (fun v -> parseGuid v) name
+        x.TryGetBind (fun v -> StringParser.parseGuid v) name
 
     /// Safely retrieves TimeSpan option.
     member x.TryGetTimeSpan (name : string) =
-        x.TryGetBind (fun v -> parseTimeSpan v) name
+        x.TryGetBind (fun v -> StringParser.parseTimeSpan v) name
 
 
     // ------------
@@ -235,11 +225,11 @@ type StringCollectionReader (values : IDictionary<string, string seq>) =
 
     /// Safely retrieves the named Int16[].
     member x.GetInt16Array (name : string) =
-        x.TryGetMapArray parseInt16 name
+        x.TryGetMapArray StringParser.parseInt16 name
 
     /// Safely retrieves the named Int32[].
     member x.GetInt32Array (name : string) =
-        x.TryGetMapArray parseInt32 name
+        x.TryGetMapArray StringParser.parseInt32 name
 
     /// Safely retrieves the named Int[] (alias for StringCollectionReader.TryArrayInt32).
     member x.GetIntArray (name : string) =
@@ -247,35 +237,35 @@ type StringCollectionReader (values : IDictionary<string, string seq>) =
 
     /// Safely retrieves the named Int64[].
     member x.GetInt64Array (name : string) =
-        x.TryGetMapArray parseInt64 name
+        x.TryGetMapArray StringParser.parseInt64 name
 
     /// Safely retrieves the named Boolean[].
     member x.GetBooleanArray (name : string) =
-        x.TryGetMapArray parseBoolean name
+        x.TryGetMapArray StringParser.parseBoolean name
 
     /// Safely retrieves the named Float[].
     member x.GetFloatArray (name : string) =
-        x.TryGetMapArray parseFloat name
+        x.TryGetMapArray StringParser.parseFloat name
 
     /// Safely retrieves the named Decimal[].
     member x.GetDecimalArray (name : string) =
-        x.TryGetMapArray parseDecimal name
+        x.TryGetMapArray StringParser.parseDecimal name
 
     /// Safely retrieves the named DateTime[].
     member x.GetDateTimeArray (name : string) =
-        x.TryGetMapArray parseDateTime name
+        x.TryGetMapArray StringParser.parseDateTime name
 
     /// Safely retrieves the named DateTimeOffset[].
     member x.GetDateTimeOffsetArray (name : string) =
-        x.TryGetMapArray parseDateTimeOffset name
+        x.TryGetMapArray StringParser.parseDateTimeOffset name
 
     /// Safely retrieves the named Guid[].
     member x.GetGuidArray (name : string) =
-        x.TryGetMapArray parseGuid name
+        x.TryGetMapArray StringParser.parseGuid name
 
     /// Safely retrieves the named TimeSpan[].
     member x.GetTimeSpanArray (name : string) =
-        x.TryGetMapArray parseTimeSpan name
+        x.TryGetMapArray StringParser.parseTimeSpan name
 
 // ------------
 // Readers

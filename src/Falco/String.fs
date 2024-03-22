@@ -39,15 +39,15 @@ module internal StringParser =
 
     let parseNonEmptyString x = if StringUtils.strEmpty x then None else Some x
 
-    let parseInt16          = tryParseWith Int16.TryParse
-    let parseInt64          = tryParseWith Int64.TryParse
-    let parseInt32          = tryParseWith Int32.TryParse
-    let parseFloat          = tryParseWith Double.TryParse
-    let parseDecimal        = tryParseWith Decimal.TryParse
-    let parseDateTime       = tryParseWith DateTime.TryParse
+    let parseInt16 = tryParseWith Int16.TryParse
+    let parseInt64 = tryParseWith Int64.TryParse
+    let parseInt32 = tryParseWith Int32.TryParse
+    let parseFloat = tryParseWith Double.TryParse
+    let parseDecimal = tryParseWith Decimal.TryParse
+    let parseDateTime = tryParseWith DateTime.TryParse
     let parseDateTimeOffset = tryParseWith DateTimeOffset.TryParse
-    let parseTimeSpan       = tryParseWith TimeSpan.TryParse
-    let parseGuid           = tryParseWith Guid.TryParse
+    let parseTimeSpan = tryParseWith TimeSpan.TryParse
+    let parseGuid = tryParseWith Guid.TryParse
 
     /// Attempts to parse boolean from string.
     ///
@@ -81,7 +81,6 @@ module internal StringParser =
             | None -> acc) (List<'b>())
         |> Seq.cast
 
-
 module internal StringPatterns =
     let (|IsInt16|_|) = StringParser.parseInt16
     let (|IsInt64|_|) = StringParser.parseInt64
@@ -98,7 +97,7 @@ module internal StringPatterns =
         | true -> Some ()
         | false -> None
 
-    let (|IsTrue|_|) (x : string) = 
+    let (|IsTrue|_|) (x : string) =
         match StringParser.parseBoolean x with
         | Some true -> Some true
         | _ -> None

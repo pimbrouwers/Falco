@@ -6,9 +6,7 @@ open System.IO
 open System.Security.Claims
 open System.Text
 open System.Text.Json
-open System.Threading.Tasks
 open Falco.Markup
-open Falco.Security
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
@@ -82,11 +80,11 @@ let redirectPermanently (url: string) =
 let redirectTemporarily (url: string) =
     redirect (TemporarilyTo url)
 
-let private setContentLength 
+let private setContentLength
     (contentLength : int64)
     (ctx : HttpContext) =
     ctx.Response.ContentLength <- contentLength
-    
+
 let private writeBytes
     (bytes : byte[]) : HttpHandler = fun ctx ->
         task {

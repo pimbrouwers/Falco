@@ -1,67 +1,4 @@
-namespace Falco.Security
-
-module Crypto =
-    open System
-    open System.Text
-    open System.Security.Cryptography
-
-    /// Makes byte[] from Base64 string.
-    let private bytesFromBase64 (str : string) =
-        Convert.FromBase64String str
-
-    /// Makes Base64 string from byte[].
-    let private bytesToBase64 (bytes : byte[]) =
-        Convert.ToBase64String bytes
-
-    /// Generates a random Int32 between range.
-    let randomInt min max =
-        RandomNumberGenerator.GetInt32(min,max)
-
-    /// Generates cryptographically-sound random salt.
-    ///
-    /// Example: `createSalt 16 (generates a 128-bit (i.e. 128 / 8) salt).`
-    let createSalt len =
-        let rndAry = Array.zeroCreate<byte> len
-        use rng = RandomNumberGenerator.Create()
-        rng.GetBytes rndAry
-        rndAry |> bytesToBase64
-
-    /// Performs key derivation using the provided algorithm.
-    let pbkdf2
-        (algo : HashAlgorithmName)
-        (iterations : int)
-        (numBytesRequested : int)
-        (salt : byte[])
-        (input : byte[]) =
-        let pbkdf2 = new Rfc2898DeriveBytes(input, salt, iterations, algo)
-        let bytes = pbkdf2.GetBytes numBytesRequested
-        bytesToBase64 bytes
-
-    /// Performs PBKDF2 key derivation using HMACSHA256.
-    let sha256
-        (iterations : int)
-        (numBytesRequested : int)
-        (salt : string)
-        (strToHash : string) =
-        pbkdf2
-            HashAlgorithmName.SHA256
-            iterations
-            numBytesRequested
-            (Encoding.UTF8.GetBytes salt)
-            (Encoding.UTF8.GetBytes strToHash)
-
-    /// Performs key derivation using HMACSHA512.
-    let sha512
-        (iterations : int)
-        (numBytesRequested : int)
-        (salt : string)
-        (strToHash : string) =
-        pbkdf2
-            HashAlgorithmName.SHA512
-            iterations
-            numBytesRequested
-            (Encoding.UTF8.GetBytes salt)
-            (Encoding.UTF8.GetBytes strToHash)
+namespace Falco
 
 module Xss =
     open System.Threading.Tasks
@@ -69,7 +6,7 @@ module Xss =
     open Microsoft.AspNetCore.Antiforgery
     open Microsoft.AspNetCore.Http
     open Microsoft.Extensions.DependencyInjection
-    
+
     /// Outputs an antiforgery <input type="hidden" />.
     let antiforgeryInput
         (token : AntiforgeryTokenSet) =

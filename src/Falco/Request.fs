@@ -10,7 +10,6 @@ open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
 open Falco.Multipart
-open Falco.Security
 open Falco.StringUtils
 
 /// Obtains the HttpVerb of the request

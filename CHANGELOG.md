@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - `WebApplication.UseFalco()` extension method.
 - `Falco.plug<T>`, `Falco.plug<T1,T2>`, `Falco.plug<T1,T2,T3>`, `Falco.plug<T1,T2,T3,T4>` and `Falco.plug<T1,T2,T3,T4,T5>` to enable dependency injection via continuation.
 - Falco App builder, as a simplified means of constructing `WebApplication`'s.
+- `Xss` and `Auth` modules elevated to `Falco` namespace.
 
 ### Fixed
 
@@ -29,6 +30,9 @@ All notable changes to this project will be documented in this file.
 - `Response.withContentLength` removed.
 - `StringCollectionReader.GetChildren()` removed.
 - `Request.streamForm`, `Request.streamFormSecure`, `Request.mapFormStream` and `Request.mapFormStreamSecure` removed.
+- `Falco.Security` namespace,
+  - `Crypto` module also removed.
+  - `Xss` and `Auth` modules elevated to `Falco` namespace.
 
 ## [4.0.6] - 2023-12-12
 
