@@ -55,9 +55,7 @@ type Falco(bldr : WebApplicationBuilder) =
         Falco.configureMiddleware (fun x -> x.UseFalco(app.Config.Endpoints)) app
 
     static member private route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) (app : Falco) =
-        app.Config <- {
-            app.Config with Endpoints = Seq.append [ Routing.all pattern [verb,handler ] ] app.Config.Endpoints }
-        app
+        Falco.endpoints [ Routing.all pattern [ verb,handler ] ] app
 
     static member any (pattern : string) (handler : HttpHandler) (app : Falco) =
         Falco.route ANY pattern handler app
