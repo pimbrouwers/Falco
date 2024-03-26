@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [5.0.0] - ????-??-??
 
-### Add
+### Added
 
 - `FormValue` to support complex form submissions, provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
   - `FormData` which contains parsed `FormValue` and method to retrieve `IFormFile` by name.
@@ -13,11 +13,11 @@ All notable changes to this project will be documented in this file.
 - `WebApplication.UseFalco()` extension method.
 - `Falco.plug<T>`, `Falco.plug<T1,T2>`, `Falco.plug<T1,T2,T3>`, `Falco.plug<T1,T2,T3,T4>` and `Falco.plug<T1,T2,T3,T4,T5>` to enable dependency injection via continuation.
 - Falco App builder, as a simplified means of constructing `WebApplication`'s.
-- `Xss` and `Auth` modules elevated to `Falco` namespace.
 
 ### Fixed
 
 - Missing cancellation token pass-through during form reading, `multipart/form-data` streaming and JSON serialization/deserialization.
+- Renamed `Request.getCookie` to `Request.getCookies`.
 
 ### Removed
 

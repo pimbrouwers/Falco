@@ -260,12 +260,13 @@ let debugRequest : HttpHandler = fun ctx ->
 
         sw.WriteLine("Headers:")
 
-        for k in headers.Keys do
+
+        for (k, v) in headers.AsKeyValues() do
             sw.Write(tab)
             sw.WriteLine(k)
             sw.Write(tab)
             sw.Write(tab)
-            sw.WriteLine(headers.Get k)
+            sw.WriteLine(v)
             sw.WriteLine()
 
         sw.WriteLine()

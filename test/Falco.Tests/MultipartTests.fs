@@ -28,9 +28,9 @@ let ``MultipartReader.StreamSectionsAsync()`` () =
         let! form = rd.StreamSectionsAsync(tokenSource.Token)
         form.Files.Count |> should equal 0
 
-        let formReader = FormCollectionReader(form, Some form.Files)
-        let formValue = formReader.GetString "name"
-        formValue |> should equal "falco"
+        let formData = FormData(RequestValue.parseForm(form, None), Some form.Files)
+        let requestValue = formData?name.AsString()
+        requestValue |> should equal "falco"
     }
 
 [<Fact>]
@@ -72,7 +72,7 @@ let ``MultipartReader.StreamSectionsAsync() with 3-part body`` () =
         use st2 = form.Files.[1].OpenReadStream()
         st1.CopyTo(ms)
 
-        let formReader = FormCollectionReader(form, Some form.Files)
-        let formValue = formReader.GetString "name"
-        formValue |> should equal "falco"
+        let formData = FormData(RequestValue.parseForm(form, None), Some form.Files)
+        let requestValue = formData?name.AsString()
+        requestValue |> should equal "falco"
     }

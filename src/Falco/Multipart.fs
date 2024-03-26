@@ -53,9 +53,9 @@ module Multipart =
                     let key = HeaderUtilities.RemoveQuotes(cd.Name).Value
                     let encoding = MultipartSection.GetEncodingFromContentType(x)
                     use str = new StreamReader(x.Body, encoding, true, 1024, true)
-                    let! formValue = str.ReadToEndAsync()
+                    let! requestValue = str.ReadToEndAsync()
 
-                    return FormValueData (key, formValue)
+                    return FormValueData (key, requestValue)
 
                 | Some _
                 | None ->

@@ -134,15 +134,12 @@ let ``Request.mapRoute`` () =
     Request.mapRoute (fun r -> r.GetString "name") handle ctx
 
 [<Fact>]
-let ``Request.mapCookie`` () =
+let ``Request.getCookie`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
 
-    let handle name : HttpHandler =
-        name |> should equal "falco"
-        Response.ofEmpty
-
-    Request.mapCookie (fun q -> q.GetString "name") handle ctx
+    let cookies= Request.getCookies ctx
+    cookies?name.AsString() |> should equal "falco"
 
 [<Fact>]
 let ``Request.mapQuery`` () =
@@ -168,7 +165,7 @@ let ``Request.mapForm`` () =
         name |> should equal "falco"
         Response.ofEmpty
 
-    Request.mapForm (fun f -> f.GetString "name") handle ctx |> ignore
+    Request.mapForm (fun f -> f?name.AsString()) handle ctx |> ignore
     Request.mapFormSecure (fun f -> f.GetString "name") handle Response.ofEmpty ctx |> ignore
 
 [<Fact>]
@@ -199,8 +196,8 @@ let ``Request.getForm from Stream`` () =
     let contentType = "multipart/form-data;boundary=\"9051914041544843365972754266\""
     ctx.Request.ContentType <- contentType
 
-    let handle (formValue : string, files : IFormFileCollection option) : HttpHandler =
-        formValue |> should equal "falco"
+    let handle (requestValue : string, files : IFormFileCollection option) : HttpHandler =
+        requestValue |> should equal "falco"
         files |> shouldBeSome (fun x ->
             x.Count |> should equal 2
 

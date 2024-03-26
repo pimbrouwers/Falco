@@ -1,6 +1,7 @@
 [<RequireQualifiedAccess>]
 module Falco.Request
 
+open System
 open System.IO
 open System.Text
 open System.Text.Json
@@ -32,30 +33,31 @@ let getBodyString (ctx : HttpContext) : Task<string> =
         return! reader.ReadToEndAsync()
     }
 
-/// Retrieves the cookie from the request as an instance of
-/// CookieCollectionReader.
-let getCookie (ctx : HttpContext) : CookieCollectionReader =
-    CookieCollectionReader(ctx.Request.Cookies)
+/// Retrieves the cookie from the request.
+let getCookies (ctx : HttpContext) : RequestData =
+    RequestValue.parseCookies ctx.Request.Cookies
+    |> RequestData
 
-/// Retrieves a specific header from the request.
-let getHeaders (ctx : HttpContext) : HeaderCollectionReader  =
-    HeaderCollectionReader(ctx.Request.Headers)
+/// Retrieves the headers from the request.
+let getHeaders (ctx : HttpContext) : RequestData  =
+    RequestValue.parseHeaders ctx.Request.Headers
+    |> RequestData
 
-/// Retrieves all route values from the request as RouteCollectionReader.
-let getRoute (ctx : HttpContext) : RouteCollectionReader =
-    RouteCollectionReader(ctx.Request.RouteValues, ctx.Request.Query)
+/// Retrieves all route values from the request, including query string.
+let getRoute (ctx : HttpContext) : RequestData =
+    RequestValue.parseRoute ctx.Request.RouteValues
+    |> RequestData
 
-/// Retrieves the query string from the request as an instance of
-/// QueryCollectionReader.
-let getQuery (ctx : HttpContext) : QueryCollectionReader =
-    QueryCollectionReader(ctx.Request.Query)
+/// Retrieves the query string and route values from the request.
+let getQuery (ctx : HttpContext) : RequestData =
+    RequestValue.parseQuery (ctx.Request.Query, Some ctx.Request.RouteValues)
+    |> RequestData
 
-/// Retrieves the form collection from the request as an instance of
-/// FormCollectionReader.
+/// Retrieves the form collection and route values from the request.
 ///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
-let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
+let getForm (ctx : HttpContext) : Task<FormData> =
     task {
         use tokenSource = new CancellationTokenSource()
 
@@ -66,53 +68,22 @@ let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
                 ctx.Request.ReadFormAsync(tokenSource.Token)
 
         let files = if isNull(form.Files) then None else Some form.Files
-        return FormCollectionReader(form, files)
+
+        let requestValue = RequestValue.parseForm (form, Some ctx.Request.RouteValues)
+
+        return FormData(requestValue, files)
     }
 
-/// Retrieves the form collection from the request as an instance of
-/// FormCollectionReader, if the CSRF token is valid, otherwise it
-/// returns None.
+/// Retrieves the form collection from the request, if the CSRF token is valid,
+/// otherwise returns None.
 ///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
-let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
+let getFormSecure (ctx : HttpContext) : Task<FormData option> =
     task {
         let! isAuth = Xss.validateToken ctx
         if isAuth then
             let! form = getForm ctx
-            return Some form
-        else
-            return None
-    }
-
-/// Retrieves the form collection from the request as an instance of
-/// FormData.
-///
-/// Automatically detects if request is multipart/form-data, and will enable
-/// streaming.
-let getFormData (ctx : HttpContext) : Task<FormData> =
-    task {
-        use tokenSource = new CancellationTokenSource()
-        let! form =
-            if ctx.Request.IsMultipart() then
-                ctx.Request.StreamFormAsync(tokenSource.Token)
-            else
-                ctx.Request.ReadFormAsync(tokenSource.Token)
-        let files = if isNull(form.Files) then None else Some form.Files
-        return FormData(form, files)
-    }
-
-/// Retrieves the form collection from the request as an instance of
-/// FormData, if the CSRF token is valid, otherwise it
-/// returns None.
-///
-/// Automatically detects if request is multipart/form-data, and will enable
-/// streaming.
-let getFormDataSecure (ctx : HttpContext) : Task<FormData option> =
-    task {
-        let! isAuth = Xss.validateToken ctx
-        if isAuth then
-            let! form = getFormData ctx
             return Some form
         else
             return None
@@ -140,66 +111,34 @@ let bodyString
         return! next body ctx
     }
 
-/// Projects CookieCollectionReader onto 'T and provides
-/// to next HttpHandler.
-let mapCookie
-    (map : CookieCollectionReader -> 'T)
-    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
-    getCookie ctx
-    |> map
-    |> fun cookie -> next cookie ctx
-
-/// Projects HeaderCollectionReader onto 'T and provides
-/// to next HttpHandler.
-let mapHeader
-    (map : HeaderCollectionReader -> 'T)
-    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
-        getHeaders ctx
-        |> map
-        |> fun header -> next header ctx
-
-/// Projects RouteCollectionReader onto 'T and provides
+/// Projects route values onto 'T and provides
 /// to next HttpHandler.
 let mapRoute
-    (map : RouteCollectionReader -> 'T)
+    (map : RequestData -> 'T)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     getRoute ctx
     |> map
     |> fun route -> next route ctx
 
-/// Projects QueryCollectionReader onto 'T and provides
+/// Projects query string onto 'T and provides
 /// to next HttpHandler.
 let mapQuery
-    (map : QueryCollectionReader -> 'T)
+    (map : RequestData -> 'T)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     getQuery ctx
     |> map
     |> fun query -> next query ctx
 
 
-/// Projects FormCollectionReader onto 'T and provides
-/// to next HttpHandler.
+/// Projects form dta onto 'T and provides to next HttpHandler.
 ///
-/// Automatically detects if request is multipart/form-data, and will enable
-/// streaming.
+/// Automatically detects if request is content-type: multipart/form-data, and
+/// if so, will enable streaming.
 let mapForm
-    (map : FormCollectionReader -> 'T)
-    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! form = getForm ctx
-        return! next (map form) ctx
-    }
-
-/// Projects FormData onto 'T and provides
-/// to next HttpHandler.
-///
-/// Automatically detects if request is multipart/form-data, and will enable
-/// streaming.
-let mapFormData
     (map : FormData -> 'T)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     task {
-        let! form = getFormData ctx
+        let! form = getForm ctx
         return! next (map form) ctx
     }
 
@@ -218,39 +157,17 @@ let validateCsrfToken
         return! respondWith ctx
     }
 
-/// Projects FormCollectionReader onto 'T and provides
+/// Projects form data onto 'T and provides
 /// to next HttpHandler.
 ///
 /// Automatically detects if request is multipart/form-data, and will enable
 /// streaming.
 let mapFormSecure
-    (map : FormCollectionReader -> 'T)
-    (next : 'T -> HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! form = getFormSecure ctx
-
-        let respondWith =
-            match form with
-            | Some form ->
-                next (map form)
-            | None ->
-                handleInvalidToken
-
-        return! respondWith ctx
-    }
-
-/// Projects FormData onto 'T and provides
-/// to next HttpHandler.
-///
-/// Automatically detects if request is multipart/form-data, and will enable
-/// streaming.
-let mapFormDataSecure
     (map : FormData -> 'T)
     (next : 'T -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
     task {
-        let! form = getFormDataSecure ctx
+        let! form = getFormSecure ctx
 
         let respondWith =
             match form with

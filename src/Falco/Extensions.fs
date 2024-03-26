@@ -10,7 +10,7 @@ module Extensions =
     type HttpContext with
         /// Attempts to obtain dependency from IServiceCollection
         /// Throws InvalidDependencyException on null.
-        member x.GetService<'T>() =
+        member x.Plug<'T>() =
             x.RequestServices.GetRequiredService<'T>()
 
     type IEndpointRouteBuilder with

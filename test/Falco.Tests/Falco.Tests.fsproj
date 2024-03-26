@@ -7,8 +7,6 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="StringCollectionReaderTests.fs" />
-    <Compile Include="FormValueTests.fs" />
     <Compile Include="RequestDataTests.fs" />
     <Compile Include="MultipartTests.fs" />
     <Compile Include="SecurityTests.fs" />
