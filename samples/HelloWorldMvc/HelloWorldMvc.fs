@@ -40,8 +40,8 @@ module GreetingController =
         Response.ofPlainText "Hello world"
 
     /// A helper to get the name from the route
-    let private getNameFromRoute (route : RouteCollectionReader) =
-        route.Get "name"
+    let private getNameFromRoute (route : RequestData) =
+        route.GetString "name"
 
     /// GET /greet/{name}
     let plainTextDetail : HttpHandler = fun ctx -> // <-- explicit HttpContext input to access request data
@@ -81,9 +81,12 @@ module App =
 [<EntryPoint>]
 let main args =
     let isDevelopment = true // <-- should come environment
-    Falco args
+    
+    args
+    |> Falco.newApp 
     |> Falco.Middleware.addIf isDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage // <-- pretty error output and stack tracers
     |> Falco.Middleware.add StaticFileExtensions.UseStaticFiles // <-- useful extension from Microsoft.AspNetCore.Builder
     |> Falco.endpoints App.endpoints
     |> Falco.run
+    
     0

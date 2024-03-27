@@ -1,5 +1,5 @@
 open Falco
 
-Falco ()
+Falco.newApp ()
 |> Falco.get "/" (Response.ofPlainText "Hello World")
 |> Falco.run

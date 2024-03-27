@@ -169,7 +169,7 @@ module EntryController =
     /// GET /entry/edit/{id}
     let edit : HttpHandler = 
         Falco.plug<IDbConnectionFactory> <| fun dbConnection ->
-        let readRoute (route : RouteCollectionReader) =
+        let readRoute (route : RequestData) =
             route.TryGetGuid "entry_id"
 
         let handle (input : Guid option) = 
@@ -188,7 +188,7 @@ module EntryController =
 
     /// POST /entry/create, /entry/edit/{id}
     let save : HttpHandler = Falco.plug<IDbConnectionFactory> <| fun dbConnection ->
-        let readForm (form : FormCollectionReader) =
+        let readForm (form : RequestData) =
             { EntryId = form.GetGuid "entry_id"
               HtmlContent = form.GetString "html_content"
               TextContent = form.GetString "text_content" }

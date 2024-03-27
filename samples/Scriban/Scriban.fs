@@ -14,28 +14,6 @@ type ITemplates =
 type ITemplateService =
     abstract member Render : name: string * model: obj -> ValueTask<string>
 
-module PageController =
-    let homepage : HttpHandler =
-        Falco.plug<ITemplateService> <| fun templateService ->
-        let queryMap (q: QueryCollectionReader) =
-            {| Name = q.Get("name", "World") |}
-
-        let next model : HttpHandler = fun ctx ->
-            task {
-                let! html = templateService.Render("Home", model)
-                return Response.ofHtmlString html ctx
-            }
-
-        Request.mapQuery queryMap next
-
-module app =
-    let endpoints = 
-        [ get "/" PageController.homepage ]
-
-    let notFound = 
-        Response.withStatusCode 404 
-        >> Response.ofPlainText "Not Found"
-
 type ScribanTemplates(templates : (string * string) seq) = 
     interface ITemplates with 
         member _.TryGet(name) = 
@@ -54,6 +32,28 @@ type ScribanTemplateService(templates : ITemplates) =
                 tmpl.RenderAsync(model)
             | None -> failwithf "Template '%s' was not found" name
 
+module PageController =
+    let homepage : HttpHandler =
+        Falco.plug<ITemplateService> <| fun templateService ->
+        let queryMap (q: RequestData) =
+            {| Name = q.GetString("name", "World") |}
+
+        let next model : HttpHandler = fun ctx ->
+            task {
+                let! html = templateService.Render("Home", model)
+                return Response.ofHtmlString html ctx
+            }
+
+        Request.mapQuery queryMap next
+
+module App =
+    let endpoints = 
+        [ get "/" PageController.homepage ]
+
+    let notFound = 
+        Response.withStatusCode 404 
+        >> Response.ofPlainText "Not Found"
+
 [<EntryPoint>]
 let main args =    
     let executionPath = Environment.GetCommandLineArgs()[0]
@@ -69,11 +69,12 @@ let main args =
                 viewName, viewContent 
         ] :> ITemplates
 
-    Falco args
-    |> Falco.Services.addSingletonConfigured<ITemplates> scribanTemplates
+    args
+    |> Falco.newApp
+    |> Falco.Services.addInstance scribanTemplates
     |> Falco.Services.addSingleton<ITemplateService, ScribanTemplateService>
-    |> Falco.endpoints app.endpoints
-    |> Falco.notFound app.notFound
+    |> Falco.endpoints App.endpoints
+    |> Falco.notFound App.notFound
     |> Falco.run 
     
     0 // Exit code

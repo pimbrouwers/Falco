@@ -33,9 +33,9 @@ module Program =
 
     [<EntryPoint>]
     let main args =
-        Falco args
-        |> Falco.Services.add AntiforgeryServiceCollectionExtensions.AddAntiforgery
-        |> Falco.Services.addSingletonConfigured dbConnectionContext
+        Falco.newApp args
+        |> Falco.Services.addStatic AntiforgeryServiceCollectionExtensions.AddAntiforgery
+        |> Falco.Services.addInstance dbConnectionContext
         |> Falco.Services.addSingleton<IDbConnectionFactory, SqliteDbConnectionFactory>
         |> Falco.Middleware.add StaticFileExtensions.UseStaticFiles
         |> Falco.endpoints App.endpoints
