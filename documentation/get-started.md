@@ -37,14 +37,10 @@ Remove any `*.fs` files created automatically, create a new file named `Program.
 module HelloWorld.Program
 
 open Falco
-open Falco.Routing
-open Falco.HostBuilder
 
-webHost [||] {
-    endpoints [
-        get "/" (Response.ofPlainText "Hello World")
-    ]
-}
+Falco.newApp ()
+|> Falco.get "/" (Response.ofPlainText "Hello World")
+|> Falco.run
 ```
 
 Run the application:

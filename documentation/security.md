@@ -132,23 +132,3 @@ let main args =
         // rest omitted
     }
 ```
-
-## Cryptography
-
-Many sites have the requirement of a secure log in and sign up (i.e. registering and maintaining a user's database). Thus, generating strong hashes and random salts is important.
-
-```fsharp
-open Falco.Security
-
-// Generating salt,
-// using System.Security.Cryptography.RandomNumberGenerator,
-// create a random 16 byte salt and base 64 encode
-let salt = Crypto.createSalt 16
-
-// Generate random int for iterations
-let iterations = Crypto.randomInt 10000 50000
-
-// Pbkdf2 Key derivation using HMAC algorithm with SHA256 hashing function
-let password = "5upe45ecure"
-let hashedPassword = password |> Crypto.sha256 iterations 32 salt
-```

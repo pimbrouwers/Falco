@@ -9,7 +9,7 @@ Primary elements are broken down into two types, `ParentNode` or `SelfClosingNod
 ```fsharp
 let markup =
     Elem.div [ Attr.class' "heading" ] [
-        Elem.h1 [] [ Text.raw "Hello world!" ] ]
+        Text.h1 "Hello world!" ]
 ```
 
 `SelfClosingNode` elements are self-closing tags. Represented as functions that receive one input: attributes.
@@ -26,7 +26,7 @@ Text is represented using the `TextNode` and created using one of the functions 
 let markup =
     Elem.div [] [
         Text.comment "An HTML comment"
-        Elem.p [] [ Text.raw "A paragraph" ]
+        Text.p "A paragraph"
         Elem.p [] [ Text.rawf "Hello %s" "Jim" ]
         Elem.code [] [ Text.enc "<div>Hello</div>" ] // HTML encodes text before rendering
     ]
@@ -71,16 +71,16 @@ let master (title : string) (content : XmlNode list) =
 // Views
 let homeView =
     master "Homepage" [
-        Elem.h1 [] [ Text.raw "Homepage" ]
+        Text.h1 "Homepage"
         divider
-        Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+        Text.p "Lorem ipsum dolor sit amet, consectetur adipiscing."
     ]
 
 let aboutView =
     master "About Us" [
-        Elem.h1 [] [ Text.raw "About" ]
+        Text.h1 "About"
         divider
-        Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+        Text.p "Lorem ipsum dolor sit amet, consectetur adipiscing."
     ]
 ```
 
@@ -100,18 +100,102 @@ let doc (person : Person) =
         ]
         Elem.body [] [
             Elem.main [] [
-                Elem.h1 [] [ Text.raw "Sample App" ]
-                Elem.p [] [ Text.rawf "%s %s" person.First person.Last ]
+                Text.h1 "Sample App"
+                Text.p $"{person.First} {person.Last}"
             ]
         ]
     ]
+```
+
+### Forms
+
+Forms are the lifeblood of HTML applications. A basic form using the markup module would like the following:
+
+```fsharp
+Elem.form [ Attr.method "post"; Attr.action "/submit" ] [
+    Elem.label [ Attr.for' "name" ] [ Text.raw "Name" ]
+    Elem.input [ Attr.id "name"; Attr.name "name"; Attr.typeText ]
+
+    Elem.input [ Attr.typeSubmit ]
+]
+```
+
+Expanding on this, we can create a more complex form involving multiple inputs and input types as follows:
+
+```fsharp
+Elem.form [ Attr.method "post"; Attr.action "/submit" ] [
+    Elem.label [ Attr.for' "name" ] [ Text.raw "Name" ]
+    Elem.input [ Attr.id "name"; Attr.name "name" ]
+
+    Elem.label [ Attr.for' "bio" ] [ Text.raw "Bio" ]
+    Elem.textarea [ Attr.name "id"; Attr.name "bio" ] []
+
+    Elem.label [ Attr.for' "hobbies" ] [ Text.raw "Hobbies" ]
+    Elem.select [ Attr.id "hobbies"; Attr.name "hobbies"; Attr.multiple ] [
+        Elem.option [ Attr.value "programming" ] [ Text.raw "Programming" ]
+        Elem.option [ Attr.value "diy" ] [ Text.raw "DIY" ]
+        Elem.option [ Attr.value "basketball" ] [ Text.raw "Basketball" ]
+    ]
+
+    Elem.fieldset [] [
+        Elem.legend [] [ Text.raw "Do you like chocolate?" ]
+        Elem.label [] [
+            Text.raw "Yes"
+            Elem.input [ Attr.typeRadio; Attr.name "chocolate"; Attr.value "yes" ] ]
+        Elem.label [] [
+            Text.raw "No"
+            Elem.input [ Attr.typeRadio; Attr.name "chocolate"; Attr.value "no" ] ]
+    ]
+
+    Elem.fieldset [] [
+        Elem.legend [] [ Text.raw "Subscribe to our newsletter" ]
+        Elem.label [] [
+            Text.raw "Receive updates about product"
+            Elem.input [ Attr.typeCheckbox; Attr.name "newsletter"; Attr.value "product" ] ]
+        Elem.label [] [
+            Text.raw "Receive updates about company"
+            Elem.input [ Attr.typeCheckbox; Attr.name "newsletter"; Attr.value "company" ] ]
+    ]
+
+    Elem.input [ Attr.typeSubmit ]
+]
+```
+
+A simple but useful _meta_-element `Elem.control` can reduce the verbosity required to create form outputs. The same form would look like:
+
+```fsharp
+Elem.form [ Attr.method "post"; Attr.action "/submit" ] [
+    Elem.control "name" [] [ Text.raw "Name" ]
+
+    Elem.controlTextarea "bio" [] [ Text.raw "Bio" ] []
+
+    Elem.controlSelect "hobbies" [ Attr.multiple ] [ Text.raw "Hobbies" ] [
+        Elem.option [ Attr.value "programming" ] [ Text.raw "Programming" ]
+        Elem.option [ Attr.value "diy" ] [ Text.raw "DIY" ]
+        Elem.option [ Attr.value "basketball" ] [ Text.raw "Basketball" ]
+    ]
+
+    Elem.fieldset [] [
+        Elem.legend [] [ Text.raw "Do you like chocolate?" ]
+        Elem.control "chocolate" [ Attr.id "chocolate_yes"; Attr.typeRadio ] [ Text.raw "yes" ]
+        Elem.control "chocolate" [ Attr.id "chocolate_no"; Attr.typeRadio ] [ Text.raw "no" ]
+    ]
+
+    Elem.fieldset [] [
+        Elem.legend [] [ Text.raw "Subscribe to our newsletter" ]
+        Elem.control "newsletter" [ Attr.id "newsletter_product"; Attr.typeCheckbox ] [ Text.raw "Receive updates about product" ]
+        Elem.control "newsletter" [ Attr.id "newsletter_company"; Attr.typeCheckbox ] [ Text.raw "Receive updates about company" ]
+    ]
+
+    Elem.input [ Attr.typeSubmit ]
+]
 ```
 
 ### Merging Attributes
 
 The markup module allows you to easily create components, an excellent way to reduce code repetition in your UI. To support runtime customization, it is advisable to ensure components (or reusable markup blocks) retain a similar function "shape" to standard elements. That being, `XmlAttribute list -> XmlNode list -> XmlNode`.
 
-This means that you will inevitably end up needing to combine your predefined `XmlAttribute list` with a list provided at runtime. To facilitate this, the `Attr.merge` function will group attributes by key, and concatenate the values in the case of `KeyValueAttribute`.
+This means that you will inevitably end up needing to combine your predefined `XmlAttribute list` with a list provided at runtime. To facilitate this, the `Attr.merge` function will group attributes by key, and intelligently concatenate the values in the case of additive attributes (i.e., `class`, `style` and `accept`).
 
 ```fsharp
 open Falco.Markup
@@ -140,13 +224,13 @@ let master (title : string) (content : XmlNode list) =
 let homepage =
     master "Homepage" [
         heading [ Attr.class' "red" ] [ Text.raw "Welcome to the homepage" ]
-        Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+        Text.p "Lorem ipsum dolor sit amet, consectetur adipiscing."
     ]
 
 let homepage =
     master "About Us" [
         heading [ Attr.class' "purple" ] [ Text.raw "This is what we're all about" ]
-        Elem.p [] [ Text.raw "Lorem ipsum dolor sit amet, consectetur adipiscing."]
+        Text.p "Lorem ipsum dolor sit amet, consectetur adipiscing."
     ]
 ```
 
@@ -202,5 +286,24 @@ let svgDrawing =
 let svg = renderNode svgDrawing
 ```
 
+## Performance
+
+You'll find the result of a simple [benchmark](benchmarks/) below, where Falco.Markup is compared to native `StringBuilder` usage as well as some other markup libraries.
+
+```shell
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19044.2604 (21H2)
+Intel Core i7-7500U CPU 2.70GHz (Kaby Lake), 1 CPU, 4 logical and 2 physical cores
+.NET SDK=7.0.201
+  [Host]     : .NET 6.0.14 (6.0.1423.7309), X64 RyuJIT DEBUG
+  DefaultJob : .NET 6.0.14 (6.0.1423.7309), X64 RyuJIT
+
+
+|        Method |      Mean |     Error |    StdDev | Ratio | RatioSD |   Gen 0 | Allocated |
+|-------------- |----------:|----------:|----------:|------:|--------:|--------:|----------:|
+| StringBuilder |  2.419 us | 0.0481 us | 0.0591 us |  1.00 |    0.00 |  6.6643 |     14 KB |
+|         Falco |  3.829 us | 0.0338 us | 0.0300 us |  1.58 |    0.04 |  8.1253 |     17 KB |
+|       Giraffe |  7.402 us | 0.0735 us | 0.0688 us |  3.04 |    0.08 |  9.0027 |     18 KB |
+|       Scriban | 26.125 us | 0.3734 us | 0.2915 us | 10.73 |    0.38 | 16.5405 |     34 KB |
+```
 
 [Next: App Configuration](config.md)

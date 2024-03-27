@@ -19,7 +19,7 @@ let htmlHandler : HttpHandler =
         Elem.html [ Attr.lang "en" ] [
             Elem.head [] []
             Elem.body [] [
-                Elem.h1 [] [ Text.raw "Sample App" ]
+                Text.h1 "Sample App" // shorthand for: `Elem.h1 [] [ Text.raw "Sample App" ]`
             ]
         ]
 
@@ -120,7 +120,6 @@ let handlerWithHeaders : HttpHandler =
     >> Response.ofPlainText "Hello world"
 ```
 
-
 ### Add a cookie to the response
 
 > IMPORTANT: *Do not* use this for authentication. Instead use the `Response.signInAndRedirect` and `Response.signOutAndRedirect` functions found in the [Authentication](security.md) module.
@@ -137,7 +136,6 @@ let handlerWithCookieOptions : HttpHandler =
     >> Response.ofPlainText "Hello world"
 ```
 
-
 ## Debugging Requests
 
 For debugging scenarios, the `Response.debugRequest` will pretty print the request details to the screen.
@@ -146,6 +144,5 @@ For debugging scenarios, the `Response.debugRequest` will pretty print the reque
 let debugHandler : HttpHandler =
     Response.debugRequest
 ```
-
 
 [Next: Accessing request data](request.md)
