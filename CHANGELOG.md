@@ -22,13 +22,14 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - `net6.0` support dropped (end of life 2024-11-12).
-- `webHost [||] {}` removed.
-- `config {}` removed.
+- `webHost [||] {}` builder removed.
+- `config {}` builder removed.
 - `HttpContext.GetLogger<T>()` extension removed.
 - `IApplicationBuilder.IsDevelopment()`, `IApplicationBuilder.UseWhen()` extensions removed.
 - `Services.inject<T>` (and overloads) removed.
-- `Response.withContentLength` removed.
-- `StringCollectionReader.GetChildren()` removed.
+- `Response.withContentLength` removed (unsupported).
+- `StringCollectionReader` and derivatives removed (`FormCollectionReader`, `QueryCollectionReader`, `RouteCollectionReader`, `HeaderCollectionReader`, and `CookieCollectionReader`).
+    - All replaced by homogenous `RequestData` type.
 - `Request.streamForm`, `Request.streamFormSecure`, `Request.mapFormStream` and `Request.mapFormStreamSecure` removed.
 - `Falco.Security.Crypto` module removed.
 
