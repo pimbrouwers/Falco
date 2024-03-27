@@ -218,12 +218,12 @@ let ``Response.ofHtmlString produces text/html result`` () =
 
 
 [<Fact>]
-let ``Response.challengeWithRedirect`` () =
+let ``Response.challengeAndRedirect`` () =
     let ctx = getHttpContextWriteable false
 
     task {
         do! ctx
-            |> Response.challengeWithRedirect AuthScheme "/"
+            |> Response.challengeAndRedirect AuthScheme "/"
         ctx.Response.StatusCode |> should equal 401
         ctx.Response.Headers.WWWAuthenticate.ToArray() |> should contain AuthScheme
         ctx.Response.Headers.Location.ToArray() |> should contain "/"

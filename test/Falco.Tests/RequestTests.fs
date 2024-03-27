@@ -46,54 +46,6 @@ let ``Request.getRouteValues should return Map<string, string> from HttpContext`
     |> should equal "falco"
 
 [<Fact>]
-let ``Request.ifAuthenticatedWithScope should invoke handleOk if authenticated with scope claim from issuer`` () =
-    let ctx = getHttpContextWriteable true
-    let claims = [
-        Claim("sub", "123", "str", "issuer");
-        Claim("scope", "read create", "str", "another-issuer")
-    ]
-    ctx.User.Claims.Returns(claims) |> ignore
-
-    let handleOk = fun _ -> task { true |> should equal true } :> Task
-    let handleError = fun _ -> task { true |> should equal false } :> Task
-
-    task {
-        do! Request.ifAuthenticatedWithScope "another-issuer" "create" handleOk handleError ctx
-    }
-
-[<Fact>]
-let ``Request.ifAuthenticatedWithScope should invoke handleError if not authenticated`` () =
-    let ctx = getHttpContextWriteable false
-    let claims = [
-        Claim("sub", "123", "str", "issuer");
-        Claim("scope", "read create", "str", "another-issuer")
-    ]
-    ctx.User.Claims.Returns(claims) |> ignore
-
-    let handleOk = fun _ -> task { true |> should equal false } :> Task
-    let handleError = fun _ -> task { true |> should equal true } :> Task
-
-    task {
-        do! Request.ifAuthenticatedWithScope "another-issuer" "create" handleOk handleError ctx
-    }
-
-[<Fact>]
-let ``Request.ifAuthenticatedWithScope should invoke handleError if authenticated with no scope claim from issuer`` () =
-    let ctx = getHttpContextWriteable true
-    let claims = [
-        Claim("sub", "123", "str", "issuer");
-        Claim("scope", "read create", "str", "another-issuer")
-    ]
-    ctx.User.Claims.Returns(claims) |> ignore
-
-    let handleOk = fun _ -> task { true |> should equal false } :> Task
-    let handleError = fun _ -> task { true |> should equal true } :> Task
-
-    task {
-        do! Request.ifAuthenticatedWithScope "issuer" "create" handleOk handleError ctx
-    }
-
-[<Fact>]
 let ``Request.mapJson`` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
@@ -120,7 +72,7 @@ let ``Request.mapJsonOption`` () =
     options.PropertyNameCaseInsensitive <- true
     options.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
 
-    Request.mapJsonOption options handle ctx
+    Request.mapJsonOptions options handle ctx
 
 [<Fact>]
 let ``Request.mapRoute`` () =

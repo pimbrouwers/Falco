@@ -182,7 +182,7 @@ let mapFormSecure
 /// Projects JSON using custom JsonSerializerOptions
 /// onto 'T and provides to next HttpHandler, throws
 /// JsonException if errors occur during deserialization.
-let mapJsonOption
+let mapJsonOptions
     (options : JsonSerializerOptions)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     task {
@@ -201,7 +201,7 @@ let internal defaultJsonOptions =
 /// occur during deserialization.
 let mapJson
     (next : 'T -> HttpHandler) : HttpHandler =
-    mapJsonOption defaultJsonOptions next
+    mapJsonOptions defaultJsonOptions next
 
 // ------------
 // Authentication
@@ -213,51 +213,47 @@ let authenticate
     (scheme : string)
     (next : AuthenticateResult -> HttpHandler) : HttpHandler = fun ctx ->
     task {
-        let! authenticateResult = Auth.authenticate scheme ctx
+        let! authenticateResult = ctx.AuthenticateAsync(scheme)
         return! next authenticateResult ctx
     }
 
 /// Proceeds if the authentication status of current IPrincipal is true.
 let ifAuthenticated
-    (handleOk : HttpHandler)
-    (handleError : HttpHandler) : HttpHandler = fun ctx ->
+    (handleOk : HttpHandler) : HttpHandler = fun ctx ->
     let isAuthenticated = Auth.isAuthenticated ctx
     if isAuthenticated then handleOk ctx
-    else handleError ctx
+    else ctx.ForbidAsync()
 
 /// Proceeds if the authentication status of current IPrincipal is true
 /// and they exist in a list of roles.
 let ifAuthenticatedInRole
     (roles : string list)
-    (handleOk : HttpHandler)
-    (handleError : HttpHandler) : HttpHandler =
+    (handleOk : HttpHandler) : HttpHandler =
     fun ctx ->
         let isAuthenticated = Auth.isAuthenticated ctx
         let isInRole = Auth.isInRole roles ctx
 
         match isAuthenticated, isInRole with
         | true, true -> handleOk ctx
-        | _          -> handleError ctx
+        | _          -> ctx.ForbidAsync()
 
 /// Proceeds if the authentication status of current IPrincipal is true
 /// and has a specific scope.
 let ifAuthenticatedWithScope
     (issuer : string)
     (scope : string)
-    (handleOk : HttpHandler)
-    (handleError : HttpHandler) : HttpHandler =
+    (handleOk : HttpHandler) : HttpHandler =
     fun ctx ->
         let isAuthenticated = Auth.isAuthenticated ctx
         let hasScope = Auth.hasScope issuer scope ctx
 
         match isAuthenticated, hasScope with
         | true, true -> handleOk ctx
-        | _          -> handleError ctx
+        | _          -> ctx.ForbidAsync()
 
 /// Proceeds if the authentication status of current IPrincipal is false.
 let ifNotAuthenticated
-    (handleOk : HttpHandler)
-    (handleError : HttpHandler) : HttpHandler = fun ctx ->
+    (handleOk : HttpHandler) : HttpHandler = fun ctx ->
     let isAuthenticated = Auth.isAuthenticated ctx
-    if isAuthenticated then handleError ctx
+    if isAuthenticated then ctx.ForbidAsync()
     else handleOk ctx

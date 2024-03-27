@@ -193,50 +193,62 @@ let ofJson
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Request.defaultJsonOptions obj
 
+/// Signs in claim principal for provided scheme and options then responds with a
+/// 301 redirect to provided URL.
+let signInOptions
+    (authScheme : string)
+    (claimsPrincipal : ClaimsPrincipal)
+    (options : AuthenticationProperties) : HttpHandler = fun ctx ->
+    task {
+        do! ctx.SignInAsync(authScheme, claimsPrincipal, options)
+    }
+
 /// Signs in claim principal for provided scheme then responds with a 301 redirect
 /// to provided URL.
 let signInAndRedirect
     (authScheme : string)
     (claimsPrincipal : ClaimsPrincipal)
-    (url : string) : HttpHandler = fun ctx ->
-    task {
-        do! Auth.signIn authScheme claimsPrincipal ctx
-        do! redirectTemporarily url ctx
-    }
+    (url : string) : HttpHandler =
+    let options = AuthenticationProperties(RedirectUri = url)
+    signInOptions authScheme claimsPrincipal options
 
-/// Signs in claim principal for provided scheme and options then responds with a
-/// 301 redirect to provided URL.
-let signInOptionsAndRedirect
+/// Terminates authenticated context for provided scheme then responds with a 301
+/// redirect to provided URL.
+let signOutOptions
     (authScheme : string)
-    (claimsPrincipal : ClaimsPrincipal)
-    (options : AuthenticationProperties)
-    (url : string) : HttpHandler = fun ctx ->
+    (options : AuthenticationProperties) : HttpHandler = fun ctx ->
     task {
-        do! Auth.signInOptions authScheme claimsPrincipal options ctx
-        do! redirectTemporarily url ctx
+        do! ctx.SignOutAsync(authScheme, options)
     }
 
 /// Terminates authenticated context for provided scheme then responds with a 301
 /// redirect to provided URL.
 let signOutAndRedirect
     (authScheme : string)
-    (url : string) : HttpHandler = fun ctx ->
-    task {
-        do! Auth.signOut authScheme ctx
-        do! redirectTemporarily url ctx
+    (url : string) : HttpHandler = 
+    let options = AuthenticationProperties(RedirectUri = url)
+    signOutOptions authScheme options
+
+/// Challenges the specified authentication scheme.
+/// An authentication challenge can be issued when an unauthenticated user
+/// requests an endpoint that requires authentication. Then given redirectUri is
+/// forwarded to the authentication handler for use after authentication succeeds.
+let challengeOptions
+    (authScheme : string)
+    (options : AuthenticationProperties) : HttpHandler = fun ctx ->
+    task {        
+        do! ctx.ChallengeAsync(authScheme, options)
     }
 
 /// Challenges the specified authentication scheme.
 /// An authentication challenge can be issued when an unauthenticated user
 /// requests an endpoint that requires authentication. Then given redirectUri is
 /// forwarded to the authentication handler for use after authentication succeeds.
-let challengeWithRedirect
+let challengeAndRedirect
     (authScheme : string)
-    (redirectUri : string) : HttpHandler = fun ctx ->
-    task {
-        let properties = AuthenticationProperties(RedirectUri = redirectUri)
-        do! Auth.challenge authScheme properties ctx
-    }
+    (redirectUri : string) : HttpHandler = 
+    let options = AuthenticationProperties(RedirectUri = redirectUri)
+    challengeOptions authScheme options
 
 /// Pretty prints the content of the current request to the screen.
 ///

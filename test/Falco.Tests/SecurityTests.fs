@@ -52,62 +52,21 @@ module Auth =
         let claimValue = "test@test.com"
         ctx.User.Claims.Returns([Claim(claimType, claimValue)]) |> ignore
 
-        let claim = Auth.tryFindClaim (fun c -> c.Type = claimType && c.Value = claimValue) ctx
-        claim.IsSome |> should equal true
-
-        claim.Value
-        |> fun c -> c.Value
-        |> should equal claimValue
+        Auth.getClaims ctx
+        |> Seq.head
+        |> fun claim ->            
+            claim.Value
+            |> should equal claimValue
 
     [<Fact>]
     let ``Auth.tryFindClaim returns none claim if does not exist`` () =
         let ctx = getHttpContextWriteable true
         ctx.User.Claims.Returns([]) |> ignore
 
-        let claim = Auth.tryFindClaim (fun c -> c.Value = "falco") ctx
-        claim.IsNone |> should equal true
-
-    [<Fact>]
-    let ``Auth.getClaim returns claim if exists`` () =
-        let ctx = getHttpContextWriteable true
-        let claimValue = "falco"
-        ctx.User.Claims.Returns([Claim(ClaimTypes.Name, claimValue)]) |> ignore
-
-        let claim = Auth.getClaim ClaimTypes.Name ctx
-        claim.IsSome |> should equal true
-
-        claim.Value
-        |> fun c -> c.Value
-        |> should equal claimValue
-
-    [<Fact>]
-    let ``Auth.getClaim returns none claim if does not exist`` () =
-        let ctx = getHttpContextWriteable true
-        ctx.User.Claims.Returns([]) |> ignore
-
-        let claim = Auth.getClaim ClaimTypes.Name ctx
-        claim.IsNone |> should equal true
-
-    [<Fact>]
-    let ``Auth.getClaimValue returns claim value if exists`` () =
-        let ctx = getHttpContextWriteable true
-        let expected = "falco"
-        ctx.User.Claims.Returns([Claim(ClaimTypes.Name, expected)]) |> ignore
-
-        let claimValue = Auth.getClaimValue ClaimTypes.Name ctx
-        claimValue.IsSome |> should equal true
-
-        claimValue.Value
-        |> should equal expected
-
-    [<Fact>]
-    let ``Auth.getClaimValue returns none claim if does not exist`` () =
-        let ctx = getHttpContextWriteable true
-        ctx.User.Claims.Returns([]) |> ignore
-
-        let claim = Auth.getClaimValue ClaimTypes.Name ctx
-        claim.IsNone |> should equal true
-
+        Auth.getClaims ctx
+        |> Seq.length 
+        |> should equal 0
+        
     [<Fact>]
     let ``Auth.hasScope should return true if scope claim from issuer is found and has specific value`` () =
         let ctx = getHttpContextWriteable true
