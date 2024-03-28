@@ -3,6 +3,7 @@ module Falco.Request
 
 open System
 open System.IO
+open System.Security.Claims
 open System.Text
 open System.Text.Json
 open System.Threading
@@ -210,50 +211,69 @@ let mapJson
 /// Attempts to authenticate the current request using the provided
 /// scheme and passes AuthenticateResult into next HttpHandler.
 let authenticate
-    (scheme : string)
+    (authScheme : string)
     (next : AuthenticateResult -> HttpHandler) : HttpHandler = fun ctx ->
     task {
-        let! authenticateResult = ctx.AuthenticateAsync(scheme)
+        let! authenticateResult = ctx.AuthenticateAsync(authScheme)
         return! next authenticateResult ctx
     }
 
-/// Proceeds if the authentication status of current IPrincipal is true.
+/// Authenticate the current request using the default authentication scheme.
+///
+/// Proceeds if the authentication status of current `IPrincipal` is true.
+/// 
+/// The default authentication scheme can be configured using 
+/// `Microsoft.AspNetCore.Authentication.AuthenticationOptions.DefaultAuthenticateScheme.`
 let ifAuthenticated
-    (handleOk : HttpHandler) : HttpHandler = fun ctx ->
-    let isAuthenticated = Auth.isAuthenticated ctx
-    if isAuthenticated then handleOk ctx
-    else ctx.ForbidAsync()
+    (authScheme : string)
+    (handleOk : HttpHandler) : HttpHandler = 
+    authenticate authScheme (fun authenticateResult ctx ->
+        if authenticateResult.Succeeded then
+            handleOk ctx
+        else 
+            ctx.ForbidAsync())
 
 /// Proceeds if the authentication status of current IPrincipal is true
 /// and they exist in a list of roles.
 let ifAuthenticatedInRole
+    (authScheme : string)
     (roles : string list)
     (handleOk : HttpHandler) : HttpHandler =
-    fun ctx ->
-        let isAuthenticated = Auth.isAuthenticated ctx
-        let isInRole = Auth.isInRole roles ctx
-
-        match isAuthenticated, isInRole with
-        | true, true -> handleOk ctx
-        | _          -> ctx.ForbidAsync()
+    authenticate authScheme (fun authenticateResult ctx -> 
+        let isInRole = List.exists authenticateResult.Principal.IsInRole roles
+        match authenticateResult.Succeeded, isInRole with
+        | true, true -> 
+            handleOk ctx
+        | _ ->
+            ctx.ForbidAsync())
 
 /// Proceeds if the authentication status of current IPrincipal is true
 /// and has a specific scope.
 let ifAuthenticatedWithScope
+    (authScheme : string)
     (issuer : string)
     (scope : string)
     (handleOk : HttpHandler) : HttpHandler =
-    fun ctx ->
-        let isAuthenticated = Auth.isAuthenticated ctx
-        let hasScope = Auth.hasScope issuer scope ctx
-
-        match isAuthenticated, hasScope with
-        | true, true -> handleOk ctx
-        | _          -> ctx.ForbidAsync()
-
+    authenticate authScheme (fun authenticateResult ctx -> 
+        if authenticateResult.Succeeded then
+            let hasScope = 
+                let predicate (claim : Claim) = (strEquals claim.Issuer issuer) && (strEquals claim.Type "scope")
+                match Seq.tryFind predicate authenticateResult.Principal.Claims with
+                | Some claim -> Array.contains scope (strSplit [|' '|] claim.Value)
+                | None -> false
+            if hasScope then
+                handleOk ctx
+            else 
+                ctx.ForbidAsync()
+        else
+            ctx.ForbidAsync())
+    
 /// Proceeds if the authentication status of current IPrincipal is false.
 let ifNotAuthenticated
-    (handleOk : HttpHandler) : HttpHandler = fun ctx ->
-    let isAuthenticated = Auth.isAuthenticated ctx
-    if isAuthenticated then ctx.ForbidAsync()
-    else handleOk ctx
+    (authScheme : string)
+    (handleOk : HttpHandler) : HttpHandler = 
+    authenticate authScheme (fun authenticateResult ctx ->
+        if authenticateResult.Succeeded then 
+            ctx.ForbidAsync()
+        else 
+            handleOk ctx)
