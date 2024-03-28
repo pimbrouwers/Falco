@@ -6,13 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `FormValue` to support complex form submissions, provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
-  - `FormData` which contains parsed `FormValue` and method to retrieve `IFormFile` by name.
-- `Forms` module, for typed HTML form creation.
-- `Request.mapFormData` and `Request.mapFormDataSecure` which parses the request body into `FormData` and provides a mapping continuation.
+- `RequestData` (and `RequestValue`) to support complex form & query submissions, 
+  - Provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
+  - A derivative `FormData` contains parsed `RequestValue` and access to `IFormFileCollection`.
 - `WebApplication.UseFalco()` extension method.
-- `Falco.plug<T>`, `Falco.plug<T1,T2>`, `Falco.plug<T1,T2,T3>`, `Falco.plug<T1,T2,T3,T4>` and `Falco.plug<T1,T2,T3,T4,T5>` to enable dependency injection via continuation.
+- `HttpContext.Plug<T>` for direct injection of dependencies within `HttpHandler`'s.
 - Falco App builder, as a simplified means of constructing `WebApplication`'s.
+- `Falco.plug<T>`, `Falco.plug<T1,T2>`, `Falco.plug<T1,T2,T3>`, `Falco.plug<T1,T2,T3,T4>` and `Falco.plug<T1,T2,T3,T4,T5>` to enable dependency injection via continuation.
 
 ### Fixed
 
@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file.
 - `StringCollectionReader` and derivatives removed (`FormCollectionReader`, `QueryCollectionReader`, `RouteCollectionReader`, `HeaderCollectionReader`, and `CookieCollectionReader`).
     - All replaced by homogenous `RequestData` type.
 - `Request.streamForm`, `Request.streamFormSecure`, `Request.mapFormStream` and `Request.mapFormStreamSecure` removed.
-- `Falco.Security.Crypto` module removed.
+- `Falco.Security.Crypto` and `Falco.Security.Auth` modules removed.
 
 ## [4.0.6] - 2023-12-12
 

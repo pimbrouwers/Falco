@@ -1,10 +1,10 @@
 # Request Handling
 
-Falco exposes a __uniform API__ to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary`, `IHeaderCollection`, and `IRequestCookieCollection`. This is achieved by means of the `RequestData` type and it's derivative `FormData`, abstractions intended to make it easier to work with the url-encoded key/value collections.
+Falco exposes a __uniform API__ to obtain typed values from `IFormCollection`, `IQueryCollection`, `RouteValueDictionary`, `IHeaderCollection`, and `IRequestCookieCollection`. This is achieved by means of the `RequestData` type and it's derivative `FormData`. These abstractions are intended to make it easier to work with the url-encoded key/value collections.
 
 > Take note of the similarities when interacting with the different sources of request data.
 
-## Key/Value Structure
+## A brief aside on the key/value semantics
 
 `RequestData` is supported by a recursive discriminated union called `RequestValue` which represents a parsed key/value collection.
 
@@ -12,18 +12,63 @@ The `RequestValue` parsing process provides some simple, yet powerful, syntax to
 
 ### Key Syntax: Object Notation
 
-Keys using dot notation are interpreted as complex (i.e., nested values) objects. 
+Keys using dot notation are interpreted as complex (i.e., nested values) objects.
+
+Consider the following POST request:
+
+```
+POST /my-form HTTP/1.1
+Host: foo.example
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 46
+
+user.name=john%20doe&user.email=abc@def123.com
+```
+
+This will be intepreted as the following `RequestValue`:
+
+```fsharp
+RObject [
+    "user", RObject [
+        "name", RString "john doe"
+        "email", RString "abc@def123.com"
+    ]
+]
+```
+
+See [form binding](#form-binding) for details on interacting with form data.
 
 ### Key Syntax: List Notation
 
-Keys using square bracket notation are interpreted as lists, which includes both primitives and [complex objects](#key-syntax-object-notation).
+Keys using square bracket notation are interpreted as lists, which can include both primitives and [complex objects](#key-syntax-object-notation). Both indexed and non-indexed variants are supported.
 
-## API Semantics
+Consider the following request:
+
+```
+GET /my-search?name=john&season[0]=summer&season[1]=winter&hobbies[]=hiking HTTP/1.1
+Host: foo.example
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 68
+```
+
+This will be interpreted as the following `RequestValue`:
+
+```fsharp
+RObject [
+    "name", RString "john"
+    "season", RList [ RString "summer"; RString "winter" ]
+    "hobbies", RList [ RString "hking" ]
+]
+```
+
+See [query binding](#query-binding) for details on interacting with form data.
+
+## Request Data Access
 
 `RequestData` provides the ability to safely read primitive types from flat and nested key/value collections.
 
 ```fsharp
-let requestData : RequestData = // From Route | Query | Form
+let requestData : RequestData = // From: Route | Query | Form
 
 // Retrieve primitive options
 let str : string option = requestData.TryGetString "name" 
@@ -55,9 +100,9 @@ open Falco
 // Assuming a route pattern of /{Name}
 let manualRouteHandler : HttpHandler = fun ctx ->
     let r = Request.getRoute ctx
+    let name = r.GetString "Name"
     // Or, let name = r?Name.AsString()
     // Or, let name = r.TryGetString "Name" |> Option.defaultValue ""
-    let name = r.GetString "Name"
     Response.ofPlainText name ctx
 
 let mapRouteHandler : HttpHandler =
@@ -199,6 +244,5 @@ let mapJsonOptionsHandler : HttpHandler =
 
     Request.mapJsonOption options handleOk
 ```
-
 
 [Next: View engine](markup.md)
