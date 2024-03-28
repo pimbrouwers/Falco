@@ -37,25 +37,25 @@ type Falco private (bldr : WebApplicationBuilder) =
 
     static member newApp () = Falco.newApp [||]
 
-    static member configuration (fn : IConfigurationBuilder -> IConfigurationBuilder) (app : Falco) =
+    static member addConfiguration (fn : IConfigurationBuilder -> IConfigurationBuilder) (app : Falco) =
         fn app.Builder.Configuration |> ignore
         app
 
-    static member configureLogging (fn : ILoggingBuilder -> ILoggingBuilder) (app : Falco) =
+    static member addLogging (fn : ILoggingBuilder -> ILoggingBuilder) (app : Falco) =
         fn app.Builder.Logging |> ignore
         app
 
-    static member configureServices (fn : IConfiguration -> IServiceCollection -> IServiceCollection) (app : Falco) =
+    static member addServices (fn : IConfiguration -> IServiceCollection -> IServiceCollection) (app : Falco) =
         (fn app.Builder.Configuration) app.Builder.Services |> ignore
         app
 
-    static member configureMiddleware (fn : IApplicationBuilder -> IApplicationBuilder) (app : Falco) =
+    static member addMiddleware (fn : IApplicationBuilder -> IApplicationBuilder) (app : Falco) =
         app.Config <- { app.Config with Middleware = app.Config.Middleware >> fn }
         app
 
     static member endpoints (endpoints : HttpEndpoint seq) (app : Falco) =
         app.Config <- { app.Config with Endpoints = Seq.append endpoints app.Config.Endpoints }
-        Falco.configureMiddleware (fun x -> x.UseFalco(app.Config.Endpoints)) app
+        Falco.addMiddleware (fun x -> x.UseFalco(app.Config.Endpoints)) app
 
     static member private route (verb : HttpVerb) (pattern : string) (handler : HttpHandler) (app : Falco) =
         Falco.endpoints [ Routing.all pattern [ verb,handler ] ] app
@@ -91,31 +91,25 @@ type Falco private (bldr : WebApplicationBuilder) =
         app.Config <- { app.Config with TerminalHandler = handler }
         app
 
-    static member plug<'a> handler : HttpHandler = fun ctx ->
-        let a = ctx.RequestServices.GetRequiredService<'a>()
+    static member plug<'T> handler : HttpHandler = fun ctx ->
+        let a = ctx.RequestServices.GetRequiredService<'T>()
         handler a ctx
 
-    static member plug<'a, 'b> handler : HttpHandler = fun ctx ->
-        let b = ctx.RequestServices.GetRequiredService<'b>()
-        Falco.plug<'a> (fun a -> handler a b) ctx
+    static member plug<'T1, 'T2> handler : HttpHandler = fun ctx ->
+        let b = ctx.RequestServices.GetRequiredService<'T2>()
+        Falco.plug<'T1> (fun a -> handler a b) ctx
 
-    static member plug<'a, 'b, 'c> handler : HttpHandler = fun ctx ->
-        let c = ctx.RequestServices.GetRequiredService<'c>()
-        Falco.plug<'a, 'b> (fun a b -> handler a b c) ctx
+    static member plug<'T1, 'T2, 'T3> handler : HttpHandler = fun ctx ->
+        let c = ctx.RequestServices.GetRequiredService<'T3>()
+        Falco.plug<'T1, 'T2> (fun a b -> handler a b c) ctx
 
-    static member plug<'a, 'b, 'c, 'd> handler : HttpHandler = fun ctx ->
-        let d = ctx.RequestServices.GetRequiredService<'d>()
-        Falco.plug<'a, 'b, 'c> (fun a b c -> handler a b c d) ctx
+    static member plug<'T1, 'T2, 'T3, 'T4> handler : HttpHandler = fun ctx ->
+        let d = ctx.RequestServices.GetRequiredService<'T4>()
+        Falco.plug<'T1, 'T2, 'T3> (fun a b c -> handler a b c d) ctx
 
-    static member plug<'a, 'b, 'c, 'd, 'e> handler : HttpHandler = fun ctx ->
-        let e = ctx.RequestServices.GetRequiredService<'d>()
-        Falco.plug<'a, 'b, 'c, 'd> (fun a b c d -> handler a b c d e) ctx
-
-[<RequireQualifiedAccess>]
-type ServiceLifetime =
-    | Transient
-    | Scoped
-    | Singleton
+    static member plug<'T1, 'T2, 'T3, 'T4, 'T5> handler : HttpHandler = fun ctx ->
+        let e = ctx.RequestServices.GetRequiredService<'T5>()
+        Falco.plug<'T1, 'T2, 'T3, 'T4> (fun a b c d -> handler a b c d e) ctx
 
 [<RequireQualifiedAccess>]
 module Falco =
@@ -134,60 +128,60 @@ module Falco =
         static member addStatic (fn : IServiceCollection -> IServiceCollection) (app : Falco) =
             Services.addStaticIf true fn app
 
-        static member addInstanceIf<'a when 'a : not struct> (predicate : bool) (fn : IConfiguration -> 'a) (app : Falco) =
-            Services.addIf predicate (fun _ svc -> svc.AddSingleton<'a>(implementationInstance = fn app.Builder.Configuration)) app
+        static member addInstanceIf<'T when 'T : not struct> (predicate : bool) (fn : IConfiguration -> 'T) (app : Falco) =
+            Services.addIf predicate (fun _ svc -> svc.AddSingleton<'T>(implementationInstance = fn app.Builder.Configuration)) app
 
-        static member addInstance<'a when 'a : not struct> (fn : IConfiguration -> 'a) (app : Falco) =
+        static member addInstance<'T when 'T : not struct> (fn : IConfiguration -> 'T) (app : Falco) =
             Services.addInstanceIf true fn app
 
-        static member addScopedIf<'a, 'b when 'a : not struct and 'b : not struct> (predicate : bool) (app : Falco) =
-            Services.addIf predicate (fun _ svc -> svc.AddScoped(serviceType = typeof<'a>, implementationType = typeof<'b>)) app
+        static member addScopedIf<'T, 'U when 'T : not struct and 'U : not struct> (predicate : bool) (app : Falco) =
+            Services.addIf predicate (fun _ svc -> svc.AddScoped(serviceType = typeof<'T>, implementationType = typeof<'U>)) app
 
-        static member addScoped<'a, 'b when 'a : not struct and 'b : not struct> (app : Falco) =
-            Services.addScopedIf<'a, 'b> true app
+        static member addScoped<'T, 'U when 'T : not struct and 'U : not struct> (app : Falco) =
+            Services.addScopedIf<'T, 'U> true app
 
-        static member addScopedTypeIf<'a when 'a : not struct> (predicate : bool) (app : Falco) =
-            Services.addIf predicate (fun _ svc -> svc.AddScoped<'a>()) app
+        static member addScopedTypeIf<'T when 'T : not struct> (predicate : bool) (app : Falco) =
+            Services.addIf predicate (fun _ svc -> svc.AddScoped<'T>()) app
 
-        static member addScopedType<'a when 'a : not struct> (app : Falco) =
-            Services.addScopedTypeIf<'a> true app
+        static member addScopedType<'T when 'T : not struct> (app : Falco) =
+            Services.addScopedTypeIf<'T> true app
 
-        static member addSingletonIf<'a, 'b when 'a : not struct and 'b : not struct> (predicate : bool) (app : Falco) =
-            Services.addIf predicate (fun _ svc -> svc.AddSingleton(serviceType = typeof<'a>, implementationType = typeof<'b>)) app
+        static member addSingletonIf<'T, 'U when 'T : not struct and 'U : not struct> (predicate : bool) (app : Falco) =
+            Services.addIf predicate (fun _ svc -> svc.AddSingleton(serviceType = typeof<'T>, implementationType = typeof<'U>)) app
 
-        static member addSingleton<'a, 'b when 'a : not struct and 'b : not struct> (app : Falco) =
-            Services.addSingletonIf<'a, 'b> true app
+        static member addSingleton<'T, 'U when 'T : not struct and 'U : not struct> (app : Falco) =
+            Services.addSingletonIf<'T, 'U> true app
 
-        static member addSingletonTypeIf<'a when 'a : not struct> (predicate : bool) (app : Falco) =
-            Services.addIf predicate (fun _ svc -> svc.AddSingleton<'a>()) app
+        static member addSingletonTypeIf<'T when 'T : not struct> (predicate : bool) (app : Falco) =
+            Services.addIf predicate (fun _ svc -> svc.AddSingleton<'T>()) app
 
-        static member addSingletonType<'a when 'a : not struct> (app : Falco) =
-            Services.addSingletonTypeIf<'a> true app
+        static member addSingletonType<'T when 'T : not struct> (app : Falco) =
+            Services.addSingletonTypeIf<'T> true app
 
-        static member addTransientIf<'a, 'b when 'a : not struct and 'b : not struct> (predicate : bool) (app : Falco) =
-            Services.addIf predicate (fun _ svc -> svc.AddSingleton(serviceType = typeof<'a>, implementationType = typeof<'b>)) app
+        static member addTransientIf<'T, 'U when 'T : not struct and 'U : not struct> (predicate : bool) (app : Falco) =
+            Services.addIf predicate (fun _ svc -> svc.AddSingleton(serviceType = typeof<'T>, implementationType = typeof<'U>)) app
 
-        static member addTransient<'a, 'b when 'a : not struct and 'b : not struct> (app : Falco) =
-            Services.addTransientIf<'a, 'b> true app
+        static member addTransient<'T, 'U when 'T : not struct and 'U : not struct> (app : Falco) =
+            Services.addTransientIf<'T, 'U> true app
 
-        static member addTransientTypeIf<'a when 'a : not struct> (predicate : bool) (app : Falco) =
-            Services.addIf predicate (fun _ svc -> svc.AddSingleton<'a>()) app
+        static member addTransientTypeIf<'T when 'T : not struct> (predicate : bool) (app : Falco) =
+            Services.addIf predicate (fun _ svc -> svc.AddSingleton<'T>()) app
 
-        static member addTransientType<'a when 'a : not struct> (app : Falco) =
-            Services.addTransientTypeIf<'a> true app
+        static member addTransientType<'T when 'T : not struct> (app : Falco) =
+            Services.addTransientTypeIf<'T> true app
 
     type Middleware =
         static member add (fn : IApplicationBuilder -> IApplicationBuilder) (app : Falco) =
-            Falco.configureMiddleware fn app
+            Falco.addMiddleware fn app
 
         static member addIf (predicate : bool) (fn : IApplicationBuilder -> IApplicationBuilder) (app : Falco) =
             if predicate then Middleware.add fn app
             else app
 
-        static member addType<'a> (app : Falco) =
-            let fn (app : IApplicationBuilder) = app.UseMiddleware<'a>()
+        static member addType<'T> (app : Falco) =
+            let fn (app : IApplicationBuilder) = app.UseMiddleware<'T>()
             Middleware.add fn app
 
-        static member addTypeIf<'a> (predicate : bool) (app : Falco) =
-            if predicate then Middleware.addType<'a> app
+        static member addTypeIf<'T> (predicate : bool) (app : Falco) =
+            if predicate then Middleware.addType<'T> app
             else app
