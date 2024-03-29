@@ -4,13 +4,12 @@ namespace Falco
 module Extensions =
     open Microsoft.AspNetCore.Builder
     open Microsoft.AspNetCore.Http
-    open Microsoft.AspNetCore.Routing
     open Microsoft.Extensions.Configuration
     open Microsoft.Extensions.DependencyInjection
 
     type HttpContext with
         /// Attempts to obtain dependency from IServiceCollection
-        /// Throws InvalidDependencyException on null.
+        /// Throws InvalidDependencyException on missing.
         member x.Plug<'T>() =
             x.RequestServices.GetRequiredService<'T>()
 
