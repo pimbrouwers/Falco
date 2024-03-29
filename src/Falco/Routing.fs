@@ -37,6 +37,7 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
     override _.GetChangeToken() = NullChangeToken.Singleton :> _
 
 
+[<AutoOpen>]
 module Routing =
     /// Constructor for multi-method HttpEndpoint.
     let all

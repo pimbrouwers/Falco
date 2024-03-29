@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Core.fs" />
     <Compile Include="String.fs" />
+    <Compile Include="RequestValue.fs" />
     <Compile Include="RequestData.fs" />
     <Compile Include="Multipart.fs" />
     <Compile Include="Security.fs" />
@@ -54,7 +55,7 @@
     <Compile Include="Response.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Extensions.fs" />
-    <Compile Include="App.fs" />
+    <!-- <Compile Include="App.fs" /> -->
   </ItemGroup>
 
   <ItemGroup>

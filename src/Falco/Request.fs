@@ -1,7 +1,6 @@
 [<RequireQualifiedAccess>]
 module Falco.Request
 
-open System
 open System.IO
 open System.Security.Claims
 open System.Text
