@@ -1,5 +1,8 @@
 open Falco
+open Microsoft.AspNetCore.Builder // <-- this import adds many useful extensions
 
-Falco.newApp ()
-|> Falco.get "/" (Response.ofPlainText "Hello World")
-|> Falco.run
+let wapp = WebApplication.Create()
+
+wapp.UseFalco() // <-- activate Falco endpoint source
+    .FalcoGet("/", Response.ofPlainText "hello world") // <-- associate GET / to HttpHandler
+    .Run()

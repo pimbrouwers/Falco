@@ -1,12 +1,10 @@
 module HelloWorld.Program
 
-open System
 open Falco
 open Falco.Markup
-open Falco.Routing
 open Microsoft.AspNetCore.Builder // <-- this import adds many useful extensions
 
-/// Application routes
+/// Routes templates
 module Route =
     let index = "/"
     let greetPlainText = "/greet/text/{name}"
@@ -18,21 +16,26 @@ module Url =
     let greatPlainText name = Route.greetPlainText.Replace("{name}", name)
     let greatJson name = Route.greetJson.Replace("{name}", name)
 
+/// View components
+module View =
+    let layout content =
+        Templates.html5 "en"
+            [ Elem.link [ Attr.href "/style.css"; Attr.rel "stylesheet" ] ]
+            content
+
 module GreetingView =
     /// HTML view for /greet/html
     let detail name =
-        Templates.html5 "en"
-            [ Elem.link [ Attr.href "/style.css"; Attr.rel "stylesheet" ] ]
-            [
-                Elem.h1 [] [ Text.raw $"Hello {name} from /html" ]
-                Elem.hr []
-                Elem.p [] [ Text.raw "Greet other ways:" ]
-                Elem.nav [] [
-                    Elem.a  [ Attr.href (Url.greatPlainText "Gru") ] [ Text.raw "Greet in text"]
-                    Text.raw " | "
-                    Elem.a [ Attr.href (Url.greatJson "Dru") ] [ Text.raw "Greet in JSON " ]
-                ]
+        View.layout [
+            Text.h1 $"Hello {name} from /html"
+            Elem.hr []
+            Text.p "Greet other ways:"
+            Elem.nav [] [
+                Elem.a  [ Attr.href (Url.greatPlainText "Gru") ] [ Text.raw "Greet in text"]
+                Text.raw " | "
+                Elem.a [ Attr.href (Url.greatJson "Dru") ] [ Text.raw "Greet in JSON " ]
             ]
+        ]
 
 module GreetingController =
     /// GET /
@@ -66,27 +69,29 @@ module GreetingController =
             |> GreetingView.detail
             |> Response.ofHtml )
 
-/// Our application definitions
-module App =
-    let endpoints = [
-        get Route.index GreetingController.index
-        get Route.greetPlainText GreetingController.plainTextDetail
-        get Route.greetJson GreetingController.jsonDetail
-        get Route.greetHtml GreetingController.htmlDetail
-    ]
+/// Static error pages
+module ErrorPage =
+    let notFound : HttpHandler =
+        Response.withStatusCode 404 >>
+        Response.ofHtml (View.layout [ Text.h1 "Not Found" ])
 
 /// By defining an explicit entry point, we gain access to the command line
 /// arguments which when passed into Falco are used as the creation arguments
 /// for the internal WebApplicationBuilder.
 [<EntryPoint>]
 let main args =
-    let isDevelopment = true // <-- should come environment
-    
-    args
-    |> Falco.newApp 
-    |> Falco.Middleware.addIf isDevelopment DeveloperExceptionPageExtensions.UseDeveloperExceptionPage // <-- pretty error output and stack tracers
-    |> Falco.Middleware.add StaticFileExtensions.UseStaticFiles // <-- useful extension from Microsoft.AspNetCore.Builder
-    |> Falco.endpoints App.endpoints
-    |> Falco.run
-    
+    let wapp = WebApplication.Create(args)
+
+    let isDevelopment = wapp.Environment.EnvironmentName = "Development"
+
+    wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
+        .Use(StaticFileExtensions.UseStaticFiles)
+        .UseFalco()
+        .FalcoGet(Route.index, GreetingController.index)
+        .FalcoGet(Route.greetPlainText, GreetingController.plainTextDetail)
+        .FalcoGet(Route.greetJson, GreetingController.jsonDetail)
+        .FalcoGet(Route.greetHtml, GreetingController.htmlDetail)
+        .FalcoNotFound(ErrorPage.notFound)
+        .Run()
+
     0

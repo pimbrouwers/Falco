@@ -4,77 +4,70 @@ open System
 open System.IO
 open System.Threading.Tasks
 open Falco
-open Falco.Routing
+open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.DependencyInjection
 open Scriban
 
-type ITemplates = 
-    abstract member TryGet : string -> string option
-
-type ITemplateService =
+type ITemplates =
     abstract member Render : name: string * model: obj -> ValueTask<string>
 
-type ScribanTemplates(templates : (string * string) seq) = 
-    interface ITemplates with 
-        member _.TryGet(name) = 
-            templates
-            |> Seq.tryPick (fun (tmplName, tmpl) -> 
-                match String.Equals(name, tmplName, StringComparison.OrdinalIgnoreCase) with 
-                | true -> Some tmpl
-                | _ -> None)
+type ScribanTemplates(viewsDirectory : string) =
+    do
+        if not(Directory.Exists viewsDirectory) then
+            failwithf "Directory was not found, '%s'" viewsDirectory
 
-type ScribanTemplateService(templates : ITemplates) = 
-    interface ITemplateService with 
-        member _.Render(name, model) = 
-            match templates.TryGet name with 
-            | Some template ->
+    let templates =
+        [ for file in Directory.EnumerateFiles viewsDirectory do
+            let viewName = Path.GetFileNameWithoutExtension file
+            let viewContent = File.ReadAllText file
+            viewName, viewContent ]
+
+    interface ITemplates with
+        member _.Render(name, model) =
+            match Seq.tryFind (fun (viewName, _) -> viewName = name) templates with
+            | Some (_, template) ->
                 let tmpl = Template.Parse template
                 tmpl.RenderAsync(model)
             | None -> failwithf "Template '%s' was not found" name
 
-module PageController =
-    let homepage : HttpHandler =
-        Falco.plug<ITemplateService> <| fun templateService ->
+module Pages =
+    let private renderPage name model : HttpHandler = fun ctx ->
+        let templateService = ctx.Plug<ITemplates>()
+        task {
+            let! html = templateService.Render(name, model)
+            return Response.ofHtmlString html ctx
+        }
+
+    let homepage : HttpHandler = fun ctx ->
         let queryMap (q: RequestData) =
             {| Name = q.GetString("name", "World") |}
 
-        let next model : HttpHandler = fun ctx ->
-            task {
-                let! html = templateService.Render("Home", model)
-                return Response.ofHtmlString html ctx
-            }
+        Request.mapQuery queryMap (renderPage "Home") ctx
 
-        Request.mapQuery queryMap next
-
-module App =
-    let endpoints = 
-        [ get "/" PageController.homepage ]
-
-    let notFound = 
-        Response.withStatusCode 404 
-        >> Response.ofPlainText "Not Found"
+    let notFound : HttpHandler =
+        renderPage "404" {||}
 
 [<EntryPoint>]
-let main args =    
-    let executionPath = Environment.GetCommandLineArgs()[0]
-    let executionDirectory = Path.GetDirectoryName executionPath
-    
-    let scribanTemplates (conf : IConfiguration) _ = 
-        let viewsDirectoryName = conf.GetValue<string>("ViewsDirectory")
-        let viewsDirectory = Path.Combine (executionDirectory, viewsDirectoryName)
-        ScribanTemplates [ 
-            for file in Directory.EnumerateFiles viewsDirectory do 
-                let viewName = Path.GetFileNameWithoutExtension file 
-                let viewContent = File.ReadAllText file                
-                viewName, viewContent 
-        ] :> ITemplates
+let main args =
+    let bldr = WebApplication.CreateBuilder(args)
 
-    args
-    |> Falco.newApp
-    |> Falco.Services.addInstance scribanTemplates
-    |> Falco.Services.addSingleton<ITemplateService, ScribanTemplateService>
-    |> Falco.endpoints App.endpoints
-    |> Falco.notFound App.notFound
-    |> Falco.run 
-    
+    let viewsDirectory =
+        let executionPath = Environment.GetCommandLineArgs()[0]
+        let executionDirectory = Path.GetDirectoryName executionPath
+        let viewsDirectoryName = bldr.Configuration.GetValue<string>("ViewsDirectory")
+        Path.Combine (executionDirectory, viewsDirectoryName)
+
+    let scribanTemplates : ITemplates = ScribanTemplates(viewsDirectory)
+
+    bldr.Services
+        .AddSingleton(scribanTemplates)
+        |> ignore
+
+    bldr.Build()
+        .UseFalco()
+        .FalcoGet("/", Pages.homepage)
+        .FalcoNotFound(Pages.notFound)
+        .Run()
+
     0 // Exit code
