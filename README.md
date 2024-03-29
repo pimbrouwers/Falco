@@ -5,13 +5,16 @@
 
 ```fsharp
 open Falco
+open Microsoft.AspNetCore.Builder
 
-Falco.newApp ()
-|> Falco.get "/" (Response.ofPlainText "Hello World")
-|> Falco.run
+let wapp = WebApplication.Create()
+
+wapp.UseFalco()
+    .FalcoGet("/", Response.ofPlainText "hello world")
+    .Run()
 ```
 
-[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast and functional-first web applications using F#.
+[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast and functional-first web applications using F#. You can think of it as [minimal API](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-8.0&tabs=visual-studio) on *steroids*.
 
 - Built upon the high-performance components of ASP.NET Core.
 - Optimized for building HTTP applications quickly.
