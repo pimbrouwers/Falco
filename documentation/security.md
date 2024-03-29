@@ -67,15 +67,13 @@ open Falco.Security
 let formView token =
     Elem.html [] [
         Elem.body [] [
-            Elem.form [ Attr.method "post" ] [
-                Elem.input [ Attr.name "first_name" ]
-
-                Elem.input [ Attr.name "last_name" ]
-
-                // using the CSRF HTML helper
+            Elem.form [ Attr.methodPost ] [
+                // using the CSRF HTML helper, recommended to include as first
+                // form element
                 Xss.antiforgeryInput token
-
-                Elem.input [ Attr.type' "submit"; Attr.value "Submit" ]
+                Elem.control "first_name" [] [ Text.raw "First Name" ]
+                Elem.control "first_name" [] [ Text.raw "First Name" ]
+                Elem.input [ Attr.typeSubmit ]
             ]
         ]
     ]
@@ -83,15 +81,14 @@ let formView token =
 // A handler that demonstrates obtaining a
 // CSRF token and applying it to a view
 let csrfViewHandler : HttpHandler =
-    formView
-    |> Response.ofHtmlCsrf
+    Response.ofHtmlCsrf formView
 
 // A handler that demonstrates validating
 // the request's CSRF token
 let mapFormSecureHandler : HttpHandler =
     let mapPerson (form : FormData) =
-        { FirstName = form.GetString "first_name" "John" // Get value or return default value
-          LastName = form.GetString "first_name" "Doe" }
+        { FirstName = form?first_name.AsString()
+          LastName = form?last_name.AsString }
 
     let handleInvalid : HttpHandler =
         Response.withStatusCode 400
