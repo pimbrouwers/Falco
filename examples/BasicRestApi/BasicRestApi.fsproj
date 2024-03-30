@@ -6,6 +6,6 @@
     <ProjectReference Include="../../src/Falco/Falco.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HelloWorldMvc.fs" />
+    <Compile Include="BasicRestApi.fs" />
   </ItemGroup>
 </Project>

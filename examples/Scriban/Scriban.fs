@@ -70,5 +70,5 @@ let main args =
         .FalcoGet("/", Pages.homepage)
         .FalcoNotFound(Pages.notFound)
         .Run()
-
+        
     0 // Exit code

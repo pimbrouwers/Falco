@@ -92,6 +92,13 @@ module Controller =
 
 module Program =
     open Controller
+    
+    let endpoints = 
+        [ get Route.index GreetingController.index
+          get Route.greetPlainText GreetingController.plainTextDetail
+          get Route.greetJson GreetingController.jsonDetail
+          get Route.greetHtml GreetingController.htmlDetail ]
+
 
     /// By defining an explicit entry point, we gain access to the command line
     /// arguments which when passed into Falco are used as the creation arguments
@@ -101,12 +108,6 @@ module Program =
         let wapp = WebApplication.Create(args)
 
         let isDevelopment = wapp.Environment.EnvironmentName = "Development"
-
-        let endpoints = 
-            [ get Route.index GreetingController.index
-              get Route.greetPlainText GreetingController.plainTextDetail
-              get Route.greetJson GreetingController.jsonDetail
-              get Route.greetHtml GreetingController.htmlDetail ]
 
         wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
             .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorPage.serverException)
