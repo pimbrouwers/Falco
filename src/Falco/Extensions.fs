@@ -19,6 +19,16 @@ module Extensions =
             if predicate then fn x.Configuration x.Services |> ignore
             x
 
+    type IApplicationBuilder with
+        /// Registers a `Falco.HttpHandler` as exception handler lambda.
+        /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
+        member x.UseFalcoExceptionHandler(exceptionHandler : HttpHandler) : IApplicationBuilder =
+            let configure (appBuilder : IApplicationBuilder) =
+                appBuilder.Run(HttpHandler.toRequestDelegate exceptionHandler)
+
+            x.UseExceptionHandler(configure) |> ignore
+            x
+
     type WebApplication with
         /// Apply `fn` to `WebApplication :> IApplicationBuilder` if `predicate` is true.
         member x.UseIf(predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
@@ -29,21 +39,18 @@ module Extensions =
         member x.Use(fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
             x.UseIf(true, fn)
 
-        /// Registers a `Falco.HttpHandler` as exception handler lambda.
-        /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
-        member x.UseFalcoExceptionHandler(exceptionHandler : HttpHandler) : WebApplication =
-            let configure (appBuilder : IApplicationBuilder) =
-                appBuilder.Run(HttpHandler.toRequestDelegate exceptionHandler)
-
-            x.UseExceptionHandler(configure) |> ignore
-            x
-
         /// Activates Falco integration with IEndpointRouteBuilder.
         member x.UseFalco(?endpoints : HttpEndpoint seq) : WebApplication =
             x.UseRouting()
              .UseEndpoints(fun endpointBuilder ->
                 let dataSource = FalcoEndpointDatasource(defaultArg endpoints [])
                 endpointBuilder.DataSources.Add(dataSource)) |> ignore
+            x
+
+        /// Registers a `Falco.HttpHandler` as exception handler lambda.
+        /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
+        member x.UseFalcoExceptionHandler(exceptionHandler : HttpHandler) : WebApplication =
+            (x :> IApplicationBuilder).UseFalcoExceptionHandler(exceptionHandler) |> ignore
             x
 
         /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder`.
@@ -79,7 +86,7 @@ module Extensions =
             x.MapFalco({
                 Pattern = pattern
                 Handlers = [ PUT, handler ] })
-        
+
         /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP DELETE requests for the specified pattern.
         member x.FalcoDelete(pattern : string, handler : HttpHandler) : WebApplication =
             x.MapFalco({
@@ -103,7 +110,7 @@ module Extensions =
             x.MapFalco({
                 Pattern = pattern
                 Handlers = handlers })
-        
+
         /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found).
         member x.FalcoNotFound(handler : HttpHandler) : WebApplication =
             x.Run(handler = HttpHandler.toRequestDelegate handler) |> ignore
@@ -113,5 +120,5 @@ module Extensions =
         /// Registers a `Falco.HttpHandler` as global exception handler.
         static member UseFalcoExceptionHandler
             (exceptionHandler : HttpHandler)
-            (app : WebApplication) =
+            (app : IApplicationBuilder) =
             app.UseFalcoExceptionHandler exceptionHandler

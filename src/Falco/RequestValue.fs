@@ -17,24 +17,24 @@ type RequestValue =
     | RObject of keyValues : (string * RequestValue) list
 
 module RequestValue =
-    let rec parse (requestData : IDictionary<string, string seq>) =
-        let (|IsFlatKey|_|) (x : string) =
-            if not(x.EndsWith("[]")) && not(x.Contains(".")) then Some x
-            else None
+    let private (|IsFlatKey|_|) (x : string) =
+        if not(x.EndsWith("[]")) && not(x.Contains(".")) then Some x
+        else None
 
-        let (|IsListKey|_|) (x : string) =
-            if x.EndsWith("[]") then Some (x.Substring(0, x.Length - 2))
-            else None
+    let private (|IsListKey|_|) (x : string) =
+        if x.EndsWith("[]") then Some (x.Substring(0, x.Length - 2))
+        else None
 
-        let (|IsIndexedListKey|_|) (x : string) =
-            if x.EndsWith("]") then
-                match Text.RegularExpressions.Regex.Match(x, @".\[(\d+)\]$") with
-                | m when Seq.length m.Groups = 2 ->
-                    let capture = m.Groups[1].Value
-                    Some (int capture, x.Substring(0, x.Length - capture.Length - 2))
-                | _ -> None
-            else None
+    let private (|IsIndexedListKey|_|) (x : string) =
+        if x.EndsWith("]") then
+            match Text.RegularExpressions.Regex.Match(x, @".\[(\d+)\]$") with
+            | m when Seq.length m.Groups = 2 ->
+                let capture = m.Groups[1].Value
+                Some (int capture, x.Substring(0, x.Length - capture.Length - 2))
+            | _ -> None
+        else None
 
+    let rec parse (requestData : IDictionary<string, string seq>) : RequestValue =
         let newRequestAcc () =
             Dictionary<string, RequestValue>()
 
@@ -152,7 +152,6 @@ module RequestValue =
                     parseNested requestObjectAcc remainingKeys values
                     acc.TryAdd(key, requestObjectAcc |> requestAccToValues) |> ignore
 
-        // entry point
         let requestAcc = newRequestAcc()
 
         for kvp in requestData do
@@ -193,14 +192,14 @@ module RequestValue =
         |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> IEnumerable<string>)
         |> dict
         |> parse
-
-    let parseCookies (cookies : IRequestCookieCollection) =
+            
+    let parseCookies (cookies : IRequestCookieCollection) : RequestValue =
         cookies
         |> Seq.map (fun kvp -> kvp.Key, seq { kvp.Value })
         |> dict
         |> parse
 
-    let parseHeaders (headers : IHeaderDictionary) =
+    let parseHeaders (headers : IHeaderDictionary) : RequestValue =
         headers
         |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> string seq)
         |> dict
@@ -211,13 +210,13 @@ module RequestValue =
         |> Seq.map (fun kvp ->
             kvp.Key, seq { Convert.ToString(kvp.Value, Globalization.CultureInfo.InvariantCulture) })
 
-    let parseRoute (route : RouteValueDictionary) =
+    let parseRoute (route : RouteValueDictionary) : RequestValue =
         route
         |> routeKeyValues
         |> dict
         |> parse
 
-    let parseQuery (query : IQueryCollection, route : RouteValueDictionary option) =
+    let parseQuery (query : IQueryCollection, route : RouteValueDictionary option) : RequestValue =
         let routeKeyValues = route |> Option.map routeKeyValues |> Option.defaultValue Seq.empty
 
         let queryKeyValues =
@@ -228,7 +227,7 @@ module RequestValue =
         |> dict
         |> parse
 
-    let parseForm (form : IFormCollection, route : RouteValueDictionary option) =
+    let parseForm (form : IFormCollection, route : RouteValueDictionary option) : RequestValue =
         let routeKeyValues = route |> Option.map routeKeyValues |> Option.defaultValue Seq.empty
 
         let formKeyValues =

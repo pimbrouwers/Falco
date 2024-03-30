@@ -2,9 +2,7 @@ namespace Falco
 
 open System
 open System.Collections.Generic
-open System.Net
 open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Routing
 open Microsoft.FSharp.Core.Operators
 open Falco.StringPatterns
 
