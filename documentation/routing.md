@@ -8,10 +8,13 @@ Bearing this in mind, routing can practically be represented by a list of these 
 
 ```fsharp
 open Falco
+open Microsoft.AspNetCore.Builder
 
-Falco.newApp ()
-|> Falco.get "/" (Response.ofPlainText "Hello World")
-|> Falco.run
+let wapp = WebApplication.Create()
+
+wapp.UseFalco()
+    .FalcoGet("/", Response.ofPlainText "hello world")
+    .Run()
 ```
 
 The preceding example includes a single `HttpEndpoint`:
@@ -24,14 +27,17 @@ The following example shows a more sophisticated `HttpEndpoint`:
 
 ```fsharp
 open Falco
+open Microsoft.AspNetCore.Builder
 
-Falco.newApp ()
-|> Falco.get "/hello/{name:alpha}" (fun ctx ->
-    let route = Request.getRoute ctx
-    let name = route.GetString "name"
-    let message = sprintf "Hello %s" name
-    Response.ofPlainText message ctx)
-|> Falco.run
+let wapp = WebApplication.Create()
+
+wapp.UseFalco()
+    .FalcoGet("/hello/{name:alpha}", fun ctx ->
+        let route = Request.getRoute ctx
+        let name = route.GetString "name"
+        let message = sprintf "Hello %s" name
+        Response.ofPlainText message ctx)
+    .Run()
 ```
 
 The string `/hello/{name:alpha}` is a **route template**. It is used to configure how the endpoint is matched. In this case, the template matches:
@@ -49,13 +55,16 @@ An alternative way to express the `HttEndpoint` above is seen below. Note the om
 
 ```fsharp
 open Falco
+open Microsoft.AspNetCore.Builder
 
-Falco.newApp()
-|> Falco.get "/hello/{name:alpha}"
-    (Request.mapRoute
-        (fun route -> route.GetString "name")
-        Response.ofPlainText)
-|> Falco.run
+let wapp = WebApplication.Create()
+
+wapp.UseFalco()
+    .FalcoGet("/hello/{name:alpha}", 
+        Request.mapRoute
+            (fun route -> route.GetString "name")
+            Response.ofPlainText)
+    .Run()
 ```
 
 ## Multi-method Endpoints
@@ -67,6 +76,7 @@ To create a "multi-method" endpoint, the `all` function accepts a list of HTTP V
 ```fsharp
 open Falco
 open Falco.Markup
+open Microsoft.AspNetCore.Builder
 
 let form =
     Templates.html5 "en" [] [
@@ -74,12 +84,14 @@ let form =
             Elem.input [ Attr.name "name" ]
             Elem.input [ Attr.type' "submit" ] ] ] 
 
-Falco.newApp ()
-|> Falco.get "/hello" (Response.ofPlainText "/hello")
-|> Falco.all "/form"  [
-    GET, Response.ofHtml form
-    POST, Response.debugRequest ] // useful development tool
-|> Falco.run 
+let wapp = WebApplication.Create()
+
+wapp.UseFalco()
+    .FalcoGet("/", Response.ofPlainText "Hello from /")
+    .FalcoAll("/form", [
+        GET, Response.ofHtml form
+        POST, Response.debugRequest ]) // <-- a useful debugging tool
+    .Run()
 ```
 
 [Next: Writing responses](response.md)

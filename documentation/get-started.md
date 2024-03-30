@@ -42,7 +42,6 @@ let wapp = WebApplication.Create()
 wapp.UseFalco()
     .FalcoGet("/", Response.ofPlainText "hello world")
     .Run()
-
 ```
 
 Run the application:

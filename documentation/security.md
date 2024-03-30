@@ -97,4 +97,4 @@ let mapFormSecureHandler : HttpHandler =
     Request.mapFormSecure mapPerson Response.ofJson handleInvalid
 ```
 
-[Next: Sample - Hello World](/samples/HelloWorld/readme.md)
+[Next: Example - Hello World](example-hello-world.md)
