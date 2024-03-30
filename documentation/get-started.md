@@ -34,13 +34,15 @@ Install the nuget package:
 Remove any `*.fs` files created automatically, create a new file named `Program.fs` and set the contents to the following:
 
 ```fsharp
-module HelloWorld.Program
-
 open Falco
+open Microsoft.AspNetCore.Builder
 
-Falco.newApp ()
-|> Falco.get "/" (Response.ofPlainText "Hello World")
-|> Falco.run
+let wapp = WebApplication.Create()
+
+wapp.UseFalco()
+    .FalcoGet("/", Response.ofPlainText "hello world")
+    .Run()
+
 ```
 
 Run the application:
