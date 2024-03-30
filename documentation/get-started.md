@@ -51,10 +51,10 @@ Run the application:
 > dotnet run
 ```
 
-And there you have it, an industrial-strength [Hello World](https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld) web app. Pretty sweet!
+And there you have it, an industrial-strength [Hello World](https://github.com/pimbrouwers/Falco/tree/master/examples/HelloWorld) web app. Pretty sweet!
 
 ## Sample Applications
 
-Code is worth a thousand words. For the most up-to-date usage, the [samples](https://github.com/pimbrouwers/Falco/tree/master/samples/) directory contains a few sample applications.
+Code is worth a thousand words. For the most up-to-date usage, the [examples](https://github.com/pimbrouwers/Falco/tree/master/examples/) directory contains a few sample applications.
 
 [Next: Routing](routing.md)
