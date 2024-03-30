@@ -9,7 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
-[Ss]amples/[Ss]andbox/
+[Ee]xamples/[Ss]andbox/
 *.sqlite
 
 # User-specific files (MonoDevelop/Xamarin Studio)
