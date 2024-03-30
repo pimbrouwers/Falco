@@ -98,6 +98,18 @@ let getJsonOptions<'T>
         return! JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options, tokenSource.Token).AsTask()
     }
 
+
+let internal defaultJsonOptions =
+    let options = JsonSerializerOptions()
+    options.AllowTrailingCommas <- true
+    options.PropertyNameCaseInsensitive <- true
+    options
+
+/// Attempts to bind request body using System.Text.Json and default
+/// JsonSerializerOptions.
+let getJson<'T> (ctx : HttpContext) =
+    getJsonOptions defaultJsonOptions ctx
+
 // ------------
 // Handlers
 // ------------
@@ -189,12 +201,6 @@ let mapJsonOptions
         let! json = getJsonOptions options ctx
         return! next json ctx
     }
-
-let internal defaultJsonOptions =
-    let options = JsonSerializerOptions()
-    options.AllowTrailingCommas <- true
-    options.PropertyNameCaseInsensitive <- true
-    options
 
 /// Projects JSON onto 'T and provides to next
 /// HttpHandler, throws JsonException if errors

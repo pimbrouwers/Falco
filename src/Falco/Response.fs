@@ -278,7 +278,7 @@ let debugRequest : HttpHandler = fun ctx ->
             sw.WriteLine(k)
             sw.Write(tab)
             sw.Write(tab)
-            sw.WriteLine(v)
+            sw.WriteLine(v.AsString())
             sw.WriteLine()
 
         sw.WriteLine()
