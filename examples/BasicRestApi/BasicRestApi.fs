@@ -1,6 +1,5 @@
 namespace BasicRestApi
 
-open System
 open System.Collections.Concurrent
 open System.Collections.Generic
 open Falco
@@ -58,7 +57,6 @@ module Route =
     let userUpdate = "/users/{username}"
     let userDelete = "/users/{username}"
 
-/// Static error page(s)
 module ErrorPage =
     let notFound : HttpHandler =
         Response.withStatusCode 404 >>
@@ -71,7 +69,7 @@ module ErrorPage =
 module UserController =
     let private handleResult result =
         match result with
-        | Ok result   -> Response.ofJson result
+        | Ok result -> Response.ofJson result
         | Error error -> Response.withStatusCode 400 >> Response.ofJson error
 
     let index : HttpHandler = fun ctx ->

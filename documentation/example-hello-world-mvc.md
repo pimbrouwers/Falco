@@ -165,14 +165,42 @@ This is a great opportunity to demonstrate further how to configure a more compl
 
 To do that, we'll define an explicit entry point function which gives us access to the command line argument. By then forwarding these into the web application, we gain further [configurability](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration#command-line). You'll notice the application contains a file called `appsettings.json`, this is another [ASP.NET convention](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration#default-application-configuration-sources) that provides fully-featured and extensible configuration functionality.
 
-In this example, we examine the environment name to create an "is development" toggle. We use this to determine the extensiveness of our error output. You'll notice we use our exception page from above when an exception occurs when not in development mode. Otherwise, we show a developer-friendly error page.
-
 Next we define an explicit collection of endpoints, which gets passed into the `.UseFalco(endpoints)` extension method. You could just as easily invoke `.FalcoGet()` four times, but the collection approach generally scales better. The choice is yours.
 
+In this example, we examine the environment name to create an "is development" toggle. We use this to determine the extensiveness of our error output. You'll notice we use our exception page from above when an exception occurs when not in development mode. Otherwise, we show a developer-friendly error page. Next we activate static file support, via the default web root of `wwwroot`.
+
 We end off by registering a terminal handler, which functions as our "not found" response.
+
+```fsharp
+module Program =
+    open Controller
+    
+    let endpoints = 
+        [ get Route.index GreetingController.index
+          get Route.greetPlainText GreetingController.plainTextDetail
+          get Route.greetJson GreetingController.jsonDetail
+          get Route.greetHtml GreetingController.htmlDetail ]
+
+
+    /// By defining an explicit entry point, we gain access to the command line
+    /// arguments which when passed into Falco are used as the creation arguments
+    /// for the internal WebApplicationBuilder.
+    [<EntryPoint>]
+    let main args =
+        let wapp = WebApplication.Create(args)
+
+        let isDevelopment = wapp.Environment.EnvironmentName = "Development"
+
+        wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
+            .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorPage.serverException)
+            .Use(StaticFileExtensions.UseStaticFiles)
+            .UseFalco(endpoints)
+            .FalcoNotFound(ErrorPage.notFound)
+            .Run()
+```
 
 ## Wrapping Up
 
 This example was a leap ahead from our basic hello world. But having followed this, you know understand 85% of the pattern you'll need to know to build end-to-end server applications with Falco. Unsurprisingly, the entire program fits inside 118 LOC. One of the magnificent benefits of writing code in F#.
 
-[Next: Example - Dependency Injection](sample-hello-world-mvc.md)
+[Next: Example - Dependency Injection](example-dependency-injection.md)

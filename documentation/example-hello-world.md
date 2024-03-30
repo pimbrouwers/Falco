@@ -25,4 +25,4 @@ After creating the web application, we:
 - Register `GET /` endpoint to a handler which responds with "hello world".
 - Run the app.
 
-[Next: Example - Hello World MVC](sample-hello-world-mvc.md)
+[Next: Example - Hello World MVC](example-hello-world-mvc.md)
