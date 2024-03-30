@@ -8,6 +8,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="HelloWorldDependencyInjection.fs" />
+    <Compile Include="DependencyInjection.fs" />
   </ItemGroup>
 </Project>
