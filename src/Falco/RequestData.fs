@@ -182,18 +182,19 @@ module RequestDataExtensions =
 
         member _.AsKeyValues() = RequestValue.asObject requestValue |> Option.map (List.map (fun (k, v) -> k, RequestData v)) |> Option.defaultValue []
         member _.AsList() = RequestValue.asList requestValue |> Option.map (List.map RequestData) |> Option.defaultValue []
-        member _.AsString() = RequestValue.asString requestValue |> Option.defaultValue ""
-        member _.AsInt16() = RequestValue.asInt16 requestValue |> Option.defaultValue 0s
-        member _.AsInt32() = RequestValue.asInt32 requestValue |> Option.defaultValue 0
-        member x.AsInt() = x.AsInt32()
-        member _.AsInt64() = RequestValue.asInt64 requestValue |> Option.defaultValue 0L
-        member _.AsBoolean() = RequestValue.asBoolean requestValue |> Option.defaultValue false
-        member _.AsFloat() = RequestValue.asFloat requestValue |> Option.defaultValue 0.
-        member _.AsDecimal() = RequestValue.asDecimal requestValue |> Option.defaultValue 0.M
-        member _.AsDateTime() = RequestValue.asDateTime requestValue |> Option.defaultValue DateTime.MinValue
-        member _.AsDateTimeOffset() = RequestValue.asDateTimeOffset requestValue |> Option.defaultValue DateTimeOffset.MinValue
-        member _.AsTimeSpan() = RequestValue.asTimeSpan requestValue |> Option.defaultValue TimeSpan.MinValue
-        member _.AsGuid() = RequestValue.asGuid requestValue |> Option.defaultValue Guid.Empty
+        member _.AsString(?defaultValue) = RequestValue.asString requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue "")
+        member _.AsStringNonEmpty(?defaultValue) = RequestValue.asStringNonEmpty requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue "")
+        member _.AsInt16(?defaultValue) = RequestValue.asInt16 requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue 0s)
+        member _.AsInt32(?defaultValue) = RequestValue.asInt32 requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue 0)
+        member x.AsInt(?defaultValue) = x.AsInt32(?defaultValue = defaultValue)
+        member _.AsInt64(?defaultValue) = RequestValue.asInt64 requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue 0L)
+        member _.AsBoolean(?defaultValue) = RequestValue.asBoolean requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue false)
+        member _.AsFloat(?defaultValue) = RequestValue.asFloat requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue 0.)
+        member _.AsDecimal(?defaultValue) = RequestValue.asDecimal requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue 0.M)
+        member _.AsDateTime(?defaultValue) = RequestValue.asDateTime requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue DateTime.MinValue)
+        member _.AsDateTimeOffset(?defaultValue) = RequestValue.asDateTimeOffset requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue DateTimeOffset.MinValue)
+        member _.AsTimeSpan(?defaultValue) = RequestValue.asTimeSpan requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue TimeSpan.MinValue)
+        member _.AsGuid(?defaultValue) = RequestValue.asGuid requestValue |> Option.defaultWith (fun _ -> defaultArg defaultValue Guid.Empty)
 
         member _.AsStringOption() = RequestValue.asString requestValue
         member _.AsStringNonEmptyOption() = RequestValue.asStringNonEmpty requestValue
