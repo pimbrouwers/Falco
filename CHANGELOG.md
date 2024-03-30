@@ -12,7 +12,6 @@ All notable changes to this project will be documented in this file.
 - `WebApplication.UseFalco()` extension method.
 - `HttpContext.Plug<T>` for direct injection of dependencies within `HttpHandler`'s.
 - Falco App builder, as a simplified means of constructing `WebApplication`'s.
-- `Falco.plug<T>`, `Falco.plug<T1,T2>`, `Falco.plug<T1,T2,T3>`, `Falco.plug<T1,T2,T3,T4>` and `Falco.plug<T1,T2,T3,T4,T5>` to enable dependency injection via continuation.
 
 ### Fixed
 
