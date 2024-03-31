@@ -108,7 +108,7 @@ let internal defaultJsonOptions =
 /// Attempts to bind request body using System.Text.Json and default
 /// JsonSerializerOptions.
 let getJson<'T> (ctx : HttpContext) =
-    getJsonOptions defaultJsonOptions ctx
+    getJsonOptions<'T> defaultJsonOptions ctx
 
 // ------------
 // Handlers
