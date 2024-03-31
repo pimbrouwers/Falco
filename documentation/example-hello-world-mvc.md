@@ -4,6 +4,12 @@ Let's take our basic [Hello World](example-hello-world.md) to the next level. Th
 
 The code for this example can be found [here](https://github.com/pimbrouwers/Falco/tree/master/examples/HelloWorldMvc).
 
+## Creating the Application Manually
+
+```shell
+> dotnet new falco -o HelloWorldMvcApp
+```
+
 ## Model
 
 Since this app has no persistence, the model is somewhat boring. But included here to demonstrate the concept.
