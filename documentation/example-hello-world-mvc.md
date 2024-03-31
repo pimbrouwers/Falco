@@ -201,6 +201,6 @@ module Program =
 
 ## Wrapping Up
 
-This example was a leap ahead from our basic hello world. But having followed this, you know understand 85% of the pattern you'll need to know to build end-to-end server applications with Falco. Unsurprisingly, the entire program fits inside 118 LOC. One of the magnificent benefits of writing code in F#.
+This example was a leap ahead from our basic hello world. But having followed this, you know understand many of the patterns you'll need to know to build end-to-end server applications with Falco. Unsurprisingly, the entire program fits inside 118 LOC. One of the magnificent benefits of writing code in F#.
 
 [Next: Example - Dependency Injection](example-dependency-injection.md)

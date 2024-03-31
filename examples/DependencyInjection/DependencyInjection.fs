@@ -10,13 +10,13 @@ type FriendlyGreeter() =
         member _.Greet(name : string) =
             $"Hello {name} 😀"
 
-let bldr = WebApplication.CreateBuilder()
+let bldr = WebApplication.CreateBuilder() // <-- create a configurable web application builder
 
 bldr.Services
-    .AddSingleton<IGreeter, FriendlyGreeter>()
+    .AddSingleton<IGreeter, FriendlyGreeter>() // <-- register the greeter as singleton in the container
     |> ignore
 
-let wapp = bldr.Build()
+let wapp = bldr.Build() // <-- manifest our WebApplication
 
 wapp.UseFalco()
     .FalcoGet("/{name?}", fun ctx ->
