@@ -143,12 +143,12 @@ module Program =
         let initializeDatabase (dbConnection : IDbConnectionFactory) =
             use conn = dbConnection.Create()
             conn
-            |> Db.newCommand "CREATE TABLE user (username, full_name)"
+            |> Db.newCommand "CREATE TABLE IF NOT EXISTS user (username, full_name)"
             |> Db.exec
 
         let dbConnectionFactory =
             { new IDbConnectionFactory with
-                member _.Create() = new SqliteConnection("Data Source=memory") }
+                member _.Create() = new SqliteConnection("Data Source=:memory:") }
 
         initializeDatabase dbConnectionFactory
 
