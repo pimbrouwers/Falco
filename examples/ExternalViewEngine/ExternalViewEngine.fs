@@ -5,18 +5,18 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
 open Scriban
 
-type ITemplates =
+type ITemplate =
     abstract member Render : template: string * model: obj -> string
 
-type ScribanTemplates() =
-    interface ITemplates with
+type ScribanTemplate() =
+    interface ITemplate with
         member _.Render(template, model) =
             let tmpl = Template.Parse template
             tmpl.Render(model)
 
 module Pages =
     let private renderPage pageTitle template viewModel : HttpHandler = fun ctx ->        
-        let templateService = ctx.Plug<ITemplates>() // <-- obtain our template service from the dependency container        
+        let templateService = ctx.Plug<ITemplate>() // <-- obtain our template service from the dependency container        
         let pageContent = templateService.Render(template, viewModel) // <-- render our template with the provided view model as string literal        
         let htmlTemplate = """
             <!DOCTYPE html>
@@ -50,7 +50,6 @@ module Pages =
         let template = """
             <h1>Page not found</h1>
         """
-
         renderPage "Page Not Found" template {||}
 
 [<EntryPoint>]
@@ -58,7 +57,7 @@ let main args =
     let bldr = WebApplication.CreateBuilder(args)
 
     bldr.Services
-        .AddSingleton<ITemplates, ScribanTemplates>() // <-- register ITemplates implementation as a dependency
+        .AddSingleton<ITemplate, ScribanTemplate>() // <-- register ITemplates implementation as a dependency
         |> ignore
 
     bldr.Build()
