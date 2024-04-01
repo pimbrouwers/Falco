@@ -6,6 +6,7 @@ module Extensions =
     open Microsoft.AspNetCore.Http
     open Microsoft.Extensions.Configuration
     open Microsoft.Extensions.DependencyInjection
+    open Microsoft.Extensions.Logging
 
     type HttpContext with
         /// Attempts to obtain dependency from IServiceCollection
@@ -14,10 +15,21 @@ module Extensions =
             x.RequestServices.GetRequiredService<'T>()
 
     type WebApplicationBuilder with
+        member x.AddConfiguration(fn : IConfigurationBuilder -> IConfigurationBuilder) : WebApplicationBuilder =
+            fn x.Configuration |> ignore
+            x
+
+        member x.AddLogging(fn : ILoggingBuilder -> ILoggingBuilder) : WebApplicationBuilder =
+            fn x.Logging |> ignore
+            x
+
         /// Apply `fn` to `WebApplicationBuilder.Services :> IServiceCollection`  if `predicate` is true.
-        member x.AddIf(predicate : bool, fn : IConfiguration -> IServiceCollection -> IServiceCollection) : WebApplicationBuilder =
+        member x.AddServicesIf(predicate : bool, fn : IConfiguration -> IServiceCollection -> IServiceCollection) : WebApplicationBuilder =
             if predicate then fn x.Configuration x.Services |> ignore
             x
+
+        member x.AddServices(fn : IConfiguration -> IServiceCollection -> IServiceCollection) : WebApplicationBuilder =
+            x.AddServicesIf(true, fn)
 
     type IApplicationBuilder with
         /// Registers a `Falco.HttpHandler` as exception handler lambda.
