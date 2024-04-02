@@ -1,15 +1,20 @@
 namespace BasicRestApi
 
+open System
 open System.Data
+open System.Threading.Tasks
 open Donald // <-- external package that makes using databases simpler
 open Falco
 open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
 open Microsoft.Data.Sqlite // <-- a very useful Microsoft package
 
 type Error =
     { Code : string
-      Message : string }
+      Message : string
+      ExceptionDetail : string }
 
 type User =
     { Username : string
@@ -19,10 +24,10 @@ type IDbConnectionFactory =
     abstract member Create : unit -> IDbConnection
 
 type IStore<'TKey, 'TItem> =
-    abstract member List : unit   -> 'TItem list
-    abstract member Create : 'TItem -> Result<unit, Error>
-    abstract member Read : 'TKey -> 'TItem option
-    abstract member Delete : 'TKey -> Result<unit, Error>
+    abstract member List : unit   -> Task<'TItem list>
+    abstract member Create : 'TItem -> Task<Result<unit, Error>>
+    abstract member Read : 'TKey -> Task<'TItem option>
+    abstract member Delete : 'TKey -> Task<Result<unit, Error>>
 
 type UserStore(dbConnection : IDbConnectionFactory) =
     let userOfDataReader (rd : IDataReader) =
@@ -34,11 +39,11 @@ type UserStore(dbConnection : IDbConnectionFactory) =
             use conn = dbConnection.Create()
             conn
             |> Db.newCommand "SELECT username, full_name FROM user"
-            |> Db.query userOfDataReader
+            |> Db.Async.query userOfDataReader
 
         member _.Create(user : User) =
             use conn = dbConnection.Create()
-            try
+            use cmd =
                 conn
                 |> Db.newCommand "
                     INSERT INTO user (username, full_name)
@@ -49,11 +54,17 @@ type UserStore(dbConnection : IDbConnectionFactory) =
                 |> Db.setParams [
                     "username", SqlType.String user.Username
                     "full_name", SqlType.String user.FullName ]
-                |> Db.exec
-                |> Ok
-            with
-            | :? DbExecutionException ->
-                Error { Code = "FAILED"; Message = "Could not add user" }
+            task {
+                try
+                    do! cmd |> Db.Async.exec
+                    return Ok ()
+                with
+                | :? DbExecutionException as ex ->
+                    return Error { 
+                        Code = "FAILED"
+                        Message = "Could not add user"
+                        ExceptionDetail = ex.ToString() }
+            }
 
         member _.Read(username : string) =
             use conn = dbConnection.Create()
@@ -64,19 +75,26 @@ type UserStore(dbConnection : IDbConnectionFactory) =
                 FROM      user
                 WHERE     username = @username"
             |> Db.setParams [ "username", SqlType.String username ]
-            |> Db.querySingle userOfDataReader
+            |> Db.Async.querySingle userOfDataReader
 
         member _.Delete(username : string) =
             use conn = dbConnection.Create()
-            try
+            use cmd =
                 conn
                 |> Db.newCommand "DELETE FROM user WHERE username = @username"
                 |> Db.setParams [ "username", SqlType.String username ]
-                |> Db.exec
-                |> Ok
-            with
-            | :? DbExecutionException ->
-                Error { Code = "FAILED"; Message = "Could not add user" }
+
+            task {
+                try
+                    do! cmd |> Db.Async.exec
+                    return Ok ()
+                with
+                | :? DbExecutionException as ex ->
+                    return Error { 
+                        Code = "FAILED"
+                        Message = "Could not add user" 
+                        ExceptionDetail = ex.ToString() }
+            }
 
 module Route =
     let userIndex = "/"
@@ -84,10 +102,17 @@ module Route =
     let userView = "/users/{username}"
     let userRemove = "/users/{username}"
 
-module ErrorPage =
-    let badRequest error : HttpHandler =
-        Response.withStatusCode 400
-        >> Response.ofJson error
+module ErrorResponse =
+    type ErrorDto = 
+        { Code : string 
+          Message : string }
+          
+    let badRequest (error : Error) : HttpHandler = fun ctx ->
+        let log = ctx.Plug<ILogger<Error>>()
+        log.LogError(error.ExceptionDetail, error)
+        ctx 
+        |> Response.withStatusCode 400
+        |> Response.ofJson { Code = error.Code; Message = error.Message }
 
     let notFound : HttpHandler =
         Response.withStatusCode 404 >>
@@ -100,33 +125,46 @@ module ErrorPage =
 module UserEndpoint =
     let index : HttpHandler = fun ctx ->
         let userStore = ctx.Plug<IStore<string, User>>()
-        let allUsers = userStore.List()
-        Response.ofJson allUsers ctx
+        task {
+            let! allUsers = userStore.List()
+            return! Response.ofJson allUsers ctx
+        }
 
-    let add : HttpHandler = fun ctx -> task {
+    let add : HttpHandler = fun ctx ->
         let userStore = ctx.Plug<IStore<string, User>>()
-        let! userJson = Request.getJson<User> ctx
-        let userAddResponse =
-            match userStore.Create(userJson) with
-            | Ok result -> Response.ofJson result ctx
-            | Error error -> ErrorPage.badRequest error ctx
-        return! userAddResponse }
+        task {
+            let! userJson = Request.getJson<User> ctx
+            let! userAddResult = userStore.Create(userJson)
+
+            return!
+                match userAddResult with
+                | Ok result -> Response.ofJson result ctx
+                | Error error -> ErrorResponse.badRequest error ctx
+        }
 
     let view : HttpHandler = fun ctx ->
         let userStore = ctx.Plug<IStore<string, User>>()
         let route = Request.getRoute ctx
         let username = route?username.AsString()
-        match userStore.Read(username) with
-        | Some user -> Response.ofJson user ctx
-        | None -> ErrorPage.notFound ctx
+        task {
+            let! userReadResult = userStore.Read(username)
+            return!
+                match userReadResult with
+                | Some user -> Response.ofJson user ctx
+                | None -> ErrorResponse.notFound ctx
+        }
 
     let remove : HttpHandler = fun ctx ->
         let userStore = ctx.Plug<IStore<string, User>>()
         let route = Request.getRoute ctx
         let username = route?username.AsString()
-        match userStore.Delete(username) with
-        | Ok result -> Response.ofJson result ctx
-        | Error error -> ErrorPage.badRequest error ctx
+        task {
+            let! userDeleteResult = userStore.Delete(username)
+            return!
+                match userDeleteResult with
+                | Ok result -> Response.ofJson result ctx
+                | Error error -> ErrorResponse.badRequest error ctx
+        }
 
 module Program =
     let endpoints =
@@ -135,33 +173,34 @@ module Program =
           get Route.userView UserEndpoint.view
           delete Route.userRemove UserEndpoint.remove ]
 
+    let initializeDatabase (dbConnection : IDbConnectionFactory) =
+        use conn = dbConnection.Create()
+        conn
+        |> Db.newCommand "CREATE TABLE IF NOT EXISTS user (username, full_name)"
+        |> Db.exec
+
     [<EntryPoint>]
     let main args =
         let bldr = WebApplication.CreateBuilder(args)
+        let isDevelopment = bldr.Environment.EnvironmentName = "Development"
+        let conf = bldr.Configuration
 
-        let initializeDatabase (dbConnection : IDbConnectionFactory) =
-            use conn = dbConnection.Create()
-            conn
-            |> Db.newCommand "CREATE TABLE IF NOT EXISTS user (username, full_name)"
-            |> Db.exec
-
-        let dbConnectionFactory =
+        let dbConnectionFactory = 
             { new IDbConnectionFactory with
-                member _.Create() = new SqliteConnection("Data Source=BasicRestApi.sqlite3") }
+                member _.Create() = new SqliteConnection(conf.GetConnectionString("BasicRestApiEvolved")) }
 
         initializeDatabase dbConnectionFactory
-
-        bldr.Services
+        
+        bldr.AddLogging(fun logBuilder -> printfn "here"; logBuilder.AddConsole())
+            .Services
             .AddSingleton<IDbConnectionFactory>(dbConnectionFactory)
             .AddSingleton<IStore<string, User>, UserStore>()
             |> ignore
 
         let wapp = bldr.Build()
 
-        let isDevelopment = wapp.Environment.EnvironmentName = "Development"
-
         wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
-            .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorPage.serverException)
+            .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorResponse.serverException)
             .UseFalco(endpoints)
             .Run()
         0

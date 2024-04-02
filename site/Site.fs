@@ -1,29 +1,12 @@
 open System
 open System.IO
 open System.Linq
-open System.Net.Http
 open System.Text.RegularExpressions
 open Markdig
 open Markdig.Extensions.Yaml
 open Markdig.Renderers
 open Markdig.Syntax
 open Scriban
-
-module Log =
-    let private log kind fmt =
-        Printf.kprintf (fun s ->
-            let now = DateTime.Now
-            let msg = sprintf "[%s] [%s] %s" (now.ToString("s")) kind s
-
-            printfn "%s" msg) fmt
-
-    let fail fmt = log "Fail" fmt
-
-    let info fmt = log "Info" fmt
-
-module Path =
-    let resolve (childPath : string) =
-        Path.Join(__SOURCE_DIRECTORY__, childPath)
 
 module Directory =
     let copyRecursive (destinationDir : DirectoryInfo) (sourceDir : DirectoryInfo) =
@@ -157,25 +140,23 @@ let main args =
     if args.Length <> 1 then failwith "Must provide the working directory as the first argument"
 
     let workingDir = DirectoryInfo(args.[0])
-    use http = new HttpClient()
 
     // Clean build
-    Log.info "Clearing build directory..."
+    printfn "Clearing build directory..."
     let buildDirPath = DirectoryInfo(Path.Join(workingDir.FullName, "../docs"))
     if buildDirPath.Exists then buildDirPath.Delete (recursive = true)
     else buildDirPath.Create ()
 
     // Copy asset
-    Log.info "Copying assets..."
+    printfn "Copying assets..."
     let assetsDir = DirectoryInfo(Path.Join(workingDir.FullName, "assets"))
     Directory.copyRecursive buildDirPath assetsDir
 
     // Render homepage
     let template = Templates(workingDir.FullName)
 
-    Log.info "Rendering homepage..."
+    printfn "Rendering homepage..."
     let indexMarkdown = Path.Join(workingDir.FullName, "../README.md") |> File.ReadAllText
-    // let indexMarkdown = http.GetStringAsync(@"https://raw.githubusercontent.com/pimbrouwers/Falco/master/README.md").Result
     let mainContent = Markdown.render indexMarkdown
 
     { Title = String.Empty
@@ -188,13 +169,7 @@ let main args =
     let docsDir = DirectoryInfo(Path.Join(workingDir.FullName, "../documentation"))
     let docsBuildDir = DirectoryInfo(Path.Join(buildDirPath.FullName, "docs"))
 
-    // Log.info "Downloading external markdown files..."
-    // let markupMarkdown = http.GetStringAsync(@"https://raw.githubusercontent.com/pimbrouwers/Falco.Markup/master/README.md").Result
-    // let markupFilename = Path.Join(docsDir.FullName, "markup.md")
-    // if (File.Exists(markupFilename)) then File.Delete(markupFilename)
-    // File.WriteAllText(markupFilename, markupMarkdown)
-
-    Log.info "Rendering docs..."
+    printfn "Rendering docs..."
     let readme = FileInfo(Path.Join(workingDir.FullName, "../readme.md"))
     let docFiles = Array.append [|readme|] (docsDir.GetFiles("*.md"))
     Docs.build template docFiles docsBuildDir
