@@ -18,12 +18,12 @@ type ConfigBuilderSpec =
       AddUserSecrets : bool}
 
     static member Empty =
-        { AddEnvVars    = false
-          BasePath      = Directory.GetCurrentDirectory()
-          RequiredFiles = []
-          OptionalFiles = []
-          InMemory      = Map.empty
-          AddUserSecrets= false }
+        { AddEnvVars     = false
+          BasePath       = Directory.GetCurrentDirectory()
+          RequiredFiles  = []
+          OptionalFiles  = []
+          InMemory       = Map.empty
+          AddUserSecrets = false }
 
 /// Computation expression to allow for elegant IConfiguration construction.
 type ConfigBuilder (args : string[]) =
