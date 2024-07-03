@@ -9,14 +9,16 @@ type ConfigFile =
     | JsonFile of path : string
 
 type ConfigBuilderSpec =
-    { AddEnvVars    : bool
+    { Config        : IConfigurationBuilder -> IConfigurationBuilder
+      AddEnvVars    : bool
       BasePath      : string
       RequiredFiles : ConfigFile list
       OptionalFiles : ConfigFile list
       InMemory      : Map<string, string> }
 
     static member Empty =
-        { AddEnvVars    = false
+        { Config        = id
+          AddEnvVars    = false
           BasePath      = Directory.GetCurrentDirectory()
           RequiredFiles = []
           OptionalFiles = []
@@ -28,6 +30,8 @@ type ConfigBuilder (args : string[]) =
 
     member _.Run(conf : ConfigBuilderSpec) =
         let mutable bldr = ConfigurationBuilder().SetBasePath(conf.BasePath)
+
+        conf.Config bldr |> ignore
 
         for file in conf.RequiredFiles do
             match file with
@@ -52,6 +56,10 @@ type ConfigBuilder (args : string[]) =
         bldr.AddCommandLine(args) |> ignore
 
         bldr.Build() :> IConfiguration
+
+    [<CustomOperation("config")>]
+    member _.Config (conf : ConfigBuilderSpec, fn : IConfigurationBuilder -> IConfigurationBuilder) =
+        { conf with Config = fn }
 
     /// Sets the base path of the ConfigurationBuilder.
     [<CustomOperation("base_path")>]
