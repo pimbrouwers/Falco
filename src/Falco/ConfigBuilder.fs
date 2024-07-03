@@ -10,12 +10,12 @@ type ConfigFile =
 
 
 type ConfigBuilderSpec =
-    { AddEnvVars    : bool
-      BasePath      : string
-      RequiredFiles : ConfigFile list
-      OptionalFiles : ConfigFile list
-      InMemory      : Map<string, string>
-      AddUserSecrets: bool}
+    { AddEnvVars     : bool
+      BasePath       : string
+      RequiredFiles  : ConfigFile list
+      OptionalFiles  : ConfigFile list
+      InMemory       : Map<string, string>
+      AddUserSecrets : bool}
 
     static member Empty =
         { AddEnvVars    = false
@@ -49,13 +49,13 @@ type ConfigBuilder (args : string[]) =
         if conf.InMemory.Keys.Count > 0 then
             bldr.AddInMemoryCollection(conf.InMemory) |> ignore
 
+        if conf.AddUserSecrets then
+            bldr.AddUserSecrets() |> ignore
+
         if conf.AddEnvVars then
             bldr.AddEnvironmentVariables() |> ignore
 
         bldr.AddCommandLine(args) |> ignore
-
-        if conf.AddUserSecrets then
-            bldr.AddUserSecrets() |> ignore
 
         bldr.Build() :> IConfiguration
 
