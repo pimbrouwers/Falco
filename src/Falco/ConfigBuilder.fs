@@ -8,19 +8,22 @@ type ConfigFile =
     | XmlFile of path : string
     | JsonFile of path : string
 
+
 type ConfigBuilderSpec =
-    { AddEnvVars    : bool
-      BasePath      : string
-      RequiredFiles : ConfigFile list
-      OptionalFiles : ConfigFile list
-      InMemory      : Map<string, string> }
+    { AddEnvVars     : bool
+      BasePath       : string
+      RequiredFiles  : ConfigFile list
+      OptionalFiles  : ConfigFile list
+      InMemory       : Map<string, string>
+      AddUserSecrets : bool}
 
     static member Empty =
-        { AddEnvVars    = false
-          BasePath      = Directory.GetCurrentDirectory()
-          RequiredFiles = []
-          OptionalFiles = []
-          InMemory      = Map.empty }
+        { AddEnvVars     = false
+          BasePath       = Directory.GetCurrentDirectory()
+          RequiredFiles  = []
+          OptionalFiles  = []
+          InMemory       = Map.empty
+          AddUserSecrets = false }
 
 /// Computation expression to allow for elegant IConfiguration construction.
 type ConfigBuilder (args : string[]) =
@@ -45,6 +48,9 @@ type ConfigBuilder (args : string[]) =
 
         if conf.InMemory.Keys.Count > 0 then
             bldr.AddInMemoryCollection(conf.InMemory) |> ignore
+
+        if conf.AddUserSecrets then
+            bldr.AddUserSecrets() |> ignore
 
         if conf.AddEnvVars then
             bldr.AddEnvironmentVariables() |> ignore
@@ -100,6 +106,11 @@ type ConfigBuilder (args : string[]) =
     [<CustomOperation("optional_json")>]
     member _.AddOptionalJsonFile (conf : ConfigBuilderSpec, filePath : string) =
         { conf with OptionalFiles = (JsonFile filePath) :: conf.OptionalFiles }
+
+    ///Adds optional user secrets to the ConfigurationBuilder.
+    [<CustomOperation("optional_user_secrets")>]
+    member _.AddOptionalUserSecrets (conf : ConfigBuilderSpec) =
+        { conf with AddUserSecrets = true }
 
 [<AutoOpen>]
 module ConfigurationBuilder =
