@@ -20,10 +20,18 @@ let ``RequestValue should parse simple pair`` () =
     |> should equal expected
 
 [<Fact>]
-let ``RequestValue should parse numeric with leading zero as string`` () =
+let ``RequestValue should parse int with leading zero as string`` () =
     let expected = RObject [ "code", RString "0123456" ]
 
     "code=0123456"
+    |> RequestValue.parseString
+    |> should equal expected
+
+[<Fact>]
+let ``RequestValue should parse float with leading zero as float`` () =
+    let expected = RObject [ "code", RString "0.123456" ]
+
+    "code=0.123456"
     |> RequestValue.parseString
     |> should equal expected
 

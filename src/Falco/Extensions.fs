@@ -4,6 +4,7 @@ namespace Falco
 module Extensions =
     open Microsoft.AspNetCore.Builder
     open Microsoft.AspNetCore.Http
+    open Microsoft.AspNetCore.Routing
     open Microsoft.Extensions.Configuration
     open Microsoft.Extensions.DependencyInjection
     open Microsoft.Extensions.Logging
@@ -11,122 +12,102 @@ module Extensions =
     type HttpContext with
         /// Attempts to obtain dependency from IServiceCollection
         /// Throws InvalidDependencyException on missing.
-        member x.Plug<'T>() =
-            x.RequestServices.GetRequiredService<'T>()
+        member this.Plug<'T>() =
+            this.RequestServices.GetRequiredService<'T>()
 
     type WebApplicationBuilder with
-        member x.AddConfiguration(fn : IConfigurationBuilder -> IConfigurationBuilder) : WebApplicationBuilder =
-            fn x.Configuration |> ignore
-            x
+        member this.AddConfiguration(fn : IConfigurationBuilder -> IConfigurationBuilder) : WebApplicationBuilder =
+            fn this.Configuration |> ignore
+            this
 
-        member x.AddLogging(fn : ILoggingBuilder -> ILoggingBuilder) : WebApplicationBuilder =
-            fn x.Logging |> ignore
-            x
+        member this.AddLogging(fn : ILoggingBuilder -> ILoggingBuilder) : WebApplicationBuilder =
+            fn this.Logging |> ignore
+            this
 
         /// Apply `fn` to `WebApplicationBuilder.Services :> IServiceCollection`  if `predicate` is true.
-        member x.AddServicesIf(predicate : bool, fn : IConfiguration -> IServiceCollection -> IServiceCollection) : WebApplicationBuilder =
-            if predicate then fn x.Configuration x.Services |> ignore
-            x
+        member this.AddServicesIf(predicate : bool, fn : IConfiguration -> IServiceCollection -> IServiceCollection) : WebApplicationBuilder =
+            if predicate then fn this.Configuration this.Services |> ignore
+            this
 
-        member x.AddServices(fn : IConfiguration -> IServiceCollection -> IServiceCollection) : WebApplicationBuilder =
-            x.AddServicesIf(true, fn)
+        member this.AddServices(fn : IConfiguration -> IServiceCollection -> IServiceCollection) : WebApplicationBuilder =
+            this.AddServicesIf(true, fn)
+
+    type IEndpointRouteBuilder with
+        member this.MapFalco(configure : FalcoEndpointBuilder -> unit) : IEndpointConventionBuilder =
+            let dataSource = FalcoEndpointDatasource([])
+            let falcoEndpointBuilder = FalcoEndpointBuilder(dataSource)
+            configure falcoEndpointBuilder
+            this.DataSources.Add(dataSource)
+            dataSource
+
+        member this.MapFalco(endpoints : HttpEndpoint seq) : IEndpointConventionBuilder =
+            this.MapFalco(fun endpointBuilder ->
+                for endpoint in endpoints do
+                    for (verb, handler) in endpoint.Handlers do
+                        match verb with
+                        | GET -> endpointBuilder.FalcoGet(endpoint.Pattern, handler)
+                        | HEAD -> endpointBuilder.FalcoHead(endpoint.Pattern, handler)
+                        | POST -> endpointBuilder.FalcoPost(endpoint.Pattern, handler)
+                        | PUT -> endpointBuilder.FalcoPut(endpoint.Pattern, handler)
+                        | PATCH -> endpointBuilder.FalcoPatch(endpoint.Pattern, handler)
+                        | DELETE -> endpointBuilder.FalcoDelete(endpoint.Pattern, handler)
+                        | OPTIONS -> endpointBuilder.FalcoOptions(endpoint.Pattern, handler)
+                        | TRACE -> endpointBuilder.FalcoTrace(endpoint.Pattern, handler)
+                        | ANY -> endpointBuilder.FalcoAny(endpoint.Pattern, handler)
+                        |> ignore)
+
+        member this.MapFalcoGet(pattern, handler) : IEndpointConventionBuilder =
+            this.MapFalco(fun endpointBuilder -> 
+                endpointBuilder.FalcoGet(pattern, handler)
+                |> ignore)
 
     type IApplicationBuilder with
         /// Registers a `Falco.HttpHandler` as exception handler lambda.
         /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
-        member x.UseFalcoExceptionHandler(exceptionHandler : HttpHandler) : IApplicationBuilder =
+        member this.UseFalcoExceptionHandler(exceptionHandler : HttpHandler) : IApplicationBuilder =
             let configure (appBuilder : IApplicationBuilder) =
                 appBuilder.Run(HttpHandler.toRequestDelegate exceptionHandler)
 
-            x.UseExceptionHandler(configure) |> ignore
-            x
+            this.UseExceptionHandler(configure) |> ignore
+            this
 
     type WebApplication with
         /// Apply `fn` to `WebApplication :> IApplicationBuilder` if `predicate` is true.
-        member x.UseIf(predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
-            if predicate then fn x |> ignore
-            x
+        member this.UseIf(predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
+            if predicate then fn this |> ignore
+            this
 
         /// Analagous to `IApplicationBuilder.Use` but returns `WebApplication`.
-        member x.Use(fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
-            x.UseIf(true, fn)
+        member this.Use(fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
+            this.UseIf(true, fn)
 
         /// Activates Falco integration with IEndpointRouteBuilder.
-        member x.UseFalco(?endpoints : HttpEndpoint seq) : WebApplication =
-            x.UseRouting()
-             .UseEndpoints(fun endpointBuilder ->
-                let dataSource = FalcoEndpointDatasource(defaultArg endpoints [])
-                endpointBuilder.DataSources.Add(dataSource)) |> ignore
-            x
+        member this.UseFalco(configure : FalcoEndpointBuilder -> unit) : WebApplication =
+            this.UseRouting()
+                .UseEndpoints(fun endpointBuilder ->
+                    endpointBuilder.MapFalco(configure)
+                    |> ignore)
+                |> ignore
+            this
+
+        /// Activates Falco integration with IEndpointRouteBuilder.
+        member this.UseFalco(endpoints : HttpEndpoint seq) : WebApplication =
+            this.UseEndpoints(fun endpointBuilder ->
+                endpointBuilder.MapFalco(endpoints)
+                |> ignore)
+                |> ignore
+            this
 
         /// Registers a `Falco.HttpHandler` as exception handler lambda.
         /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
-        member x.UseFalcoExceptionHandler(exceptionHandler : HttpHandler) : WebApplication =
-            (x :> IApplicationBuilder).UseFalcoExceptionHandler(exceptionHandler) |> ignore
-            x
-
-        /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder`.
-        member x.MapFalco(endpoint : HttpEndpoint) : WebApplication =
-            for (verb, handler) in endpoint.Handlers do
-                match verb with
-                | GET -> x.MapGet(endpoint.Pattern, handler)
-                | HEAD -> x.MapMethods(endpoint.Pattern, [HttpMethods.Head], handler)
-                | POST -> x.MapPost(endpoint.Pattern, handler)
-                | PUT -> x.MapPut(endpoint.Pattern, handler)
-                | PATCH -> x.MapPatch(endpoint.Pattern, handler)
-                | DELETE -> x.MapDelete(endpoint.Pattern, handler)
-                | OPTIONS -> x.MapMethods(endpoint.Pattern, [HttpMethods.Options], handler)
-                | TRACE -> x.MapMethods(endpoint.Pattern, [HttpMethods.Trace], handler)
-                | ANY -> x.Map(endpoint.Pattern, handler)
-                |> ignore
-            x
-
-        /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP GET requests for the specified pattern.
-        member x.FalcoGet(pattern : string, handler : HttpHandler) : WebApplication =
-            x.MapFalco({
-                Pattern = pattern
-                Handlers = [ GET, handler ] })
-
-        /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP POST requests for the specified pattern.
-        member x.FalcoPost(pattern : string, handler : HttpHandler) : WebApplication =
-            x.MapFalco({
-                Pattern = pattern
-                Handlers = [ POST, handler ] })
-
-        /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP PUT requests for the specified pattern.
-        member x.FalcoPut(pattern : string, handler : HttpHandler) : WebApplication =
-            x.MapFalco({
-                Pattern = pattern
-                Handlers = [ PUT, handler ] })
-
-        /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP DELETE requests for the specified pattern.
-        member x.FalcoDelete(pattern : string, handler : HttpHandler) : WebApplication =
-            x.MapFalco({
-                Pattern = pattern
-                Handlers = [ DELETE, handler ] })
-
-        /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP PATCH requests for the specified pattern.
-        member x.FalcoPatch(pattern : string, handler : HttpHandler) : WebApplication =
-            x.MapFalco({
-                Pattern = pattern
-                Handlers = [ PATCH, handler ] })
-
-        /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches all HTTP requests for the specified pattern.
-        member x.FalcoAny(pattern : string, handler : HttpHandler) : WebApplication =
-            x.MapFalco({
-                Pattern = pattern
-                Handlers = [ ANY, handler ] })
-
-        /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches the provided HTTP requests for the specified pattern.
-        member x.FalcoAll(pattern : string, handlers : (HttpVerb * HttpHandler) seq) : WebApplication =
-            x.MapFalco({
-                Pattern = pattern
-                Handlers = handlers })
+        member this.UseFalcoExceptionHandler(exceptionHandler : HttpHandler) : WebApplication =
+            (this :> IApplicationBuilder).UseFalcoExceptionHandler(exceptionHandler) |> ignore
+            this
 
         /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found).
-        member x.FalcoNotFound(handler : HttpHandler) : WebApplication =
-            x.Run(handler = HttpHandler.toRequestDelegate handler) |> ignore
-            x
+        member this.FalcoNotFound(handler : HttpHandler) : WebApplication =
+            this.Run(handler = HttpHandler.toRequestDelegate handler) |> ignore
+            this
 
     type FalcoExtensions =
         /// Registers a `Falco.HttpHandler` as global exception handler.

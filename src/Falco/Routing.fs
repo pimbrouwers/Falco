@@ -1,41 +1,12 @@
 ﻿namespace Falco
 
+open System
+open System.Collections.Generic
+open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.FileProviders
 open Falco.StringUtils
-
-[<Sealed>]
-type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
-    inherit EndpointDataSource()
-
-    [<Literal>]
-    let DefaultOrder = 0
-
-    let endpoints =
-        [| for endpoint in httpEndpoints do
-            let routePattern = Patterns.RoutePatternFactory.Parse endpoint.Pattern
-
-            for (verb, handler) in endpoint.Handlers do
-                let routeNameMetadata = RouteNameMetadata(endpoint.Pattern)
-
-                let verbStr = verb.ToString()
-                let displayName = if strEmpty verbStr then endpoint.Pattern else strConcat [|verbStr; " "; endpoint.Pattern|]
-                let httpMethodMetadata =
-                    match verb with
-                    | ANY -> HttpMethodMetadata [||]
-                    | _   -> HttpMethodMetadata [|verbStr|]
-
-                let metadata = EndpointMetadataCollection(routeNameMetadata, httpMethodMetadata)
-
-                let requestDelegate = HttpHandler.toRequestDelegate handler
-
-                RouteEndpoint(requestDelegate, routePattern, DefaultOrder, metadata, displayName) :> Endpoint |]
-
-    override _.Endpoints = endpoints :> _
-
-    override _.GetChangeToken() = NullChangeToken.Singleton :> _
-
 
 [<AutoOpen>]
 module Routing =
@@ -87,3 +58,121 @@ module Routing =
     /// TRACE HttpEndpoint construct.
     let trace (pattern : string) (handler : HttpHandler) : HttpEndpoint =
         route TRACE pattern handler
+
+[<Sealed>]
+type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
+    inherit EndpointDataSource()
+
+    let conventions = List<Action<EndpointBuilder>>()
+
+    interface IEndpointConventionBuilder with
+        member _.Add(convention: Action<EndpointBuilder>) : unit =
+            conventions.Add(convention)
+
+    member val FalcoEndpoints = List<HttpEndpoint>()
+
+    override x.Endpoints
+        with get() = x.BuildEndpoints()
+
+    override _.GetChangeToken() = NullChangeToken.Singleton
+
+    member private x.BuildEndpoints () =
+        let endpoints = List<Endpoint>()
+        let mutable order = 0
+
+        for endpoint in Seq.concat [ httpEndpoints; x.FalcoEndpoints ] do
+            let routePattern = Patterns.RoutePatternFactory.Parse endpoint.Pattern
+
+            for (verb, handler) in endpoint.Handlers do
+                order <- order + 1
+
+                let verbStr = verb.ToString()
+
+                let displayName =
+                    if strEmpty verbStr then endpoint.Pattern
+                    else strConcat [|verbStr; " "; endpoint.Pattern|]
+
+                let requestDelegate = HttpHandler.toRequestDelegate handler
+
+                let endpointBuilder = RouteEndpointBuilder(requestDelegate, routePattern, order, DisplayName = displayName)
+                endpointBuilder.DisplayName <- displayName
+
+                for convention in conventions do
+                    convention.Invoke(endpointBuilder)
+
+                endpoints.Add(endpointBuilder.Build())
+
+        endpoints
+
+
+[<Sealed>]
+type FalcoEndpointBuilder internal (dataSource : FalcoEndpointDatasource) =
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP GET requests for the specified pattern.
+    member this.FalcoGet(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ GET, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP HEAD requests for the specified pattern.
+    member this.FalcoHead(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ HEAD, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP POST requests for the specified pattern.
+    member this.FalcoPost(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ POST, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP PUT requests for the specified pattern.
+    member this.FalcoPut(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ PUT, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP DELETE requests for the specified pattern.
+    member this.FalcoDelete(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ DELETE, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP OPTIONS requests for the specified pattern.
+    member this.FalcoOptions(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ OPTIONS, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP TRACE requests for the specified pattern.
+    member this.FalcoTrace(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ TRACE, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP PATCH requests for the specified pattern.
+    member this.FalcoPatch(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ PATCH, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches all HTTP requests for the specified pattern.
+    member this.FalcoAny(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = [ ANY, handler ] })
+        this
+
+    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches the provided HTTP requests for the specified pattern.
+    member this.FalcoAll(pattern : string, handlers : (HttpVerb * HttpHandler) seq) : FalcoEndpointBuilder =
+        dataSource.FalcoEndpoints.Add({
+            Pattern = pattern
+            Handlers = handlers })
+        this

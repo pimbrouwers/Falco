@@ -18,8 +18,12 @@ open Microsoft.AspNetCore.Builder // <-- this import adds many useful extensions
 
 let wapp = WebApplication.Create()
 
-wapp.UseFalco() // <-- activate Falco endpoint source
-    .FalcoGet("/", Response.ofPlainText "hello world") // <-- associate GET / to HttpHandler
+let endpoints = 
+    [ 
+        get "/" (Response.ofPlainText "Hello World!") // <-- associate GET / to plain text HttpHandler
+    ]
+
+wapp.UseFalco(endpoints) // <-- activate Falco endpoint source
     .Run()
 ```
 
