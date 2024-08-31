@@ -10,13 +10,15 @@ All notable changes to this project will be documented in this file.
   - Provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
   - A derivative `FormData` contains parsed `RequestValue` and access to `IFormFileCollection`.
 - `WebApplication.UseFalco()` extension method.
-- `HttpContext.Plug<T>` for direct injection of dependencies within `HttpHandler`'s.
-- Falco App builder, as a simplified means of constructing `WebApplication`'s.
+- `HttpContext.Plug<T>` for generic injection support of dependencies within `HttpHandler`'s (service locator pattern).
+- `Request.getJson<T>` for generic JSON request deserialization, using default settings (property name case-insensitive, trailing commas allowed).
+- `Request.getCookies`, replacing `Request.getCookie`.
+- `Response.signInOptions` to sign in claim principal for provided scheme and options then responds with a 301 redirect to provided URL.
+- `Response.challengeAndRedirect`, replacing `Response.challengeWithRedirect`.
 
 ### Fixed
 
 - Missing cancellation token pass-through during form reading, `multipart/form-data` streaming and JSON serialization/deserialization.
-- Renamed `Request.getCookie` to `Request.getCookies`.
 
 ### Removed
 
@@ -31,6 +33,8 @@ All notable changes to this project will be documented in this file.
     - All replaced by homogenous `RequestData` type.
 - `Request.streamForm`, `Request.streamFormSecure`, `Request.mapFormStream` and `Request.mapFormStreamSecure` removed.
 - `Falco.Security.Crypto` and `Falco.Security.Auth` modules removed.
+- Removed `Request.getCookie`, renamed `Request.getCookies`.
+- Removed `Response.challengeWithRedirect`, renamed `Response.challengeAndRedirect`.
 
 ## [4.0.6] - 2023-12-12
 
