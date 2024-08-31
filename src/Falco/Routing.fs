@@ -107,70 +107,60 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
 
 [<Sealed>]
 type FalcoEndpointBuilder internal (dataSource : FalcoEndpointDatasource) =
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP GET requests for the specified pattern.
     member this.FalcoGet(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ GET, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP HEAD requests for the specified pattern.
     member this.FalcoHead(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ HEAD, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP POST requests for the specified pattern.
     member this.FalcoPost(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ POST, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP PUT requests for the specified pattern.
     member this.FalcoPut(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ PUT, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP DELETE requests for the specified pattern.
     member this.FalcoDelete(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ DELETE, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP OPTIONS requests for the specified pattern.
     member this.FalcoOptions(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ OPTIONS, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP TRACE requests for the specified pattern.
     member this.FalcoTrace(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ TRACE, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches HTTP PATCH requests for the specified pattern.
     member this.FalcoPatch(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ PATCH, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches all HTTP requests for the specified pattern.
     member this.FalcoAny(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
             Handlers = [ ANY, handler ] })
         this
 
-    /// Adds a `Falco.HttpEndpoint` to the `Microsoft.AspNetCore.Routing.IEndpointRouteBuilder` that matches the provided HTTP requests for the specified pattern.
     member this.FalcoAll(pattern : string, handlers : (HttpVerb * HttpHandler) seq) : FalcoEndpointBuilder =
         dataSource.FalcoEndpoints.Add({
             Pattern = pattern
