@@ -9,8 +9,12 @@ open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
 
-wapp.UseFalco()
-    .FalcoGet("/", Response.ofPlainText "hello world")
+let endpoints =
+    // associate GET / to plain text HttpHandler
+    [ get "/" (Response.ofPlainText "Hello World!") ]
+
+// activate Falco endpoint source
+wapp.UseFalco(endpoints)
     .Run()
 ```
 
