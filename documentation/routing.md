@@ -12,8 +12,7 @@ open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
 
-wapp.UseFalco()
-    .FalcoGet("/", Response.ofPlainText "hello world")
+wapp.UseFalco([ get "/" (Response.ofPlainText "hello world") ])
     .Run()
 ```
 
@@ -31,12 +30,16 @@ open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
 
-wapp.UseFalco()
-    .FalcoGet("/hello/{name:alpha}", fun ctx ->
-        let route = Request.getRoute ctx
-        let name = route.GetString "name"
-        let message = sprintf "Hello %s" name
-        Response.ofPlainText message ctx)
+let endpoints =
+    [
+        get "/hello/{name:alpha}" (fun ctx ->
+            let route = Request.getRoute ctx
+            let name = route.GetString "name"
+            let message = sprintf "Hello %s" name
+            Response.ofPlainText message ctx)
+    ]
+
+wapp.UseFalco(endpoints)
     .Run()
 ```
 
@@ -59,11 +62,15 @@ open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
 
-wapp.UseFalco()
-    .FalcoGet("/hello/{name:alpha}", 
-        Request.mapRoute
-            (fun route -> route.GetString "name")
-            Response.ofPlainText)
+let greetingHandler : HttpHandler =
+    Request.mapRoute
+        (fun route -> route.GetString "name")
+        Response.ofPlainText
+
+let endpoints =
+    [ get "/hello/{name:alpha}" greetingHandler ]
+
+wapp.UseFalco(endpoints)
     .Run()
 ```
 
@@ -82,15 +89,19 @@ let form =
     Templates.html5 "en" [] [
         Elem.form [ Attr.method "post" ] [
             Elem.input [ Attr.name "name" ]
-            Elem.input [ Attr.type' "submit" ] ] ] 
+            Elem.input [ Attr.type' "submit" ] ] ]
 
 let wapp = WebApplication.Create()
 
-wapp.UseFalco()
-    .FalcoGet("/", Response.ofPlainText "Hello from /")
-    .FalcoAll("/form", [
-        GET, Response.ofHtml form
-        POST, Response.debugRequest ]) // <-- a useful debugging tool
+let endpoints =
+    [
+        get "/" (Response.ofPlainText "Hello from /")
+        all "/form" [
+            GET, Response.ofHtml form
+            POST, Response.debugRequest ] // <-- a useful debugging tool
+    ]
+
+wapp.UseFalco(endpoints)
     .Run()
 ```
 
