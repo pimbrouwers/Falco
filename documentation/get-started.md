@@ -39,8 +39,10 @@ open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
 
-wapp.UseFalco()
-    .FalcoGet("/", Response.ofPlainText "hello world")
+let endpoints =
+    [ get "/" (Response.ofPlainText "Hello World!") ]
+
+wapp.UseFalco(endpoints)
     .Run()
 ```
 

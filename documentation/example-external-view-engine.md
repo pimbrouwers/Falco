@@ -45,9 +45,9 @@ Since rendering more than one page is the goal, we'll create a shared `renderPag
 open Falco
 
 module Pages =
-    let private renderPage pageTitle template viewModel : HttpHandler = fun ctx ->        
-        let templateService = ctx.Plug<ITemplate>() // <-- obtain our template service from the dependency container        
-        let pageContent = templateService.Render(template, viewModel) // <-- render our template with the provided view model as string literal        
+    let private renderPage pageTitle template viewModel : HttpHandler = fun ctx ->
+        let templateService = ctx.Plug<ITemplate>() // <-- obtain our template service from the dependency container
+        let pageContent = templateService.Render(template, viewModel) // <-- render our template with the provided view model as string literal
         let htmlTemplate = """
             <!DOCTYPE html>
             <html>
@@ -63,9 +63,9 @@ module Pages =
         """
         // ^ these triple quoted strings auto-escape characters like double quotes for us
         //   very practical for things like HTML
-        
+
         let html = templateService.Render(htmlTemplate, {| Title = pageTitle; Content = pageContent |})
-        
+
         Response.ofHtmlString html ctx // <-- return template literal as "text/html; charset=utf-8" response
 ```
 
@@ -109,9 +109,12 @@ let main args =
         .AddSingleton<ITemplate, ScribanTemplate>() // <-- register ITemplates implementation as a dependency
         |> ignore
 
-    bldr.Build()
-        .UseFalco()
-        .FalcoGet("/", Pages.homepage)
+    let wapp = bldr.Build()
+
+    let endpoints =
+        [ get "/" Pages.homepage ]
+
+    wapp.UseFalco(endpoints)
         .FalcoNotFound(Pages.notFound)
         .Run()
 

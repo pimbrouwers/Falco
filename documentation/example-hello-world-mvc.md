@@ -127,8 +127,8 @@ module Controller =
 
         /// A helper to project the name into an HttpHandler
         let private mapRouteToNameGreeting next =
-            Request.mapRoute 
-                (fun route -> { Name = route.GetString "name" }) // <-- almost feels like a dynamic 
+            Request.mapRoute
+                (fun route -> { Name = route.GetString "name" }) // <-- almost feels like a dynamic
                 next
 
         /// GET /greet/{name}
@@ -141,7 +141,7 @@ module Controller =
         let jsonDetail : HttpHandler = // <-- Continuation-style HttpHandler
             mapRouteToNameGreeting (fun greeting ->
                 let message = { Message = $"Hello {greeting.Name} from /json" }
-                Response.ofJson message) 
+                Response.ofJson message)
 
         /// GET /greet/html
         let htmlDetail : HttpHandler =
@@ -171,7 +171,7 @@ This is a great opportunity to demonstrate further how to configure a more compl
 
 To do that, we'll define an explicit entry point function which gives us access to the command line argument. By then forwarding these into the web application, we gain further [configurability](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration#command-line). You'll notice the application contains a file called `appsettings.json`, this is another [ASP.NET convention](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration#default-application-configuration-sources) that provides fully-featured and extensible configuration functionality.
 
-Next we define an explicit collection of endpoints, which gets passed into the `.UseFalco(endpoints)` extension method. You could just as easily invoke `.FalcoGet()` four times, but the collection approach generally scales better. The choice is yours.
+Next we define an explicit collection of endpoints, which gets passed into the `.UseFalco(endpoints)` extension method.
 
 In this example, we examine the environment name to create an "is development" toggle. We use this to determine the extensiveness of our error output. You'll notice we use our exception page from above when an exception occurs when not in development mode. Otherwise, we show a developer-friendly error page. Next we activate static file support, via the default web root of `wwwroot`.
 
@@ -180,8 +180,8 @@ We end off by registering a terminal handler, which functions as our "not found"
 ```fsharp
 module Program =
     open Controller
-    
-    let endpoints = 
+
+    let endpoints =
         [ get Route.index GreetingController.index
           get Route.greetPlainText GreetingController.plainTextDetail
           get Route.greetJson GreetingController.jsonDetail

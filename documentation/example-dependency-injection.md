@@ -2,7 +2,7 @@
 
 An important and nuanced subject to discuss is dependency injection. There's a myriad of beliefs and approaches, all of which have their merit. In the case of Falco, you are living in the world of ASP.NET which has [built-in support](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection) for this. It works very well and you should use it. But make sure you follow through their [docs](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0) on how it works and integrates with ASP.NET.
 
-Going back to our basic [Hello World](example-hello-world.md) app, let's add in an external dependency to demonstrate some of the basics of dependency injection in Falco. 
+Going back to our basic [Hello World](example-hello-world.md) app, let's add in an external dependency to demonstrate some of the basics of dependency injection in Falco.
 
 The code for this example can be found [here](https://github.com/pimbrouwers/Falco/tree/master/examples/DependencyInjection).
 
@@ -14,20 +14,20 @@ The code for this example can be found [here](https://github.com/pimbrouwers/Fal
 
 ## Creating Abstraction
 
-The benefit of abstracting functionality is that it removes the coupling between your implementation and the calling code. You instead rely on an accepted definition of what something does. 
+The benefit of abstracting functionality is that it removes the coupling between your implementation and the calling code. You instead rely on an accepted definition of what something does.
 
-F# has excellent support for [object programming](https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/classes). There might be an urge to avoid this type of approach because "ugh classes are gross". But suck it up buttercup, they are wickedly useful in many cases and a reminder that F# code doesn't have to adhere to some functional purism. 
+F# has excellent support for [object programming](https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/classes). There might be an urge to avoid this type of approach because "ugh classes are gross". But suck it up buttercup, they are wickedly useful in many cases and a reminder that F# code doesn't have to adhere to some functional purism.
 
-In the case of our application, we're going to define an abstraction for greeting patrons. Then write a simple implementation. 
+In the case of our application, we're going to define an abstraction for greeting patrons. Then write a simple implementation.
 
-> This is a completely contrived example, created purely to demonstrate how to register and consume dependencies. 
+> This is a completely contrived example, created purely to demonstrate how to register and consume dependencies.
 
 ```fsharp
-type IGreeter = 
+type IGreeter =
     abstract member Greet : name : string -> string
 
-type FriendlyGreeter() = 
-    interface IGreeter with 
+type FriendlyGreeter() =
+    interface IGreeter with
         member _.Greet(name : string) =
             $"Hello {name} 😀"
 ```
@@ -53,13 +53,17 @@ bldr.Services
 
 let wapp = bldr.Build() // <-- manifest our WebApplication
 
-wapp.UseFalco()
-    .FalcoGet("/{name?}", fun ctx ->
-        let greeter = ctx.Plug<IGreeter>() // <-- access our dependency from the container
-        let route = Request.getRoute ctx
-        let name = route.GetString("name", "world")
-        let greeting = greeter.Greet(name) // <-- invoke our greeter.Greet(name) method
-        Response.ofPlainText greeting ctx)
+let endpoints =
+    [
+        get "/{name?}" (fun ctx ->
+            let greeter = ctx.Plug<IGreeter>() // <-- access our dependency from the container
+            let route = Request.getRoute ctx
+            let name = route.GetString("name", "world")
+            let greeting = greeter.Greet(name) // <-- invoke our greeter.Greet(name) method
+            Response.ofPlainText greeting ctx)
+    ]
+
+wapp.UseFalco(endpoints)
     .Run()
 ```
 
