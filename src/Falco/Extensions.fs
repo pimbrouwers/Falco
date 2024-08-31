@@ -57,7 +57,7 @@ module Extensions =
                         |> ignore)
 
         member this.MapFalcoGet(pattern, handler) : IEndpointConventionBuilder =
-            this.MapFalco(fun endpointBuilder -> 
+            this.MapFalco(fun endpointBuilder ->
                 endpointBuilder.FalcoGet(pattern, handler)
                 |> ignore)
 
@@ -91,6 +91,8 @@ module Extensions =
             this
 
         /// Activates Falco integration with IEndpointRouteBuilder.
+        ///
+        /// This is the default way to enable the package.
         member this.UseFalco(endpoints : HttpEndpoint seq) : WebApplication =
             this.UseEndpoints(fun endpointBuilder ->
                 endpointBuilder.MapFalco(endpoints)
