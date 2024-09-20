@@ -57,7 +57,7 @@ The second segment of the URL path, `{name:alpha}`:
 - Is bound to the `name` parameter.
 - Is captured and stored in `HttpRequest.RouteValues`, which Falco exposes through a [uniform API](request.md) to obtain primitive typed values.
 
-An alternative way to express the `HttEndpoint` above is seen below. Note the omission of the `ctx` parameter, made possible by the [Request](request.md) module:
+An alternative way to express the `HttEndpoint` above is seen below.
 
 ```fsharp
 open Falco
@@ -65,13 +65,12 @@ open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
 
-let greetingHandler : HttpHandler =
-    Request.mapRoute
-        (fun route -> route.GetString "name")
-        Response.ofPlainText
+let greetingHandler name : HttpHandler =
+    let message = sprintf "Hello %s" name
+    Response.ofPlainText message
 
 let endpoints =
-    [ get "/hello/{name:alpha}" greetingHandler ]
+    [ mapGet "/hello/{name:alpha}" (fun route -> r.GetString "name") greetingHandler ]
 
 wapp.UseFalco(endpoints)
     .Run()

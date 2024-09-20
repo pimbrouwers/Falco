@@ -45,8 +45,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Core.fs" />
     <Compile Include="String.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="RequestValue.fs" />
     <Compile Include="RequestData.fs" />
     <Compile Include="Multipart.fs" />

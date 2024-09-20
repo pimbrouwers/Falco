@@ -60,7 +60,7 @@ type UserStore(dbConnection : IDbConnectionFactory) =
                     return Ok ()
                 with
                 | :? DbExecutionException as ex ->
-                    return Error { 
+                    return Error {
                         Code = "FAILED"
                         Message = "Could not add user"
                         ExceptionDetail = ex.ToString() }
@@ -90,9 +90,9 @@ type UserStore(dbConnection : IDbConnectionFactory) =
                     return Ok ()
                 with
                 | :? DbExecutionException as ex ->
-                    return Error { 
+                    return Error {
                         Code = "FAILED"
-                        Message = "Could not add user" 
+                        Message = "Could not add user"
                         ExceptionDetail = ex.ToString() }
             }
 
@@ -103,14 +103,14 @@ module Route =
     let userRemove = "/users/{username}"
 
 module ErrorResponse =
-    type ErrorDto = 
-        { Code : string 
+    type ErrorDto =
+        { Code : string
           Message : string }
-          
+
     let badRequest (error : Error) : HttpHandler = fun ctx ->
         let log = ctx.Plug<ILogger<Error>>()
         log.LogError(error.ExceptionDetail, error)
-        ctx 
+        ctx
         |> Response.withStatusCode 400
         |> Response.ofJson { Code = error.Code; Message = error.Message }
 
@@ -185,13 +185,13 @@ module Program =
         let isDevelopment = bldr.Environment.EnvironmentName = "Development"
         let conf = bldr.Configuration
 
-        let dbConnectionFactory = 
+        let dbConnectionFactory =
             { new IDbConnectionFactory with
                 member _.Create() = new SqliteConnection(conf.GetConnectionString("BasicRestApiEvolved")) }
 
         initializeDatabase dbConnectionFactory
-        
-        bldr.AddLogging(fun logBuilder -> printfn "here"; logBuilder.AddConsole())
+
+        bldr.AddLogging(fun logBuilder -> logBuilder.AddConsole())
             .Services
             .AddSingleton<IDbConnectionFactory>(dbConnectionFactory)
             .AddSingleton<IStore<string, User>, UserStore>()

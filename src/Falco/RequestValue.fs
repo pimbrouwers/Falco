@@ -192,7 +192,7 @@ module RequestValue =
         |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> IEnumerable<string>)
         |> dict
         |> parse
-            
+
     let parseCookies (cookies : IRequestCookieCollection) : RequestValue =
         cookies
         |> Seq.map (fun kvp -> kvp.Key, seq { kvp.Value })
@@ -210,20 +210,18 @@ module RequestValue =
         |> Seq.map (fun kvp ->
             kvp.Key, seq { Convert.ToString(kvp.Value, Globalization.CultureInfo.InvariantCulture) })
 
-    let parseRoute (route : RouteValueDictionary) : RequestValue =
+    let parseRoute (route : RouteValueDictionary, query : IQueryCollection) : RequestValue =
         route
         |> routeKeyValues
         |> dict
         |> parse
 
-    let parseQuery (query : IQueryCollection, route : RouteValueDictionary option) : RequestValue =
-        let routeKeyValues = route |> Option.map routeKeyValues |> Option.defaultValue Seq.empty
-
+    let parseQuery (query : IQueryCollection) : RequestValue =
         let queryKeyValues =
             query
             |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> string seq)
 
-        Seq.concat [ routeKeyValues; queryKeyValues ]
+        queryKeyValues
         |> dict
         |> parse
 

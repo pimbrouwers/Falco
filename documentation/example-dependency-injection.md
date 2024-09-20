@@ -55,12 +55,12 @@ let wapp = bldr.Build() // <-- manifest our WebApplication
 
 let endpoints =
     [
-        get "/{name?}" (fun ctx ->
-            let greeter = ctx.Plug<IGreeter>() // <-- access our dependency from the container
-            let route = Request.getRoute ctx
-            let name = route.GetString("name", "world")
-            let greeting = greeter.Greet(name) // <-- invoke our greeter.Greet(name) method
-            Response.ofPlainText greeting ctx)
+        mapGet "/{name?}"
+            (fun r -> r?name.AsString("world"))
+            (fun name ctx ->
+                let greeter = ctx.Plug<IGreeter>() // <-- access our dependency from the container
+                let greeting = greeter.Greet(name) // <-- invoke our greeter.Greet(name) method
+                Response.ofPlainText greeting ctx)
     ]
 
 wapp.UseFalco(endpoints)

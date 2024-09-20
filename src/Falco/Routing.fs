@@ -17,47 +17,90 @@ module Routing =
         { Pattern  = pattern; Handlers = handlers }
 
     /// Constructor for a singular HttpEndpoint.
-    let route
-        (verb : HttpVerb)
-        (pattern : string)
-        (handler : HttpHandler) : HttpEndpoint =
+    let route verb pattern handler =
         all pattern [ verb, handler ]
 
     /// HttpEndpoint constructor that matches any HttpVerb.
-    let any (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let any pattern handler =
         route ANY pattern handler
 
     /// GET HttpEndpoint constructor.
-    let get (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let get pattern handler =
         route GET pattern handler
 
     /// HEAD HttpEndpoint constructor.
-    let head (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let head pattern handler =
         route HEAD pattern handler
 
     /// POST HttpEndpoint constructor.
-    let post (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let post pattern handler =
         route POST pattern handler
 
     /// PUT HttpEndpoint constructor.
-    let put (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let put pattern handler =
         route PUT pattern handler
 
     /// PATCH HttpEndpoint constructor.
-    let patch (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let patch pattern handler =
         route PATCH pattern handler
 
     /// DELETE HttpEndpoint constructor.
-    let delete (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let delete pattern handler =
         route DELETE pattern handler
 
     /// OPTIONS HttpEndpoint constructor.
-    let options (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let options pattern handler =
         route OPTIONS pattern handler
 
     /// TRACE HttpEndpoint construct.
-    let trace (pattern : string) (handler : HttpHandler) : HttpEndpoint =
+    let trace pattern handler =
         route TRACE pattern handler
+
+    /// HttpEndpoint constructor that matches any HttpVerb which maps the route
+    /// using the provided `map` function.
+    let mapAny pattern map handler =
+        any pattern (Request.mapRoute map handler)
+
+    /// GET HttpEndpoint constructor which maps the route using the provided
+    /// `map` function.
+    let mapGet pattern map handler =
+        get pattern (Request.mapRoute map handler)
+
+    /// HEAD HttpEndpoint constructor which maps the route using the provided
+    /// `map` function.
+    let mapHead pattern map handler =
+        head pattern (Request.mapRoute map handler)
+
+    /// POST HttpEndpoint constructor which maps the route using the provided
+    /// `map` function.
+    let mapPost pattern map handler =
+        post pattern (Request.mapRoute map handler)
+
+    /// PUT HttpEndpoint constructor which maps the route using the provided
+    /// `map` function.
+    let mapPut pattern map handler =
+        put pattern (Request.mapRoute map handler)
+
+    /// PATCH HttpEndpoint constructor which maps the route using the provided
+    /// `map` function.
+    let mapPatch pattern map handler =
+        patch pattern (Request.mapRoute map handler)
+
+    /// DELETE HttpEndpoint constructor which maps the route using the provided
+    /// `map` function.
+    let mapDelete pattern map handler =
+        delete pattern (Request.mapRoute map handler)
+
+    /// OPTIONS HttpEndpoint constructor which maps the route using the provided
+    /// `map` function.
+    let mapOptions pattern map handler =
+        options pattern (Request.mapRoute map handler)
+
+    /// TRACE HttpEndpoint construct which maps the route using the provided
+    /// `map` function.
+    let mapTrace pattern map handler =
+        trace pattern (Request.mapRoute map handler)
+
 
 [<Sealed>]
 type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =

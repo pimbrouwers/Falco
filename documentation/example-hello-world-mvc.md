@@ -75,9 +75,13 @@ module View =
                 Elem.hr []
                 Text.p "Greet other ways:"
                 Elem.nav [] [
-                    Elem.a  [ Attr.href (Url.greetPlainText greeting.Name) ] [ Text.raw "Greet in text"]
+                    Elem.a
+                        [ Attr.href (Url.greetPlainText greeting.Name) ]
+                        [ Text.raw "Greet in text"]
                     Text.raw " | "
-                    Elem.a [ Attr.href (Url.greetJson greeting.Name) ] [ Text.raw "Greet in JSON " ]
+                    Elem.a
+                        [ Attr.href (Url.greetJson greeting.Name) ]
+                        [ Text.raw "Greet in JSON " ]
                 ]
             ]
 ```
@@ -95,75 +99,61 @@ Each of these modules matches (or tries to) the full HTML spec. You'll also noti
 We'll define a couple static error pages to help prettify our error output.
 
 ```fsharp
-module ErrorPage =
-    let notFound : HttpHandler =
-        Response.withStatusCode 404 >>
-        Response.ofHtml (View.layout [ Text.h1 "Not Found" ])
+module Controller =
+    open Model
+    open View
 
-    let serverException : HttpHandler =
-        Response.withStatusCode 500 >>
-        Response.ofHtml (View.layout [ Text.h1 "Server Error" ])
+    module ErrorController =
+        let notFound : HttpHandler =
+            Response.withStatusCode 404 >>
+            Response.ofHtml (View.layout [ Text.h1 "Not Found" ])
+
+        let serverException : HttpHandler =
+            Response.withStatusCode 500 >>
+            Response.ofHtml (View.layout [ Text.h1 "Server Error" ])
 ```
 
 Here we see the [`HttpResponseModifier`](repsonse.md#response-modifiers) at play, which set the status code before buffering out the HTML response. We'll reference these pages later when be [build the web server](#web-server).
 
 ## Controller
 
-Our controller will be responsible for four actions, as defined in our [route](#routing) module.
-
-We take advantage of the `Request.mapRoute` continuation to create a little helper function called `mapRouteToNameGreeting` to obtain our `NameGreeting` from the route.
-
-Next, we define three handlers to consume the name in three different ways: plain text, JSON and HTML.
+Our controller will be responsible for four actions, as defined in our [route](#routing) module. We define four handlers, one parameterless greeting and three others which output the user provided "name" in different ways: plain text, JSON and HTML.
 
 ```fsharp
 module Controller =
     open Model
     open View
 
+    module ErrorController =
+        // ...
+
     module GreetingController =
-        /// GET /
-        let index : HttpHandler =
-            Response.ofPlainText "Hello world" // <-- we've seen this before!
+        let index =
+            Response.ofPlainText "Hello world"
 
-        /// A helper to project the name into an HttpHandler
-        let private mapRouteToNameGreeting next =
-            Request.mapRoute
-                (fun route -> { Name = route.GetString "name" }) // <-- almost feels like a dynamic
-                next
+        let plainTextDetail name =
+            Response.ofPlainText $"Hello {name}"
 
-        /// GET /greet/{name}
-        let plainTextDetail : HttpHandler =
-            mapRouteToNameGreeting (fun greeting ->
-                let message = $"Hello {greeting.Name}"
-                Response.ofPlainText message)
+        let jsonDetail name =
+            let message = { Message = $"Hello {name} from /json" }
+            Response.ofJson message
 
-        /// GET /greet/json
-        let jsonDetail : HttpHandler = // <-- Continuation-style HttpHandler
-            mapRouteToNameGreeting (fun greeting ->
-                let message = { Message = $"Hello {greeting.Name} from /json" }
-                Response.ofJson message)
+        let htmlDetail name =
+            { Name = name }
+            |> GreetingView.detail
+            |> Response.ofHtml
 
-        /// GET /greet/html
-        let htmlDetail : HttpHandler =
-            mapRouteToNameGreeting (fun greeting ->
-                greeting
-                |> GreetingView.detail
-                |> Response.ofHtml)
+        let endpoints =
+            let mapRoute (r : RequestData) =
+                r?name.AsString()
+
+            [ get Route.index index
+              mapGet Route.greetPlainText mapRoute plainTextDetail
+              mapGet Route.greetJson mapRoute jsonDetail
+              mapGet Route.greetHtml mapRoute htmlDetail ]
 ```
 
-If you aren't a fan of using continuation-passing style, you can just as easily get the route using the `HttpContext` explicitly. For example:
-
-```fsharp
-let private getNameGreeting (ctx : HttpContext) =
-    let route = Request.getRoute ctx
-    { Name = route.GetString "name" }
-
-/// GET /greet/{name}
-let plainTextDetail : HttpHandler = fun ctx ->
-    let greeting = getNameGreeting ctx
-    let message = $"Hello {greeting.Name}"
-    Response.ofPlainText message ctx
-```
+You'll notice that the controller defines its own `endpoints`. This associates a route to a handler when passed into Falco (we'll do this later). Defining this within the controller is personal preference. But considering controller actions usually operate against a common URL pattern, it allows a private, reusable route mapping to exist (see `mapRoute`).
 
 ## Web Server
 

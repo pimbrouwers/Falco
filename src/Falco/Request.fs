@@ -45,12 +45,12 @@ let getHeaders (ctx : HttpContext) : RequestData  =
 
 /// Retrieves all route values from the request, including query string.
 let getRoute (ctx : HttpContext) : RequestData =
-    RequestValue.parseRoute ctx.Request.RouteValues
+    RequestValue.parseRoute (ctx.Request.RouteValues, ctx.Request.Query)
     |> RequestData
 
 /// Retrieves the query string and route values from the request.
 let getQuery (ctx : HttpContext) : RequestData =
-    RequestValue.parseQuery (ctx.Request.Query, Some ctx.Request.RouteValues)
+    RequestValue.parseQuery ctx.Request.Query
     |> RequestData
 
 /// Retrieves the form collection and route values from the request.
@@ -226,16 +226,16 @@ let authenticate
 /// Authenticate the current request using the default authentication scheme.
 ///
 /// Proceeds if the authentication status of current `IPrincipal` is true.
-/// 
-/// The default authentication scheme can be configured using 
+///
+/// The default authentication scheme can be configured using
 /// `Microsoft.AspNetCore.Authentication.AuthenticationOptions.DefaultAuthenticateScheme.`
 let ifAuthenticated
     (authScheme : string)
-    (handleOk : HttpHandler) : HttpHandler = 
+    (handleOk : HttpHandler) : HttpHandler =
     authenticate authScheme (fun authenticateResult ctx ->
         if authenticateResult.Succeeded then
             handleOk ctx
-        else 
+        else
             ctx.ForbidAsync())
 
 /// Proceeds if the authentication status of current IPrincipal is true
@@ -244,10 +244,10 @@ let ifAuthenticatedInRole
     (authScheme : string)
     (roles : string list)
     (handleOk : HttpHandler) : HttpHandler =
-    authenticate authScheme (fun authenticateResult ctx -> 
+    authenticate authScheme (fun authenticateResult ctx ->
         let isInRole = List.exists authenticateResult.Principal.IsInRole roles
         match authenticateResult.Succeeded, isInRole with
-        | true, true -> 
+        | true, true ->
             handleOk ctx
         | _ ->
             ctx.ForbidAsync())
@@ -259,26 +259,26 @@ let ifAuthenticatedWithScope
     (issuer : string)
     (scope : string)
     (handleOk : HttpHandler) : HttpHandler =
-    authenticate authScheme (fun authenticateResult ctx -> 
+    authenticate authScheme (fun authenticateResult ctx ->
         if authenticateResult.Succeeded then
-            let hasScope = 
+            let hasScope =
                 let predicate (claim : Claim) = (strEquals claim.Issuer issuer) && (strEquals claim.Type "scope")
                 match Seq.tryFind predicate authenticateResult.Principal.Claims with
                 | Some claim -> Array.contains scope (strSplit [|' '|] claim.Value)
                 | None -> false
             if hasScope then
                 handleOk ctx
-            else 
+            else
                 ctx.ForbidAsync()
         else
             ctx.ForbidAsync())
-    
+
 /// Proceeds if the authentication status of current IPrincipal is false.
 let ifNotAuthenticated
     (authScheme : string)
-    (handleOk : HttpHandler) : HttpHandler = 
+    (handleOk : HttpHandler) : HttpHandler =
     authenticate authScheme (fun authenticateResult ctx ->
-        if authenticateResult.Succeeded then 
+        if authenticateResult.Succeeded then
             ctx.ForbidAsync()
-        else 
+        else
             handleOk ctx)

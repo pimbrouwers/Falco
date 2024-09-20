@@ -10,6 +10,7 @@
 *.userosscache
 *.sln.docstates
 [Ee]xamples/[Ss]andbox/
+[Ss]andbox/
 *.sqlite
 [Mm]emory
 
@@ -355,3 +356,5 @@ MigrationBackup/
 
 # Rider (JetBrain's cross-platform .NET IDE) working folder
 .idea/
+.vscode/launch.json
+.vscode/launch.json

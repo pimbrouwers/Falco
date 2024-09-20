@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `RequestData` (and `RequestValue`) to support complex form & query submissions, 
+- `RequestData` (and `RequestValue`) to support complex form & query submissions,
   - Provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
   - A derivative `FormData` contains parsed `RequestValue` and access to `IFormFileCollection`.
 - `WebApplication.UseFalco()` extension method.
@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - `Request.getCookies`, replacing `Request.getCookie`.
 - `Response.signInOptions` to sign in claim principal for provided scheme and options then responds with a 301 redirect to provided URL.
 - `Response.challengeAndRedirect`, replacing `Response.challengeWithRedirect`.
+- `Routing.map[Get|Head|Post|Put|Patch|Delete|Options|Trace|Any]` which produces `HttpEndpoint` by associating a route pattern to an `HttpHandler` after mapping route.
 
 ### Fixed
 

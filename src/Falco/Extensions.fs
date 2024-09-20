@@ -2,6 +2,8 @@ namespace Falco
 
 [<AutoOpen>]
 module Extensions =
+    open System
+    open System.Reflection
     open Microsoft.AspNetCore.Builder
     open Microsoft.AspNetCore.Http
     open Microsoft.AspNetCore.Routing
@@ -33,15 +35,15 @@ module Extensions =
             this.AddServicesIf(true, fn)
 
     type IEndpointRouteBuilder with
-        member this.MapFalco(configure : FalcoEndpointBuilder -> unit) : IEndpointConventionBuilder =
+        member this.MapFalcoEndpoints(configure : FalcoEndpointBuilder -> unit) : IEndpointConventionBuilder =
             let dataSource = FalcoEndpointDatasource([])
             let falcoEndpointBuilder = FalcoEndpointBuilder(dataSource)
             configure falcoEndpointBuilder
             this.DataSources.Add(dataSource)
             dataSource
 
-        member this.MapFalco(endpoints : HttpEndpoint seq) : IEndpointConventionBuilder =
-            this.MapFalco(fun endpointBuilder ->
+        member this.MapFalcoEndpoints(endpoints : HttpEndpoint seq) : IEndpointConventionBuilder =
+            this.MapFalcoEndpoints(fun endpointBuilder ->
                 for endpoint in endpoints do
                     for (verb, handler) in endpoint.Handlers do
                         match verb with
@@ -56,12 +58,53 @@ module Extensions =
                         | ANY -> endpointBuilder.FalcoAny(endpoint.Pattern, handler)
                         |> ignore)
 
-        member this.MapFalcoGet(pattern, handler) : IEndpointConventionBuilder =
-            this.MapFalco(fun endpointBuilder ->
-                endpointBuilder.FalcoGet(pattern, handler)
-                |> ignore)
-
     type IApplicationBuilder with
+        /// Apply `fn` to `WebApplication :> IApplicationBuilder` if `predicate` is true.
+        member this.UseIf(predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) : IApplicationBuilder =
+            if predicate then fn this |> ignore
+            this
+
+        /// Analagous to `IApplicationBuilder.Use` but returns `WebApplication`.
+        member this.Use(fn : IApplicationBuilder -> IApplicationBuilder) : IApplicationBuilder =
+            this.UseIf(true, fn)
+
+        /// Activates Falco integration with IEndpointRouteBuilder.
+        member this.UseFalco(configure : FalcoEndpointBuilder -> unit) : IApplicationBuilder =
+            this.UseRouting()
+                .UseEndpoints(fun endpointBuilder ->
+                    endpointBuilder.MapFalcoEndpoints(configure)
+                    |> ignore)
+                |> ignore
+            this
+
+        /// Activates Falco integration with IEndpointRouteBuilder.
+        ///
+        /// This is the default way to enable the package.
+        member this.UseFalco(endpoints : HttpEndpoint seq) : IApplicationBuilder =
+            this.UseRouting()
+                .UseEndpoints(fun endpointBuilder ->
+                    endpointBuilder.MapFalcoEndpoints(endpoints)
+                    |> ignore)
+                |> ignore
+            this
+
+        member this.UseFalco() : IApplicationBuilder =
+            // discover endpoints via attribution
+            let exportedTypes = Assembly.GetEntryAssembly().GetExportedTypes()
+            let endpoints =
+                exportedTypes
+                |> Seq.collect (fun x -> x.GetMethods())
+                |> Seq.filter (fun x -> x.ReturnType.Name = "HttpEndpoint")
+                |> Seq.map (fun x -> x.Invoke(null, [||]) :?> HttpEndpoint)
+                |> List.ofSeq
+
+            this.UseFalco(endpoints)
+
+        /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found).
+        member this.FalcoNotFound(handler : HttpHandler) : IApplicationBuilder =
+            this.Run(handler = HttpHandler.toRequestDelegate handler) |> ignore
+            this
+
         /// Registers a `Falco.HttpHandler` as exception handler lambda.
         /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
         member this.UseFalcoExceptionHandler(exceptionHandler : HttpHandler) : IApplicationBuilder =
@@ -74,7 +117,7 @@ module Extensions =
     type WebApplication with
         /// Apply `fn` to `WebApplication :> IApplicationBuilder` if `predicate` is true.
         member this.UseIf(predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
-            if predicate then fn this |> ignore
+            (this :> IApplicationBuilder).UseIf(predicate, fn) |> ignore
             this
 
         /// Analagous to `IApplicationBuilder.Use` but returns `WebApplication`.
@@ -83,21 +126,18 @@ module Extensions =
 
         /// Activates Falco integration with IEndpointRouteBuilder.
         member this.UseFalco(configure : FalcoEndpointBuilder -> unit) : WebApplication =
-            this.UseRouting()
-                .UseEndpoints(fun endpointBuilder ->
-                    endpointBuilder.MapFalco(configure)
-                    |> ignore)
-                |> ignore
+            (this :> IApplicationBuilder).UseFalco(configure) |> ignore
             this
 
         /// Activates Falco integration with IEndpointRouteBuilder.
         ///
         /// This is the default way to enable the package.
         member this.UseFalco(endpoints : HttpEndpoint seq) : WebApplication =
-            this.UseEndpoints(fun endpointBuilder ->
-                endpointBuilder.MapFalco(endpoints)
-                |> ignore)
-                |> ignore
+            (this :> IApplicationBuilder).UseFalco(endpoints) |> ignore
+            this
+
+        member this.UseFalco() : WebApplication =
+            (this :> IApplicationBuilder).UseFalco() |> ignore
             this
 
         /// Registers a `Falco.HttpHandler` as exception handler lambda.
@@ -108,7 +148,7 @@ module Extensions =
 
         /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found).
         member this.FalcoNotFound(handler : HttpHandler) : WebApplication =
-            this.Run(handler = HttpHandler.toRequestDelegate handler) |> ignore
+            (this :> IApplicationBuilder).FalcoNotFound(handler) |> ignore
             this
 
     type FalcoExtensions =
