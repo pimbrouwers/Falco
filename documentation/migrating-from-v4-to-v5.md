@@ -54,6 +54,8 @@ wapp.Use(StaticFileExtensions.UseStaticFiles)
 
 ## `configuration` expression
 
+The configuration expression has also been removed. Again, the idea being to try and get in the way of potentially evolving APIs as much as possible. Even more so in the areas where the code was mostly decorative.
+
 > Note: This example is entirely trivial since the `WebApplication.CreateBuilder()` configures a host with common, sensible defaults.
 
 <table>
