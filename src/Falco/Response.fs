@@ -193,6 +193,15 @@ let ofJson
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Request.defaultJsonOptions obj
 
+/// Signs in claim principal for provided scheme then responds with a
+/// 301 redirect to provided URL.
+let signIn
+    (authScheme : string)
+    (claimsPrincipal : ClaimsPrincipal) : HttpHandler = fun ctx ->
+    task {
+        do! ctx.SignInAsync(authScheme, claimsPrincipal)
+    }
+
 /// Signs in claim principal for provided scheme and options then responds with a
 /// 301 redirect to provided URL.
 let signInOptions
@@ -214,6 +223,14 @@ let signInAndRedirect
 
 /// Terminates authenticated context for provided scheme then responds with a 301
 /// redirect to provided URL.
+let signOut
+    (authScheme : string) : HttpHandler = fun ctx ->
+    task {
+        do! ctx.SignOutAsync(authScheme)
+    }
+
+/// Terminates authenticated context for provided scheme then responds with a 301
+/// redirect to provided URL.
 let signOutOptions
     (authScheme : string)
     (options : AuthenticationProperties) : HttpHandler = fun ctx ->
@@ -225,7 +242,7 @@ let signOutOptions
 /// redirect to provided URL.
 let signOutAndRedirect
     (authScheme : string)
-    (url : string) : HttpHandler = 
+    (url : string) : HttpHandler =
     let options = AuthenticationProperties(RedirectUri = url)
     signOutOptions authScheme options
 
@@ -236,7 +253,7 @@ let signOutAndRedirect
 let challengeOptions
     (authScheme : string)
     (options : AuthenticationProperties) : HttpHandler = fun ctx ->
-    task {        
+    task {
         do! ctx.ChallengeAsync(authScheme, options)
     }
 
@@ -246,7 +263,7 @@ let challengeOptions
 /// forwarded to the authentication handler for use after authentication succeeds.
 let challengeAndRedirect
     (authScheme : string)
-    (redirectUri : string) : HttpHandler = 
+    (redirectUri : string) : HttpHandler =
     let options = AuthenticationProperties(RedirectUri = redirectUri)
     challengeOptions authScheme options
 
@@ -260,7 +277,7 @@ let debugRequest : HttpHandler = fun ctx ->
         let headers = Request.getHeaders ctx
         let! body = Request.getBodyString ctx
 
-        let tab = "    "
+        let tab = String(' ', 4)
 
         let sw = new StringWriter(StringBuilder(16))
         sw.Write(string verb)
@@ -271,7 +288,6 @@ let debugRequest : HttpHandler = fun ctx ->
         sw.WriteLine()
 
         sw.WriteLine("Headers:")
-
 
         for (k, v) in headers.AsKeyValues() do
             sw.Write(tab)
