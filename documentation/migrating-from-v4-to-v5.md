@@ -54,6 +54,8 @@ wapp.Use(StaticFileExtensions.UseStaticFiles)
 
 ## `configuration` expression
 
+> Note: This example is entirely trivial since the `WebApplication.CreateBuilder()` configures a host with common, sensible defaults.
+
 <table>
 <tr>
 <td>
@@ -113,3 +115,21 @@ Falco now automatically detects whether the form is transmiting `multipart/form-
 - `Request.streamFormSecure` becomes -> `Request.mapFormSecure`
 - `Request.mapFormStream`  becomes -> `Request.mapForm`
 - `Request.mapFormStreamSecure` becomes -> `Request.mapFormSecure`
+
+## Removed `Services.inject<'T1 .. 'T5>`
+
+This type was removed because it continued to pose problems for certain code analysis tools. To continue using the service locator pattern, you can now use the more versatile `HttpContext` extension method `ctx.Plug<T>()`. For example:
+
+```fsharp
+let myHandler =
+    Services.inject<MyService> (fun myService ctx ->
+        let message = myService.CreateMessage()
+        Response.ofPlainText $"{message}" ctx)
+
+// becomes
+let create : HttpHandler = fun ctx ->
+    let myService = ctx.Plug<MyService>()
+    let message = myService.CreateMessage()
+    Response.ofPlainText $"{message}" ctx
+
+```
