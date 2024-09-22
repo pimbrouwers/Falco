@@ -1,6 +1,6 @@
 # Migrating from v4.x to v5.x
 
-With Falco v5.x the main objective was to simplify the API and improve the overall devlopment experience.
+With Falco v5.x the main objective was to simplify the API and improve the overall devlopment experience long term. The idea being provide only what is necessary, or provides the most value in the most frequently developed areas.
 
 This document will attempt to cover the anticipated transformations necessary to upgrade from v4.x to v5.x. Pull requests are welcome for missing scenarios, thank you in advance for your help.
 
