@@ -136,13 +136,4 @@ let handlerWithCookieOptions : HttpHandler =
     >> Response.ofPlainText "Hello world"
 ```
 
-## Debugging Requests
-
-For debugging scenarios, the `Response.debugRequest` will pretty print the request details to the screen.
-
-```fsharp
-let debugHandler : HttpHandler =
-    Response.debugRequest
-```
-
 [Next: Accessing request data](request.md)

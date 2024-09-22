@@ -100,7 +100,7 @@ let endpoints =
         get "/" (Response.ofPlainText "Hello from /")
         all "/form" [
             GET, Response.ofHtml form
-            POST, Response.debugRequest ] // <-- a useful debugging tool
+            POST, Response.ofEmpty ]
     ]
 
 wapp.UseFalco(endpoints)

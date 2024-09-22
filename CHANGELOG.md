@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - `Falco.Security.Crypto` and `Falco.Security.Auth` modules removed.
 - Removed `Request.getCookie`, renamed `Request.getCookies`.
 - Removed `Response.challengeWithRedirect`, renamed `Response.challengeAndRedirect`.
+- Removed `Response.debugRequest`.
 
 ## [4.0.6] - 2023-12-12
 
