@@ -101,7 +101,6 @@ module Routing =
     let mapTrace pattern map handler =
         trace pattern (Request.mapRoute map handler)
 
-
 [<Sealed>]
 type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
     inherit EndpointDataSource()
@@ -146,7 +145,6 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
                 endpoints.Add(endpointBuilder.Build())
 
         endpoints
-
 
 [<Sealed>]
 type FalcoEndpointBuilder internal (dataSource : FalcoEndpointDatasource) =

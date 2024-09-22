@@ -36,14 +36,63 @@ webHost args {
 // Falco v5.x
 open Falco
 open Microsoft.AspNetCore.Builder
+// ^-- this import adds many useful extensions
 
 let wapp = WebApplication.Create()
 
-wapp.UseFalco([
+wapp.Use(StaticFileExtensions.UseStaticFiles)
+    .UseFalco([
         get "/" (Response.ofPlainText "Hello World!")
     ])
     .Run()
 
+```
+
+</td>
+</tr>
+</table>
+
+## `configuration` expression
+
+<table>
+<tr>
+<td>
+
+```fsharp
+open Falco
+open Falco.HostBuilder
+
+let config = configuration [||] {
+    required_json "appsettings.json"
+    optional_json "appsettings.Development.json"
+}
+
+webHost [||] {
+    endpoints []
+}
+```
+
+</td>
+<td>
+
+```fsharp
+open Falco
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.Configuration
+// ^-- this import adds access to Configuration
+
+let bldr = WebApplication.CreateBuilder()
+let conf =
+    bldr.Configuration
+        .AddJsonFile("appsettings.json", optional = false)
+        .AddJsonFile("appsettings.Development.json")
+
+let wapp = WebApplication.Create()
+
+let endpoints = []
+
+wapp.UseFalco(endpoints)
+    .Run()
 ```
 
 </td>
