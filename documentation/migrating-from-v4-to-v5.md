@@ -121,15 +121,23 @@ Falco now automatically detects whether the form is transmiting `multipart/form-
 This type was removed because it continued to pose problems for certain code analysis tools. To continue using the service locator pattern, you can now use the more versatile `HttpContext` extension method `ctx.Plug<T>()`. For example:
 
 ```fsharp
-let myHandler =
+let myHandler : HttpHandler =
     Services.inject<MyService> (fun myService ctx ->
         let message = myService.CreateMessage()
         Response.ofPlainText $"{message}" ctx)
 
 // becomes
-let create : HttpHandler = fun ctx ->
+let myHandler : HttpHandler = fun ctx ->
     let myService = ctx.Plug<MyService>()
     let message = myService.CreateMessage()
     Response.ofPlainText $"{message}" ctx
 
 ```
+
+## `Crypto` module removed
+
+The Crypto module provided functionality for: random numbers, salt generation and key derivation. The code in this module was really a veneer on top of the cryptographic providers in the base library. Extracting this code into your project would be dead simple. The [source](https://github.com/pimbrouwers/Falco/blob/25d828d832c0fde2dfff04775bea1eced9050458/src/Falco/Security.fs#L3) is permalinked here for such purposes.
+
+## `Auth` module removed
+
+The Auth module's functionality was ported to the Response module.
