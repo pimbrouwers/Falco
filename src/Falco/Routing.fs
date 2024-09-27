@@ -134,10 +134,21 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
                     if strEmpty verbStr then endpoint.Pattern
                     else strConcat [|verbStr; " "; endpoint.Pattern|]
 
-                let requestDelegate = HttpHandler.toRequestDelegate handler
+                let httpMethodMetadata =
+                    match verb with
+                    | ANY -> HttpMethodMetadata [||]
+                    | _   -> HttpMethodMetadata [|verbStr|]
 
+                let routeNameMetadata = RouteNameMetadata(endpoint.Pattern)
+                let metadataCollection = EndpointMetadataCollection(routeNameMetadata, httpMethodMetadata)
+
+                let requestDelegate = HttpHandler.toRequestDelegate handler
+                
                 let endpointBuilder = RouteEndpointBuilder(requestDelegate, routePattern, order, DisplayName = displayName)
                 endpointBuilder.DisplayName <- displayName
+                
+                for metadata in metadataCollection do
+                    endpointBuilder.Metadata.Add(metadata)
 
                 for convention in conventions do
                     convention.Invoke(endpointBuilder)
