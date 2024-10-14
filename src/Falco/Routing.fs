@@ -16,7 +16,7 @@ open Microsoft.AspNetCore.Mvc.ApiExplorer
 type HttpEndpoint =
     { Pattern  : string
       Handlers : (HttpVerb * HttpHandler) seq
-      Configure : IEndpointConventionBuilder -> IEndpointConventionBuilder }
+      Configure : EndpointBuilder -> EndpointBuilder }
 
 module Routing =
     /// Constructor for multi-method HttpEndpoint.
@@ -159,7 +159,8 @@ type FalcoEndpointDataSource(httpEndpoints : HttpEndpoint seq) =
                 for convention in conventions do
                     convention.Invoke(endpointBuilder)
 
-                endpoint.Configure this |> ignore
+                endpoint.Configure endpointBuilder |> ignore
+                // endpoint.Configure this |> ignore
 
                 endpoints.Add(endpointBuilder.Build())
 
