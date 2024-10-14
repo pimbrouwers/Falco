@@ -1,4 +1,4 @@
-﻿namespace Falco
+namespace Falco
 
 open System
 open System.Threading.Tasks
@@ -38,9 +38,3 @@ type HttpVerb =
         | OPTIONS -> HttpMethods.Options
         | TRACE   -> HttpMethods.Trace
         | ANY     -> String.Empty
-
-/// Specifies an association of a route pattern to a collection of
-/// HttpEndpointHandler.
-type HttpEndpoint =
-    { Pattern  : string
-      Handlers : (HttpVerb * HttpHandler) seq }

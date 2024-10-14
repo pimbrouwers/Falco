@@ -6,10 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- OpenAPI support.
 - `RequestData` (and `RequestValue`) to support complex form & query submissions,
   - Provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
   - A derivative `FormData` contains parsed `RequestValue` and access to `IFormFileCollection`.
-- `WebApplication.UseFalco()` extension method.
 - `HttpContext.Plug<T>` for generic injection support of dependencies within `HttpHandler`'s (service locator pattern).
 - `Request.getJson<T>` for generic JSON request deserialization, using default settings (property name case-insensitive, trailing commas allowed).
 - `Request.getCookies`, replacing `Request.getCookie`.

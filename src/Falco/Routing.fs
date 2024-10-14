@@ -8,13 +8,24 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.FileProviders
 open Falco.StringUtils
 
-[<AutoOpen>]
+open Microsoft.AspNetCore.Mvc.Abstractions
+open Microsoft.AspNetCore.Mvc.ApiExplorer
+
+/// Specifies an association of a route pattern to a collection of
+/// HttpEndpointHandler.
+type HttpEndpoint =
+    { Pattern  : string
+      Handlers : (HttpVerb * HttpHandler) seq
+      Configure : IEndpointConventionBuilder -> IEndpointConventionBuilder }
+
 module Routing =
     /// Constructor for multi-method HttpEndpoint.
     let all
         (pattern : string)
         (handlers : (HttpVerb * HttpHandler) seq) : HttpEndpoint =
-        { Pattern  = pattern; Handlers = handlers }
+        { Pattern  = pattern
+          Handlers = handlers
+          Configure = id }
 
     /// Constructor for a singular HttpEndpoint.
     let route verb pattern handler =
@@ -102,27 +113,24 @@ module Routing =
         trace pattern (Request.mapRoute map handler)
 
 [<Sealed>]
-type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
+type FalcoEndpointDataSource(httpEndpoints : HttpEndpoint seq) =
     inherit EndpointDataSource()
 
     let conventions = List<Action<EndpointBuilder>>()
 
-    interface IEndpointConventionBuilder with
-        member _.Add(convention: Action<EndpointBuilder>) : unit =
-            conventions.Add(convention)
+    new() = FalcoEndpointDataSource([])
 
     member val FalcoEndpoints = List<HttpEndpoint>()
 
-    override x.Endpoints
-        with get() = x.BuildEndpoints()
+    override x.Endpoints with get() = x.BuildEndpoints()
 
     override _.GetChangeToken() = NullChangeToken.Singleton
 
-    member private x.BuildEndpoints () =
+    member private this.BuildEndpoints () =
         let endpoints = List<Endpoint>()
         let mutable order = 0
 
-        for endpoint in Seq.concat [ httpEndpoints; x.FalcoEndpoints ] do
+        for endpoint in Seq.concat [ httpEndpoints; this.FalcoEndpoints ] do
             let routePattern = Patterns.RoutePatternFactory.Parse endpoint.Pattern
 
             for (verb, handler) in endpoint.Handlers do
@@ -140,81 +148,26 @@ type internal FalcoEndpointDatasource(httpEndpoints : HttpEndpoint seq) =
                     | _   -> HttpMethodMetadata [|verbStr|]
 
                 let routeNameMetadata = RouteNameMetadata(endpoint.Pattern)
-                let metadataCollection = EndpointMetadataCollection(routeNameMetadata, httpMethodMetadata)
 
                 let requestDelegate = HttpHandler.toRequestDelegate handler
-                
+
                 let endpointBuilder = RouteEndpointBuilder(requestDelegate, routePattern, order, DisplayName = displayName)
                 endpointBuilder.DisplayName <- displayName
-                
-                for metadata in metadataCollection do
-                    endpointBuilder.Metadata.Add(metadata)
+                endpointBuilder.Metadata.Add(routeNameMetadata)
+                endpointBuilder.Metadata.Add(httpMethodMetadata)
 
                 for convention in conventions do
                     convention.Invoke(endpointBuilder)
+
+                endpoint.Configure this |> ignore
 
                 endpoints.Add(endpointBuilder.Build())
 
         endpoints
 
-[<Sealed>]
-type FalcoEndpointBuilder internal (dataSource : FalcoEndpointDatasource) =
-    member this.FalcoGet(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ GET, handler ] })
-        this
+    interface IEndpointConventionBuilder with
+        member _.Add(convention: Action<EndpointBuilder>) : unit =
+            conventions.Add(convention)
 
-    member this.FalcoHead(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ HEAD, handler ] })
-        this
-
-    member this.FalcoPost(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ POST, handler ] })
-        this
-
-    member this.FalcoPut(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ PUT, handler ] })
-        this
-
-    member this.FalcoDelete(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ DELETE, handler ] })
-        this
-
-    member this.FalcoOptions(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ OPTIONS, handler ] })
-        this
-
-    member this.FalcoTrace(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ TRACE, handler ] })
-        this
-
-    member this.FalcoPatch(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ PATCH, handler ] })
-        this
-
-    member this.FalcoAny(pattern : string, handler : HttpHandler) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = [ ANY, handler ] })
-        this
-
-    member this.FalcoAll(pattern : string, handlers : (HttpVerb * HttpHandler) seq) : FalcoEndpointBuilder =
-        dataSource.FalcoEndpoints.Add({
-            Pattern = pattern
-            Handlers = handlers })
-        this
+        member _.Finally (_: Action<EndpointBuilder>): unit =
+            ()

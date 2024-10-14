@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>Falco</AssemblyName>
-    <Version>5.0.0-alpha2</Version>
+    <AssemblyName>Falco.OpenApi</AssemblyName>
+    <Version>1.0.0-alpha1</Version>
 
     <!-- General info -->
-    <Description>A functional-first toolkit for building brilliant ASP.NET Core applications using F#.</Description>
-    <Copyright>Copyright 2022 Pim Brouwers</Copyright>
+    <Description>Open API support for Falco.</Description>
+    <Copyright>Copyright 2024 Pim Brouwers</Copyright>
     <Authors>Pim Brouwers and contributors</Authors>
     <NeutralLanguage>en-CA</NeutralLanguage>
 
@@ -18,8 +18,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- NuGet config -->
-    <PackageId>Falco</PackageId>
-    <PackageTags>fsharp;functional;asp.net core;asp.net;.net core;routing;view engine;web;falco;falco-sharp;</PackageTags>
+    <PackageId>Falco.OpenApi</PackageId>
+    <PackageTags>openapi;open-api;fsharp;functional;asp.net core;asp.net;.net core;routing;view engine;web;falco;falco-sharp;</PackageTags>
     <PackageProjectUrl>https://github.com/pimbrouwers/Falco</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
@@ -35,26 +35,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Falco.Markup" Version="1.*" />
+    <!-- <PackageReference Include="Falco" Version="5.0.0-alpha2" /> -->
+    <ProjectReference Include="../Falco/Falco.fsproj" />
     <PackageReference Update="FSharp.Core" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.*" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.*" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="String.fs" />
-    <Compile Include="RequestValue.fs" />
-    <Compile Include="RequestData.fs" />
-    <Compile Include="Multipart.fs" />
-    <Compile Include="Security.fs" />
-    <Compile Include="Core.fs" />
-    <Compile Include="Request.fs" />
-    <Compile Include="Response.fs" />
-    <Compile Include="Routing.fs" />
-    <Compile Include="WebApplication.fs" />
+    <Compile Include="OpenApi.fs" />
   </ItemGroup>
 
   <ItemGroup>
