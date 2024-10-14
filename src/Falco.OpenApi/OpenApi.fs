@@ -13,6 +13,143 @@ open Microsoft.AspNetCore.Mvc.ModelBinding
 open Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 open Microsoft.Extensions.DependencyInjection
 
+type internal FalcoEndpointModelMetadata(
+    Identity : ModelMetadataIdentity,
+    BindingSource : BindingSource) =
+    inherit ModelMetadata(Identity)
+    override val AdditionalValues : IReadOnlyDictionary<obj, obj>
+    override val BinderModelName : string
+    override val BinderType  : Type
+    override val BindingSource  : BindingSource = BindingSource
+    override val ConvertEmptyStringToNull  : bool
+    override val DataTypeName  : string
+    override val Description  : string
+    override val DisplayFormatString  : string
+    override val DisplayName  : string
+    override val EditFormatString  : string
+    override val ElementMetadata  : ModelMetadata
+    override val EnumGroupedDisplayNamesAndValues  : IEnumerable<KeyValuePair<EnumGroupAndName, string>>
+    override val EnumNamesAndValues  : IReadOnlyDictionary<string, string>
+    override val HasNonDefaultEditFormat  : bool
+    override val HideSurroundingHtml  : bool
+    override val HtmlEncode  : bool
+    override val IsBindingAllowed  : bool
+    override val IsBindingRequired  : bool
+    override val IsEnum  : bool
+    override val IsFlagsEnum  : bool
+    override val IsReadOnly  : bool
+    override val IsRequired  : bool
+    override val ModelBindingMessageProvider  : ModelBindingMessageProvider
+    override val NullDisplayText  : string
+    override val Order  : int
+    override val Placeholder  : string
+    override val Properties  : ModelPropertyCollection
+    override val PropertyFilterProvider  : IPropertyFilterProvider
+    override val PropertyGetter  : Func<obj, obj>
+    override val PropertySetter  : Action<obj, obj>
+    override val ShowForDisplay  : bool
+    override val ShowForEdit  : bool
+    override val SimpleDisplayProperty  : string
+    override val TemplateHint  : string
+    override val ValidateChildren  : bool
+    override val ValidatorMetadata  : IReadOnlyList<obj>
+
+[<Sealed>]
+type internal FalcoRequestBodyMetadata(Identity : ModelMetadataIdentity) =
+    inherit FalcoEndpointModelMetadata(Identity, BindingSource.Body)
+
+[<Sealed>]
+type internal FalcoRouteMetadata(Identity : ModelMetadataIdentity) =
+    inherit FalcoEndpointModelMetadata(Identity, BindingSource.Path)
+
+[<Sealed>]
+type internal FalcoQueryMetadata(Identity : ModelMetadataIdentity) =
+    inherit FalcoEndpointModelMetadata(Identity, BindingSource.Query)
+
+[<Sealed>]
+type internal FalcoApiDescriptionProvider (dataSource : FalcoEndpointDataSource) =
+    let createApiDescriptions (endpoint : RouteEndpoint) =
+        let httpMethodMetadata = endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()
+        ArgumentNullException.ThrowIfNull httpMethodMetadata
+
+        let endpointName = endpoint.Metadata.GetMetadata<EndpointNameMetadata>()
+        let endpointDescription = endpoint.Metadata.GetMetadata<EndpointDescriptionAttribute>()
+        let acceptsTypeMetadata = endpoint.Metadata.GetOrderedMetadata<AcceptsMetadata>()
+        let responseTypeMetadata = endpoint.Metadata.GetOrderedMetadata<ProducesResponseTypeMetadata>()
+
+        let createApiDescription httpMethod =
+            let apiDescription =
+                ApiDescription(
+                    HttpMethod = httpMethod,
+                    RelativePath = endpoint.RoutePattern.RawText.TrimStart('/'),
+                    ActionDescriptor = ActionDescriptor(
+                        DisplayName = (if isNull endpointDescription then endpoint.DisplayName else endpointDescription.Description),
+                        // TODO what is the default name?
+                        RouteValues = dict [ "controller", if isNull endpointName then "imhere" else endpointName.EndpointName ]))
+
+            // request body
+            for acceptsType in acceptsTypeMetadata do
+                let modelMetadata =
+                    FalcoRequestBodyMetadata(
+                        Identity = ModelMetadataIdentity.ForType(acceptsType.RequestType))
+
+                apiDescription.ParameterDescriptions.Add(
+                    ApiParameterDescription(
+                        ModelMetadata = modelMetadata,
+                        Source = modelMetadata.BindingSource,
+                        DefaultValue = null,
+                        Type = acceptsType.RequestType))
+
+                for contentType in acceptsType.ContentTypes do
+                    apiDescription.SupportedRequestFormats.Add(
+                        ApiRequestFormat(
+                            MediaType = contentType))
+
+            // TODO route params
+
+            // TODO query params
+
+            // response
+            for responseType in responseTypeMetadata do
+                for contentType in responseType.ContentTypes do
+                    let responseFormats = ResizeArray<ApiResponseFormat>()
+                    responseFormats.Add(ApiResponseFormat(MediaType = contentType))
+                    apiDescription.SupportedResponseTypes.Add(
+                    ApiResponseType(
+                        Type = responseType.Type,
+                        StatusCode = responseType.StatusCode,
+                        ApiResponseFormats = responseFormats))
+
+            apiDescription
+
+        seq {
+            for httpMethod in httpMethodMetadata.HttpMethods do
+                createApiDescription httpMethod
+        }
+
+    interface IApiDescriptionProvider with
+        member _.Order = 0
+
+        member _.OnProvidersExecuting(context: ApiDescriptionProviderContext) =
+            for endpoint in dataSource.Endpoints do
+                match endpoint with
+                | :? RouteEndpoint as endpoint ->
+                    for apiDescription in createApiDescriptions endpoint do
+                        context.Results.Add(apiDescription)
+                | _ ->
+                    ()
+
+        member _.OnProvidersExecuted(_: ApiDescriptionProviderContext) =
+            ()
+
+[<AutoOpen>]
+module Extensions =
+    type IServiceCollection with
+        member this.AddFalcoOpenApi() : IServiceCollection =
+            this.AddSingleton<FalcoEndpointDataSource>()
+                .AddSingleton<IApiDescriptionProvider, FalcoApiDescriptionProvider>()
+                .AddEndpointsApiExplorer()
+
 [<RequireQualifiedAccess>]
 module OpenApi =
     type Accepts =
@@ -80,137 +217,3 @@ module OpenApi =
               ContentTypes = [ contentTypeFromType t ]
               Status = 200 }
             endpoint
-
-[<Sealed>]
-type internal FalcoEndpointModelMetadata(
-    Identity : ModelMetadataIdentity,
-    BindingSource : BindingSource) =
-    inherit ModelMetadata(Identity)
-
-    member val ModelType : Type = Identity.ModelType
-    override val AdditionalValues : IReadOnlyDictionary<obj, obj>
-    override val BinderModelName : string
-    override val BinderType  : Type
-    override val BindingSource  : BindingSource = BindingSource
-    override val ConvertEmptyStringToNull  : bool
-    override val DataTypeName  : string
-    override val Description  : string
-    override val DisplayFormatString  : string
-    override val DisplayName  : string
-    override val EditFormatString  : string
-    override val ElementMetadata  : ModelMetadata
-    override val EnumGroupedDisplayNamesAndValues  : IEnumerable<KeyValuePair<EnumGroupAndName, string>>
-    override val EnumNamesAndValues  : IReadOnlyDictionary<string, string>
-    override val HasNonDefaultEditFormat  : bool
-    override val HideSurroundingHtml  : bool
-    override val HtmlEncode  : bool
-    override val IsBindingAllowed  : bool
-    override val IsBindingRequired  : bool
-    override val IsEnum  : bool
-    override val IsFlagsEnum  : bool
-    override val IsReadOnly  : bool
-    override val IsRequired  : bool
-    override val ModelBindingMessageProvider  : ModelBindingMessageProvider
-    override val NullDisplayText  : string
-    override val Order  : int
-    override val Placeholder  : string
-    override val Properties  : ModelPropertyCollection
-    override val PropertyFilterProvider  : IPropertyFilterProvider
-    override val PropertyGetter  : Func<obj, obj>
-    override val PropertySetter  : Action<obj, obj>
-    override val ShowForDisplay  : bool
-    override val ShowForEdit  : bool
-    override val SimpleDisplayProperty  : string
-    override val TemplateHint  : string
-    override val ValidateChildren  : bool
-    override val ValidatorMetadata  : IReadOnlyList<obj>
-
-[<Sealed>]
-type internal FalcoApiDescriptionProvider (dataSource : FalcoEndpointDataSource) =
-    let createApiDescriptions (endpoint : RouteEndpoint) =
-        let httpMethodMetadata = endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()
-        ArgumentNullException.ThrowIfNull httpMethodMetadata
-
-        let endpointName = endpoint.Metadata.GetMetadata<EndpointNameMetadata>()
-        let endpointDescription = endpoint.Metadata.GetMetadata<EndpointDescriptionAttribute>()
-        let acceptsTypeMetadata = endpoint.Metadata.GetOrderedMetadata<AcceptsMetadata>()
-        let responseTypeMetadata = endpoint.Metadata.GetOrderedMetadata<ProducesResponseTypeMetadata>()
-        let createApiDescription httpMethod =
-            let name =
-                if isNull endpointName then
-                    // TODO what is the default name?
-                    "imhere"
-                else
-                    endpointName.EndpointName
-
-            let displayName =
-                if isNull endpointDescription then
-                    endpoint.DisplayName
-                else
-                    endpointDescription.Description
-
-            let apiDescription =
-                ApiDescription(
-                    HttpMethod = httpMethod,
-                    RelativePath = endpoint.RoutePattern.RawText.TrimStart('/'),
-                    ActionDescriptor = ActionDescriptor(
-                        DisplayName = displayName,
-                        RouteValues = dict [ "controller", name ]))
-
-            apiDescription.Properties.Add("description", "test")
-
-            for accepts in acceptsTypeMetadata do
-                apiDescription.ParameterDescriptions.Add(
-                    ApiParameterDescription(
-                        Name = "api-parameter-description",
-                        ModelMetadata = FalcoEndpointModelMetadata(
-                            Identity = ModelMetadataIdentity.ForType(accepts.RequestType),
-                            BindingSource = BindingSource.Body),
-                        Source = BindingSource.Body,
-                        DefaultValue = null,
-                        Type = accepts.RequestType))
-
-                for contentType in accepts.ContentTypes do
-                    apiDescription.SupportedRequestFormats.Add(
-                        ApiRequestFormat(
-                            MediaType = contentType))
-
-            for responseType in responseTypeMetadata do
-                for contentType in responseType.ContentTypes do
-                    let responseFormats = ResizeArray<ApiResponseFormat>()
-                    responseFormats.Add(ApiResponseFormat(MediaType = contentType))
-                    apiDescription.SupportedResponseTypes.Add(
-                    ApiResponseType(
-                        Type = responseType.Type,
-                        StatusCode = responseType.StatusCode,
-                        ApiResponseFormats = responseFormats))
-
-            apiDescription
-
-        seq {
-            for httpMethod in httpMethodMetadata.HttpMethods do
-                createApiDescription httpMethod
-        }
-
-    interface IApiDescriptionProvider with
-        member _.Order = 0
-
-        member _.OnProvidersExecuting(context: ApiDescriptionProviderContext) =
-            for endpoint in dataSource.Endpoints do
-                match endpoint with
-                | :? RouteEndpoint as endpoint ->
-                    for apiDescription in createApiDescriptions endpoint do
-                        context.Results.Add(apiDescription)
-                | _ ->
-                    ()
-
-        member _.OnProvidersExecuted(_: ApiDescriptionProviderContext) =
-            ()
-
-[<AutoOpen>]
-module Extensions =
-    type IServiceCollection with
-        member this.AddFalcoOpenApi() : IServiceCollection =
-            this.AddSingleton<FalcoEndpointDataSource>()
-                .AddSingleton<IApiDescriptionProvider, FalcoApiDescriptionProvider>()
-                .AddEndpointsApiExplorer()
