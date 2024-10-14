@@ -11,7 +11,7 @@ let wapp = WebApplication.Create()
 
 let endpoints =
     // associate GET / to plain text HttpHandler
-    [ get "/" (Response.ofPlainText "Hello World!") ]
+    [ Routing.get "/" (Response.ofPlainText "Hello World!") ]
 
 // activate Falco endpoint source
 wapp.UseFalco(endpoints)
