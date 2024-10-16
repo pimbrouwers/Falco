@@ -137,7 +137,7 @@ type FalcoEndpointDataSource(httpEndpoints : HttpEndpoint seq) =
 
                 let displayName =
                     if strEmpty verbStr then endpoint.Pattern
-                    else strConcat [|verbStr; "+"; endpoint.Pattern|]
+                    else strConcat [|verbStr; " "; endpoint.Pattern|]
 
                 let httpMethodMetadata =
                     match verb with
