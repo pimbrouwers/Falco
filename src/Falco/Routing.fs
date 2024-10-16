@@ -8,9 +8,6 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.FileProviders
 open Falco.StringUtils
 
-open Microsoft.AspNetCore.Mvc.Abstractions
-open Microsoft.AspNetCore.Mvc.ApiExplorer
-
 /// Specifies an association of a route pattern to a collection of
 /// HttpEndpointHandler.
 type HttpEndpoint =
@@ -140,7 +137,7 @@ type FalcoEndpointDataSource(httpEndpoints : HttpEndpoint seq) =
 
                 let displayName =
                     if strEmpty verbStr then endpoint.Pattern
-                    else strConcat [|verbStr; " "; endpoint.Pattern|]
+                    else strConcat [|verbStr; "+"; endpoint.Pattern|]
 
                 let httpMethodMetadata =
                     match verb with
@@ -160,7 +157,6 @@ type FalcoEndpointDataSource(httpEndpoints : HttpEndpoint seq) =
                     convention.Invoke(endpointBuilder)
 
                 endpoint.Configure endpointBuilder |> ignore
-                // endpoint.Configure this |> ignore
 
                 endpoints.Add(endpointBuilder.Build())
 

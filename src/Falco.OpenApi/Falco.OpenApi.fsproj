@@ -43,6 +43,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Metadata.fs" />
+    <Compile Include="ApiDescriptionProvider.fs" />
     <Compile Include="OpenApi.fs" />
   </ItemGroup>
 

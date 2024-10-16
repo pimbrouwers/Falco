@@ -29,12 +29,20 @@ module Program =
                 Response.ofJson
                 |> OpenApi.name "Fortune"
                 |> OpenApi.description "A mystic fortune teller"
-                |> OpenApi.acceptsType typeof<FortuneInput>
+                |> OpenApi.routeParam [
+                    { Type = typeof<string>; Name = "Name"; Required = false } ]
                 |> OpenApi.returnType typeof<Fortune>
 
-            mapGet "/hello/{name?}" (fun route -> { Message = route?name.AsString("world") }) Response.ofJson
+            mapGet "/hello/{name?}"
+                (fun route ->
+                    { Message = route?name.AsString("world") })
+                Response.ofJson
                 |> OpenApi.name "Greeting"
                 |> OpenApi.description "A friendly greeter"
+                |> OpenApi.routeParam [
+                    { Type = typeof<string>; Name = "Name"; Required = false } ]
+                |> OpenApi.queryParam [
+                    { Type = typeof<int>; Name = "Age"; Required = false } ]
                 |> OpenApi.acceptsType typeof<string>
                 |> OpenApi.returnType typeof<Greeting>
 
