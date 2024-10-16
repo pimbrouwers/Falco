@@ -93,9 +93,13 @@ let getFormSecure (ctx : HttpContext) : Task<FormData option> =
 /// JsonSerializerOptions.
 let getJsonOptions<'T>
     (options : JsonSerializerOptions)
-    (ctx : HttpContext) : Task<'T> = task {
-        use tokenSource = new CancellationTokenSource()
-        return! JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options, tokenSource.Token).AsTask()
+    (ctx : HttpContext) : Task<'T option> = task {
+        if ctx.Request.ContentLength |> Option.ofNullable |> Option.defaultValue 0L = 0L then
+            return None
+        else
+            use tokenSource = new CancellationTokenSource()
+            let! json = JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options, tokenSource.Token).AsTask()
+            return Some json
     }
 
 
@@ -194,9 +198,9 @@ let mapFormSecure
 /// Projects JSON using custom JsonSerializerOptions
 /// onto 'T and provides to next HttpHandler, throws
 /// JsonException if errors occur during deserialization.
-let mapJsonOptions
+let mapJsonOptions<'T>
     (options : JsonSerializerOptions)
-    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
+    (next : 'T option -> HttpHandler) : HttpHandler = fun ctx ->
     task {
         let! json = getJsonOptions options ctx
         return! next json ctx
@@ -205,9 +209,10 @@ let mapJsonOptions
 /// Projects JSON onto 'T and provides to next
 /// HttpHandler, throws JsonException if errors
 /// occur during deserialization.
-let mapJson
-    (next : 'T -> HttpHandler) : HttpHandler =
-    mapJsonOptions defaultJsonOptions next
+let mapJson<'T>
+    (next : 'T option -> HttpHandler) : HttpHandler =
+    mapJsonOptions<'T> defaultJsonOptions next
+
 
 // ------------
 // Authentication
