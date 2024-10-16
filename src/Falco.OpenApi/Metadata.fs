@@ -2,34 +2,47 @@ namespace Falco.OpenApi
 
 open System
 open System.Collections.Generic
+open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Http.Metadata
 open Microsoft.AspNetCore.Mvc.ModelBinding
 open Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
+open Microsoft.AspNetCore.Routing
 
 [<AllowNullLiteral>]
 [<Sealed>]
 type internal FalcoEndpointNameMetadata(name) =
-    member val Name : string = name
+    interface IEndpointNameMetadata with
+        member val EndpointName : string = name
 
 [<AllowNullLiteral>]
 [<Sealed>]
 type internal FalcoEndpointDescriptionMetadata(description) =
-    member val Description : string = description
+    interface IEndpointDescriptionMetadata with
+        member val Description : string = description
 
+[<AllowNullLiteral>]
+[<Sealed>]
+type internal FalcoEndpointSummaryMetadata(summary) =
+    interface IEndpointSummaryMetadata with
+        member val Summary : string = summary
+
+[<AllowNullLiteral>]
+[<Sealed>]
+type internal FalcoEndpointTagsMetadata(tags : string list) =
+    interface ITagsMetadata with
+        member val Tags = tags
+
+type FalcoEndpointParameterMetadataSource =
+    | PathParameter
+    | QueryParameter
 
 [<Sealed>]
-type internal FalcoEndpointRouteMetadata(
+type internal FalcoEndpointParameterMetadata(
+    source : FalcoEndpointParameterMetadataSource,
     type' : Type,
     name : string,
     required : bool) =
-    member val Type : Type = type'
-    member val Name : string = name
-    member val Required : bool = required
-
-[<Sealed>]
-type internal FalcoEndpointQueryMetadata(
-    type' : Type,
-    name : string,
-    required : bool) =
+    member val Source : FalcoEndpointParameterMetadataSource = source
     member val Type : Type = type'
     member val Name : string = name
     member val Required : bool = required

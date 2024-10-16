@@ -1,41 +1,60 @@
 namespace Falco.OpenApi
 
 open System
-open Microsoft.AspNetCore.Routing
-open Falco
+open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Http.Metadata
 open Microsoft.AspNetCore.Mvc.Abstractions
 open Microsoft.AspNetCore.Mvc.ApiExplorer
 open Microsoft.AspNetCore.Mvc.ModelBinding
+open Microsoft.AspNetCore.Routing
+open Falco
 
 [<Sealed>]
 type internal FalcoApiDescriptionProvider (dataSource : FalcoEndpointDataSource) =
     let createApiDescriptions (endpoint : RouteEndpoint) =
-        let httpMethodMetadata = endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()
-        ArgumentNullException.ThrowIfNull httpMethodMetadata
-
-        let endpointName = endpoint.Metadata.GetMetadata<FalcoEndpointNameMetadata>()
-        let endpointDescription = endpoint.Metadata.GetMetadata<FalcoEndpointDescriptionMetadata>()
-        let acceptsMetadata = endpoint.Metadata.GetOrderedMetadata<FalcoEndpointAcceptsMetadata>()
-        let responseTypeMetadata = endpoint.Metadata.GetOrderedMetadata<FalcoEndpointResponseMetadata>()
-        let routeParamsMetadata = endpoint.Metadata.GetOrderedMetadata<FalcoEndpointRouteMetadata>()
-        let queryParamsMetadata = endpoint.Metadata.GetOrderedMetadata<FalcoEndpointQueryMetadata>()
-
         let createApiDescription httpMethod =
+
+            let actionDescriptor =
+                let endpointName = endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()
+                let endpointDescription = endpoint.Metadata.GetMetadata<IEndpointDescriptionMetadata>()
+                let endpointSummary = endpoint.Metadata.GetMetadata<IEndpointSummaryMetadata>()
+                let endpointTags = endpoint.Metadata.GetMetadata<ITagsMetadata>()
+
+                let descriptor =
+                    ActionDescriptor(
+                        DisplayName = (if isNull endpointDescription then endpoint.DisplayName else endpointDescription.Description),
+                        RouteValues = dict [
+                            "controller", if isNull endpointName then endpoint.DisplayName else endpointName.EndpointName
+                            "action", if isNull endpointDescription then endpoint.DisplayName else endpointDescription.Description ],
+                        EndpointMetadata = new ResizeArray<obj>())
+
+                if not (isNull endpointName) then
+                    descriptor.EndpointMetadata.Add(endpointName)
+
+                if not (isNull endpointDescription) then
+                    descriptor.EndpointMetadata.Add(endpointDescription)
+
+                if not (isNull endpointSummary) then
+                    descriptor.EndpointMetadata.Add(endpointSummary)
+
+                if not (isNull endpointTags) then
+                    descriptor.EndpointMetadata.Add(endpointTags)
+
+                descriptor
+
             let apiDescription =
                 ApiDescription(
+                    ActionDescriptor = actionDescriptor,
                     HttpMethod = httpMethod,
-                    RelativePath = endpoint.RoutePattern.RawText.TrimStart('/'),
-                    ActionDescriptor = ActionDescriptor(
-                        DisplayName = (if isNull endpointDescription then endpoint.DisplayName else endpointDescription.Description),
-                        RouteValues = dict [ "controller", if isNull endpointName then endpoint.DisplayName else endpointName.Name ]))
+                    RelativePath = endpoint.RoutePattern.RawText.TrimStart('/'))
 
             // request body
+            let acceptsMetadata = endpoint.Metadata.GetOrderedMetadata<FalcoEndpointAcceptsMetadata>()
             for param in acceptsMetadata do
                 apiDescription.ParameterDescriptions.Add(
                     ApiParameterDescription(
                         ModelMetadata = param,
                         Source = param.BindingSource,
-                        DefaultValue = null,
                         Type = param.ModelType,
                         Name = param.Name,
                         IsRequired = param.IsRequired))
@@ -45,27 +64,23 @@ type internal FalcoApiDescriptionProvider (dataSource : FalcoEndpointDataSource)
                         ApiRequestFormat(
                             MediaType = contentType))
 
-            // route params
+            // route, query and header params
+            let routeParamsMetadata = endpoint.Metadata.GetOrderedMetadata<FalcoEndpointParameterMetadata>()
             for param in routeParamsMetadata do
-                apiDescription.ParameterDescriptions.Add(
-                    ApiParameterDescription(
-                        Source = BindingSource.Path,
-                        DefaultValue = null,
-                        Type = param.Type,
-                        Name = param.Name,
-                        IsRequired = param.Required))
+                let source =
+                    match param.Source with
+                    | PathParameter -> BindingSource.Path
+                    | QueryParameter -> BindingSource.Query
 
-            // query params
-            for param in queryParamsMetadata do
                 apiDescription.ParameterDescriptions.Add(
                     ApiParameterDescription(
-                        Source = BindingSource.Query,
-                        DefaultValue = null,
+                        Source = source,
                         Type = param.Type,
                         Name = param.Name,
                         IsRequired = param.Required))
 
             // response
+            let responseTypeMetadata = endpoint.Metadata.GetOrderedMetadata<FalcoEndpointResponseMetadata>()
             for responseType in responseTypeMetadata do
                 for contentType in responseType.ContentTypes do
                     let responseFormats = ResizeArray<ApiResponseFormat>()
@@ -77,6 +92,9 @@ type internal FalcoApiDescriptionProvider (dataSource : FalcoEndpointDataSource)
                         ApiResponseFormats = responseFormats))
 
             apiDescription
+
+        let httpMethodMetadata = endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()
+        ArgumentNullException.ThrowIfNull httpMethodMetadata
 
         seq {
             for httpMethod in httpMethodMetadata.HttpMethods do
