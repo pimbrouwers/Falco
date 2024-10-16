@@ -49,10 +49,13 @@ let ``Request.getRouteValues should return Map<string, string> from HttpContext`
 let ``Request.mapJson`` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
+    ctx.Request.ContentLength.Returns(13L) |> ignore
     ctx.Request.Body.Returns(ms) |> ignore
 
     let handle json : HttpHandler =
-        json.Name |> should equal "falco"
+        match json with
+        | Some json -> json.Name |> should equal "falco"
+        | None -> failwith "json is None"
         Response.ofEmpty
 
     Request.mapJson handle ctx
@@ -60,11 +63,14 @@ let ``Request.mapJson`` () =
 [<Fact>]
 let ``Request.mapJsonOption`` () =
     let ctx = getHttpContextWriteable false
-    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
+    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\",\"age\":null}"))
+    ctx.Request.ContentLength.Returns(22L) |> ignore
     ctx.Request.Body.Returns(ms) |> ignore
 
     let handle json : HttpHandler =
-        json.Name |> should equal "falco"
+        match json with
+        | Some json -> json.Name |> should equal "falco"
+        | None -> failwith "json is None"
         Response.ofEmpty
 
     let options = JsonSerializerOptions()
