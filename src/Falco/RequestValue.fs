@@ -210,18 +210,23 @@ module RequestValue =
         |> Seq.map (fun kvp ->
             kvp.Key, seq { Convert.ToString(kvp.Value, Globalization.CultureInfo.InvariantCulture) })
 
+    let private queryKeyValues (query : IQueryCollection) =
+        query
+        |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> string seq)
+
     let parseRoute (route : RouteValueDictionary, query : IQueryCollection) : RequestValue =
-        route
-        |> routeKeyValues
+        Seq.concat [
+            route
+            |> routeKeyValues
+
+            query
+            |> queryKeyValues ]
         |> dict
         |> parse
 
     let parseQuery (query : IQueryCollection) : RequestValue =
-        let queryKeyValues =
-            query
-            |> Seq.map (fun kvp -> kvp.Key, kvp.Value :> string seq)
-
-        queryKeyValues
+        query
+        |> queryKeyValues
         |> dict
         |> parse
 
