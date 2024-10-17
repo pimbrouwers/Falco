@@ -17,13 +17,10 @@ All notable changes to this project will be documented in this file.
 - `Response.challengeAndRedirect`, replacing `Response.challengeWithRedirect`.
 - `Routing.map[Get|Head|Post|Put|Patch|Delete|Options|Trace|Any]` which produces `HttpEndpoint` by associating a route pattern to an `HttpHandler` after mapping route.
 
-### Changed
-
-- `Request.getJson`, `Request.getJsonOptions`, `Request.mapJson` and `Request.mapJsonOptions`, all now return `T' option` instead of `T'`, where `T'` is the deserialized JSON object.
-
 ### Fixed
 
 - Missing cancellation token pass-through during form reading, `multipart/form-data` streaming and JSON serialization/deserialization.
+- Empty request body support for JSON request methods.
 
 ### Removed
 

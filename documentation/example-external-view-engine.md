@@ -97,6 +97,7 @@ Since our Scriban template engine is stateless and dependency-free, we can use t
 
 ```
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
 
