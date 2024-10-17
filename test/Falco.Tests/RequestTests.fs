@@ -53,9 +53,7 @@ let ``Request.mapJson`` () =
     ctx.Request.Body.Returns(ms) |> ignore
 
     let handle json : HttpHandler =
-        match json with
-        | Some json -> json.Name |> should equal "falco"
-        | None -> failwith "json is None"
+        json.Name |> should equal "falco"
         Response.ofEmpty
 
     Request.mapJson handle ctx
@@ -68,9 +66,7 @@ let ``Request.mapJsonOption`` () =
     ctx.Request.Body.Returns(ms) |> ignore
 
     let handle json : HttpHandler =
-        match json with
-        | Some json -> json.Name |> should equal "falco"
-        | None -> failwith "json is None"
+        json.Name |> should equal "falco"
         Response.ofEmpty
 
     let options = JsonSerializerOptions()
