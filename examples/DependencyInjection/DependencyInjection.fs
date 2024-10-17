@@ -1,4 +1,5 @@
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection // <-- this import adds DI capabilities
 

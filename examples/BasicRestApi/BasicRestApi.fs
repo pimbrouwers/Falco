@@ -3,6 +3,7 @@ namespace BasicRestApi
 open System.Data
 open Donald // <-- external package that makes using databases simpler
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Data.Sqlite // <-- a very useful Microsoft package

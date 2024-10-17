@@ -2,6 +2,7 @@ namespace HelloWorldMvc
 
 open Falco
 open Falco.Markup
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
 module Model =

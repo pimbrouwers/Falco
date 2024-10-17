@@ -1,6 +1,7 @@
 module Falco.Scriban.Program
 
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
 open Scriban

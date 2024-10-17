@@ -5,6 +5,7 @@ open System.Data
 open System.Threading.Tasks
 open Donald // <-- external package that makes using databases simpler
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
