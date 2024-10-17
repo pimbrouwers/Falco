@@ -2,7 +2,6 @@ namespace Falco
 
 [<AutoOpen>]
 module Extensions =
-    open System
     open Microsoft.AspNetCore.Builder
     open Microsoft.AspNetCore.Http
     open Microsoft.AspNetCore.Routing

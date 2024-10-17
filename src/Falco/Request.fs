@@ -93,13 +93,14 @@ let getFormSecure (ctx : HttpContext) : Task<FormData option> =
 /// JsonSerializerOptions.
 let getJsonOptions<'T>
     (options : JsonSerializerOptions)
-    (ctx : HttpContext) : Task<'T option> = task {
+    (ctx : HttpContext) : Task<'T> = task {
+
         if ctx.Request.ContentLength |> Option.ofNullable |> Option.defaultValue 0L = 0L then
-            return None
+            return JsonSerializer.Deserialize<'T>("{}", options)
         else
             use tokenSource = new CancellationTokenSource()
             let! json = JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options, tokenSource.Token).AsTask()
-            return Some json
+            return json
     }
 
 
@@ -200,7 +201,7 @@ let mapFormSecure
 /// JsonException if errors occur during deserialization.
 let mapJsonOptions<'T>
     (options : JsonSerializerOptions)
-    (next : 'T option -> HttpHandler) : HttpHandler = fun ctx ->
+    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     task {
         let! json = getJsonOptions options ctx
         return! next json ctx
@@ -210,7 +211,7 @@ let mapJsonOptions<'T>
 /// HttpHandler, throws JsonException if errors
 /// occur during deserialization.
 let mapJson<'T>
-    (next : 'T option -> HttpHandler) : HttpHandler =
+    (next : 'T -> HttpHandler) : HttpHandler =
     mapJsonOptions<'T> defaultJsonOptions next
 
 
