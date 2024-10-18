@@ -5,7 +5,6 @@ open System.IO
 open System.Text
 open System.Text.Json
 open System.Text.Json.Serialization
-open System.Threading.Tasks
 open Falco
 open FsUnit.Xunit
 open NSubstitute
@@ -14,7 +13,6 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Net.Http.Headers
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
-open System.Security.Claims
 
 [<Fact>]
 let ``Request.getVerb should return HttpVerb from HttpContext`` () =
