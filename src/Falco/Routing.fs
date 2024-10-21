@@ -109,6 +109,22 @@ module Routing =
     let mapTrace pattern map handler =
         trace pattern (Request.mapRoute map handler)
 
+    /// Configure the display name attribute of the endpoint.
+    let setDisplayName (displayName : string) (endpoint : HttpEndpoint) =
+        let configure (builder : EndpointBuilder) =
+            (builder :?> RouteEndpointBuilder).DisplayName <- displayName
+            builder
+
+        { endpoint with Configure = endpoint.Configure >> configure }
+
+    /// Set an explicit order for the endpoint.
+    let setOrder (n : int) (endpoint : HttpEndpoint) =
+        let configure (builder : EndpointBuilder) =
+            (builder :?> RouteEndpointBuilder).Order <- n
+            builder
+
+        { endpoint with Configure = endpoint.Configure >> configure }
+
 [<Sealed>]
 type FalcoEndpointDataSource(httpEndpoints : HttpEndpoint seq) =
     inherit EndpointDataSource()
@@ -125,38 +141,38 @@ type FalcoEndpointDataSource(httpEndpoints : HttpEndpoint seq) =
 
     member private this.BuildEndpoints () =
         let endpoints = List<Endpoint>()
-        let mutable order = 0
 
         for endpoint in Seq.concat [ httpEndpoints; this.FalcoEndpoints ] do
             let routePattern = Patterns.RoutePatternFactory.Parse endpoint.Pattern
 
             for (verb, handler) in endpoint.Handlers do
-                order <- order + 1
-
                 let verbStr = verb.ToString()
 
                 let displayName =
                     if strEmpty verbStr then endpoint.Pattern
                     else strConcat [|verbStr; " "; endpoint.Pattern|]
 
+                let endpointBuilder = RouteEndpointBuilder(
+                    requestDelegate = HttpHandler.toRequestDelegate handler,
+                    routePattern = routePattern,
+                    order = 0,
+                    DisplayName = displayName)
+
+                endpointBuilder.DisplayName <- displayName
+                endpoint.Configure endpointBuilder |> ignore
+
+                for convention in conventions do
+                    convention.Invoke(endpointBuilder)
+
+                let routeNameMetadata = RouteNameMetadata(endpoint.Pattern)
+                endpointBuilder.Metadata.Add(routeNameMetadata)
+
                 let httpMethodMetadata =
                     match verb with
                     | ANY -> HttpMethodMetadata [||]
                     | _   -> HttpMethodMetadata [|verbStr|]
 
-                let routeNameMetadata = RouteNameMetadata(endpoint.Pattern)
-
-                let requestDelegate = HttpHandler.toRequestDelegate handler
-
-                let endpointBuilder = RouteEndpointBuilder(requestDelegate, routePattern, order, DisplayName = displayName)
-                endpointBuilder.DisplayName <- displayName
-                endpointBuilder.Metadata.Add(routeNameMetadata)
                 endpointBuilder.Metadata.Add(httpMethodMetadata)
-
-                for convention in conventions do
-                    convention.Invoke(endpointBuilder)
-
-                endpoint.Configure endpointBuilder |> ignore
 
                 endpoints.Add(endpointBuilder.Build())
 

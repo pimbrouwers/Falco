@@ -4,6 +4,7 @@ open Xunit
 open Falco
 open Falco.Routing
 open FsUnit.Xunit
+open Microsoft.AspNetCore.Routing
 
 let emptyHandler : HttpHandler = Response.ofPlainText ""
 
@@ -43,3 +44,13 @@ let ``any function returns HttpEndpoint matching ANY HttpVerb`` () =
         trace, TRACE
     ]
     |> List.iter (fun (fn, verb) -> testEndpointFunction fn verb)
+
+[<Fact>]
+let ``a test`` () =
+    let endpoint = route GET "/" emptyHandler |> setDisplayName "emptyHandler" |> setOrder 99
+    let dataSource = FalcoEndpointDataSource([ endpoint ])
+    let builtEndpoints = dataSource.Endpoints
+    builtEndpoints |> should haveCount 1
+    let builtEndpoint = Seq.head builtEndpoints :?> RouteEndpoint
+    builtEndpoint.DisplayName |> should equal "emptyHandler"
+    builtEndpoint.Order |> should equal 99

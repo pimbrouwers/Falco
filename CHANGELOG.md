@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 - `Response.signInOptions` to sign in claim principal for provided scheme and options then responds with a 301 redirect to provided URL.
 - `Response.challengeAndRedirect`, replacing `Response.challengeWithRedirect`.
 - `Routing.map[Get|Head|Post|Put|Patch|Delete|Options|Trace|Any]` which produces `HttpEndpoint` by associating a route pattern to an `HttpHandler` after mapping route.
+- `Routing.setDisplayName` to set the display name of the endpoint.
+- `Routing.setOrder` to set the order number of the endpoint.
 
 ### Fixed
 
