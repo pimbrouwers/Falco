@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Falco - F# web toolkit for ASP.NET Core</title><meta name="description" content="A functional-first toolkit for building brilliant ASP.NET Core applications using F#." /><link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /><link rel="icon" href="/favicon.ico" type="image/x-icon" /><link rel="preconnect" href="https://fonts.gstatic.com" /><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" /><link href="/prism.css" rel="stylesheet" /><link href="/tachyons.css" rel="stylesheet" /><link href="/style.css" rel="stylesheet" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script><script>window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-D62HSJHMNZ');</script></head><body class="noto lh-copy"><div class="min-vh-100 mw9 center pa3 overflow-hidden"><nav class="sidebar w-20-l fl-l mb3 mb0-l"><div class="flex items-center"><a href="/docs" class="db w3 w4-l"><img src="/brand.svg" class="br3" /></a><h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2></div><div class="dn db-l"><h3>Contents</h3><ul class="nl3 f6"><li><a href="get-started.html">Getting Started</a></li><li><a href="routing.html">Routing</a></li><li><a href="response.html">Writing responses</a></li><li><a href="request.html">Accessing request data</a></li><li><a href="markup.html">View engine</a></li><li><a href="security.html">Security</a></li><li><a href="example-hello-world.html">Examples</a></li></ul></div></nav><main class="w-80-l fl-l pl3-l"><h1 id="example-hello-world-mvc">Example - Hello World MVC</h1>
+<p>Let's take our basic <a href="example-hello-world.html">Hello World</a> to the next level. This means we're going to dial up the complexity a little bit. But we'll do this using the well recognized MVC pattern. We'll contain the app to a single file to make &quot;landscaping&quot; the pattern more straight-forward.</p>
+<p>The code for this example can be found <a href="https://github.com/pimbrouwers/Falco/tree/master/examples/HelloWorldMvc">here</a>.</p>
+<h2 id="creating-the-application-manually">Creating the Application Manually</h2>
+<pre><code class="language-shell">&gt; dotnet new falco -o HelloWorldMvcApp
+</code></pre>
+<h2 id="model">Model</h2>
+<p>Since this app has no persistence, the model is somewhat boring. But included here to demonstrate the concept.</p>
+<p>We define two simple record types. One to contain the patron name, the other to contain a <code>string</code> message.</p>
+<pre><code class="language-fsharp">module Model =
+    type NameGreeting =
+        { Name : string }
+
+    type Greeting =
+        { Message : string }
+</code></pre>
+<h2 id="routing">Routing</h2>
+<p>As the project scales, it is generally helpful to have static references to your URLs and/or URL generating functions for dynamic resources.</p>
+<p><a href="routing.html">Routing</a> begins with a route template, so it's only natural to define those first.</p>
+<pre><code class="language-fsharp">module Route =
+    let index = &quot;/&quot;
+    let greetPlainText = &quot;/greet/text/{name}&quot;
+    let greetJson = &quot;/greet/json/{name}&quot;
+    let greetHtml = &quot;/greet/html/{name}&quot;
+</code></pre>
+<p>Here you can see we define one static route, and 3 dynamic route templates. We can provide URL generation from these dynamic route templates quite easily with some simple functions.</p>
+<pre><code class="language-fsharp">module Url =
+    let greetPlainText name = Route.greetPlainText.Replace(&quot;{name}&quot;, name)
+    let greetJson name = Route.greetJson.Replace(&quot;{name}&quot;, name)
+    let greetHtml name = Route.greetHtml.Replace(&quot;{name}&quot;, name)
+</code></pre>
+<p>These 3 functions take a string input called <code>name</code> and plug it into the <code>{name}</code> placeholder in the route template. This gives us a nice little typed API for creating our application URLs.</p>
+<h2 id="view">View</h2>
+<p>Falco comes packaged with a <a href="https://github.com/pimbrouwers/Falco.Markup/">lovely little HTML DSL</a>. It can produce any form of angle-markup, and does so very <a href="https://github.com/pimbrouwers/Falco.Markup/?tab=readme-ov-file#performance">efficiently</a>. The main benefit is that our views are <em>pure</em> F#, compile-time checked and live alongside the rest of our code.</p>
+<p>First we define a shared HTML5 <code>layout</code> function, that references our project <code>style.css</code>. Next, we define a module to contain the views for our greetings.</p>
+<blockquote>
+<p>You'll notice the <code>style.css</code> file resides in a folder called <code>wwwroot</code>. This is an <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/static-files">ASP.NET convention</a> which we'll enable later when we <a href="#web-server">build the web server</a>.</p>
+</blockquote>
+<pre><code class="language-fsharp">module View =
+    open Model
+
+    let layout content =
+        Templates.html5 &quot;en&quot;
+            [ Elem.link [ Attr.href &quot;/style.css&quot;; Attr.rel &quot;stylesheet&quot; ] ]
+            content
+
+    module GreetingView =
+        /// HTML view for /greet/html
+        let detail greeting =
+            layout [
+                Text.h1 $&quot;Hello {greeting.Name} from /html&quot;
+                Elem.hr []
+                Text.p &quot;Greet other ways:&quot;
+                Elem.nav [] [
+                    Elem.a
+                        [ Attr.href (Url.greetPlainText greeting.Name) ]
+                        [ Text.raw &quot;Greet in text&quot;]
+                    Text.raw &quot; | &quot;
+                    Elem.a
+                        [ Attr.href (Url.greetJson greeting.Name) ]
+                        [ Text.raw &quot;Greet in JSON &quot; ]
+                ]
+            ]
+</code></pre>
+<p>The markup code is fairly self-explanatory. But essentially:</p>
+<ul>
+<li><code>Elem</code> produces HTML elements.</li>
+<li><code>Attr</code> produces HTML element attributes.</li>
+<li><code>Text</code> produces HTML text nodes.</li>
+</ul>
+<p>Each of these modules matches (or tries to) the full HTML spec. You'll also notice two of our URL generators at work.</p>
+<h2 id="errors">Errors</h2>
+<p>We'll define a couple static error pages to help prettify our error output.</p>
+<pre><code class="language-fsharp">module Controller =
+    open Model
+    open View
+
+    module ErrorController =
+        let notFound : HttpHandler =
+            Response.withStatusCode 404 &gt;&gt;
+            Response.ofHtml (View.layout [ Text.h1 &quot;Not Found&quot; ])
+
+        let serverException : HttpHandler =
+            Response.withStatusCode 500 &gt;&gt;
+            Response.ofHtml (View.layout [ Text.h1 &quot;Server Error&quot; ])
+</code></pre>
+<p>Here we see the <a href="repsonse.html#response-modifiers"><code>HttpResponseModifier</code></a> at play, which set the status code before buffering out the HTML response. We'll reference these pages later when be <a href="#web-server">build the web server</a>.</p>
+<h2 id="controller">Controller</h2>
+<p>Our controller will be responsible for four actions, as defined in our <a href="#routing">route</a> module. We define four handlers, one parameterless greeting and three others which output the user provided &quot;name&quot; in different ways: plain text, JSON and HTML.</p>
+<pre><code class="language-fsharp">module Controller =
+    open Model
+    open View
+
+    module ErrorController =
+        // ...
+
+    module GreetingController =
+        let index =
+            Response.ofPlainText &quot;Hello world&quot;
+
+        let plainTextDetail name =
+            Response.ofPlainText $&quot;Hello {name}&quot;
+
+        let jsonDetail name =
+            let message = { Message = $&quot;Hello {name} from /json&quot; }
+            Response.ofJson message
+
+        let htmlDetail name =
+            { Name = name }
+            |&gt; GreetingView.detail
+            |&gt; Response.ofHtml
+
+        let endpoints =
+            let mapRoute (r : RequestData) =
+                r?name.AsString()
+
+            [ get Route.index index
+              mapGet Route.greetPlainText mapRoute plainTextDetail
+              mapGet Route.greetJson mapRoute jsonDetail
+              mapGet Route.greetHtml mapRoute htmlDetail ]
+</code></pre>
+<p>You'll notice that the controller defines its own <code>endpoints</code>. This associates a route to a handler when passed into Falco (we'll do this later). Defining this within the controller is personal preference. But considering controller actions usually operate against a common URL pattern, it allows a private, reusable route mapping to exist (see <code>mapRoute</code>).</p>
+<h2 id="web-server">Web Server</h2>
+<p>This is a great opportunity to demonstrate further how to configure a more complex web server than we saw in the basic hello world example.</p>
+<p>To do that, we'll define an explicit entry point function which gives us access to the command line argument. By then forwarding these into the web application, we gain further <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration#command-line">configurability</a>. You'll notice the application contains a file called <code>appsettings.json</code>, this is another <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration#default-application-configuration-sources">ASP.NET convention</a> that provides fully-featured and extensible configuration functionality.</p>
+<p>Next we define an explicit collection of endpoints, which gets passed into the <code>.UseFalco(endpoints)</code> extension method.</p>
+<p>In this example, we examine the environment name to create an &quot;is development&quot; toggle. We use this to determine the extensiveness of our error output. You'll notice we use our exception page from above when an exception occurs when not in development mode. Otherwise, we show a developer-friendly error page. Next we activate static file support, via the default web root of <code>wwwroot</code>.</p>
+<p>We end off by registering a terminal handler, which functions as our &quot;not found&quot; response.</p>
+<pre><code class="language-fsharp">module Program =
+    open Controller
+
+    let endpoints =
+        [ get Route.index GreetingController.index
+          get Route.greetPlainText GreetingController.plainTextDetail
+          get Route.greetJson GreetingController.jsonDetail
+          get Route.greetHtml GreetingController.htmlDetail ]
+
+
+    /// By defining an explicit entry point, we gain access to the command line
+    /// arguments which when passed into Falco are used as the creation arguments
+    /// for the internal WebApplicationBuilder.
+    [&lt;EntryPoint&gt;]
+    let main args =
+        let wapp = WebApplication.Create(args)
+
+        let isDevelopment = wapp.Environment.EnvironmentName = &quot;Development&quot;
+
+        wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
+            .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorPage.serverException)
+            .Use(StaticFileExtensions.UseStaticFiles)
+            .UseFalco(endpoints)
+            .FalcoNotFound(ErrorPage.notFound)
+            .Run()
+</code></pre>
+<h2 id="wrapping-up">Wrapping Up</h2>
+<p>This example was a leap ahead from our basic hello world. But having followed this, you know understand many of the patterns you'll need to know to build end-to-end server applications with Falco. Unsurprisingly, the entire program fits inside 118 LOC. One of the magnificent benefits of writing code in F#.</p>
+<p><a href="example-dependency-injection.html">Next: Example - Dependency Injection</a></p>
+</main></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>

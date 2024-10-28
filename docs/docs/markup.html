@@ -1,94 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<!-- /head -->
-<head>
-  <meta charset="utf-8">
-  <meta content="width=device-width,initial-scale=1" name="viewport">
-  <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
-  
-      <title>Falco - F# web toolkit for ASP.NET Core</title>
-    
-  <meta name="description" content="A functional-first toolkit for building brilliant ASP.NET Core applications using F#.">
-
-  <!-- /head/style -->
-  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-  <link href="/prism.css" rel="stylesheet" />
-  <link href="/tachyons.css" rel="stylesheet" />
-  <link href="/style.css" rel="stylesheet" />
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-D62HSJHMNZ');
-  </script>
-</head>
-
-<!-- /body -->
-<body class="noto lh-copy">
-
-<div class="min-vh-100 mw9 center pa3 overflow-hidden">
-    <nav class="sidebar w-20-l fl-l mb3 mb0-l">
-        <div class="flex items-center">
-            <a href="/docs" class="db w3 w4-l">
-                <img src="/brand.svg" class="br3" />
-            </a>
-            <h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2>
-        </div>
-        <div class="dn db-l"><h3>Contents</h3>
-<ul class="nl3 f6">
-  <li><a href="get-started.html">Getting Started</a></li>
-  <li><a href="routing.html">Routing</a></li>
-  <li><a href="response.html">Writing responses</a>
-    <ul>
-      <li><a href="response.html#plain-text-responses">Plain Text responses</a></li>
-      <li><a href="response.html#html-responses">HTML responses</a></li>
-      <li><a href="response.html#json-responses">JSON responses</a></li>
-      <li><a href="response.html#redirect-301302-response">Redirect (301/302) Response</a></li>
-      <li><a href="response.html#content-disposition">Content Disposition</a></li>
-      <li><a href="response.html#response-modifiers">Response Modifiers</a></li>
-      <li><a href="response.html#debugging-requests">Debugging Requests</a></li>
-    </ul>
-  </li>
-  <li><a href="request.html">Accessing request data</a>
-    <ul>
-      <li><a href="request.html#route-binding">Route Binding</a></li>
-      <li><a href="request.html#query-binding">Query Binding</a></li>
-      <li><a href="request.html#form-binding">Form Binding</a></li>
-      <li><a href="request.html#json">JSON</a></li>
-    </ul>
-  </li>
-  <li><a href="markup.html">View engine</a></li>
-  <li><a href="config.html">App Configuration</a></li>
-  <li><a href="host.html">Host configuration</a>
-    <ul>
-      <li><a href="host.html#registering-services">Registering Services</a></li>
-      <li><a href="host.html#activating-middleware">Activating Middleware</a></li>
-      <li><a href="host.html#custom-services">Custom Services and Middleware</a></li>
-      <li><a href="host.html#other-operations">Other Operations</a></li>
-    </ul>
-  </li>
-  <li><a href="security.html">Security</a>
-    <ul>
-      <li><a href="security.html#authentication">Authentication</a></li>
-      <li><a href="security.html#cross-site-scripting-xss-attacks">XSS Prevention</a></li>
-      <li><a href="security.html#cryptography">Cryptography</a></li>
-    </ul>
-  </li>
-</ul></div>
-    </nav>
-    <main class="w-80-l fl-l pl3-l"><h1 id="markup">Markup</h1>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Falco - F# web toolkit for ASP.NET Core</title><meta name="description" content="A functional-first toolkit for building brilliant ASP.NET Core applications using F#." /><link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /><link rel="icon" href="/favicon.ico" type="image/x-icon" /><link rel="preconnect" href="https://fonts.gstatic.com" /><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" /><link href="/prism.css" rel="stylesheet" /><link href="/tachyons.css" rel="stylesheet" /><link href="/style.css" rel="stylesheet" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script><script>window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-D62HSJHMNZ');</script></head><body class="noto lh-copy"><div class="min-vh-100 mw9 center pa3 overflow-hidden"><nav class="sidebar w-20-l fl-l mb3 mb0-l"><div class="flex items-center"><a href="/docs" class="db w3 w4-l"><img src="/brand.svg" class="br3" /></a><h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2></div><div class="dn db-l"><h3>Contents</h3><ul class="nl3 f6"><li><a href="get-started.html">Getting Started</a></li><li><a href="routing.html">Routing</a></li><li><a href="response.html">Writing responses</a></li><li><a href="request.html">Accessing request data</a></li><li><a href="markup.html">View engine</a></li><li><a href="security.html">Security</a></li><li><a href="example-hello-world.html">Examples</a></li></ul></div></nav><main class="w-80-l fl-l pl3-l"><h1 id="markup">Markup</h1>
 <p>Falco.Markup is broken down into three primary modules, <code>Elem</code>, <code>Attr</code> and <code>Text</code>, which are used to generate elements, attributes and text nodes respectively. Each module contain a suite of functions mapping to the various element/attribute/node names. But can also be extended to create custom elements and attributes.</p>
 <p>Primary elements are broken down into two types, <code>ParentNode</code> or <code>SelfClosingNode</code>.</p>
 <p><code>ParentNode</code> elements are those that can contain other elements. Represented as functions that receive two inputs: attributes and optionally elements.</p>
 <pre><code class="language-fsharp">let markup =
     Elem.div [ Attr.class' &quot;heading&quot; ] [
-        Elem.h1 [] [ Text.raw &quot;Hello world!&quot; ] ]
+        Text.h1 &quot;Hello world!&quot; ]
 </code></pre>
 <p><code>SelfClosingNode</code> elements are self-closing tags. Represented as functions that receive one input: attributes.</p>
 <pre><code class="language-fsharp">let markup =
@@ -99,7 +18,7 @@
 <pre><code class="language-fsharp">let markup =
     Elem.div [] [
         Text.comment &quot;An HTML comment&quot;
-        Elem.p [] [ Text.raw &quot;A paragraph&quot; ]
+        Text.p &quot;A paragraph&quot;
         Elem.p [] [ Text.rawf &quot;Hello %s&quot; &quot;Jim&quot; ]
         Elem.code [] [ Text.enc &quot;&lt;div&gt;Hello&lt;/div&gt;&quot; ] // HTML encodes text before rendering
     ]
@@ -133,16 +52,16 @@ let master (title : string) (content : XmlNode list) =
 // Views
 let homeView =
     master &quot;Homepage&quot; [
-        Elem.h1 [] [ Text.raw &quot;Homepage&quot; ]
+        Text.h1 &quot;Homepage&quot;
         divider
-        Elem.p [] [ Text.raw &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;]
+        Text.p &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;
     ]
 
 let aboutView =
     master &quot;About Us&quot; [
-        Elem.h1 [] [ Text.raw &quot;About&quot; ]
+        Text.h1 &quot;About&quot;
         divider
-        Elem.p [] [ Text.raw &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;]
+        Text.p &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;
     ]
 </code></pre>
 <h3 id="strongly-typed-views">Strongly-typed views</h3>
@@ -159,15 +78,117 @@ let doc (person : Person) =
         ]
         Elem.body [] [
             Elem.main [] [
-                Elem.h1 [] [ Text.raw &quot;Sample App&quot; ]
-                Elem.p [] [ Text.rawf &quot;%s %s&quot; person.First person.Last ]
+                Text.h1 &quot;Sample App&quot;
+                Text.p $&quot;{person.First} {person.Last}&quot;
             ]
         ]
     ]
 </code></pre>
+<h3 id="forms">Forms</h3>
+<p>Forms are the lifeblood of HTML applications. A basic form using the markup module would like the following:</p>
+<pre><code class="language-fsharp">let dt = DateTime.Now
+
+Elem.form [ Attr.methodPost; Attr.action &quot;/submit&quot; ] [
+    Elem.label [ Attr.for' &quot;name&quot; ] [ Text.raw &quot;Name&quot; ]
+    Elem.input [ Attr.id &quot;name&quot;; Attr.name &quot;name&quot;; Attr.typeText ]
+
+    Elem.label [ Attr.for' &quot;birthdate&quot; ] [ Text.raw &quot;Birthday&quot; ]
+    Elem.input [ Attr.id &quot;birthdate&quot;; Attr.name &quot;birthdate&quot;; Attr.typeDate; Attr.valueDate dt ]
+
+    Elem.input [ Attr.typeSubmit ]
+]
+</code></pre>
+<p>Expanding on this, we can create a more complex form involving multiple inputs and input types as follows:</p>
+<pre><code class="language-fsharp">Elem.form [ Attr.method &quot;post&quot;; Attr.action &quot;/submit&quot; ] [
+    Elem.label [ Attr.for' &quot;name&quot; ] [ Text.raw &quot;Name&quot; ]
+    Elem.input [ Attr.id &quot;name&quot;; Attr.name &quot;name&quot; ]
+
+    Elem.label [ Attr.for' &quot;bio&quot; ] [ Text.raw &quot;Bio&quot; ]
+    Elem.textarea [ Attr.name &quot;id&quot;; Attr.name &quot;bio&quot; ] []
+
+    Elem.label [ Attr.for' &quot;hobbies&quot; ] [ Text.raw &quot;Hobbies&quot; ]
+    Elem.select [ Attr.id &quot;hobbies&quot;; Attr.name &quot;hobbies&quot;; Attr.multiple ] [
+        Elem.option [ Attr.value &quot;programming&quot; ] [ Text.raw &quot;Programming&quot; ]
+        Elem.option [ Attr.value &quot;diy&quot; ] [ Text.raw &quot;DIY&quot; ]
+        Elem.option [ Attr.value &quot;basketball&quot; ] [ Text.raw &quot;Basketball&quot; ]
+    ]
+
+    Elem.fieldset [] [
+        Elem.legend [] [ Text.raw &quot;Do you like chocolate?&quot; ]
+        Elem.label [] [
+            Text.raw &quot;Yes&quot;
+            Elem.input [ Attr.typeRadio; Attr.name &quot;chocolate&quot;; Attr.value &quot;yes&quot; ] ]
+        Elem.label [] [
+            Text.raw &quot;No&quot;
+            Elem.input [ Attr.typeRadio; Attr.name &quot;chocolate&quot;; Attr.value &quot;no&quot; ] ]
+    ]
+
+    Elem.fieldset [] [
+        Elem.legend [] [ Text.raw &quot;Subscribe to our newsletter&quot; ]
+        Elem.label [] [
+            Text.raw &quot;Receive updates about product&quot;
+            Elem.input [ Attr.typeCheckbox; Attr.name &quot;newsletter&quot;; Attr.value &quot;product&quot; ] ]
+        Elem.label [] [
+            Text.raw &quot;Receive updates about company&quot;
+            Elem.input [ Attr.typeCheckbox; Attr.name &quot;newsletter&quot;; Attr.value &quot;company&quot; ] ]
+    ]
+
+    Elem.input [ Attr.typeSubmit ]
+]
+</code></pre>
+<p>A simple but useful <em>meta</em>-element <code>Elem.control</code> can reduce the verbosity required to create form outputs. The same form would look like:</p>
+<pre><code class="language-fsharp">Elem.form [ Attr.method &quot;post&quot;; Attr.action &quot;/submit&quot; ] [
+    Elem.control &quot;name&quot; [] [ Text.raw &quot;Name&quot; ]
+
+    Elem.controlTextarea &quot;bio&quot; [] [ Text.raw &quot;Bio&quot; ] []
+
+    Elem.controlSelect &quot;hobbies&quot; [ Attr.multiple ] [ Text.raw &quot;Hobbies&quot; ] [
+        Elem.option [ Attr.value &quot;programming&quot; ] [ Text.raw &quot;Programming&quot; ]
+        Elem.option [ Attr.value &quot;diy&quot; ] [ Text.raw &quot;DIY&quot; ]
+        Elem.option [ Attr.value &quot;basketball&quot; ] [ Text.raw &quot;Basketball&quot; ]
+    ]
+
+    Elem.fieldset [] [
+        Elem.legend [] [ Text.raw &quot;Do you like chocolate?&quot; ]
+        Elem.control &quot;chocolate&quot; [ Attr.id &quot;chocolate_yes&quot;; Attr.typeRadio ] [ Text.raw &quot;yes&quot; ]
+        Elem.control &quot;chocolate&quot; [ Attr.id &quot;chocolate_no&quot;; Attr.typeRadio ] [ Text.raw &quot;no&quot; ]
+    ]
+
+    Elem.fieldset [] [
+        Elem.legend [] [ Text.raw &quot;Subscribe to our newsletter&quot; ]
+        Elem.control &quot;newsletter&quot; [ Attr.id &quot;newsletter_product&quot;; Attr.typeCheckbox ] [ Text.raw &quot;Receive updates about product&quot; ]
+        Elem.control &quot;newsletter&quot; [ Attr.id &quot;newsletter_company&quot;; Attr.typeCheckbox ] [ Text.raw &quot;Receive updates about company&quot; ]
+    ]
+
+    Elem.input [ Attr.typeSubmit ]
+]
+</code></pre>
+<h3 id="attribute-value">Attribute Value</h3>
+<p>One of the more common places of sytanctic complexity is with <code>Attr.value</code> which expects, like all <code>Attr</code> functions, <code>string</code> input. Some helpers exist to simplify this.</p>
+<pre><code class="language-fsharp">let dt = DateTime.Now
+
+Elem.input [ Attr.typeDate; Attr.valueStringf &quot;yyyy-MM-dd&quot; dt ]
+
+// you could also just use:
+Elem.input [ Attr.typeDate; Attr.valueDate dt ] // formatted to ISO-8601 yyyy-MM-dd
+
+// or,
+Elem.input [ Attr.typeMonth; Attr.valueMonth dt ] // formatted to ISO-8601 yyyy-MM
+
+// or,
+Elem.input [ Attr.typeWeek; Attr.valueWeek dt ] // formatted to Gregorian yyyy-W#
+
+// it works for TimeSpan too:
+let ts = TimeSpan(12,12,0)
+Elem.input [ Attr.typeTime; Attr.valueTime ts ] // formatted to hh:mm
+
+// there is a helper for Option too:
+let someTs = Some ts
+Elem.input [ Attr.typeTime; Attr.valueOption Attr.valueTime someTs ]
+</code></pre>
 <h3 id="merging-attributes">Merging Attributes</h3>
 <p>The markup module allows you to easily create components, an excellent way to reduce code repetition in your UI. To support runtime customization, it is advisable to ensure components (or reusable markup blocks) retain a similar function &quot;shape&quot; to standard elements. That being, <code>XmlAttribute list -&gt; XmlNode list -&gt; XmlNode</code>.</p>
-<p>This means that you will inevitably end up needing to combine your predefined <code>XmlAttribute list</code> with a list provided at runtime. To facilitate this, the <code>Attr.merge</code> function will group attributes by key, and concatenate the values in the case of <code>KeyValueAttribute</code>.</p>
+<p>This means that you will inevitably end up needing to combine your predefined <code>XmlAttribute list</code> with a list provided at runtime. To facilitate this, the <code>Attr.merge</code> function will group attributes by key, and intelligently concatenate the values in the case of additive attributes (i.e., <code>class</code>, <code>style</code> and <code>accept</code>).</p>
 <pre><code class="language-fsharp">open Falco.Markup
 
 // Components
@@ -194,13 +215,13 @@ let master (title : string) (content : XmlNode list) =
 let homepage =
     master &quot;Homepage&quot; [
         heading [ Attr.class' &quot;red&quot; ] [ Text.raw &quot;Welcome to the homepage&quot; ]
-        Elem.p [] [ Text.raw &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;]
+        Text.p &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;
     ]
 
 let homepage =
     master &quot;About Us&quot; [
         heading [ Attr.class' &quot;purple&quot; ] [ Text.raw &quot;This is what we're all about&quot; ]
-        Elem.p [] [ Text.raw &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;]
+        Text.p &quot;Lorem ipsum dolor sit amet, consectetur adipiscing.&quot;
     ]
 </code></pre>
 <h2 id="custom-elements-attributes">Custom Elements &amp; Attributes</h2>
@@ -246,58 +267,5 @@ let svgDrawing =
 
 let svg = renderNode svgDrawing
 </code></pre>
-<p><a href="config.html">Next: App Configuration</a></p>
-</main>
-</div>
-
-<!-- /body/footer -->
-<footer class="cl mt4 pa3 bg-merlot">
-  <div class="dn-l white-90"><h3>Contents</h3>
-<ul class="nl3 f6">
-  <li><a href="get-started.html">Getting Started</a></li>
-  <li><a href="routing.html">Routing</a></li>
-  <li><a href="response.html">Writing responses</a>
-    <ul>
-      <li><a href="response.html#plain-text-responses">Plain Text responses</a></li>
-      <li><a href="response.html#html-responses">HTML responses</a></li>
-      <li><a href="response.html#json-responses">JSON responses</a></li>
-      <li><a href="response.html#redirect-301302-response">Redirect (301/302) Response</a></li>
-      <li><a href="response.html#content-disposition">Content Disposition</a></li>
-      <li><a href="response.html#response-modifiers">Response Modifiers</a></li>
-      <li><a href="response.html#debugging-requests">Debugging Requests</a></li>
-    </ul>
-  </li>
-  <li><a href="request.html">Accessing request data</a>
-    <ul>
-      <li><a href="request.html#route-binding">Route Binding</a></li>
-      <li><a href="request.html#query-binding">Query Binding</a></li>
-      <li><a href="request.html#form-binding">Form Binding</a></li>
-      <li><a href="request.html#json">JSON</a></li>
-    </ul>
-  </li>
-  <li><a href="markup.html">View engine</a></li>
-  <li><a href="config.html">App Configuration</a></li>
-  <li><a href="host.html">Host configuration</a>
-    <ul>
-      <li><a href="host.html#registering-services">Registering Services</a></li>
-      <li><a href="host.html#activating-middleware">Activating Middleware</a></li>
-      <li><a href="host.html#custom-services">Custom Services and Middleware</a></li>
-      <li><a href="host.html#other-operations">Other Operations</a></li>
-    </ul>
-  </li>
-  <li><a href="security.html">Security</a>
-    <ul>
-      <li><a href="security.html#authentication">Authentication</a></li>
-      <li><a href="security.html#cross-site-scripting-xss-attacks">XSS Prevention</a></li>
-      <li><a href="security.html#cryptography">Cryptography</a></li>
-    </ul>
-  </li>
-</ul></div>
-  <div class="mt4 mt0-l f7 tc-l white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div>
-</footer>
-
-<!-- /body/script -->
-<script src="/prism.js"></script>
-
-</body>
-</html>
+<p><a href="security.html">Next: Security</a></p>
+</main></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>
