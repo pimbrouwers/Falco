@@ -32,7 +32,7 @@ wapp.UseFalco(endpoints)
 - Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/documentation/host.md).
 - Native F# [view engine](https://github.com/pimbrouwers/Falco.Markup).
 - Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md).
-- [Authentication and security](https://github.com/pimbrouwers/Falco/tree/master/documentation/security.md) utilities.
+- [Authentication and security](https://github.com/pimbrouwers/Falco/tree/master/documentation/authentication.md) utilities.
 - Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md#multipartform-data-binding) and [binary responses](https://github.com/pimbrouwers/Falco/tree/master/documentation/response.md#content-disposition).
 
 ## Design Goals

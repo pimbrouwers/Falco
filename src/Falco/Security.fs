@@ -1,6 +1,6 @@
 namespace Falco.Security
 
-module Xss =
+module Xsrf =
     open System.Threading.Tasks
     open Falco.Markup
     open Microsoft.AspNetCore.Antiforgery

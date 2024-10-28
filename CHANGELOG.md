@@ -19,6 +19,10 @@ All notable changes to this project will be documented in this file.
 - `Routing.setDisplayName` to set the display name of the endpoint.
 - `Routing.setOrder` to set the order number of the endpoint.
 
+### Changed
+
+- `Xss` module renamed to `Xsrf`. Functions: `Xsrf.antiforgeryInput`, `Xsrf.getToken` & `Xsrf.validateToken`
+
 ### Fixed
 
 - Missing cancellation token pass-through during form reading, `multipart/form-data` streaming and JSON serialization/deserialization.

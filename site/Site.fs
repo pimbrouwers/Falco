@@ -90,8 +90,24 @@ module View =
                 Elem.li [] [ Elem.a [ Attr.href "response.html" ] [ Text.raw "Writing responses" ] ]
                 Elem.li [] [ Elem.a [ Attr.href "request.html" ] [ Text.raw "Accessing request data" ] ]
                 Elem.li [] [ Elem.a [ Attr.href "markup.html" ] [ Text.raw "View engine" ] ]
-                Elem.li [] [ Elem.a [ Attr.href "security.html" ] [ Text.raw "Security" ] ]
-                Elem.li [] [ Elem.a [ Attr.href "example-hello-world.html" ] [ Text.raw "Examples" ] ]
+                Elem.li [] [
+                    Elem.a [ Attr.href "cross-site-request-forgery.html" ] [ Text.raw "Security" ]
+                    Elem.ul [] [
+                        Elem.li [] [ Elem.a [ Attr.href "cross-site-request-forgery.html" ] [ Text.raw "Cross Site Request Forgery (XSRF)" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "authentication.html" ] [ Text.raw "Authentication & Authorization" ] ]
+                    ]
+                ]
+                Elem.li [] [
+                    Elem.a [ Attr.href "example-hello-world.html" ] [ Text.raw "Examples" ]
+                    Elem.ul [] [
+                        Elem.li [] [ Elem.a [ Attr.href "example-hello-world.html" ] [ Text.raw "Hello World" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "example-hello-world-mvc.html" ] [ Text.raw "Hello World MVC" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "example-dependency-injection.html" ] [ Text.raw "Dependency Injection" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "example-external-view-engine.html" ] [ Text.raw "Hello World" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "example-basic-rest-api.html" ] [ Text.raw "Basic REST API" ] ]
+                    ]
+                ]
+                Elem.li [] [ Elem.a [ Attr.href "migrating-from-v4-to-v5.html" ] [ Text.raw "V5 Migration Guide" ] ]
             ]
         ]
 

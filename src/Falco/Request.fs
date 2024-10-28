@@ -81,7 +81,7 @@ let getForm (ctx : HttpContext) : Task<FormData> =
 /// streaming.
 let getFormSecure (ctx : HttpContext) : Task<FormData option> =
     task {
-        let! isAuth = Xss.validateToken ctx
+        let! isAuth = Xsrf.validateToken ctx
         if isAuth then
             let! form = getForm ctx
             return Some form
@@ -164,7 +164,7 @@ let validateCsrfToken
     (handleOk : HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
     task {
-        let! isValid = Xss.validateToken ctx
+        let! isValid = Xsrf.validateToken ctx
 
         let respondWith =
             match isValid with

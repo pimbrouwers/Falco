@@ -36,7 +36,7 @@ let secureHtmlHandler : HttpHandler =
                     Elem.input [ Attr.name "last_name" ]
 
                     // using the CSRF HTML helper
-                    Xss.antiforgeryInput token
+                    Xsrf.antiforgeryInput token
 
                     Elem.input [ Attr.type' "submit"; Attr.value "Submit" ]
                 ]
@@ -122,7 +122,7 @@ let handlerWithHeaders : HttpHandler =
 
 ### Add a cookie to the response
 
-> IMPORTANT: *Do not* use this for authentication. Instead use the `Response.signInAndRedirect` and `Response.signOutAndRedirect` functions found in the [Authentication](security.md) module.
+> IMPORTANT: *Do not* use this for authentication. Instead use the `Response.signInAndRedirect` and `Response.signOutAndRedirect` functions found in the [Authentication](authenication.md) module.
 
 ```fsharp
 let handlerWithCookie : HttpHandler =

@@ -6,11 +6,11 @@ open Falco.Security
 open Falco.Markup
 open Microsoft.AspNetCore.Antiforgery
 
-module Xss =
+module Xsrf =
     [<Fact>]
     let ``antiforgetInput should return valid XmlNode`` () =
         let token = AntiforgeryTokenSet("REQUEST_TOKEN", "COOKIE_TOKEN", "FORM_FIELD_NAME", "HEADER_NAME")
-        let input = Xss.antiforgeryInput token
+        let input = Xsrf.antiforgeryInput token
 
         let expected = "<input type=\"hidden\" name=\"FORM_FIELD_NAME\" value=\"REQUEST_TOKEN\" />"
 

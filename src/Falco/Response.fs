@@ -168,7 +168,7 @@ let ofHtml
 let ofHtmlCsrf
     (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
     let withCsrfToken handleToken : HttpHandler = fun ctx ->
-        let csrfToken = Xss.getToken ctx
+        let csrfToken = Xsrf.getToken ctx
         handleToken csrfToken ctx
 
     withCsrfToken (fun token -> token |> view |> ofHtml)
