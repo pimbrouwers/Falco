@@ -27,3 +27,6 @@ jobs:
 
       - name: Test
         run: dotnet test test/Falco.Tests -c Release
+
+      - name: Integration Test
+        run: dotnet test test/Falco.IntegrationTests -c Release
