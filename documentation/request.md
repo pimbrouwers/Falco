@@ -8,7 +8,7 @@ Falco exposes a __uniform API__ to obtain typed values from `IFormCollection`, `
 
 `RequestData` is supported by a recursive discriminated union called `RequestValue` which represents a parsed key/value collection.
 
-The `RequestValue` parsing process provides some simple, yet powerful, syntax to submit objects and collections over-the-wire, to facilitate complex form and query submissions. 
+The `RequestValue` parsing process provides some simple, yet powerful, syntax to submit objects and collections over-the-wire, to facilitate complex form and query submissions.
 
 ### Key Syntax: Object Notation
 
@@ -71,7 +71,7 @@ See [query binding](#query-binding) for details on interacting with form data.
 let requestData : RequestData = // From: Route | Query | Form
 
 // Retrieve primitive options
-let str : string option = requestData.TryGetString "name" 
+let str : string option = requestData.TryGetString "name"
 let flt : float option = requestData.TryGetFloat "temperature"
 
 // Retrieve primitive, or default
@@ -79,7 +79,7 @@ let str : string = requestData.GetString "name"
 let strOrDefault : string = requestData.GetString ("name", "John Doe")
 let flt : float = requestData.GetFloat "temperature"
 
-// Retrieve primitive list 
+// Retrieve primitive list
 let strList : string list = requestData.GetStringList "hobbies"
 let grades : int list = requestData.GetInt32List "grades"
 
@@ -92,7 +92,7 @@ let userEmail = requestData?user?email_address.AsString()
 
 ## Route Binding
 
-Provides access to the values found in the `RouteValueDictionary`. 
+Provides access to the values found in the `RouteValueDictionary`.
 
 ```fsharp
 open Falco
@@ -147,7 +147,7 @@ let mapQueryHandler : HttpHandler =
 
 Provides access to the values found in he `IFormCollection`, as well as the `RouteValueDictionary`. In the case of matching keys, the values in the `IFormCollection` take precedence.
 
-The `FormData` inherits from `RequestData` type also exposes the `IFormFilesCollection` via the `_.Files` member and `_.TryGetFile(name : string)` method. 
+The `FormData` inherits from `RequestData` type also exposes the `IFormFilesCollection` via the `_.Files` member and `_.TryGetFile(name : string)` method.
 
 ```fsharp
 type Person =
@@ -223,9 +223,9 @@ type Person =
       LastName : string }
 
 let jsonHandler : HttpHandler =
-    { FirstName = "John"
-      LastName = "Doe" }
-    |> Response.ofJson
+    Response.ofJson {
+        FirstName = "John"
+        LastName = "Doe" }
 
 let mapJsonHandler : HttpHandler =
     let handleOk person : HttpHandler =
