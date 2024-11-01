@@ -22,7 +22,7 @@ let wapp = bldr.Build() // <-- manifest our WebApplication
 let endpoints =
     [
         mapGet "/{name?}"
-            (fun r -> r?name.AsString("world"))
+            (fun r -> r?name.AsStringNonEmpty("world"))
             (fun name ctx ->
                 let greeter = ctx.Plug<IGreeter>() // <-- access our dependency from the container
                 let greeting = greeter.Greet(name) // <-- invoke our greeter.Greet(name) method

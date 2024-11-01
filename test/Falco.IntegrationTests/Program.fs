@@ -14,26 +14,26 @@ module Tests =
 
     [<Fact>]
     let ``Receive plain-text response from: GET /hello``() =
-        let client = factory.CreateClient ()
+        use client = factory.CreateClient ()
         let content = client.GetStringAsync("/").Result
         Assert.Equal("Hello World!", content)
 
     [<Fact>]
     let ``Receive text/html response from GET /html`` () =
-        let client = factory.CreateClient ()
+        use client = factory.CreateClient ()
         let content = client.GetStringAsync("/html").Result
         Assert.Equal("""<!DOCTYPE html><html><head></head><body><h1>hello world</h1></body></html>""", content)
 
 
     [<Fact>]
     let ``Receive application/json response from GET /json`` () =
-        let client = factory.CreateClient ()
+        use client = factory.CreateClient ()
         let content = client.GetStringAsync("/json").Result
         Assert.Equal("""{"Message":"hello world"}""", content)
 
     [<Fact>]
     let ``Receive mapped application/json response from: GET /hello/name?`` () =
-        let client = factory.CreateClient ()
+        use client = factory.CreateClient ()
         let content = client.GetStringAsync("/hello").Result
         Assert.Equal("""{"Message":"Hello world!"}""", content)
 
@@ -45,7 +45,7 @@ module Tests =
 
     [<Fact>]
     let ``Receive mapped application/json response from: POST /hello/name?`` () =
-        let client = factory.CreateClient ()
+        use client = factory.CreateClient ()
         use form = new FormUrlEncodedContent([])
         let response = client.PostAsync("/hello", form).Result
         let content = response.Content.ReadAsStringAsync().Result
@@ -59,5 +59,14 @@ module Tests =
         let response = client.PostAsync("/hello/John", form).Result
         let content = response.Content.ReadAsStringAsync().Result
         Assert.Equal("""{"Message":"Hello John, you are 42 years old!"}""", content)
+
+    [<Fact>]
+    let ``Receive utf8 text/plain response from: GET /plug/name?`` () =
+        use client = factory.CreateClient()
+        let content = client.GetStringAsync("/plug").Result
+        Assert.Equal("Hello world 😀", content)
+
+        let content = client.GetStringAsync("/plug/John").Result
+        Assert.Equal("Hello John 😀", content)
 
 module Program = let [<EntryPoint>] main _ = 0
