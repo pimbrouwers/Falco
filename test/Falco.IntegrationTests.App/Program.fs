@@ -60,6 +60,9 @@ let endpoints =
                 let greeter = ctx.Plug<IGreeter>() // <-- access our dependency from the container
                 let greeting = greeter.Greet(name) // <-- invoke our greeter.Greet(name) method
                 Response.ofPlainText greeting ctx)
+
+        post "/api/message"
+            (Request.mapJson Response.ofJson)
     ]
 
 let bldr = WebApplication.CreateBuilder()

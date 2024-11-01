@@ -1,6 +1,8 @@
 namespace Falco.IntegrationTests
 
 open System.Net.Http
+open System.Text
+open System.Text.Json
 open Microsoft.AspNetCore.Mvc.Testing
 open Xunit
 open Falco.IntegrationTests.App
@@ -62,11 +64,25 @@ module Tests =
 
     [<Fact>]
     let ``Receive utf8 text/plain response from: GET /plug/name?`` () =
-        use client = factory.CreateClient()
+        use client = factory.CreateClient ()
         let content = client.GetStringAsync("/plug").Result
         Assert.Equal("Hello world 😀", content)
 
         let content = client.GetStringAsync("/plug/John").Result
         Assert.Equal("Hello John 😀", content)
+
+    [<Fact>]
+    let ``Receive application/json request body and return from: GET /api/message`` () =
+        use client = factory.CreateClient ()
+
+        use body = new StringContent(JsonSerializer.Serialize { Message = "Hello /api/message" }, Encoding.UTF8, "application/json")
+        let response = client.PostAsync("/api/message", body).Result
+        let content = response.Content.ReadAsStringAsync().Result
+        Assert.Equal("""{"Message":"Hello /api/message"}""", content)
+
+        use body = new StringContent("", Encoding.UTF8, "application/json")
+        let response = client.PostAsync("/api/message", body).Result
+        let content = response.Content.ReadAsStringAsync().Result
+        Assert.Equal("""{}""", content)
 
 module Program = let [<EntryPoint>] main _ = 0
