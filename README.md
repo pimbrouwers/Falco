@@ -27,13 +27,13 @@ wapp.UseFalco(endpoints)
 
 ## Key Features
 
-- Asynchronous [request handling](https://github.com/pimbrouwers/Falco/tree/master/documentation/response.md).
-- Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/documentation/routing.md) API.
-- Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/documentation/host.md).
+- Asynchronous [request handling](documentation/response.md).
+- Simple and powerful [routing](documentation/routing.md) API.
+- Fast, secure and configurable [web server](documentation/host.md).
 - Native F# [view engine](https://github.com/pimbrouwers/Falco.Markup).
-- Uniform API for [accessing _any_ request data](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md).
-- [Authentication and security](https://github.com/pimbrouwers/Falco/tree/master/documentation/authentication.md) utilities.
-- Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md#multipartform-data-binding) and [binary responses](https://github.com/pimbrouwers/Falco/tree/master/documentation/response.md#content-disposition).
+- Uniform API for [accessing _any_ request data](documentation/request.md).
+- [Authentication and security](documentation/authentication.md) utilities.
+- Built-in support for [large uploads](documentation/request.md#multipartform-data-binding) and [binary responses](documentation/response.md#content-disposition).
 
 ## Design Goals
 
@@ -78,7 +78,7 @@ Thank you for considering contributing to Falco, and to those who have already c
 
 We kindly ask that before submitting a pull request, you first submit an [issue](https://github.com/pimbrouwers/Falco/issues) or open a [discussion](https://github.com/pimbrouwers/Falco/discussions).
 
-If functionality is added to the API, or changed, please kindly update the relevant [document](https://github.com/pimbrouwers/Falco/tree/master/docs). Unit tests must also be added and/or updated before a pull request can be successfully merged.
+If functionality is added to the API, or changed, please kindly update the relevant [document](docs). Unit tests must also be added and/or updated before a pull request can be successfully merged.
 
 Only pull requests which pass all build checks and comply with the general coding guidelines can be approved.
 
