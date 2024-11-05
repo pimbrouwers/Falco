@@ -22,7 +22,7 @@ wapp.UseFalco(endpoints)
 [Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast and functional-first web applications using F#. You can think of it as [minimal API](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-8.0&tabs=visual-studio) on *steroids*.
 
 - Built upon the high-performance components of ASP.NET Core.
-- Optimized for building HTTP applications quickly.
+- Optimized for building full-stack web applications quickly.
 - Seamlessly integrates with existing .NET Core middleware and libraries.
 
 ## Key Features
@@ -31,13 +31,13 @@ wapp.UseFalco(endpoints)
 - Simple and powerful [routing](https://github.com/pimbrouwers/Falco/tree/master/documentation/routing.md) API.
 - Fast, secure and configurable [web server](https://github.com/pimbrouwers/Falco/tree/master/documentation/host.md).
 - Native F# [view engine](https://github.com/pimbrouwers/Falco.Markup).
-- Uniform API for [accessing request data](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md).
+- Uniform API for [accessing _any_ request data](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md).
 - [Authentication and security](https://github.com/pimbrouwers/Falco/tree/master/documentation/authentication.md) utilities.
 - Built-in support for [large uploads](https://github.com/pimbrouwers/Falco/tree/master/documentation/request.md#multipartform-data-binding) and [binary responses](https://github.com/pimbrouwers/Falco/tree/master/documentation/response.md#content-disposition).
 
 ## Design Goals
 
-- Provide a toolset to build a working full-stack web application in F#.
+- Provide a toolset to build full-stack web application in F#.
 - Should be simple, extensible and integrate with existing .NET libraries.
 - Can be easily learned.
 
