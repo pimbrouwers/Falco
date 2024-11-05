@@ -29,10 +29,9 @@ wapp.UseFalco(endpoints)
 
 - Asynchronous [request handling](documentation/response.md).
 - Simple and powerful [routing](documentation/routing.md) API.
-- Fast, secure and configurable [web server](documentation/host.md).
-- Native F# [view engine](https://github.com/pimbrouwers/Falco.Markup).
 - Uniform API for [accessing _any_ request data](documentation/request.md).
-- [Authentication and security](documentation/authentication.md) utilities.
+- Native F# [view engine](documentation/markup.md).
+- [Authentication](documentation/authentication.md) and [security](documentation/cross-site-request-forgery.md) utilities.
 - Built-in support for [large uploads](documentation/request.md#multipartform-data-binding) and [binary responses](documentation/response.md#content-disposition).
 
 ## Design Goals
