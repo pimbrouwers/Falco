@@ -27,8 +27,8 @@ module internal StringUtils =
         str.Split(sep)
 
 module internal StringParser =
-    let trueValues = HashSet<string>(seq { "true"; "1"; "1.0"; "on"; "yes" }, StringComparer.OrdinalIgnoreCase)
-    let falseValues = HashSet<string>(seq { "false"; "0"; "0.0"; "off"; "no" }, StringComparer.OrdinalIgnoreCase)
+    let trueValues = HashSet<string>(seq { "true"; "on"; "yes" }, StringComparer.OrdinalIgnoreCase)
+    let falseValues = HashSet<string>(seq { "false"; "off"; "no" }, StringComparer.OrdinalIgnoreCase)
 
     /// Helper to wrap .NET tryParser's.
     let tryParseWith (tryParseFunc: string -> bool * _) (str : string) =
@@ -54,9 +54,9 @@ module internal StringParser =
     /// Returns None on failure, Some x on success.
     ///
     /// Case-insensitive comparison, and special cases for "yes", "no", "on",
-    /// "off", "1", "0".
+    /// "off", "1", "0", "1.", "0.0".
     let parseBoolean (value : string) =
-        let v = value.ToUpperInvariant()
+        let v = value
 
         match v with
         | x when trueValues.Contains x -> Some true
@@ -85,7 +85,7 @@ module internal StringPatterns =
     let (|IsInt16|_|) = StringParser.parseInt16
     let (|IsInt64|_|) = StringParser.parseInt64
     let (|IsInt32|_|) = StringParser.parseInt32
-    let (|IsFloat|_|) (x : string) = if x.StartsWith("0") then None else StringParser.parseFloat x
+    let (|IsFloat|_|) (x : string) = if x.Length > 1 && x.StartsWith("0") && not(x.Contains('.')) && not(x.Contains(',')) then None else StringParser.parseFloat x
     let (|IsDecimal|_|) = StringParser.parseDecimal
     let (|IsDateTime|_|) = StringParser.parseDateTime
     let (|IsDateTimeOffset|_|) = StringParser.parseDateTimeOffset

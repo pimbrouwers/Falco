@@ -19,19 +19,37 @@ let ``RequestValue should parse simple pair`` () =
     |> RequestValue.parseString
     |> should equal expected
 
+[<Theory>]
+[<InlineData("true", true)>]
+[<InlineData("TRUE", true)>]
+[<InlineData("True", true)>]
+[<InlineData("false", false)>]
+[<InlineData("FALSE", false)>]
+[<InlineData("False", false)>]
+let ``RequestValue should parse RBool`` (input, expected) =
+    let expected = RObject [ "code", RBool expected ]
+
+    $"code={input}"
+    |> RequestValue.parseString
+    |> should equal expected
+
+[<Theory>]
+[<InlineData("0", 0.)>]
+[<InlineData("1", 1.)>]
+[<InlineData("-1", -1.)>]
+[<InlineData("0.123456", 0.123456)>]
+let ``RequestValue should parse RNumber`` (input, expected) =
+    let expected = RObject [ "code", RNumber expected ]
+
+    $"code={input}"
+    |> RequestValue.parseString
+    |> should equal expected
+
 [<Fact>]
 let ``RequestValue should parse int with leading zero as string`` () =
     let expected = RObject [ "code", RString "0123456" ]
 
     "code=0123456"
-    |> RequestValue.parseString
-    |> should equal expected
-
-[<Fact>]
-let ``RequestValue should parse float with leading zero as float`` () =
-    let expected = RObject [ "code", RString "0.123456" ]
-
-    "code=0.123456"
     |> RequestValue.parseString
     |> should equal expected
 
