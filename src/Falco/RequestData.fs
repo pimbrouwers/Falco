@@ -73,10 +73,18 @@ module RequestDataExtensions =
             | Some (RString x) -> StringParser.parseInt64 x
             | _ -> None
 
+
+        let private trueValues = HashSet<string>(seq { "true"; "on"; "yes" }, StringComparer.OrdinalIgnoreCase)
+        let private falseValues = HashSet<string>(seq { "false"; "off"; "no" }, StringComparer.OrdinalIgnoreCase)
+
         let asBoolean (requestValue : RequestValue) =
             match asRequestPrimitive requestValue with
             | Some (RBool x) when x -> Some true
             | Some (RBool x) when not x -> Some false
+            | Some (RNumber x) when x = 0. -> Some false
+            | Some (RNumber x) when x = 1. -> Some true
+            | Some (RString x) when trueValues.Contains x -> Some true
+            | Some (RString x) when falseValues.Contains x -> Some false
             | _ -> None
 
         let asFloat (requestValue : RequestValue) =

@@ -27,9 +27,6 @@ module internal StringUtils =
         str.Split(sep)
 
 module internal StringParser =
-    let trueValues = HashSet<string>(seq { "true"; "on"; "yes" }, StringComparer.OrdinalIgnoreCase)
-    let falseValues = HashSet<string>(seq { "false"; "off"; "no" }, StringComparer.OrdinalIgnoreCase)
-
     /// Helper to wrap .NET tryParser's.
     let tryParseWith (tryParseFunc: string -> bool * _) (str : string) =
         let parsedResult = tryParseFunc str
@@ -37,7 +34,19 @@ module internal StringParser =
         | true, v    -> Some v
         | false, _   -> None
 
-    let parseNonEmptyString x = if StringUtils.strEmpty x then None else Some x
+    let parseNonEmptyString x =
+        if StringUtils.strEmpty x then
+            None
+        else
+            Some x
+
+    let parseBoolean (value : string) =
+        let v = value
+
+        match v with
+        | x when String.Equals("true", x, StringComparison.OrdinalIgnoreCase) -> Some true
+        | x when String.Equals("false", x, StringComparison.OrdinalIgnoreCase) -> Some false
+        | v -> tryParseWith Boolean.TryParse v
 
     let parseInt16 = tryParseWith Int16.TryParse
     let parseInt64 = tryParseWith Int64.TryParse
@@ -48,20 +57,6 @@ module internal StringParser =
     let parseDateTimeOffset = tryParseWith DateTimeOffset.TryParse
     let parseTimeSpan = tryParseWith TimeSpan.TryParse
     let parseGuid = tryParseWith Guid.TryParse
-
-    /// Attempts to parse boolean from string.
-    ///
-    /// Returns None on failure, Some x on success.
-    ///
-    /// Case-insensitive comparison, and special cases for "yes", "no", "on",
-    /// "off", "1", "0", "1.", "0.0".
-    let parseBoolean (value : string) =
-        let v = value
-
-        match v with
-        | x when trueValues.Contains x -> Some true
-        | x when falseValues.Contains x -> Some false
-        | v -> tryParseWith Boolean.TryParse v
 
     /// Attempts to parse, or failwith message.
     let parseOrFail parser msg v =
@@ -82,10 +77,31 @@ module internal StringParser =
         |> Seq.cast
 
 module internal StringPatterns =
+    let (|IsBool|_|) = StringParser.parseBoolean
+
+    let (|IsTrue|_|) =
+        function
+        | IsBool x when x = true -> Some true
+        | _ -> None
+
+    let (|IsFalse|_|) =
+        function
+        | IsBool x when x = false -> Some false
+        | _ -> None
+
     let (|IsInt16|_|) = StringParser.parseInt16
     let (|IsInt64|_|) = StringParser.parseInt64
     let (|IsInt32|_|) = StringParser.parseInt32
-    let (|IsFloat|_|) (x : string) = if x.Length > 1 && x.StartsWith("0") && not(x.Contains('.')) && not(x.Contains(',')) then None else StringParser.parseFloat x
+
+    let (|IsFloat|_|) (x : string) =
+        if x.Length > 1
+            && x.StartsWith("0")
+            && not(x.Contains('.'))
+            && not(x.Contains(',')) then
+            None
+        else
+            StringParser.parseFloat x
+
     let (|IsDecimal|_|) = StringParser.parseDecimal
     let (|IsDateTime|_|) = StringParser.parseDateTime
     let (|IsDateTimeOffset|_|) = StringParser.parseDateTimeOffset
@@ -96,13 +112,3 @@ module internal StringPatterns =
         match String.IsNullOrWhiteSpace x with
         | true -> Some ()
         | false -> None
-
-    let (|IsTrue|_|) (x : string) =
-        match StringParser.parseBoolean x with
-        | Some true -> Some true
-        | _ -> None
-
-    let (|IsFalse|_|) (x : string) =
-        match StringParser.parseBoolean x with
-        | Some false -> Some false
-        | _ -> None

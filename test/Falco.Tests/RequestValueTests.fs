@@ -34,6 +34,22 @@ let ``RequestValue should parse RBool`` (input, expected) =
     |> should equal expected
 
 [<Theory>]
+[<InlineData("on")>]
+[<InlineData("ON")>]
+[<InlineData("On")>]
+[<InlineData("off")>]
+[<InlineData("OFF")>]
+[<InlineData("Off")>]
+[<InlineData("012345")>]
+let ``RequestValue should parse RString`` (input) =
+    let expected = RObject [ "code", RString input ]
+
+    $"code={input}"
+    |> RequestValue.parseString
+    |> should equal expected
+
+
+[<Theory>]
 [<InlineData("0", 0.)>]
 [<InlineData("1", 1.)>]
 [<InlineData("-1", -1.)>]

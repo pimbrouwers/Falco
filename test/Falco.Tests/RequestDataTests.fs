@@ -10,36 +10,41 @@ open Xunit
 open Microsoft.AspNetCore.Http
 
 [<Fact>]
-let ``Can make FormData from IFormCollection`` () =
-    FormData(RequestValue.RNull, Some (FormFileCollection() :> IFormFileCollection))
-    |> should not' throw
+let ``RequestData extensions can convert RString primitives`` () =
+    let requestData = RequestData(RObject [
+        "lowercase-on", RString "on"
+        "uppercase-on", RString "ON"
+        "pascalcase-on", RString "On"
 
-[<Fact>]
-let ``Can safely get IFormFile from IFormCollection`` () =
-    let formFileName = "abc.txt"
+        "lowercase-yes", RString "yes"
+        "uppercase-yes", RString "YES"
+        "pascalcase-yes", RString "Yes"
 
-    let emptyFormData = FormData(RequestValue.RNull, Some (FormFileCollection() :> IFormFileCollection))
-    emptyFormData.TryGetFile formFileName
-    |> shouldBeNone
+        "lowercase-off", RString "off"
+        "uppercase-off", RString "OFF"
+        "pascalcase-off", RString "Off"
 
-    let formFile =
-        { new IFormFile with
-            member _.ContentDisposition = String.Empty
-            member _.ContentType = String.Empty
-            member _.FileName = String.Empty
-            member _.Headers = HeaderDictionary()
-            member _.Length = Int64.MinValue
-            member _.Name = formFileName
-            member _.CopyTo (target: Stream) : unit = ()
-            member _.CopyToAsync (target: Stream, cancellationToken: CancellationToken) : Task = Task.CompletedTask
-            member _.OpenReadStream  () :  Stream = System.IO.Stream.Null }
+        "lowercase-no", RString "no"
+        "uppercase-no", RString "NO"
+        "pascalcase-no", RString "No"
 
-    let formFileCollection = FormFileCollection()
-    formFileCollection.Add(formFile)
-    let formFileData = new FormData(RequestValue.RNull, Some(formFileCollection))
+        "leadingzero", RString "012345" ])
 
-    formFileData.TryGetFile formFileName
-    |> shouldBeSome (fun _ ->  ())
+    requestData.GetBoolean "lowercase-on" |> should equal true
+    requestData.GetBoolean "uppercase-on" |> should equal true
+    requestData.GetBoolean "pascalcase-on" |> should equal true
+    requestData.GetBoolean "lowercase-yes" |> should equal true
+    requestData.GetBoolean "uppercase-yes" |> should equal true
+    requestData.GetBoolean "pascalcase-yes" |> should equal true
+    requestData.GetBoolean "lowercase-off" |> should equal false
+    requestData.GetBoolean "uppercase-off" |> should equal false
+    requestData.GetBoolean "pascalcase-off" |> should equal false
+    requestData.GetBoolean "lowercase-no" |> should equal false
+    requestData.GetBoolean "uppercase-no" |> should equal false
+    requestData.GetBoolean "pascalcase-no" |> should equal false
+    requestData.GetInt "leadingzero" |> should equal 12345
+    requestData.GetFloat "leadingzero" |> should equal 12345.
+
 
 type City = { Name : string; YearFounded : int option }
 type CityResult = { Count : int; Results : City list }
@@ -99,7 +104,7 @@ let ``RequestData value lookups are case-insensitive`` () =
     scr.GetStringList "fstriNG" |> should equal ["John Doe";"Jane Doe"]
 
 [<Fact>]
-let ``Inline RequestData from form collection should resolve primitives`` () =
+let ``RequestData collection should resolve primitives`` () =
     let now = DateTime.Now.ToString()
     let offsetNow = DateTimeOffset.Now.ToString()
     let timespan = TimeSpan.FromSeconds(1.0).ToString()
@@ -168,3 +173,36 @@ let ``Inline RequestData from form collection should resolve primitives`` () =
     scr.GetDateTimeOffsetList "fdatetimeoffset" |> should equal [DateTimeOffset.Parse(offsetNow)]
     scr.GetTimeSpanList "ftimespan"             |> should equal [TimeSpan.Parse(timespan)]
     scr.GetGuidList "fguid"                     |> should equal [Guid.Parse(guid)]
+
+
+[<Fact>]
+let ``Can make FormData from IFormCollection`` () =
+    FormData(RequestValue.RNull, Some (FormFileCollection() :> IFormFileCollection))
+    |> should not' throw
+
+[<Fact>]
+let ``Can safely get IFormFile from IFormCollection`` () =
+    let formFileName = "abc.txt"
+
+    let emptyFormData = FormData(RequestValue.RNull, Some (FormFileCollection() :> IFormFileCollection))
+    emptyFormData.TryGetFile formFileName
+    |> shouldBeNone
+
+    let formFile =
+        { new IFormFile with
+            member _.ContentDisposition = String.Empty
+            member _.ContentType = String.Empty
+            member _.FileName = String.Empty
+            member _.Headers = HeaderDictionary()
+            member _.Length = Int64.MinValue
+            member _.Name = formFileName
+            member _.CopyTo (target: Stream) : unit = ()
+            member _.CopyToAsync (target: Stream, cancellationToken: CancellationToken) : Task = Task.CompletedTask
+            member _.OpenReadStream  () :  Stream = System.IO.Stream.Null }
+
+    let formFileCollection = FormFileCollection()
+    formFileCollection.Add(formFile)
+    let formFileData = new FormData(RequestValue.RNull, Some(formFileCollection))
+
+    formFileData.TryGetFile formFileName
+    |> shouldBeSome (fun _ ->  ())
