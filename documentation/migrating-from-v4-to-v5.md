@@ -95,7 +95,8 @@ let wapp = WebApplication.Create()
 
 let endpoints = []
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 ```
 

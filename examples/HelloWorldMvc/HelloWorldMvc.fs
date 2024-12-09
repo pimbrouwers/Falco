@@ -105,8 +105,9 @@ module Program =
         wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
             .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorController.serverException)
             .Use(StaticFileExtensions.UseStaticFiles)
+            .UseRouting()
             .UseFalco(App.endpoints)
-            .FalcoNotFound(ErrorController.notFound)
+            .UseFalcoNotFound(ErrorController.notFound)
             .Run()
 
         0

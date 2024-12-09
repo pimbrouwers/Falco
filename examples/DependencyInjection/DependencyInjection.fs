@@ -29,5 +29,6 @@ let endpoints =
                 Response.ofPlainText greeting ctx)
     ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()

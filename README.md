@@ -15,7 +15,8 @@ let endpoints =
     [ get "/" (Response.ofPlainText "Hello World!") ]
 
 // activate Falco endpoint source
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 ```
 

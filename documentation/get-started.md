@@ -42,7 +42,8 @@ let wapp = WebApplication.Create()
 let endpoints =
     [ get "/" (Response.ofPlainText "Hello World!") ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 ```
 

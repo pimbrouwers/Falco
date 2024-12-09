@@ -15,7 +15,8 @@ let wapp = WebApplication.Create()
 let endpoints =
     [ get "/" (Response.ofPlainText "hello world") ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 ```
 
@@ -42,7 +43,8 @@ let endpoints =
             Response.ofPlainText message ctx)
     ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 ```
 
@@ -72,7 +74,8 @@ let greetingHandler name : HttpHandler =
 let endpoints =
     [ mapGet "/hello/{name:alpha}" (fun route -> r.GetString "name") greetingHandler ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 ```
 
@@ -103,7 +106,8 @@ let endpoints =
             POST, Response.ofEmpty ]
     ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 ```
 

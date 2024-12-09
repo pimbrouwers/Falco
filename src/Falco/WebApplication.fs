@@ -54,15 +54,11 @@ module Extensions =
         ///
         /// This is the default way to enable the package.
         member this.UseFalco(endpoints : HttpEndpoint seq) : IApplicationBuilder =
-            this.UseRouting()
-                .UseEndpoints(fun endpointBuilder ->
-                    endpointBuilder.UseFalcoEndpoints(endpoints)
-                    |> ignore)
-                |> ignore
-            this
+            this.UseEndpoints(fun endpointBuilder ->
+                endpointBuilder.UseFalcoEndpoints(endpoints) |> ignore)
 
         /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found).
-        member this.FalcoNotFound(handler : HttpHandler) : IApplicationBuilder =
+        member this.UseFalcoNotFound(handler : HttpHandler) : IApplicationBuilder =
             this.Run(handler = HttpHandler.toRequestDelegate handler) |> ignore
             this
 
@@ -85,6 +81,10 @@ module Extensions =
         member this.Use(fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
             this.UseIf(true, fn)
 
+        member this.UseRouting() : WebApplication =
+            (this :> IApplicationBuilder).UseRouting() |> ignore
+            this
+
         /// Activates Falco integration with IEndpointRouteBuilder.
         ///
         /// This is the default way to enable the package.
@@ -99,8 +99,8 @@ module Extensions =
             this
 
         /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found).
-        member this.FalcoNotFound(handler : HttpHandler) : WebApplication =
-            (this :> IApplicationBuilder).FalcoNotFound(handler) |> ignore
+        member this.UseFalcoNotFound(handler : HttpHandler) : WebApplication =
+            (this :> IApplicationBuilder).UseFalcoNotFound(handler) |> ignore
             this
 
     type FalcoExtensions =

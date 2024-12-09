@@ -191,7 +191,7 @@ module Program =
             .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorPage.serverException)
             .Use(StaticFileExtensions.UseStaticFiles)
             .UseFalco(endpoints)
-            .FalcoNotFound(ErrorPage.notFound)
+            .UseFalcoNotFound(ErrorPage.notFound)
             .Run()
 ```
 

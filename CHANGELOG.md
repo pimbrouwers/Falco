@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- OpenAPI support.
+- Full OpenAPI support.
 - `RequestData` (and `RequestValue`) to support complex form & query submissions,
   - Provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
   - A derivative `FormData` contains parsed `RequestValue` and access to `IFormFileCollection`.

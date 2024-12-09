@@ -24,7 +24,8 @@ let endpoints =
         get "/" (Response.ofPlainText "Hello World!") // <-- associate GET / to plain text HttpHandler
     ]
 
-wapp.UseFalco(endpoints) // <-- activate Falco endpoint source
+wapp.UseRouting()
+    .UseFalco(endpoints) // <-- activate Falco endpoint source
     .Run()
 ```
 
@@ -34,7 +35,8 @@ First, we open the required namespaces. `Falco` bring into scope the ability to 
 
 After creating the web application, we:
 
-- Activate Falco using `wapp.UseFalco()`. This enables us to create endpoints.
+- Activate Falco using `wapp.UseRouting()
+    .UseFalco()`. This enables us to create endpoints.
 - Register `GET /` endpoint to a handler which responds with "hello world".
 - Run the app.
 

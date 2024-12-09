@@ -202,6 +202,7 @@ module Program =
 
         wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
             .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorResponse.serverException)
+            .UseRouting()
             .UseFalco(endpoints)
             .Run()
         0

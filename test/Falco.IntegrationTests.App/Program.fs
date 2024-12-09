@@ -76,7 +76,8 @@ let wapp = bldr.Build()
 wapp.UseHttpsRedirection()
 |> ignore
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
 |> ignore
 
 wapp.Run()

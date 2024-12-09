@@ -115,8 +115,9 @@ let main args =
     let endpoints =
         [ get "/" Pages.homepage ]
 
-    wapp.UseFalco(endpoints)
-        .FalcoNotFound(Pages.notFound)
+    wapp.UseRouting()
+        .UseFalco(endpoints)
+        .UseFalcoNotFound(Pages.notFound)
         .Run()
 
     0 // Exit code
