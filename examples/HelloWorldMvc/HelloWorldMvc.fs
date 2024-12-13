@@ -14,14 +14,14 @@ module Model =
 
 module Route =
     let index = "/"
-    let greetPlainText = "/greet/text/{name}"
-    let greetJson = "/greet/json/{name}"
-    let greetHtml = "/greet/html/{name}"
+    let greetPlainText = "/greet/text/{name?}"
+    let greetJson = "/greet/json/{name?}"
+    let greetHtml = "/greet/html/{name?}"
 
 module Url =
-    let greetPlainText name = Route.greetPlainText.Replace("{name}", name)
-    let greetJson name = Route.greetJson.Replace("{name}", name)
-    let greetHtml name = Route.greetHtml.Replace("{name}", name)
+    let greetPlainText name = Route.greetPlainText.Replace("{name?}", name)
+    let greetJson name = Route.greetJson.Replace("{name?}", name)
+    let greetHtml name = Route.greetHtml.Replace("{name?}", name)
 
 module View =
     open Model
@@ -34,13 +34,17 @@ module View =
     module GreetingView =
         let detail greeting =
             layout [
-                Text.h1 $"Hello {greeting.Name} from /html"
+                Text.h1 $"Hello {greeting.Name} using HTML"
                 Elem.hr []
                 Text.p "Greet other ways:"
                 Elem.nav [] [
                     Elem.a
+                        [ Attr.href (Url.greetHtml greeting.Name) ]
+                        [ Text.raw "Greet in HTML"]
+                    Text.raw " | "
+                    Elem.a
                         [ Attr.href (Url.greetPlainText greeting.Name) ]
-                        [ Text.raw "Greet in text"]
+                        [ Text.raw "Greet in plain text"]
                     Text.raw " | "
                     Elem.a
                         [ Attr.href (Url.greetJson greeting.Name) ]
@@ -63,29 +67,26 @@ module Controller =
             Response.ofHtml (layout [ Text.h1 "Server Error" ])
 
     module GreetingController =
-        let index =
-            Response.ofPlainText "Hello world"
-
-        let plainTextDetail name =
-            Response.ofPlainText $"Hello {name}"
-
-        let jsonDetail name =
-            let message = { Message = $"Hello {name} from /json" }
-            Response.ofJson message
-
-        let htmlDetail name =
+        let index name =
             { Name = name }
             |> GreetingView.detail
             |> Response.ofHtml
 
+        let plainTextDetail name =
+            Response.ofPlainText $"Hello {name} using plain text"
+
+        let jsonDetail name =
+            let message = { Message = $"Hello {name} using JSON" }
+            Response.ofJson message
+
         let endpoints =
             let mapRoute (r : RequestData) =
-                r?name.AsString()
+                r?name.AsStringNonEmpty("you")
 
-            [ get Route.index index
+            [ mapGet Route.index mapRoute index
               mapGet Route.greetPlainText mapRoute plainTextDetail
               mapGet Route.greetJson mapRoute jsonDetail
-              mapGet Route.greetHtml mapRoute htmlDetail ]
+              mapGet Route.greetHtml mapRoute index ]
 
 module App =
     open Controller
