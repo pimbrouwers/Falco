@@ -4,10 +4,35 @@
                 gtag('config', 'G-D62HSJHMNZ');</script></head><body class="noto lh-copy"><div class="min-vh-100 mw9 center pa3 overflow-hidden"><nav class="sidebar w-20-l fl-l mb3 mb0-l"><div class="flex items-center"><a href="/docs" class="db w3 w4-l"><img src="/brand.svg" class="br3" /></a><h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2></div><div class="dn db-l"><h3>Contents</h3><ul class="nl3 f6"><li><a href="get-started.html">Getting Started</a></li><li><a href="routing.html">Routing</a></li><li><a href="response.html">Writing responses</a></li><li><a href="request.html">Accessing request data</a></li><li><a href="markup.html">View engine</a></li><li><a href="cross-site-request-forgery.html">Security</a><ul><li><a href="cross-site-request-forgery.html">Cross Site Request Forgery (XSRF)</a></li><li><a href="authentication.html">Authentication & Authorization</a></li></ul></li><li><a href="example-hello-world.html">Examples</a><ul><li><a href="example-hello-world.html">Hello World</a></li><li><a href="example-hello-world-mvc.html">Hello World MVC</a></li><li><a href="example-dependency-injection.html">Dependency Injection</a></li><li><a href="example-external-view-engine.html">Hello World</a></li><li><a href="example-basic-rest-api.html">Basic REST API</a></li></ul></li><li><a href="migrating-from-v4-to-v5.html">V5 Migration Guide</a></li></ul></div></nav><main class="w-80-l fl-l pl3-l"><h1 id="cross-site-scripting-xss-attacks">Cross-site Scripting (XSS) Attacks</h1>
 <p>Cross-site scripting attacks are extremely common since they are quite simple to carry out. Fortunately, protecting against them is as easy as performing them.</p>
 <p>The <a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery">Microsoft.AspNetCore.Antiforgery</a> package provides the required utilities to easily protect yourself against such attacks.</p>
-<p>Falco provides a few handlers via <code>Falco.Security.Xss</code>:</p>
-<blockquote>
-<p>To use the Xss helpers, ensure that the <code>Antiforgery</code> service has been registered.</p>
-</blockquote>
+<h2 id="activating-antiforgery-protection">Activating Antiforgery Protection</h2>
+<p>To use the Falco Xsrf helpers, ensure that the <code>Antiforgery</code> service has been <a href="https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery">registered</a>.</p>
+<pre><code class="language-fsharp">open Falco
+open Falco.Routing
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.DependencyInjection
+// ^-- this import enables antiforgery activation
+
+let endpoints =
+    [
+        // endpoints...
+    ]
+
+let bldr = WebApplication.CreateBuilder()
+
+bldr.Services
+    .AddAntiforgery()
+
+let wapp = WebApplication.Create()
+
+wapp.UseAntiforgery()
+    // ^-- activate Antiforgery before routing
+    .UseRouting()
+    .UseFalco(endpoints)
+    .Run()
+
+</code></pre>
+<h2 id="falco-xsrf-support">Falco XSRF Support</h2>
+<p>Falco provides a few handlers via <code>Falco.Security.Xsrf</code>:</p>
 <pre><code class="language-fsharp">open Falco.Markup
 open Falco.Security
 

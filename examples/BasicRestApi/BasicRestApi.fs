@@ -1,12 +1,14 @@
 namespace BasicRestApi
 
 open System.Data
-open Donald // <-- external package that makes using databases simpler
+open Donald
+// ^-- external package that makes using databases simpler
 open Falco
 open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
-open Microsoft.Data.Sqlite // <-- a very useful Microsoft package
+open Microsoft.Data.Sqlite
+// ^-- a very useful Microsoft package
 
 type Error =
     { Code : string
@@ -153,6 +155,7 @@ module Program =
         initializeDatabase dbConnectionFactory
 
         bldr.Services
+            .AddAntiforgery()
             .AddSingleton<IDbConnectionFactory>(dbConnectionFactory)
             .AddSingleton<IStore<string, User>, UserStore>()
             |> ignore
@@ -163,6 +166,7 @@ module Program =
 
         wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
             .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorPage.serverException)
+            .UseAntiforgery()
             .UseRouting()
             .UseFalco(endpoints)
             .Run()

@@ -50,7 +50,8 @@ let endpoints =
                 Response.ofPlainText greeting ctx)
     ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 </code></pre>
 <p>Following through you can see the web server being created in two phases. The first to establish the context (i.e., logging, server configuration and dependencies). Second, freezing the final state and creating a configurable web application.</p>

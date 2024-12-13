@@ -8,35 +8,35 @@
 open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
+let endpoints =
+    [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;)
+    ]
+
 let wapp = WebApplication.Create()
 
-let endpoints =
-    // associate GET / to plain text HttpHandler
-    [ get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;) ]
-
-// activate Falco endpoint source
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 </code></pre>
 <p><a href="https://github.com/pimbrouwers/Falco">Falco</a> is a toolkit for building fast and functional-first web applications using F#. You can think of it as <a href="https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-8.0&amp;tabs=visual-studio">minimal API</a> on <em>steroids</em>.</p>
 <ul>
 <li>Built upon the high-performance components of ASP.NET Core.</li>
-<li>Optimized for building HTTP applications quickly.</li>
+<li>Optimized for building full-stack web applications quickly.</li>
 <li>Seamlessly integrates with existing .NET Core middleware and libraries.</li>
 </ul>
 <h2 id="key-features">Key Features</h2>
 <ul>
-<li>Asynchronous <a href="https://github.com/pimbrouwers/Falco/tree/master/documentation/response.html">request handling</a>.</li>
-<li>Simple and powerful <a href="https://github.com/pimbrouwers/Falco/tree/master/documentation/routing.html">routing</a> API.</li>
-<li>Fast, secure and configurable <a href="https://github.com/pimbrouwers/Falco/tree/master/documentation/host.html">web server</a>.</li>
-<li>Native F# <a href="https://github.com/pimbrouwers/Falco.Markup">view engine</a>.</li>
-<li>Uniform API for <a href="https://github.com/pimbrouwers/Falco/tree/master/documentation/request.html">accessing request data</a>.</li>
-<li><a href="https://github.com/pimbrouwers/Falco/tree/master/documentation/authentication.html">Authentication and security</a> utilities.</li>
-<li>Built-in support for <a href="https://github.com/pimbrouwers/Falco/tree/master/documentation/request.html#multipartform-data-binding">large uploads</a> and <a href="https://github.com/pimbrouwers/Falco/tree/master/documentation/response.html#content-disposition">binary responses</a>.</li>
+<li>Asynchronous <a href="documentation/response.html">request handling</a>.</li>
+<li>Simple and powerful <a href="documentation/routing.html">routing</a> API.</li>
+<li>Uniform API for <a href="documentation/request.html">accessing <em>any</em> request data</a>.</li>
+<li>Native F# <a href="documentation/markup.html">view engine</a>.</li>
+<li><a href="documentation/authentication.html">Authentication</a> and <a href="documentation/cross-site-request-forgery.html">security</a> utilities.</li>
+<li>Built-in support for <a href="documentation/request.html#multipartform-data-binding">large uploads</a> and <a href="documentation/response.html#content-disposition">binary responses</a>.</li>
 </ul>
 <h2 id="design-goals">Design Goals</h2>
 <ul>
-<li>Provide a toolset to build a working full-stack web application in F#.</li>
+<li>Provide a toolset to build full-stack web application in F#.</li>
 <li>Should be simple, extensible and integrate with existing .NET libraries.</li>
 <li>Can be easily learned.</li>
 </ul>
@@ -47,8 +47,8 @@ wapp.UseFalco(endpoints)
 <h3 id="related-libraries">Related Libraries</h3>
 <ul>
 <li><a href="https://github.com/pimbrouwers/Falco.Markup">Falco.Markup</a> - an XML markup module primary used as the syntax for <a href="https://www.falcoframework.com/docs/markup.html">authoring HTML with Falco</a>.</li>
+<li><a href="https://github.com/dpraimeyuu/Falco.Htmx">Falco.Htmx</a> - a full featured integration with <a href="https://htmx.org/">htmx JS package</a>.</li>
 <li><a href="https://github.com/pimbrouwers/Falco.OpenApi">Falco.OpenApi</a> - a library for generating OpenAPI documentation from Falco applications.</li>
-<li><a href="https://github.com/dpraimeyuu/Falco.Htmx">Falco.Htmx</a> - An experimental Falco integration with <a href="https://htmx.org/">htmx JS package</a>.</li>
 <li><a href="https://github.com/pimbrouwers/Falco.Template">Falco.Template</a> - a .NET SDK <a href="https://learn.microsoft.com/en-us/dotnet/core/tools/custom-templates">project template</a> to help get started with Falco quickly.</li>
 </ul>
 <h3 id="community-projects">Community Projects</h3>
@@ -70,7 +70,7 @@ wapp.UseFalco(endpoints)
 <h2 id="contribute">Contribute</h2>
 <p>Thank you for considering contributing to Falco, and to those who have already contributed! We appreciate (and actively resolve) PRs of all shapes and sizes.</p>
 <p>We kindly ask that before submitting a pull request, you first submit an <a href="https://github.com/pimbrouwers/Falco/issues">issue</a> or open a <a href="https://github.com/pimbrouwers/Falco/discussions">discussion</a>.</p>
-<p>If functionality is added to the API, or changed, please kindly update the relevant <a href="https://github.com/pimbrouwers/Falco/tree/master/docs">document</a>. Unit tests must also be added and/or updated before a pull request can be successfully merged.</p>
+<p>If functionality is added to the API, or changed, please kindly update the relevant <a href="docs">document</a>. Unit tests must also be added and/or updated before a pull request can be successfully merged.</p>
 <p>Only pull requests which pass all build checks and comply with the general coding guidelines can be approved.</p>
 <p>If you have any further questions, submit an <a href="https://github.com/pimbrouwers/Falco/issues">issue</a> or open a <a href="https://github.com/pimbrouwers/Falco/discussions">discussion</a> or reach out on <a href="https://twitter.com/falco_framework">Twitter</a>.</p>
 <h2 id="why-falco">Why &quot;Falco&quot;?</h2>

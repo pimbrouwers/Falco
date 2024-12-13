@@ -27,17 +27,22 @@ webHost args {
 <td>
 <pre><code class="language-fsharp">// Falco v5.x
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 // ^-- this import adds many useful extensions
 
+let endpoints =
+    [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;)
+        // ^-- associate GET / to plain text HttpHandler
+    ]
+
 let wapp = WebApplication.Create()
 
-wapp.Use(StaticFileExtensions.UseStaticFiles)
-    .UseFalco([
-        get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;)
-    ])
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    // ^-- activate Falco endpoint source
     .Run()
-
 </code></pre>
 </td>
 </tr>
@@ -65,6 +70,7 @@ webHost [||] {
 </td>
 <td>
 <pre><code class="language-fsharp">open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Configuration
 // ^-- this import adds access to Configuration
@@ -79,7 +85,8 @@ let wapp = WebApplication.Create()
 
 let endpoints = []
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 </code></pre>
 </td>
@@ -124,5 +131,5 @@ let myHandler : HttpHandler = fun ctx -&gt;
 <h2 id="crypto-module-removed"><code>Crypto</code> module removed</h2>
 <p>The Crypto module provided functionality for: random numbers, salt generation and key derivation. The code in this module was really a veneer on top of the cryptographic providers in the base library. Extracting this code into your project would be dead simple. The <a href="https://github.com/pimbrouwers/Falco/blob/25d828d832c0fde2dfff04775bea1eced9050458/src/Falco/Security.fs#L3">source</a> is permalinked here for such purposes.</p>
 <h2 id="auth-module-removed"><code>Auth</code> module removed</h2>
-<p>The Auth module's functionality was ported to the Response module.</p>
+<p>The <code>Auth</code> module functionality was ported one-to-one to the <code>Response</code> module.</p>
 </main></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>

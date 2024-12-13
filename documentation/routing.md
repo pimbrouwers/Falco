@@ -8,6 +8,7 @@ Bearing this in mind, routing can practically be represented by a list of these 
 
 ```fsharp
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
@@ -30,6 +31,7 @@ The following example shows a more sophisticated `HttpEndpoint`:
 
 ```fsharp
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
@@ -63,6 +65,7 @@ An alternative way to express the `HttEndpoint` above is seen below.
 
 ```fsharp
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()

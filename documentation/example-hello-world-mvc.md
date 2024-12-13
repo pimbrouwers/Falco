@@ -193,6 +193,8 @@ module Program =
             .UseFalco(endpoints)
             .UseFalcoNotFound(ErrorPage.notFound)
             .Run()
+
+        0
 ```
 
 ## Wrapping Up

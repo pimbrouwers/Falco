@@ -21,14 +21,21 @@
 </code></pre>
 <p>Remove any <code>*.fs</code> files created automatically, create a new file named <code>Program.fs</code> and set the contents to the following:</p>
 <pre><code class="language-fsharp">open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
+// ^-- this import adds many useful extensions
+
+let endpoints =
+    [
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;)
+        // ^-- associate GET / to plain text HttpHandler
+    ]
 
 let wapp = WebApplication.Create()
 
-let endpoints =
-    [ get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;) ]
-
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    // ^-- activate Falco endpoint source
     .Run()
 </code></pre>
 <p>Run the application:</p>

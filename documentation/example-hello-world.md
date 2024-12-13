@@ -15,17 +15,20 @@ The code for this example can be found [here](https://github.com/pimbrouwers/Fal
 ```fsharp
 open Falco
 open Falco.Routing
-open Microsoft.AspNetCore.Builder // <-- this import adds many useful extensions
-
-let wapp = WebApplication.Create()
+open Microsoft.AspNetCore.Builder
+// ^-- this import adds many useful extensions
 
 let endpoints =
     [
-        get "/" (Response.ofPlainText "Hello World!") // <-- associate GET / to plain text HttpHandler
+        get "/" (Response.ofPlainText "Hello World!")
+        // ^-- associate GET / to plain text HttpHandler
     ]
 
+let wapp = WebApplication.Create()
+
 wapp.UseRouting()
-    .UseFalco(endpoints) // <-- activate Falco endpoint source
+    .UseFalco(endpoints)
+    // ^-- activate Falco endpoint source
     .Run()
 ```
 
@@ -35,8 +38,7 @@ First, we open the required namespaces. `Falco` bring into scope the ability to 
 
 After creating the web application, we:
 
-- Activate Falco using `wapp.UseRouting()
-    .UseFalco()`. This enables us to create endpoints.
+- Activate Falco using `wapp.UseFalco()`. This enables us to create endpoints.
 - Register `GET /` endpoint to a handler which responds with "hello world".
 - Run the app.
 

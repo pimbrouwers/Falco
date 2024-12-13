@@ -35,18 +35,22 @@ webHost args {
 ```fsharp
 // Falco v5.x
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 // ^-- this import adds many useful extensions
 
+let endpoints =
+    [
+        get "/" (Response.ofPlainText "Hello World!")
+        // ^-- associate GET / to plain text HttpHandler
+    ]
+
 let wapp = WebApplication.Create()
 
-wapp.Use(StaticFileExtensions.UseStaticFiles)
-    .UseRouting() // <-- required to enable endpoint routing
-    .UseFalco([
-        get "/" (Response.ofPlainText "Hello World!")
-    ])
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    // ^-- activate Falco endpoint source
     .Run()
-
 ```
 
 </td>
@@ -82,6 +86,7 @@ webHost [||] {
 
 ```fsharp
 open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Configuration
 // ^-- this import adds access to Configuration

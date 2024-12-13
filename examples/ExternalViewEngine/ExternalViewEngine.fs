@@ -61,10 +61,10 @@ let main args =
         .AddSingleton<ITemplate, ScribanTemplate>() // <-- register ITemplates implementation as a dependency
         |> ignore
 
-    let wapp = bldr.Build()
-
     let endpoints =
         [ get "/" Pages.homepage ]
+
+    let wapp = bldr.Build()
 
     wapp.UseRouting()
         .UseFalco(endpoints)

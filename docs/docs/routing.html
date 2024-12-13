@@ -8,6 +8,7 @@
 <p>Note: All of the following examples are <em>fully functioning</em> web apps.</p>
 </blockquote>
 <pre><code class="language-fsharp">open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
@@ -15,7 +16,8 @@ let wapp = WebApplication.Create()
 let endpoints =
     [ get &quot;/&quot; (Response.ofPlainText &quot;hello world&quot;) ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 </code></pre>
 <p>The preceding example includes a single <code>HttpEndpoint</code>:</p>
@@ -30,6 +32,7 @@ wapp.UseFalco(endpoints)
 </ul>
 <p>The following example shows a more sophisticated <code>HttpEndpoint</code>:</p>
 <pre><code class="language-fsharp">open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
@@ -43,7 +46,8 @@ let endpoints =
             Response.ofPlainText message ctx)
     ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 </code></pre>
 <p>The string <code>/hello/{name:alpha}</code> is a <strong>route template</strong>. It is used to configure how the endpoint is matched. In this case, the template matches:</p>
@@ -62,6 +66,7 @@ wapp.UseFalco(endpoints)
 </ul>
 <p>An alternative way to express the <code>HttEndpoint</code> above is seen below.</p>
 <pre><code class="language-fsharp">open Falco
+open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
@@ -73,7 +78,8 @@ let greetingHandler name : HttpHandler =
 let endpoints =
     [ mapGet &quot;/hello/{name:alpha}&quot; (fun route -&gt; r.GetString &quot;name&quot;) greetingHandler ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 </code></pre>
 <h2 id="multi-method-endpoints">Multi-method Endpoints</h2>
@@ -99,7 +105,8 @@ let endpoints =
             POST, Response.ofEmpty ]
     ]
 
-wapp.UseFalco(endpoints)
+wapp.UseRouting()
+    .UseFalco(endpoints)
     .Run()
 </code></pre>
 <p><a href="response.html">Next: Writing responses</a></p>

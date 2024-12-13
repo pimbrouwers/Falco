@@ -68,12 +68,6 @@ let secureResourceHandler : HttpHandler =
 
 ```fsharp
 open Falco
-```
-
-## Terminate authentication
-
-```fsharp
-open Falco
 
 let logOut : HttpHandler =
     let authScheme = "..."

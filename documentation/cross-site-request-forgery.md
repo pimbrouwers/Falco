@@ -4,9 +4,40 @@ Cross-site scripting attacks are extremely common since they are quite simple to
 
 The [Microsoft.AspNetCore.Antiforgery](https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery) package provides the required utilities to easily protect yourself against such attacks.
 
-Falco provides a few handlers via `Falco.Security.Xss`:
+## Activating Antiforgery Protection
 
-> To use the Xss helpers, ensure that the `Antiforgery` service has been registered.
+To use the Falco Xsrf helpers, ensure that the `Antiforgery` service has been [registered](https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery).
+
+```fsharp
+open Falco
+open Falco.Routing
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.DependencyInjection
+// ^-- this import enables antiforgery activation
+
+let endpoints =
+    [
+        // endpoints...
+    ]
+
+let bldr = WebApplication.CreateBuilder()
+
+bldr.Services
+    .AddAntiforgery()
+
+let wapp = WebApplication.Create()
+
+wapp.UseAntiforgery()
+    // ^-- activate Antiforgery before routing
+    .UseRouting()
+    .UseFalco(endpoints)
+    .Run()
+
+```
+
+## Falco XSRF Support
+
+Falco provides a few handlers via `Falco.Security.Xsrf`:
 
 ```fsharp
 open Falco.Markup

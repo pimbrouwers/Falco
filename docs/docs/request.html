@@ -49,7 +49,7 @@ Content-Length: 68
 <pre><code class="language-fsharp">let requestData : RequestData = // From: Route | Query | Form
 
 // Retrieve primitive options
-let str : string option = requestData.TryGetString &quot;name&quot; 
+let str : string option = requestData.TryGetString &quot;name&quot;
 let flt : float option = requestData.TryGetFloat &quot;temperature&quot;
 
 // Retrieve primitive, or default
@@ -57,7 +57,7 @@ let str : string = requestData.GetString &quot;name&quot;
 let strOrDefault : string = requestData.GetString (&quot;name&quot;, &quot;John Doe&quot;)
 let flt : float = requestData.GetFloat &quot;temperature&quot;
 
-// Retrieve primitive list 
+// Retrieve primitive list
 let strList : string list = requestData.GetStringList &quot;hobbies&quot;
 let grades : int list = requestData.GetInt32List &quot;grades&quot;
 
@@ -179,9 +179,9 @@ let secureImageUploadHandler : HttpHandler =
       LastName : string }
 
 let jsonHandler : HttpHandler =
-    { FirstName = &quot;John&quot;
-      LastName = &quot;Doe&quot; }
-    |&gt; Response.ofJson
+    Response.ofJson {
+        FirstName = &quot;John&quot;
+        LastName = &quot;Doe&quot; }
 
 let mapJsonHandler : HttpHandler =
     let handleOk person : HttpHandler =
