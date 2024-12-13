@@ -20,10 +20,6 @@
     <PackageReference Include="Scriban" Version="5.*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Watch Include="**\*.css;**\*.html;..\**\*.md" Exclude="..\markup.md" />
-  </ItemGroup>
-
   <Target Name="Generate">
     <Message Importance="High" Text="$(Generate)" />
     <Exec Command="$(Generate)" UseUtf8Encoding="Always"/>

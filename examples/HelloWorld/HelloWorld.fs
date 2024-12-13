@@ -1,15 +1,17 @@
 open Falco
 open Falco.Routing
-open Microsoft.AspNetCore.Builder // <-- this import adds many useful extensions
-
-let bldr = WebApplication.CreateBuilder()
-let wapp = bldr.Build()
+open Microsoft.AspNetCore.Builder
+// ^-- this import adds many useful extensions
 
 let endpoints =
-    // associate GET / to plain text HttpHandler
-    [ get "/" (Response.ofPlainText "Hello World!") ]
+    [
+        get "/" (Response.ofPlainText "Hello World!")
+        // ^-- associate GET / to plain text HttpHandler
+    ]
 
-// activate Falco endpoint source
+let wapp = WebApplication.Create()
+
 wapp.UseRouting()
     .UseFalco(endpoints)
+    // ^-- activate Falco endpoint source
     .Run()

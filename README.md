@@ -7,16 +7,19 @@
 open Falco
 open Falco.Routing
 open Microsoft.AspNetCore.Builder
+// ^-- this import adds many useful extensions
+
+let endpoints =
+    [
+        get "/" (Response.ofPlainText "Hello World!")
+        // ^-- associate GET / to plain text HttpHandler
+    ]
 
 let wapp = WebApplication.Create()
 
-let endpoints =
-    // associate GET / to plain text HttpHandler
-    [ get "/" (Response.ofPlainText "Hello World!") ]
-
-// activate Falco endpoint source
 wapp.UseRouting()
     .UseFalco(endpoints)
+    // ^-- activate Falco endpoint source
     .Run()
 ```
 
@@ -52,8 +55,8 @@ Have an article or video that you want to share? We'd love to hear from you! To 
 ### Related Libraries
 
 - [Falco.Markup](https://github.com/pimbrouwers/Falco.Markup) - an XML markup module primary used as the syntax for [authoring HTML with Falco](https://www.falcoframework.com/docs/markup.html).
+- [Falco.Htmx](https://github.com/dpraimeyuu/Falco.Htmx) - a full featured integration with [htmx JS package](https://htmx.org/).
 - [Falco.OpenApi](https://github.com/pimbrouwers/Falco.OpenApi) - a library for generating OpenAPI documentation from Falco applications.
-- [Falco.Htmx](https://github.com/dpraimeyuu/Falco.Htmx) - An experimental Falco integration with [htmx JS package](https://htmx.org/).
 - [Falco.Template](https://github.com/pimbrouwers/Falco.Template) - a .NET SDK [project template](https://learn.microsoft.com/en-us/dotnet/core/tools/custom-templates) to help get started with Falco quickly.
 
 ### Community Projects

@@ -41,6 +41,7 @@ open Microsoft.AspNetCore.Builder
 let wapp = WebApplication.Create()
 
 wapp.Use(StaticFileExtensions.UseStaticFiles)
+    .UseRouting() // <-- required to enable endpoint routing
     .UseFalco([
         get "/" (Response.ofPlainText "Hello World!")
     ])
@@ -158,4 +159,4 @@ The Crypto module provided functionality for: random numbers, salt generation an
 
 ## `Auth` module removed
 
-The Auth module's functionality was ported to the Response module.
+The `Auth` module functionality was ported one-to-one to the `Response` module.
