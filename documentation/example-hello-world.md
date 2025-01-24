@@ -18,18 +18,16 @@ open Falco.Routing
 open Microsoft.AspNetCore.Builder
 // ^-- this import adds many useful extensions
 
-let endpoints =
-    [
-        get "/" (Response.ofPlainText "Hello World!")
-        // ^-- associate GET / to plain text HttpHandler
-    ]
-
 let wapp = WebApplication.Create()
 
 wapp.UseRouting()
-    .UseFalco(endpoints)
+    .UseFalco([
     // ^-- activate Falco endpoint source
-    .Run()
+        get "/" (Response.ofPlainText "Hello World!")
+        // ^-- associate GET / to plain text HttpHandler
+    ])
+    .Run(Response.ofPlainText "Not found")
+    // ^-- activate Falco endpoint source
 ```
 
 First, we open the required namespaces. `Falco` bring into scope the ability to activate the library and some other extension methods to make the fluent API more user-friendly.

@@ -8,4 +8,4 @@ wapp.UseRouting()
     .UseFalco([
         get "/" (Response.ofPlainText "Hello World!")
     ])
-    .Run()
+    .Run(Response.ofPlainText "Not found")

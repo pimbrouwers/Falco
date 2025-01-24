@@ -5,16 +5,11 @@
 
 ```fsharp
 open Falco
-open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
 let wapp = WebApplication.Create()
 
-wapp.UseRouting()
-    .UseFalco([
-        get "/" (Response.ofPlainText "Hello World!")
-    ])
-    .Run()
+wapp.Run(Response.ofPlainText "Hello world")
 ```
 
 [Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast and functional-first web applications using F#. You can think of it as [minimal API](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-8.0&tabs=visual-studio) on *steroids*.

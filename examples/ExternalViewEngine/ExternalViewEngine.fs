@@ -79,7 +79,6 @@ let main args =
 
     wapp.UseRouting()
         .UseFalco(endpoints)
-        .UseFalcoNotFound(Pages.notFound)
-        .Run()
+        .Run(Pages.notFound)
 
     0 // Exit code

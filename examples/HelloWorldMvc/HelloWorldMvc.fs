@@ -108,7 +108,6 @@ module Program =
             .Use(StaticFileExtensions.UseStaticFiles)
             .UseRouting()
             .UseFalco(App.endpoints)
-            .UseFalcoNotFound(ErrorController.notFound)
-            .Run()
+            .Run(ErrorController.notFound)
 
         0

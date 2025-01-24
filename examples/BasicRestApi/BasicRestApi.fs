@@ -166,8 +166,9 @@ module Program =
 
         wapp.UseIf(isDevelopment, DeveloperExceptionPageExtensions.UseDeveloperExceptionPage)
             .UseIf(not(isDevelopment), FalcoExtensions.UseFalcoExceptionHandler ErrorPage.serverException)
-            .UseAntiforgery()
+            .Use(AntiforgeryApplicationBuilderExtensions.UseAntiforgery)
             .UseRouting()
             .UseFalco(endpoints)
-            .Run()
+            .Run(ErrorPage.notFound)
+
         0
