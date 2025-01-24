@@ -20,7 +20,9 @@ module Extensions =
 
             for endpoint in endpoints do
                 falcoDataSource.FalcoEndpoints.Add(endpoint)
+
             this.DataSources.Add(falcoDataSource)
+
             this
 
     type WebApplicationBuilder with
@@ -58,9 +60,8 @@ module Extensions =
                 endpointBuilder.UseFalcoEndpoints(endpoints) |> ignore)
 
         /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found).
-        member this.UseFalcoNotFound(handler : HttpHandler) : IApplicationBuilder =
-            this.Run(handler = HttpHandler.toRequestDelegate handler) |> ignore
-            this
+        member this.UseFalcoNotFound(notFoundHandler : HttpHandler) : unit =
+            this.Run(handler = HttpHandler.toRequestDelegate notFoundHandler)
 
         /// Registers a `Falco.HttpHandler` as exception handler lambda.
         /// See: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?#exception-handler-lambda
@@ -72,6 +73,12 @@ module Extensions =
             this
 
     type WebApplication with
+        /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found)
+        /// then runs application, blocking the calling thread until host shutdown.
+        member this.Run(terminalHandler : HttpHandler) : unit =
+            this.UseFalcoNotFound(terminalHandler) |> ignore
+            this.Run()
+
         /// Apply `fn` to `WebApplication :> IApplicationBuilder` if `predicate` is true.
         member this.UseIf(predicate : bool, fn : IApplicationBuilder -> IApplicationBuilder) : WebApplication =
             (this :> IApplicationBuilder).UseIf(predicate, fn) |> ignore
@@ -99,8 +106,8 @@ module Extensions =
             this
 
         /// Registers a `Falco.HttpHandler` as terminal middleware (i.e., not found).
-        member this.UseFalcoNotFound(handler : HttpHandler) : WebApplication =
-            (this :> IApplicationBuilder).UseFalcoNotFound(handler) |> ignore
+        member this.UseFalcoNotFound(notFoundHandler : HttpHandler) : WebApplication =
+            (this :> IApplicationBuilder).UseFalcoNotFound(notFoundHandler) |> ignore
             this
 
     type FalcoExtensions =
