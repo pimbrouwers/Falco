@@ -8,15 +8,12 @@ open Falco
 open Falco.Routing
 open Microsoft.AspNetCore.Builder
 
-let endpoints =
-    [
-        get "/" (Response.ofPlainText "Hello World!")
-    ]
-
 let wapp = WebApplication.Create()
 
 wapp.UseRouting()
-    .UseFalco(endpoints)
+    .UseFalco([
+        get "/" (Response.ofPlainText "Hello World!")
+    ])
     .Run()
 ```
 
