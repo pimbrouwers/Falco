@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Full OpenAPI support.
+- Declarative OpenAPI support.
 - `RequestData` (and `RequestValue`) to support complex form & query submissions,
   - Provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
   - A derivative `FormData` contains parsed `RequestValue` and access to `IFormFileCollection`.
@@ -18,15 +18,18 @@ All notable changes to this project will be documented in this file.
 - `Routing.map[Get|Head|Post|Put|Patch|Delete|Options|Trace|Any]` which produces `HttpEndpoint` by associating a route pattern to an `HttpHandler` after mapping route.
 - `Routing.setDisplayName` to set the display name of the endpoint.
 - `Routing.setOrder` to set the order number of the endpoint.
+- `WebApplication.run`, registers the provided `HttpHandler` as the terminal middleware and runs the application.
 
 ### Changed
 
-- `Xss` module renamed to `Xsrf`. Functions: `Xsrf.antiforgeryInput`, `Xsrf.getToken` & `Xsrf.validateToken`
+- `Xss` module renamed to `Xsrf`. Functions: `Xsrf.antiforgeryInput`, `Xsrf.getToken` & `Xsrf.validateToken`.
+
 
 ### Fixed
 
 - Missing cancellation token pass-through during form reading, `multipart/form-data` streaming and JSON serialization/deserialization.
 - Empty request body support for JSON request methods.
+- `WebApplication.UseFalcoNotFound` & `IApplicationBuilder.UseFalcoNotFound` to correctly terminate by returning `unit` akin to the native method.
 
 ### Removed
 

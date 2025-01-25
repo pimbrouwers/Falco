@@ -121,9 +121,3 @@ let main args =
 
     0 // Exit code
 ```
-
-## Wrapping Up
-
-Having dabbled with creating HTML applications, now let's set our sights on creating RESTful APIs.
-
-[Next: Example - Basic REST API](example-basic-rest-api.md)
