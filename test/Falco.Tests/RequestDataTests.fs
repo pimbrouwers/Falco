@@ -105,10 +105,11 @@ let ``RequestData value lookups are case-insensitive`` () =
 
 [<Fact>]
 let ``RequestData collection should resolve primitives`` () =
-    let now = DateTime.Now.ToString()
-    let offsetNow = DateTimeOffset.Now.ToString()
-    let timespan = TimeSpan.FromSeconds(1.0).ToString()
-    let guid = Guid.NewGuid().ToString()
+    let dt = DateTime(1986, 12, 12)
+    let dtStr = dt.ToString()
+    let dtOffsetStr = DateTimeOffset(dt).ToString()
+    let timespanStr = TimeSpan.FromSeconds(1.0).ToString()
+    let guidStr = Guid.NewGuid().ToString()
 
     let values =
         dict [
@@ -120,10 +121,10 @@ let ``RequestData collection should resolve primitives`` () =
             "fbool", seq { "true";"false" }
             "ffloat", seq { "1.234";"1.235" }
             "fdecimal", seq { "4.567";"4.568" }
-            "fdatetime", seq { now }
-            "fdatetimeoffset", seq { offsetNow }
-            "ftimespan", seq { timespan }
-            "fguid", seq { guid }
+            "fdatetime", seq { dtStr }
+            "fdatetimeoffset", seq { dtOffsetStr }
+            "ftimespan", seq { timespanStr }
+            "fguid", seq { guidStr }
         ]
 
     let scr = RequestData(values)
@@ -139,10 +140,10 @@ let ``RequestData collection should resolve primitives`` () =
     scr.GetBoolean "fbool"                  |> should equal true
     scr.GetFloat "ffloat"                   |> should equal 1.234
     scr.GetDecimal "fdecimal"               |> should equal 4.567M
-    scr.GetDateTime "fdatetime"             |> should equal (DateTime.Parse(now))
-    scr.GetDateTimeOffset "fdatetimeoffset" |> should equal (DateTimeOffset.Parse(offsetNow))
-    scr.GetTimeSpan "ftimespan"             |> should equal (TimeSpan.Parse(timespan))
-    scr.GetGuid "fguid"                     |> should equal (Guid.Parse(guid))
+    scr.GetDateTime "fdatetime"             |> should equal (DateTime.Parse(dtStr))
+    scr.GetDateTimeOffset "fdatetimeoffset" |> should equal (DateTimeOffset.Parse(dtOffsetStr))
+    scr.GetTimeSpan "ftimespan"             |> should equal (TimeSpan.Parse(timespanStr))
+    scr.GetGuid "fguid"                     |> should equal (Guid.Parse(guidStr))
 
     scr.GetString("_fstring", "default_value")                         |> should equal "default_value"
     scr.GetStringNonEmpty("_fstring", "default_value")                 |> should equal "default_value"
@@ -169,10 +170,10 @@ let ``RequestData collection should resolve primitives`` () =
     scr.GetBooleanList "fbool"                  |> should equal [true;false]
     scr.GetFloatList "ffloat"                   |> should equal [1.234;1.235]
     scr.GetDecimalList "fdecimal"               |> should equal [4.567M;4.568M]
-    scr.GetDateTimeList "fdatetime"             |> should equal [DateTime.Parse(now)]
-    scr.GetDateTimeOffsetList "fdatetimeoffset" |> should equal [DateTimeOffset.Parse(offsetNow)]
-    scr.GetTimeSpanList "ftimespan"             |> should equal [TimeSpan.Parse(timespan)]
-    scr.GetGuidList "fguid"                     |> should equal [Guid.Parse(guid)]
+    scr.GetDateTimeList "fdatetime"             |> should equal [DateTime.Parse(dtStr)]
+    scr.GetDateTimeOffsetList "fdatetimeoffset" |> should equal [DateTimeOffset.Parse(dtOffsetStr)]
+    scr.GetTimeSpanList "ftimespan"             |> should equal [TimeSpan.Parse(timespanStr)]
+    scr.GetGuidList "fguid"                     |> should equal [Guid.Parse(guidStr)]
 
 
 [<Fact>]
