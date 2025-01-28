@@ -108,7 +108,7 @@ let ``RequestData value lookups are case-insensitive`` () =
 let ``RequestData collection should resolve primitives`` () =
     let dt = DateTime(1986, 12, 12)
     let dtStr = dt.ToString()
-    let dtOffsetStr = DateTimeOffset(dt).ToString("yyyy-MM-ddTHH:mm:sszzz")
+    let dtOffsetStr = DateTimeOffset(dt).ToString()
     let timespanStr = TimeSpan.FromSeconds(1.0).ToString()
     let guidStr = Guid.NewGuid().ToString()
 
@@ -142,10 +142,11 @@ let ``RequestData collection should resolve primitives`` () =
     scr.GetFloat "ffloat"                   |> should equal 1.234
     scr.GetDecimal "fdecimal"               |> should equal 4.567M
     scr.GetDateTime "fdatetime"             |> should equal (DateTime.Parse(dtStr))
-    scr.GetDateTimeOffset "fdatetimeoffset" |> should equal (DateTimeOffset.ParseExact(dtOffsetStr, "yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture))
+    scr.GetDateTimeOffset "fdatetimeoffset" |> should equal (DateTimeOffset.Parse(dtOffsetStr))
     scr.GetTimeSpan "ftimespan"             |> should equal (TimeSpan.Parse(timespanStr))
     scr.GetGuid "fguid"                     |> should equal (Guid.Parse(guidStr))
 
+    // default values
     scr.GetString("_fstring", "default_value")                         |> should equal "default_value"
     scr.GetStringNonEmpty("_fstring", "default_value")                 |> should equal "default_value"
     scr.GetInt16("_fint16", -1s)                                       |> should equal -1s
