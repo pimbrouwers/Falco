@@ -1,6 +1,7 @@
 module Falco.Tests.RequestData
 
 open System
+open System.Globalization
 open System.IO
 open System.Threading
 open System.Threading.Tasks
@@ -107,7 +108,7 @@ let ``RequestData value lookups are case-insensitive`` () =
 let ``RequestData collection should resolve primitives`` () =
     let dt = DateTime(1986, 12, 12)
     let dtStr = dt.ToString()
-    let dtOffsetStr = DateTimeOffset(dt).ToString()
+    let dtOffsetStr = DateTimeOffset(dt).ToString("yyyy-MM-ddTHH:mm:sszzz")
     let timespanStr = TimeSpan.FromSeconds(1.0).ToString()
     let guidStr = Guid.NewGuid().ToString()
 
@@ -141,7 +142,7 @@ let ``RequestData collection should resolve primitives`` () =
     scr.GetFloat "ffloat"                   |> should equal 1.234
     scr.GetDecimal "fdecimal"               |> should equal 4.567M
     scr.GetDateTime "fdatetime"             |> should equal (DateTime.Parse(dtStr))
-    scr.GetDateTimeOffset "fdatetimeoffset" |> should equal (DateTimeOffset.Parse(dtOffsetStr))
+    scr.GetDateTimeOffset "fdatetimeoffset" |> should equal (DateTimeOffset.ParseExact(dtOffsetStr, "yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture))
     scr.GetTimeSpan "ftimespan"             |> should equal (TimeSpan.Parse(timespanStr))
     scr.GetGuid "fguid"                     |> should equal (Guid.Parse(guidStr))
 
