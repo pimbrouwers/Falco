@@ -5,32 +5,24 @@
 <p><a href="https://www.nuget.org/packages/Falco"><img src="https://img.shields.io/nuget/v/Falco.svg" alt="NuGet Version" /></a>
 <a href="https://github.com/pimbrouwers/Falco/actions/workflows/build.yml"><img src="https://github.com/pimbrouwers/Falco/actions/workflows/build.yml/badge.svg" alt="build" /></a></p>
 <pre><code class="language-fsharp">open Falco
-open Falco.Routing
 open Microsoft.AspNetCore.Builder
-
-let endpoints =
-    [
-        get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;)
-    ]
 
 let wapp = WebApplication.Create()
 
-wapp.UseRouting()
-    .UseFalco(endpoints)
-    .Run()
+wapp.Run(Response.ofPlainText &quot;Hello world&quot;)
 </code></pre>
 <p><a href="https://github.com/pimbrouwers/Falco">Falco</a> is a toolkit for building fast and functional-first web applications using F#. You can think of it as <a href="https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-8.0&amp;tabs=visual-studio">minimal API</a> on <em>steroids</em>.</p>
 <ul>
-<li>Built upon the high-performance components of ASP.NET Core.</li>
-<li>Optimized for building full-stack web applications quickly.</li>
+<li>Designed for building pure F# full-stack web applications.</li>
+<li>Built on the high-performance components of ASP.NET Core.</li>
 <li>Seamlessly integrates with existing .NET Core middleware and libraries.</li>
 </ul>
 <h2 id="key-features">Key Features</h2>
 <ul>
-<li>Asynchronous <a href="documentation/response.html">request handling</a>.</li>
 <li>Simple and powerful <a href="documentation/routing.html">routing</a> API.</li>
 <li>Uniform API for <a href="documentation/request.html">accessing <em>any</em> request data</a>.</li>
 <li>Native F# <a href="documentation/markup.html">view engine</a>.</li>
+<li>Asynchronous <a href="documentation/response.html">request handling</a>.</li>
 <li><a href="documentation/authentication.html">Authentication</a> and <a href="documentation/cross-site-request-forgery.html">security</a> utilities.</li>
 <li>Built-in support for <a href="documentation/request.html#multipartform-data-binding">large uploads</a> and <a href="documentation/response.html#content-disposition">binary responses</a>.</li>
 </ul>
@@ -41,9 +33,7 @@ wapp.UseRouting()
 <li>Can be easily learned.</li>
 </ul>
 <h2 id="learn">Learn</h2>
-<p>The best way to get started is by visiting the <a href="https://falcoframework.com/docs">documentation</a>. For questions and support please use <a href="https://github.com/pimbrouwers/Falco/discussions">discussions</a>. The issue list of this repo is <strong>exclusively</strong> for bug reports and feature requests. For chronological updates refer to the <a href="CHANGELOG.html">changelog</a> is the best place to find chronological updates.</p>
-<p>If you want to stay in touch, feel free to reach out on <a href="https://twitter.com/falco_framework">Twitter</a>.</p>
-<p>Have an article or video that you want to share? We'd love to hear from you! To add your content, visit this <a href="https://github.com/pimbrouwers/Falco/discussions/82">discussion</a>.</p>
+<p>The best way to get started is by visiting the <a href="https://falcoframework.com/docs">documentation</a>. For questions and support please use <a href="https://github.com/pimbrouwers/Falco/discussions">discussions</a>. For chronological updates refer to the <a href="CHANGELOG.html">changelog</a> is the best place to find chronological updates.</p>
 <h3 id="related-libraries">Related Libraries</h3>
 <ul>
 <li><a href="https://github.com/pimbrouwers/Falco.Markup">Falco.Markup</a> - an XML markup module primary used as the syntax for <a href="https://www.falcoframework.com/docs/markup.html">authoring HTML with Falco</a>.</li>
@@ -53,7 +43,6 @@ wapp.UseRouting()
 </ul>
 <h3 id="community-projects">Community Projects</h3>
 <ul>
-<li><a href="https://github.com/pimbrouwers/FalcoJournal">FalcoJournal</a> - A bullet journal built with Falco, .NET 5.x and ASP.NET Core.</li>
 <li><a href="https://github.com/adelarsq/falco_graphql_sample">Falco GraphQL Sample</a> - A sample showing how to use GraphQL on Falco using .NET 6.</li>
 <li><a href="https://github.com/jasiozet/falco-api-with-tests-template">Falco API with Tests Sample</a> - A sample project using Falco and unit testing.</li>
 <li><a href="https://github.com/galassie/FalcoSample">Falco + SQLite + Donald</a> - A demo project using Falco, <a href="https://github.com/pimbrouwers/Donald">Donald</a>, and SQLite</li>
@@ -68,15 +57,14 @@ wapp.UseRouting()
 <li>Ben Gobeil - <a href="https://youtu.be/DTy5gIUWvpo">Why I'm Using Falco Instead Of Saturn | How To Switch Your Backend In SAFE Stack | StonkWatch Ep.13</a></li>
 </ul>
 <h2 id="contribute">Contribute</h2>
-<p>Thank you for considering contributing to Falco, and to those who have already contributed! We appreciate (and actively resolve) PRs of all shapes and sizes.</p>
 <p>We kindly ask that before submitting a pull request, you first submit an <a href="https://github.com/pimbrouwers/Falco/issues">issue</a> or open a <a href="https://github.com/pimbrouwers/Falco/discussions">discussion</a>.</p>
 <p>If functionality is added to the API, or changed, please kindly update the relevant <a href="docs">document</a>. Unit tests must also be added and/or updated before a pull request can be successfully merged.</p>
-<p>Only pull requests which pass all build checks and comply with the general coding guidelines can be approved.</p>
+<p>Only pull requests which pass all build checks and comply with the general coding standard can be approved.</p>
 <p>If you have any further questions, submit an <a href="https://github.com/pimbrouwers/Falco/issues">issue</a> or open a <a href="https://github.com/pimbrouwers/Falco/discussions">discussion</a> or reach out on <a href="https://twitter.com/falco_framework">Twitter</a>.</p>
 <h2 id="why-falco">Why &quot;Falco&quot;?</h2>
 <p><a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel">Kestrel</a> has been a game changer for the .NET web stack. In the animal kingdom, &quot;Kestrel&quot; is a name given to several members of the falcon genus. Also known as &quot;Falco&quot;.</p>
 <h2 id="find-a-bug">Find a bug?</h2>
 <p>There's an <a href="https://github.com/pimbrouwers/Falco/issues">issue</a> for that.</p>
 <h2 id="license">License</h2>
-<p>Built with ♥ by <a href="https://github.com/pimbrouwers">Pim Brouwers</a> in Toronto, ON. Licensed under <a href="https://github.com/pimbrouwers/Falco/blob/master/LICENSE">Apache License 2.0</a>.</p>
-</main></div></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>
+<p>Licensed under <a href="https://github.com/pimbrouwers/Falco/blob/master/LICENSE">Apache License 2.0</a>.</p>
+</main></div></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2025 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>

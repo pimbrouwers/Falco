@@ -13,18 +13,16 @@ open Falco.Routing
 open Microsoft.AspNetCore.Builder
 // ^-- this import adds many useful extensions
 
-let endpoints =
-    [
-        get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;)
-        // ^-- associate GET / to plain text HttpHandler
-    ]
-
 let wapp = WebApplication.Create()
 
 wapp.UseRouting()
-    .UseFalco(endpoints)
+    .UseFalco([
     // ^-- activate Falco endpoint source
-    .Run()
+        get &quot;/&quot; (Response.ofPlainText &quot;Hello World!&quot;)
+        // ^-- associate GET / to plain text HttpHandler
+    ])
+    .Run(Response.ofPlainText &quot;Not found&quot;)
+    // ^-- activate Falco endpoint source
 </code></pre>
 <p>First, we open the required namespaces. <code>Falco</code> bring into scope the ability to activate the library and some other extension methods to make the fluent API more user-friendly.</p>
 <p><code>Microsoft.AspNetCore.Builder</code> enables us to create web applications in a number of ways, we're using <code>WebApplication.Create()</code> above. It also adds many other useful extension methods, that you'll see later.</p>
@@ -35,4 +33,4 @@ wapp.UseRouting()
 <li>Run the app.</li>
 </ul>
 <p><a href="example-hello-world-mvc.html">Next: Example - Hello World MVC</a></p>
-</main></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2024 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>
+</main></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2025 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>
