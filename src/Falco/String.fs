@@ -49,16 +49,14 @@ module internal StringParser =
         | x when String.Equals("false", x, StringComparison.OrdinalIgnoreCase) -> Some false
         | v -> tryParseWith Boolean.TryParse v
 
-    let culture = CultureInfo.InvariantCulture
-
     let parseInt16 = tryParseWith Int16.TryParse
     let parseInt64 = tryParseWith Int64.TryParse
     let parseInt32 = tryParseWith Int32.TryParse
-    let parseFloat = tryParseWith (fun x -> Double.TryParse(x, culture))
-    let parseDecimal = tryParseWith (fun x -> Decimal.TryParse(x, culture))
-    let parseDateTime = tryParseWith (fun x -> DateTime.TryParse(x, culture))
-    let parseDateTimeOffset = tryParseWith (fun x -> DateTimeOffset.TryParse(x, culture))
-    let parseTimeSpan = tryParseWith (fun x -> TimeSpan.TryParse(x, culture))
+    let parseFloat = tryParseWith Double.TryParse
+    let parseDecimal = tryParseWith Decimal.TryParse
+    let parseDateTime = tryParseWith (fun x -> DateTime.TryParse(x, null, DateTimeStyles.RoundtripKind))
+    let parseDateTimeOffset = tryParseWith (fun x -> DateTimeOffset.TryParse(x, null, DateTimeStyles.RoundtripKind))
+    let parseTimeSpan = tryParseWith TimeSpan.TryParse
     let parseGuid = tryParseWith Guid.TryParse
 
     /// Attempts to parse, or failwith message.
