@@ -5,9 +5,7 @@ open System.IO
 open System.Text
 open System.Text.Json
 open System.Text.Json.Serialization
-open System.Threading.Tasks
 open Falco
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open NSubstitute
 open Xunit
@@ -15,7 +13,6 @@ open Microsoft.AspNetCore.Routing
 open Microsoft.Net.Http.Headers
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Primitives
-open System.Security.Claims
 
 [<Fact>]
 let ``Request.getVerb should return HttpVerb from HttpContext`` () =
@@ -47,57 +44,10 @@ let ``Request.getRouteValues should return Map<string, string> from HttpContext`
     |> should equal "falco"
 
 [<Fact>]
-let ``Request.ifAuthenticatedWithScope should invoke handleOk if authenticated with scope claim from issuer`` () =
-    let ctx = getHttpContextWriteable true
-    let claims = [
-        Claim("sub", "123", "str", "issuer");
-        Claim("scope", "read create", "str", "another-issuer")
-    ]
-    ctx.User.Claims.Returns(claims) |> ignore
-
-    let handleOk = fun _ -> task { true |> should equal true } :> Task
-    let handleError = fun _ -> task { true |> should equal false } :> Task
-
-    task {
-        do! Request.ifAuthenticatedWithScope "another-issuer" "create" handleOk handleError ctx
-    }
-
-[<Fact>]
-let ``Request.ifAuthenticatedWithScope should invoke handleError if not authenticated`` () =
-    let ctx = getHttpContextWriteable false
-    let claims = [
-        Claim("sub", "123", "str", "issuer");
-        Claim("scope", "read create", "str", "another-issuer")
-    ]
-    ctx.User.Claims.Returns(claims) |> ignore
-
-    let handleOk = fun _ -> task { true |> should equal false } :> Task
-    let handleError = fun _ -> task { true |> should equal true } :> Task
-
-    task {
-        do! Request.ifAuthenticatedWithScope "another-issuer" "create" handleOk handleError ctx
-    }
-
-[<Fact>]
-let ``Request.ifAuthenticatedWithScope should invoke handleError if authenticated with no scope claim from issuer`` () =
-    let ctx = getHttpContextWriteable true
-    let claims = [
-        Claim("sub", "123", "str", "issuer");
-        Claim("scope", "read create", "str", "another-issuer")
-    ]
-    ctx.User.Claims.Returns(claims) |> ignore
-
-    let handleOk = fun _ -> task { true |> should equal false } :> Task
-    let handleError = fun _ -> task { true |> should equal true } :> Task
-
-    task {
-        do! Request.ifAuthenticatedWithScope "issuer" "create" handleOk handleError ctx
-    }
-
-[<Fact>]
 let ``Request.mapJson`` () =
     let ctx = getHttpContextWriteable false
     use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
+    ctx.Request.ContentLength.Returns(13L) |> ignore
     ctx.Request.Body.Returns(ms) |> ignore
 
     let handle json : HttpHandler =
@@ -109,7 +59,8 @@ let ``Request.mapJson`` () =
 [<Fact>]
 let ``Request.mapJsonOption`` () =
     let ctx = getHttpContextWriteable false
-    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\"}"))
+    use ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"name\":\"falco\",\"age\":null}"))
+    ctx.Request.ContentLength.Returns(22L) |> ignore
     ctx.Request.Body.Returns(ms) |> ignore
 
     let handle json : HttpHandler =
@@ -121,7 +72,7 @@ let ``Request.mapJsonOption`` () =
     options.PropertyNameCaseInsensitive <- true
     options.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
 
-    Request.mapJsonOption options handle ctx
+    Request.mapJsonOptions options handle ctx
 
 [<Fact>]
 let ``Request.mapRoute`` () =
@@ -135,15 +86,12 @@ let ``Request.mapRoute`` () =
     Request.mapRoute (fun r -> r.GetString "name") handle ctx
 
 [<Fact>]
-let ``Request.mapCookie`` () =
+let ``Request.getCookie`` () =
     let ctx = getHttpContextWriteable false
     ctx.Request.Cookies <- Map.ofList ["name", "falco"] |> cookieCollection
 
-    let handle name : HttpHandler =
-        name |> should equal "falco"
-        Response.ofEmpty
-
-    Request.mapCookie (fun q -> q.GetString "name") handle ctx
+    let cookies= Request.getCookies ctx
+    cookies?name.AsString() |> should equal "falco"
 
 [<Fact>]
 let ``Request.mapQuery`` () =
@@ -169,11 +117,11 @@ let ``Request.mapForm`` () =
         name |> should equal "falco"
         Response.ofEmpty
 
-    Request.mapForm (fun f -> f.GetString "name") handle ctx |> ignore
+    Request.mapForm (fun f -> f?name.AsString()) handle ctx |> ignore
     Request.mapFormSecure (fun f -> f.GetString "name") handle Response.ofEmpty ctx |> ignore
 
 [<Fact>]
-let ``Request.mapFormStream`` () =
+let ``Request.getForm from Stream`` () =
     let ctx = getHttpContextWriteable false
     let body =
         "--9051914041544843365972754266\r\n" +
@@ -200,8 +148,8 @@ let ``Request.mapFormStream`` () =
     let contentType = "multipart/form-data;boundary=\"9051914041544843365972754266\""
     ctx.Request.ContentType <- contentType
 
-    let handle (formValue : string, files : IFormFileCollection option) : HttpHandler =
-        formValue |> should equal "falco"
+    let handle (requestValue : string, files : IFormFileCollection option) : HttpHandler =
+        requestValue |> should equal "falco"
         files |> shouldBeSome (fun x ->
             x.Count |> should equal 2
 
@@ -215,5 +163,5 @@ let ``Request.mapFormStream`` () =
             st1.CopyTo(ms))
         Response.ofEmpty
 
-    Request.mapFormStream (fun f -> f.GetString "name", f.Files) handle ctx |> ignore
-    Request.mapFormStreamSecure (fun f -> f.GetString "name", f.Files) handle Response.ofEmpty ctx |> ignore
+    Request.mapForm (fun f -> f.GetString "name", f.Files) handle ctx |> ignore
+    Request.mapFormSecure (fun f -> f.GetString "name", f.Files) handle Response.ofEmpty ctx |> ignore

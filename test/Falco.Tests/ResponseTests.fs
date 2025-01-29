@@ -5,7 +5,6 @@ open System.Text.Json
 open System.Text.Json.Serialization
 open Falco
 open Falco.Markup
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Microsoft.Net.Http.Headers
 open NSubstitute
@@ -34,7 +33,7 @@ let ``Response.withHeader should set header`` () =
         do! ctx
             |> (Response.withHeaders [ HeaderNames.Server, serverName ] >> Response.ofEmpty)
 
-        ctx.Response.Headers.[HeaderNames.Server]
+        ctx.Response.Headers.[HeaderNames.Server][0]
         |> should equal serverName
     }
 
@@ -47,7 +46,7 @@ let ``Response.withContentType should set header`` () =
         do! ctx
             |> (Response.withContentType contentType>> Response.ofEmpty)
 
-        ctx.Response.Headers.[HeaderNames.ContentType]
+        ctx.Response.Headers.[HeaderNames.ContentType][0]
         |> should equal contentType
     }
 
@@ -84,8 +83,8 @@ let ``Response.ofBinary produces valid inline result from Byte[]`` () =
 
         let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength
-        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
-        let contentDisposition = ctx.Response.Headers.[HeaderNames.ContentDisposition]
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType][0]
+        let contentDisposition = ctx.Response.Headers.[HeaderNames.ContentDisposition][0]
 
         body               |> should equal expected
         contentType        |> should equal contentType
@@ -104,8 +103,8 @@ let ``Response.ofAttachment produces valid attachment result from Byte[]`` () =
 
         let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength
-        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
-        let contentDisposition = ctx.Response.Headers.[HeaderNames.ContentDisposition]
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType][0]
+        let contentDisposition = ctx.Response.Headers.[HeaderNames.ContentDisposition][0]
 
         body               |> should equal expected
         contentType        |> should equal contentType
@@ -124,10 +123,10 @@ let ``Response.ofPlainText produces text/plain result`` () =
 
         let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength
-        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType][0]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "text/plain; charset=utf-8"
     }
 
@@ -143,10 +142,10 @@ let ``Response.ofJson produces applicaiton/json result`` () =
 
         let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength
-        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType][0]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "application/json; charset=utf-8"
     }
 
@@ -165,10 +164,10 @@ let ``Response.ofJsonOptions produces applicaiton/json result ignoring nulls`` (
 
         let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength
-        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType][0]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "application/json; charset=utf-8"
     }
 
@@ -191,10 +190,10 @@ let ``Response.ofHtml produces text/html result`` () =
 
         let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength
-        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType][0]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "text/html; charset=utf-8"
     }
 
@@ -210,21 +209,21 @@ let ``Response.ofHtmlString produces text/html result`` () =
 
         let! body = getResponseBody ctx
         let contentLength = ctx.Response.ContentLength
-        let contentType = ctx.Response.Headers.[HeaderNames.ContentType]
+        let contentType = ctx.Response.Headers.[HeaderNames.ContentType][0]
 
         body          |> should equal expected
-        contentLength |> should equal (Encoding.UTF8.GetBytes expected).LongLength
+        contentLength |> should equal (int64 (Encoding.UTF8.GetByteCount(expected)))
         contentType   |> should equal "text/html; charset=utf-8"
     }
 
 
 [<Fact>]
-let ``Response.challengeWithRedirect`` () =
+let ``Response.challengeAndRedirect`` () =
     let ctx = getHttpContextWriteable false
 
     task {
         do! ctx
-            |> Response.challengeWithRedirect AuthScheme "/"
+            |> Response.challengeAndRedirect AuthScheme "/"
         ctx.Response.StatusCode |> should equal 401
         ctx.Response.Headers.WWWAuthenticate.ToArray() |> should contain AuthScheme
         ctx.Response.Headers.Location.ToArray() |> should contain "/"

@@ -9,13 +9,16 @@ Bearing this in mind, routing can practically be represented by a list of these 
 ```fsharp
 open Falco
 open Falco.Routing
-open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
 
-webHost [||] {
-    endpoints [
-        get "/" (Response.ofPlainText "Hello World!")
-    ]
-}
+let wapp = WebApplication.Create()
+
+let endpoints =
+    [ get "/" (Response.ofPlainText "hello world") ]
+
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    .Run()
 ```
 
 The preceding example includes a single `HttpEndpoint`:
@@ -29,17 +32,22 @@ The following example shows a more sophisticated `HttpEndpoint`:
 ```fsharp
 open Falco
 open Falco.Routing
-open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
 
-webHost [||] {
-    endpoints [
+let wapp = WebApplication.Create()
+
+let endpoints =
+    [
         get "/hello/{name:alpha}" (fun ctx ->
             let route = Request.getRoute ctx
             let name = route.GetString "name"
             let message = sprintf "Hello %s" name
             Response.ofPlainText message ctx)
     ]
-}
+
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    .Run()
 ```
 
 The string `/hello/{name:alpha}` is a **route template**. It is used to configure how the endpoint is matched. In this case, the template matches:
@@ -53,21 +61,25 @@ The second segment of the URL path, `{name:alpha}`:
 - Is bound to the `name` parameter.
 - Is captured and stored in `HttpRequest.RouteValues`, which Falco exposes through a [uniform API](request.md) to obtain primitive typed values.
 
-An alternative way to express the `HttEndpoint` above is seen below. Note the omission of the `ctx` parameter, made possible by the [Request](request.md) module:
+An alternative way to express the `HttEndpoint` above is seen below.
 
 ```fsharp
 open Falco
 open Falco.Routing
-open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
 
-webHost [||] {
-    endpoints [
-        get "/hello/{name:alpha}"
-            (Request.mapRoute
-                (fun route -> route.GetString "name" "John Doe")
-                Response.ofPlainText)
-    ]
-}
+let wapp = WebApplication.Create()
+
+let greetingHandler name : HttpHandler =
+    let message = sprintf "Hello %s" name
+    Response.ofPlainText message
+
+let endpoints =
+    [ mapGet "/hello/{name:alpha}" (fun route -> r.GetString "name") greetingHandler ]
+
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    .Run()
 ```
 
 ## Multi-method Endpoints
@@ -78,22 +90,28 @@ To create a "multi-method" endpoint, the `all` function accepts a list of HTTP V
 
 ```fsharp
 open Falco
-open Falco.Routing
-open Falco.HostBuilder
+open Falco.Markup
+open Microsoft.AspNetCore.Builder
 
 let form =
     Templates.html5 "en" [] [
-        [ Elem.form [ Attr.method "post" ] [
+        Elem.form [ Attr.method "post" ] [
             Elem.input [ Attr.name "name" ]
             Elem.input [ Attr.type' "submit" ] ] ]
 
-webHost [||] {
-    endpoints [
-        get "/hello" (Response.ofPlainText "/hello")
-        all "/form"  [GET, Response.ofHtml form
-                      POST, Request.debug] // useful development tool
+let wapp = WebApplication.Create()
+
+let endpoints =
+    [
+        get "/" (Response.ofPlainText "Hello from /")
+        all "/form" [
+            GET, Response.ofHtml form
+            POST, Response.ofEmpty ]
     ]
-}
+
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    .Run()
 ```
 
 [Next: Writing responses](response.md)

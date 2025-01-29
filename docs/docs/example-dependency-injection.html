@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Falco - F# web toolkit for ASP.NET Core</title><meta name="description" content="A functional-first toolkit for building brilliant ASP.NET Core applications using F#." /><link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /><link rel="icon" href="/favicon.ico" type="image/x-icon" /><link rel="preconnect" href="https://fonts.gstatic.com" /><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" /><link href="/prism.css" rel="stylesheet" /><link href="/tachyons.css" rel="stylesheet" /><link href="/style.css" rel="stylesheet" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script><script>window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-D62HSJHMNZ');</script></head><body class="noto lh-copy"><div class="min-vh-100 mw9 center pa3 overflow-hidden"><nav class="sidebar w-20-l fl-l mb3 mb0-l"><div class="flex items-center"><a href="/docs" class="db w3 w4-l"><img src="/brand.svg" class="br3" /></a><h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2></div><div class="dn db-l"><h3>Contents</h3><ul class="nl3 f6"><li><a href="get-started.html">Getting Started</a></li><li><a href="routing.html">Routing</a></li><li><a href="response.html">Writing responses</a></li><li><a href="request.html">Accessing request data</a></li><li><a href="markup.html">View engine</a></li><li><a href="cross-site-request-forgery.html">Security</a><ul><li><a href="cross-site-request-forgery.html">Cross Site Request Forgery (XSRF)</a></li><li><a href="authentication.html">Authentication & Authorization</a></li></ul></li><li><a href="example-hello-world.html">Examples</a><ul><li><a href="example-hello-world.html">Hello World</a></li><li><a href="example-hello-world-mvc.html">Hello World MVC</a></li><li><a href="example-dependency-injection.html">Dependency Injection</a></li><li><a href="example-external-view-engine.html">Hello World</a></li><li><a href="example-basic-rest-api.html">Basic REST API</a></li></ul></li><li><a href="migrating-from-v4-to-v5.html">V5 Migration Guide</a></li></ul></div></nav><main class="w-80-l fl-l pl3-l"><h1 id="example-dependency-injection">Example - Dependency Injection</h1>
+<p>An important and nuanced subject to discuss is dependency injection. There's a myriad of beliefs and approaches, all of which have their merit. In the case of Falco, you are living in the world of ASP.NET which has <a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection">built-in support</a> for this. It works very well and you should use it. But make sure you follow through their <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0">docs</a> on how it works and integrates with ASP.NET.</p>
+<p>Going back to our basic <a href="example-hello-world.html">Hello World</a> app, let's add in an external dependency to demonstrate some of the basics of dependency injection in Falco.</p>
+<p>The code for this example can be found <a href="https://github.com/pimbrouwers/Falco/tree/master/examples/DependencyInjection">here</a>.</p>
+<h2 id="creating-the-application-manually">Creating the Application Manually</h2>
+<pre><code class="language-shell">&gt; dotnet new falco -o DependencyInjectionApp
+</code></pre>
+<h2 id="creating-abstraction">Creating Abstraction</h2>
+<p>The benefit of abstracting functionality is that it removes the coupling between your implementation and the calling code. You instead rely on an accepted definition of what something does.</p>
+<p>F# has excellent support for <a href="https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/classes">object programming</a>. There might be an urge to avoid this type of approach because &quot;ugh classes are gross&quot;. But suck it up buttercup, they are wickedly useful in many cases and a reminder that F# code doesn't have to adhere to some functional purism.</p>
+<p>In the case of our application, we're going to define an abstraction for greeting patrons. Then write a simple implementation.</p>
+<blockquote>
+<p>This is a completely contrived example, created purely to demonstrate how to register and consume dependencies.</p>
+</blockquote>
+<pre><code class="language-fsharp">type IGreeter =
+    abstract member Greet : name : string -&gt; string
+
+type FriendlyGreeter() =
+    interface IGreeter with
+        member _.Greet(name : string) =
+            $&quot;Hello {name} 😀&quot;
+</code></pre>
+<p>Simple enough, we describe an <code>IGreeter</code> as having the ability to <code>Greet</code> in the form of receiving a name string and return a string message. Next we define an implementation that fulfills this interface in a friendly way.</p>
+<h2 id="registering-the-dependency">Registering the Dependency</h2>
+<p>To provide runtime access to our greeter, we have to register the dependency in the container. The abstraction from ASP.NET for this is called <code>IServiceCollection</code>. You can register dependencies in a number of ways, but fundamental to all is the concept of <a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection#service-lifetimes">service lifetime</a>. It distills down to:</p>
+<ul>
+<li>Transient = new for every container access</li>
+<li>Scoped = new for every client request</li>
+<li>Singleton = created at startup, or first container access</li>
+</ul>
+<p>Our greeter is both stateless and cheap to construct. So any of the lifetimes will suffice. But let's register it as a singleton. This time however, we'll create our web server in two stages, to gain access to the dependency container.</p>
+<pre><code class="language-fsharp">let bldr = WebApplication.CreateBuilder() // &lt;-- create a configurable web application builder
+
+bldr.Services
+    .AddSingleton&lt;IGreeter, FriendlyGreeter&gt;() // &lt;-- register the greeter as singleton in the container
+    |&gt; ignore
+
+let wapp = bldr.Build() // &lt;-- manifest our WebApplication
+
+let endpoints =
+    [
+        mapGet &quot;/{name?}&quot;
+            (fun r -&gt; r?name.AsString(&quot;world&quot;))
+            (fun name ctx -&gt;
+                let greeter = ctx.Plug&lt;IGreeter&gt;() // &lt;-- access our dependency from the container
+                let greeting = greeter.Greet(name) // &lt;-- invoke our greeter.Greet(name) method
+                Response.ofPlainText greeting ctx)
+    ]
+
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    .Run()
+</code></pre>
+<p>Following through you can see the web server being created in two phases. The first to establish the context (i.e., logging, server configuration and dependencies). Second, freezing the final state and creating a configurable web application.</p>
+<p>Within the handler you can see the interaction with the dependency container using <code>ctx.Plug&lt;IGreeter&gt;()</code>. This code tells the container to return the implementation it has registered for that abstraction. In our case <code>FriendlyGreeter</code>.</p>
+<h2 id="wrapping-up">Wrapping Up</h2>
+<p>Now that we're finished introducing dependency injection, let's move on to a real world example by integrating with an external view engine.</p>
+<p><a href="example-external-view-engine.html">Next: Example - External View Engine</a></p>
+</main></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2025 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>

@@ -4,6 +4,7 @@ open Xunit
 open Falco
 open Falco.Routing
 open FsUnit.Xunit
+open Microsoft.AspNetCore.Routing
 
 let emptyHandler : HttpHandler = Response.ofPlainText ""
 
@@ -15,7 +16,7 @@ let ``route function should return valid HttpEndpoint`` () =
     let endpoint = route routeVerb routePattern emptyHandler
     endpoint.Pattern |> should equal routePattern
 
-    let (verb, handler) = endpoint.Handlers.Head
+    let (verb, handler) = Seq.head endpoint.Handlers
     verb |> should equal routeVerb
     handler |> should be instanceOfType<HttpHandler>
 
@@ -27,7 +28,7 @@ let ``any function returns HttpEndpoint matching ANY HttpVerb`` () =
         let pattern = "/"
         let endpoint = mapEndPoint pattern emptyHandler
         endpoint.Pattern |> should equal pattern
-        let (verb, handler) = endpoint.Handlers.Head
+        let (verb, handler) = Seq.head endpoint.Handlers
         verb |> should equal verb
         handler |> should be instanceOfType<HttpHandler>
 
@@ -43,3 +44,13 @@ let ``any function returns HttpEndpoint matching ANY HttpVerb`` () =
         trace, TRACE
     ]
     |> List.iter (fun (fn, verb) -> testEndpointFunction fn verb)
+
+[<Fact>]
+let ``a test`` () =
+    let endpoint = route GET "/" emptyHandler |> setDisplayName "emptyHandler" |> setOrder 99
+    let dataSource = FalcoEndpointDataSource([ endpoint ])
+    let builtEndpoints = dataSource.Endpoints
+    builtEndpoints |> should haveCount 1
+    let builtEndpoint = Seq.head builtEndpoints :?> RouteEndpoint
+    builtEndpoint.DisplayName |> should equal "emptyHandler"
+    builtEndpoint.Order |> should equal 99

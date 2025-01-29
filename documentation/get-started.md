@@ -34,17 +34,23 @@ Install the nuget package:
 Remove any `*.fs` files created automatically, create a new file named `Program.fs` and set the contents to the following:
 
 ```fsharp
-module HelloWorld.Program
-
 open Falco
 open Falco.Routing
-open Falco.HostBuilder
+open Microsoft.AspNetCore.Builder
+// ^-- this import adds many useful extensions
 
-webHost [||] {
-    endpoints [
-        get "/" (Response.ofPlainText "Hello World")
+let endpoints =
+    [
+        get "/" (Response.ofPlainText "Hello World!")
+        // ^-- associate GET / to plain text HttpHandler
     ]
-}
+
+let wapp = WebApplication.Create()
+
+wapp.UseRouting()
+    .UseFalco(endpoints)
+    // ^-- activate Falco endpoint source
+    .Run()
 ```
 
 Run the application:
@@ -53,10 +59,10 @@ Run the application:
 > dotnet run
 ```
 
-And there you have it, an industrial-strength [Hello World](https://github.com/pimbrouwers/Falco/tree/master/samples/HelloWorld) web app. Pretty sweet!
+And there you have it, an industrial-strength [Hello World](https://github.com/pimbrouwers/Falco/tree/master/examples/HelloWorld) web app. Pretty sweet!
 
 ## Sample Applications
 
-Code is worth a thousand words. For the most up-to-date usage, the [samples](https://github.com/pimbrouwers/Falco/tree/master/samples/) directory contains a few sample applications.
+Code is worth a thousand words. For the most up-to-date usage, the [examples](https://github.com/pimbrouwers/Falco/tree/master/examples/) directory contains a few sample applications.
 
 [Next: Routing](routing.md)

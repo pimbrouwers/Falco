@@ -1,0 +1,105 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Falco - F# web toolkit for ASP.NET Core</title><meta name="description" content="A functional-first toolkit for building brilliant ASP.NET Core applications using F#." /><link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" /><link rel="icon" href="/favicon.ico" type="image/x-icon" /><link rel="preconnect" href="https://fonts.gstatic.com" /><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" /><link href="/prism.css" rel="stylesheet" /><link href="/tachyons.css" rel="stylesheet" /><link href="/style.css" rel="stylesheet" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ"></script><script>window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-D62HSJHMNZ');</script></head><body class="noto lh-copy"><div class="min-vh-100 mw9 center pa3 overflow-hidden"><nav class="sidebar w-20-l fl-l mb3 mb0-l"><div class="flex items-center"><a href="/docs" class="db w3 w4-l"><img src="/brand.svg" class="br3" /></a><h2 class="dn-l mt3 ml3 fw4 gray">Falco Documentation</h2></div><div class="dn db-l"><h3>Contents</h3><ul class="nl3 f6"><li><a href="get-started.html">Getting Started</a></li><li><a href="routing.html">Routing</a></li><li><a href="response.html">Writing responses</a></li><li><a href="request.html">Accessing request data</a></li><li><a href="markup.html">View engine</a></li><li><a href="cross-site-request-forgery.html">Security</a><ul><li><a href="cross-site-request-forgery.html">Cross Site Request Forgery (XSRF)</a></li><li><a href="authentication.html">Authentication & Authorization</a></li></ul></li><li><a href="example-hello-world.html">Examples</a><ul><li><a href="example-hello-world.html">Hello World</a></li><li><a href="example-hello-world-mvc.html">Hello World MVC</a></li><li><a href="example-dependency-injection.html">Dependency Injection</a></li><li><a href="example-external-view-engine.html">Hello World</a></li><li><a href="example-basic-rest-api.html">Basic REST API</a></li></ul></li><li><a href="migrating-from-v4-to-v5.html">V5 Migration Guide</a></li></ul></div></nav><main class="w-80-l fl-l pl3-l"><h1 id="example-external-view-engine">Example - External View Engine</h1>
+<p>Falco comes packaged with a <a href="markup.html">built-in view engine</a>. But if you'd prefer to write your own templates, or use an external template engine, that is entirely possible as well.</p>
+<p>In this example we'll do some basic page rendering by integrating with <a href="https://github.com/scriban/scriban">scriban</a>. An amazing template engine by <a href="https://github.com/xoofx">xoofx</a>.</p>
+<p>The code for this example can be found <a href="https://github.com/pimbrouwers/Falco/tree/master/examples/ExternalViewEngine">here</a>.</p>
+<h2 id="creating-the-application-manually">Creating the Application Manually</h2>
+<pre><code class="language-shell">&gt; dotnet new falco -o ExternalViewEngineApp
+&gt; cd ExternalViewEngineApp
+&gt; dotnet add package Scriban
+</code></pre>
+<h2 id="implementing-a-template-engine">Implementing a Template Engine</h2>
+<p>There are a number of ways we could achieve this functionality. But in sticking with our previous examples, we'll create an interface. To keep things simple we'll use inline string literals for templates and perform rendering synchronously.</p>
+<pre><code class="language-fsharp">open Scriban
+
+type ITemplate =
+    abstract member Render : template: string * model: obj -&gt; string
+
+type ScribanTemplate() =
+    interface ITemplate with
+        member _.Render(template, model) =
+            let tmpl = Template.Parse template
+            tmpl.Render(model)
+</code></pre>
+<p>We define an interface <code>ITemplate</code> which describes template rendering as a function that receives a template string literal and a model, producing a string literal. Then we implement this interface definition using Scriban.</p>
+<h2 id="rendering-pages">Rendering Pages</h2>
+<p>To use our Scriban template engine we'll need to request it from the dependency container, then pass it our template literal and model.</p>
+<blockquote>
+<p>See <a href="example-dependency-injection.html">dependency injection</a> for further explanation.</p>
+</blockquote>
+<p>Since rendering more than one page is the goal, we'll create a shared <code>renderPage</code> function to do the dirty work for us.</p>
+<pre><code class="language-fsharp">open Falco
+
+module Pages =
+    let private renderPage pageTitle template viewModel : HttpHandler = fun ctx -&gt;
+        let templateService = ctx.Plug&lt;ITemplate&gt;() // &lt;-- obtain our template service from the dependency container
+        let pageContent = templateService.Render(template, viewModel) // &lt;-- render our template with the provided view model as string literal
+        let htmlTemplate = &quot;&quot;&quot;
+            &lt;!DOCTYPE html&gt;
+            &lt;html&gt;
+            &lt;head&gt;
+                &lt;meta charset=&quot;utf-8&quot;&gt;
+                &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+                &lt;title&gt;{{title}}&lt;/title&gt;
+            &lt;/head&gt;
+            &lt;body&gt;
+                {{content}}
+            &lt;/body&gt;
+            &lt;/html&gt;
+        &quot;&quot;&quot;
+        // ^ these triple quoted strings auto-escape characters like double quotes for us
+        //   very practical for things like HTML
+
+        let html = templateService.Render(htmlTemplate, {| Title = pageTitle; Content = pageContent |})
+
+        Response.ofHtmlString html ctx // &lt;-- return template literal as &quot;text/html; charset=utf-8&quot; response
+</code></pre>
+<p>In this function we obtain the instance of our template engine, and immediately render the user-provided template and model. Next, we define a local template literal to serve as our layout. Assigning two simple inputs, <code>{{title}}</code> and <code>{{content}}</code>. Then we render the layout template using our template engine and an anonymous object literal <code>{| Title = pageTitle; Content = pageContent |}</code>, responding with the result of this as <code>text/html</code>.</p>
+<p>To render pages, we simply need to create a localized template literal, and feed it into our <code>renderPage</code> function. Below we define a home and 404 page.</p>
+<pre><code class="language-fsharp">    let homepage : HttpHandler = fun ctx -&gt;
+        let query = Request.getQuery ctx // &lt;-- obtain access to strongly-typed representation of the query string
+        let viewModel = {| Name = query?name.AsStringNonEmpty(&quot;World&quot;) |} // &lt;-- access 'name' from query, or default to 'World'
+        let template = &quot;&quot;&quot;
+            &lt;h1&gt;Hello {{ name }}!&lt;/h1&gt;
+        &quot;&quot;&quot;
+        renderPage $&quot;Hello {viewModel.Name}&quot; template viewModel ctx
+
+    let notFound : HttpHandler =
+        let template = &quot;&quot;&quot;
+            &lt;h1&gt;Page not found&lt;/h1&gt;
+        &quot;&quot;&quot;
+        renderPage &quot;Page Not Found&quot; template {||}
+</code></pre>
+<h2 id="registering-the-template-engine">Registering the Template Engine</h2>
+<p>Since our Scriban template engine is stateless and dependency-free, we can use the generic extension method to register it as a singleton.</p>
+<blockquote>
+<p>Note: <code>Transient</code> and <code>Scoped</code> lifetimes would also work here.</p>
+</blockquote>
+<pre><code>open Falco
+open Falco.Routing
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.DependencyInjection
+
+[&lt;EntryPoint&gt;]
+let main args =
+    let bldr = WebApplication.CreateBuilder(args)
+
+    bldr.Services
+        .AddSingleton&lt;ITemplate, ScribanTemplate&gt;() // &lt;-- register ITemplates implementation as a dependency
+        |&gt; ignore
+
+    let endpoints =
+        [ get &quot;/&quot; Pages.homepage ]
+
+    let wapp = bldr.Build()
+
+    wapp.UseRouting()
+        .UseFalco(endpoints)
+        .UseFalcoNotFound(Pages.notFound)
+        .Run()
+
+    0 // Exit code
+</code></pre>
+</main></div><footer class="cl pa3 bg-merlot"><div class="f7 tc white-70">&copy; 2020-2025 Pim Brouwers & contributors.</div></footer><script src="/prism.js"></script></body></html>

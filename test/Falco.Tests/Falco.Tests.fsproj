@@ -1,34 +1,32 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="StringCollectionReaderTests.fs" />
-    <Compile Include="ExtensionsTests.fs" />
-    <Compile Include="RoutingTests.fs" />
-    <Compile Include="SecurityTests.fs" />
+    <Compile Include="RequestValueTests.fs" />
+    <Compile Include="RequestDataTests.fs" />
     <Compile Include="MultipartTests.fs" />
-    <Compile Include="ResponseTests.fs" />
+    <Compile Include="SecurityTests.fs" />
     <Compile Include="RequestTests.fs" />
-    <Compile Include="ConfigBuilderTests.fs" />
+    <Compile Include="ResponseTests.fs" />
+    <Compile Include="RoutingTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FsUnit.Xunit" Version="4.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
-    <PackageReference Include="NSubstitute" Version="4.2.2" />
-    <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+    <PackageReference Include="FsUnit.Xunit" Version="6.*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="NSubstitute" Version="5.*" />
+    <PackageReference Include="xunit" Version="2.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="1.3.0">
+    <PackageReference Include="coverlet.collector" Version="6.*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -36,11 +34,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Falco\Falco.fsproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="appsettings.json;appsettings.ini;appsettings.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 </Project>

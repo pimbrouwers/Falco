@@ -19,7 +19,7 @@ let htmlHandler : HttpHandler =
         Elem.html [ Attr.lang "en" ] [
             Elem.head [] []
             Elem.body [] [
-                Elem.h1 [] [ Text.raw "Sample App" ]
+                Text.h1 "Sample App" // shorthand for: `Elem.h1 [] [ Text.raw "Sample App" ]`
             ]
         ]
 
@@ -36,7 +36,7 @@ let secureHtmlHandler : HttpHandler =
                     Elem.input [ Attr.name "last_name" ]
 
                     // using the CSRF HTML helper
-                    Xss.antiforgeryInput token
+                    Xsrf.antiforgeryInput token
 
                     Elem.input [ Attr.type' "submit"; Attr.value "Submit" ]
                 ]
@@ -120,10 +120,9 @@ let handlerWithHeaders : HttpHandler =
     >> Response.ofPlainText "Hello world"
 ```
 
-
 ### Add a cookie to the response
 
-> IMPORTANT: *Do not* use this for authentication. Instead use the `Response.signInAndRedirect` and `Response.signOutAndRedirect` functions found in the [Authentication](security.md) module.
+> IMPORTANT: *Do not* use this for authentication. Instead use the `Response.signInAndRedirect` and `Response.signOutAndRedirect` functions found in the [Authentication](authenication.md) module.
 
 ```fsharp
 let handlerWithCookie : HttpHandler =
@@ -136,16 +135,5 @@ let handlerWithCookieOptions : HttpHandler =
     Response.withCookie options "greeted" "1"
     >> Response.ofPlainText "Hello world"
 ```
-
-
-## Debugging Requests
-
-For debugging scenarios, the `Response.debugRequest` will pretty print the request details to the screen.
-
-```fsharp
-let debugHandler : HttpHandler =
-    Response.debugRequest
-```
-
 
 [Next: Accessing request data](request.md)

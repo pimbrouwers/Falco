@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.0] - 2025-01-28
+
+### Added
+
+- Declarative OpenAPI support.
+- `RequestData` (and `RequestValue`) to support complex form & query submissions,
+  - Provided by an HTTP key/value pair (i.e., `name=falco&classification=toolkit`) parser.
+  - A derivative `FormData` contains parsed `RequestValue` and access to `IFormFileCollection`.
+- `HttpContext.Plug<T>` for generic injection support of dependencies within `HttpHandler`'s (service locator pattern).
+- `Request.getJson<T>` for generic JSON request deserialization, using default settings (property name case-insensitive, trailing commas allowed).
+- `Request.getCookies`, replacing `Request.getCookie`.
+- `Response.signInOptions` to sign in claim principal for provided scheme and options then responds with a 301 redirect to provided URL.
+- `Response.challengeAndRedirect`, replacing `Response.challengeWithRedirect`.
+- `Routing.map[Get|Head|Post|Put|Patch|Delete|Options|Trace|Any]` which produces `HttpEndpoint` by associating a route pattern to an `HttpHandler` after mapping route.
+- `Routing.setDisplayName` to set the display name of the endpoint.
+- `Routing.setOrder` to set the order number of the endpoint.
+- `WebApplication.run`, registers the provided `HttpHandler` as the terminal middleware and runs the application.
+
+### Changed
+
+- `Xss` module renamed to `Xsrf`. Functions: `Xsrf.antiforgeryInput`, `Xsrf.getToken` & `Xsrf.validateToken`.
+
+
+### Fixed
+
+- Missing cancellation token pass-through during form reading, `multipart/form-data` streaming and JSON serialization/deserialization.
+- Empty request body support for JSON request methods.
+- `WebApplication.UseFalcoNotFound` & `IApplicationBuilder.UseFalcoNotFound` to correctly terminate by returning `unit` akin to the native method.
+
+### Removed
+
+- `net6.0` support dropped (end of life 2024-11-12).
+- `webHost [||] {}` builder removed.
+- `config {}` builder removed.
+- `HttpContext.GetLogger<T>()` extension removed.
+- `IApplicationBuilder.IsDevelopment()`, `IApplicationBuilder.UseWhen()` extensions removed.
+- `Services.inject<T>` (and overloads) removed.
+- `Response.withContentLength` removed (unsupported).
+- `StringCollectionReader` and derivatives removed (`FormCollectionReader`, `QueryCollectionReader`, `RouteCollectionReader`, `HeaderCollectionReader`, and `CookieCollectionReader`).
+    - All replaced by homogenous `RequestData` type.
+- `Request.streamForm`, `Request.streamFormSecure`, `Request.mapFormStream` and `Request.mapFormStreamSecure` removed.
+- `Falco.Security.Crypto` and `Falco.Security.Auth` modules removed.
+- Removed `Request.getCookie`, renamed `Request.getCookies`.
+- Removed `Response.challengeWithRedirect`, renamed `Response.challengeAndRedirect`.
+- Removed `Response.debugRequest`.
+
 ## [4.0.6] - 2023-12-12
 
 - `net7.0` and `net8.0` support added.

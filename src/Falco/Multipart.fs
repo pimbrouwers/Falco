@@ -3,6 +3,7 @@ namespace Falco
 open System
 open System.IO
 open System.Net
+open System.Threading
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.WebUtilities
@@ -28,12 +29,12 @@ module Multipart =
             | false, _     -> None
             | true, parsed -> Some parsed
 
-        member private x.StreamSectionAsync() =
+        member private x.StreamSectionAsync(ct : CancellationToken) =
             task {
                 match MultipartSection.TryGetContentDisposition(x) with
                 | Some cd when cd.IsFileDisposition() ->
                     let str = new MemoryStream()
-                    do! x.Body.CopyToAsync(str)
+                    do! x.Body.CopyToAsync(str, ct)
 
                     let safeFileName = WebUtility.HtmlEncode cd.FileName.Value
                     let file = new FormFile(str, int64 0, str.Length, cd.Name.Value, safeFileName)
@@ -52,9 +53,9 @@ module Multipart =
                     let key = HeaderUtilities.RemoveQuotes(cd.Name).Value
                     let encoding = MultipartSection.GetEncodingFromContentType(x)
                     use str = new StreamReader(x.Body, encoding, true, 1024, true)
-                    let! formValue = str.ReadToEndAsync()
+                    let! requestValue = str.ReadToEndAsync()
 
-                    return FormValueData (key, formValue)
+                    return FormValueData (key, requestValue)
 
                 | Some _
                 | None ->
@@ -62,7 +63,7 @@ module Multipart =
             }
 
     type MultipartReader with
-        member x.StreamSectionsAsync() =
+        member x.StreamSectionsAsync(ct : CancellationToken) =
             task {
                 let formData = new KeyValueAccumulator()
                 let formFiles = new FormFileCollection()
@@ -70,14 +71,14 @@ module Multipart =
                 let mutable shouldContinue = true
 
                 while shouldContinue do
-                    let! section = x.ReadNextSectionAsync()
+                    let! section = x.ReadNextSectionAsync(ct)
 
                     match isNull section with
                     | true ->
                         shouldContinue <- false
 
                     | false ->
-                        let! sectionData = section.StreamSectionAsync()
+                        let! sectionData = section.StreamSectionAsync(ct)
 
                         match sectionData with
                         | FormFileData file          -> formFiles.Add(file)
@@ -86,4 +87,33 @@ module Multipart =
 
                 let formCollection = FormCollection(formData.GetResults(), formFiles) :> IFormCollection
                 return formCollection
+            }
+
+    type HttpRequest with
+        /// Determines if the content type contains multipart.
+        member internal x.IsMultipart () : bool =
+            x.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0
+
+        member private x.GetBoundary() =
+            // Content-Type: multipart/form-data; boundary="----WebKitFormBoundarymx2fSWqWSd0OxQqq"
+            // The spec at https://tools.ietf.org/html/rfc2046#section-5.1 states that 70 characters is a reasonable limit.
+            let lengthLimit = 70
+            let contentType = MediaTypeHeaderValue.Parse(StringSegment(x.ContentType))
+            let boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary).Value;
+            match boundary with
+            | b when isNull b -> None
+            | b when b.Length > lengthLimit -> None
+            | b -> Some b
+
+        /// Attempts to stream the HttpRequest body into IFormCollection.
+        member x.StreamFormAsync (ct : CancellationToken) : Task<IFormCollection> =
+            task {
+                match x.IsMultipart(), x.GetBoundary() with
+                | true, Some boundary ->
+                    let multipartReader = new MultipartReader(boundary, x.Body)
+                    let! formCollection = multipartReader.StreamSectionsAsync(ct)
+                    return formCollection
+
+                | _, None
+                | false, _ -> return FormCollection.Empty
             }

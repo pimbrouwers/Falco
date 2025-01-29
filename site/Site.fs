@@ -1,54 +1,36 @@
 open System
 open System.IO
 open System.Linq
-open System.Net.Http
 open System.Text.RegularExpressions
+open Falco.Markup
 open Markdig
 open Markdig.Extensions.Yaml
 open Markdig.Renderers
+open Markdig.Renderers.Html
 open Markdig.Syntax
-open Scriban
 
-module Log =
-    let private log kind fmt =
-        Printf.kprintf (fun s ->
-            let now = DateTime.Now
-            let msg = sprintf "[%s] [%s] %s" (now.ToString("s")) kind s
+type LayoutModel =
+    { Title : string
+      MainContent : string }
 
-            printfn "%s" msg) fmt
-
-    let fail fmt = log "Fail" fmt
-
-    let info fmt = log "Info" fmt
-
-module Path =
-    let resolve (childPath : string) =
-        Path.Join(__SOURCE_DIRECTORY__, childPath)
-
-module Directory =
-    let copyRecursive (destinationDir : DirectoryInfo) (sourceDir : DirectoryInfo) =
-        let rec copy (destDir : DirectoryInfo) (srcDir : DirectoryInfo) =
-            for subDir in srcDir.GetDirectories() do
-                let subDestDir = DirectoryInfo(Path.Join(destDir.FullName, subDir.Name))
-                copy subDestDir subDir
-
-            for file in srcDir.GetFiles() do
-                if not(destDir.Exists) then destDir.Create()
-                File.Copy(file.FullName, Path.Join(destDir.FullName, file.Name))
-
-        copy destinationDir sourceDir
+type LayoutTwoColModel =
+    { Title : string
+      SideContent : XmlNode list
+      MainContent : string }
 
 type ParsedMarkdownDocument =
     { Title : string
       Body  : string }
 
 module Markdown =
-    let render (markdown : string) =
+    let render (markdown : string) : ParsedMarkdownDocument =
+        // Render Markdown as HTML
         let pipeline =
             MarkdownPipelineBuilder()
                 .UseAutoIdentifiers()
                 .UsePipeTables()
                 .UseYamlFrontMatter()
+                .UseAutoLinks()
                 .Build()
 
         use sw = new StringWriter()
@@ -62,153 +44,294 @@ module Markdown =
         sw.Flush() |> ignore
         let renderedMarkdown = sw.ToString()
 
+        // Extract front matter
         let frontmatter =
             match doc.Descendants<YamlFrontMatterBlock>().FirstOrDefault() with
             | null -> Map.empty
             | yamlBlock ->
                 markdown
-                    .Substring(yamlBlock.Span.Start, yamlBlock.Span.End)
+                    .Substring(yamlBlock.Span.Start, yamlBlock.Span.End - yamlBlock.Span.Start + 1)
                     .Split("\r")
-                |> Array.tail
-                |> Array.rev
-                |> Array.tail
                 |> Array.map (fun x ->
                     let keyValue = x.Split(":")
                     keyValue.[0].Trim(), keyValue.[1].Trim())
                 |> Map.ofArray
 
-        // rewrite markdown links
+        // Rewrite direct markdown doc links
         let body = Regex.Replace(renderedMarkdown, "([a-zA-Z\-]+)\.md", "$1.html")
 
         { Title = Map.tryFind "title" frontmatter |> Option.defaultValue ""
-          Body  = body }
+          Body = body }
 
     let renderFile (path : string) =
         render (File.ReadAllText(path))
 
-type LayoutTemplate =
-    { Title : string
-      MainContent : string
-      CopyrightYear : int }
+module View =
+    let docsLinks =
+        [
+            Elem.h3 [] [ Text.raw "Project Links" ]
+            Elem.a [ Attr.href "/"] [ Text.raw "Project Homepage" ]
+            Elem.a [ Attr.class' "db"; Attr.href "https://github.com/pimbrouwers/Falco"; Attr.targetBlank ]
+                [ Text.raw "Source Code" ]
+            Elem.a [ Attr.class' "db"; Attr.href "https://github.com/pimbrouwers/Falco/issues"; Attr.targetBlank ]
+                [ Text.raw "Issue Tracker" ]
+            Elem.a [ Attr.class' "db"; Attr.href "https://github.com/pimbrouwers/Falco/discussions"; Attr.targetBlank ]
+                [ Text.raw "Discussion" ]
+            Elem.a [ Attr.class' "db"; Attr.href "https://twitter.com/falco_framework"; Attr.targetBlank ]
+                [ Text.raw "Twitter" ]
+        ]
 
-type LayoutTwoColTemplate =
-    { Title : string
-      SideContent : string
-      MainContent : string
-      CopyrightYear : int }
+    let docsNav =
+        [
+            Text.h3 "Contents"
+            Elem.ul [ Attr.class' "nl3 f6" ] [
+                Elem.li [] [ Elem.a [ Attr.href "get-started.html" ] [ Text.raw "Getting Started" ] ]
+                Elem.li [] [ Elem.a [ Attr.href "routing.html" ] [ Text.raw "Routing" ] ]
+                Elem.li [] [ Elem.a [ Attr.href "response.html" ] [ Text.raw "Writing responses" ] ]
+                Elem.li [] [ Elem.a [ Attr.href "request.html" ] [ Text.raw "Accessing request data" ] ]
+                Elem.li [] [ Elem.a [ Attr.href "markup.html" ] [ Text.raw "View engine" ] ]
+                Elem.li [] [
+                    Elem.a [ Attr.href "cross-site-request-forgery.html" ] [ Text.raw "Security" ]
+                    Elem.ul [] [
+                        Elem.li [] [ Elem.a [ Attr.href "cross-site-request-forgery.html" ] [ Text.raw "Cross Site Request Forgery (XSRF)" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "authentication.html" ] [ Text.raw "Authentication & Authorization" ] ]
+                    ]
+                ]
+                Elem.li [] [
+                    Elem.a [ Attr.href "example-hello-world.html" ] [ Text.raw "Examples" ]
+                    Elem.ul [] [
+                        Elem.li [] [ Elem.a [ Attr.href "example-hello-world.html" ] [ Text.raw "Hello World" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "example-hello-world-mvc.html" ] [ Text.raw "Hello World MVC" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "example-dependency-injection.html" ] [ Text.raw "Dependency Injection" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "example-external-view-engine.html" ] [ Text.raw "Hello World" ] ]
+                        Elem.li [] [ Elem.a [ Attr.href "example-basic-rest-api.html" ] [ Text.raw "Basic REST API" ] ]
+                    ]
+                ]
+                Elem.li [] [ Elem.a [ Attr.href "migrating-from-v4-to-v5.html" ] [ Text.raw "V5 Migration Guide" ] ]
+            ]
+        ]
 
-type PartialTemplates(workingDir : string) =
-    member _.DocsLinks =
-        Path.Join(workingDir, "templates/partials/docs-links.html")
-        |> File.ReadAllText
-        |> Template.Parse
-        |> fun t -> t.Render()
+    let private _layoutHead title =
+        let title =
+            if String.IsNullOrWhiteSpace(title) then
+                "Falco - F# web toolkit for ASP.NET Core"
+            else
+                $"{title} - Falco Documentation"
 
-    member _.DocsNav =
-        Path.Join(workingDir, "templates/partials/docs-nav.html")
-        |> File.ReadAllText
-        |> Template.Parse
-        |> fun t -> t.Render()
+        [
+            Elem.meta  [ Attr.charset "UTF-8" ]
+            Elem.meta  [ Attr.httpEquiv "X-UA-Compatible"; Attr.content "IE=edge, chrome=1" ]
+            Elem.meta  [ Attr.name "viewport"; Attr.content "width=device-width, initial-scale=1" ]
+            Elem.title [] [ Text.raw title ]
+            Elem.meta  [ Attr.name "description"; Attr.content "A functional-first toolkit for building brilliant ASP.NET Core applications using F#." ]
 
-type Templates(workingDir : string) =
-    let layoutTmpl =
-        Path.Join(workingDir, "templates/layout.html")
-        |> File.ReadAllText
-        |> Template.Parse
+            Elem.link [ Attr.rel "shortcut icon"; Attr.href "/favicon.ico"; Attr.type' "image/x-icon" ]
+            Elem.link [ Attr.rel "icon"; Attr.href "/favicon.ico"; Attr.type' "image/x-icon" ]
+            Elem.link [ Attr.rel "preconnect"; Attr.href "https://fonts.gstatic.com" ]
+            Elem.link [ Attr.href "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap"; Attr.rel "stylesheet" ]
+            Elem.link [ Attr.href "/prism.css"; Attr.rel "stylesheet" ]
+            Elem.link [ Attr.href "/tachyons.css"; Attr.rel "stylesheet" ]
+            Elem.link [ Attr.href "/style.css"; Attr.rel "stylesheet" ]
 
-    let layoutTwoColTmpl =
-        Path.Join(workingDir, "templates/layout-twocol.html")
-        |> File.ReadAllText
-        |> Template.Parse
+            Elem.script [ Attr.async; Attr.src "https://www.googletagmanager.com/gtag/js?id=G-D62HSJHMNZ" ] []
+            Elem.script [] [ Text.raw """window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-D62HSJHMNZ');"""
+            ]
+        ]
 
+    let private _layoutFooter =
+        Elem.footer [ Attr.class' "cl pa3 bg-merlot" ] [
+            Elem.div [ Attr.class' "f7 tc white-70" ]
+                [ Text.raw $"&copy; 2020-{DateTime.Now.Year} Pim Brouwers & contributors." ]
+        ]
 
-    member _.Layout (template : LayoutTemplate) =
-        layoutTmpl.Render(template)
+    let layout (model : LayoutModel) =
+        let topBar =
+            Elem.div [] [
+                Elem.nav [ Attr.class' "flex flex-column flex-row-l items-center" ] [
+                    Elem.a [ Attr.href "/" ]
+                        [ Elem.img [ Attr.src "/icon.svg"; Attr.class' "w3 pb3 pb0-l o-80 hover-o-100" ] ]
+                    Elem.div [ Attr.class' "flex-grow-1-l tc tr-l" ] [
+                        Elem.a [ Attr.href "/docs"; Attr.title "Overview of Falco's key features"; Attr.class' "dib mh2 mh3-l no-underline white-90 hover-white" ]
+                            [ Text.raw "docs" ]
+                        Elem.a [ Attr.href "https://github.com/pimbrouwers/Falco"; Attr.title "Fork Falco on GitHub"; Attr.alt "Falco GitHub Link"; Attr.targetBlank; Attr.class' "dib mh2 ml3-l no-underline white-90 hover-white" ]
+                            [ Text.raw "code" ]
+                        Elem.a [ Attr.href "https://github.com/pimbrouwers/Falco/tree/master/samples"; Attr.title "Falco code samples"; Attr.alt "Faclo code samples link"; Attr.class' "dib ml2 mh3-l no-underline white-90 hover-white" ]
+                            [ Text.raw "samples" ]
+                        Elem.a [ Attr.href "https://github.com/pimbrouwers/Falco/discussions"; Attr.title "Need help?"; Attr.alt "Faclo GitHub discussions link"; Attr.class' "dib ml2 mh3-l no-underline white-90 hover-white" ]
+                            [ Text.raw "help" ]
+                    ]
+                ]
+            ]
 
-    member _.LayoutTwoCol (template : LayoutTwoColTemplate) =
-        layoutTwoColTmpl.Render(template)
+        let greeting =
+            Elem.div [ Attr.class' "mw6 center pb5 noto tc fw4 lh-copy white" ] [
+                Elem.h1 [ Attr.class' "mt4 mb3 fw4 f2" ]
+                    [ Text.raw "Meet Falco." ]
+                Elem.h2 [ Attr.class' "mt0 mb4 fw4 f4 f3-l" ]
+                    [ Text.raw "Falco is a toolkit for building secure, fast, functional-first and fault-tolerant web applications using F#." ]
 
-    member _.Partials = PartialTemplates(workingDir)
+                Elem.div [ Attr.class' "tc" ] [
+                    Elem.a [ Attr.href "/docs/get-started.html"; Attr.title "Learn how to get started using Falco"; Attr.class' "dib mh2 mb2 ph3 pv2 merlot bg-white ba b--white br2 no-underline" ]
+                        [ Text.raw "Get Started" ]
+                    Elem.a [ Attr.href "#falco"; Attr.class' "dib mh2 ph3 pv2 white ba b--white br2 no-underline" ]
+                        [ Text.raw "Learn More" ]
+                ]
+            ]
+
+        let releaseInfo =
+            Elem.div [ Attr.class' "mb4 bt b--white-20 tc lh-solid" ] [
+                Elem.a [ Attr.href "https://www.nuget.org/packages/Falco"; Attr.class' "dib center ph1 ph4-l pv3 bg-merlot white no-underline ty--50"; Attr.targetBlank ]
+                    [ Text.raw "Latest release: 5.0.0 (January, 29, 2025)" ]
+            ]
+
+        let benefits =
+            Elem.div [ Attr.class' "cf tc lh-copy" ] [
+                Elem.div [ Attr.class' "fl-l mw5 mw-none-l w-25-l center mb4 ph4-l br-l b--white-20" ] [
+                    Elem.img [ Attr.src "/icons/fast.svg"; Attr.class' "w4 o-90" ]
+                    Elem.h3 [ Attr.class' "mv2 white" ]
+                        [ Text.raw "Blazing Fast" ]
+                    Elem.div [ Attr.class' "mb3 white-90" ]
+                        [ Text.raw "Built upon core ASP.NET components." ]
+                    Elem.a [ Attr.href "https://web-frameworks-benchmark.netlify.app/result?l=fsharp"; Attr.targetBlank; Attr.class' "dib mh2 pa2 f6 white ba b--white br2 no-underline" ]
+                        [ Text.raw "Learn More" ]
+                 ]
+
+                Elem.div [ Attr.class' "fl-l mw5 mw-none-l w-25-l center mb4 ph4-l br-l b--white-20" ] [
+                    Elem.img [ Attr.src "/icons/easy.svg"; Attr.class' "w4 o-90" ]
+                    Elem.h3 [ Attr.class' "mv2 white" ] [ Text.raw "Easy to Learn" ]
+                    Elem.div [ Attr.class' "mb3 white-90" ] [ Text.raw "Designed for getting up to speed quickly." ]
+                    Elem.a [ Attr.href "/docs/get-started.html"; Attr.title "Learn how to get started using Falco"; Attr.class' "dib mh2 pa2 f6 white ba b--white br2 no-underline" ]
+                        [ Text.raw "Get Started" ]
+                 ]
+
+                Elem.div [ Attr.class' "fl-l mw5 mw-none-l w-25-l center mb4 ph4-l br-l b--white-20" ] [
+                    Elem.img [ Attr.src "/icons/view.svg"; Attr.class' "w4 o-90" ]
+                    Elem.h3 [ Attr.class' "mv2 white" ] [ Text.raw "Native View Engine" ]
+                    Elem.div [ Attr.class' "mb3 white-90" ] [ Text.raw "Markup is written in F# and compiled." ]
+                    Elem.a [ Attr.href "/docs/markup.html"; Attr.title "View examples of Falco markup module"; Attr.class' "dib mh2 pa2 f6 white ba b--white br2 no-underline" ]
+                        [ Text.raw "See Examples" ]
+                 ]
+
+                Elem.div [ Attr.class' "fl-l mw5 mw-none-l w-25-l center mb4 ph4-l" ] [
+                    Elem.img [ Attr.src "/icons/integrate.svg"; Attr.class' "w4 o-90" ]
+                    Elem.h3 [ Attr.class' "mv2 white" ] [ Text.raw "Extensible" ]
+                    Elem.div [ Attr.class' "mb3 white-90" ] [ Text.raw "Seamlessly integrates with existing libraries." ]
+                    Elem.a [ Attr.href "https://github.com/pimbrouwers/Falco/tree/master/samples/ScribanExample"; Attr.targetBlank; Attr.title "Example of incorporating a third-party view engine"; Attr.class' "dib mh2 pa2 f6 white ba b--white br2 no-underline" ]
+                        [ Text.raw "Explore How" ]
+                 ]
+            ]
+
+        Elem.html [ Attr.lang "en"; ] [
+            Elem.head [] (_layoutHead model.Title)
+            Elem.body [ Attr.class' "noto bg-merlot bg-dots bg-parallax" ] [
+                Elem.header [ Attr.class' "pv3" ] [
+                    Elem.div [ Attr.class' "mw8 center pa3" ] [
+                        topBar
+                        greeting
+                        releaseInfo
+                        benefits
+                    ]
+                ]
+
+                Elem.div [ Attr.class' "h100vh bg-white" ] [
+                    Elem.div [ Attr.class' "cf mw8 center pv4 ph3" ] [
+                        Elem.main [] [ Text.raw model.MainContent ]
+                    ]
+                ]
+
+                _layoutFooter
+
+                Elem.script [ Attr.src "/prism.js" ] []
+            ]
+        ]
+
+    let layoutTwoCol (model : LayoutTwoColModel) =
+        Elem.html [ Attr.lang "en"; ] [
+            Elem.head [] (_layoutHead model.Title)
+            Elem.body [ Attr.class' "noto lh-copy" ] [
+                Elem.div [ Attr.class' "min-vh-100 mw9 center pa3 overflow-hidden" ] [
+                    Elem.nav [ Attr.class' "sidebar w-20-l fl-l mb3 mb0-l" ] [
+                        Elem.div [ Attr.class' "flex items-center" ] [
+                            Elem.a [ Attr.href "/docs"; Attr.class' "db w3 w4-l" ]
+                                [ Elem.img [ Attr.src "/brand.svg"; Attr.class' "br3" ] ]
+                            Elem.h2 [ Attr.class' "dn-l mt3 ml3 fw4 gray" ]
+                                [ Text.raw "Falco Documentation" ]
+                        ]
+                        Elem.div [ Attr.class' "dn db-l" ] model.SideContent
+                    ]
+                    Elem.main [ Attr.class' "w-80-l fl-l pl3-l" ] [ Text.raw model.MainContent ]
+                ]
+                _layoutFooter
+                Elem.script [ Attr.src "/prism.js" ] []
+            ]
+        ]
 
 module Docs =
-    let build (template : Templates) (docs : FileInfo[]) (buildDir : DirectoryInfo) =
+    let build (docs : FileInfo[]) (buildDir : DirectoryInfo) =
         if not(buildDir.Exists) then buildDir.Create()
 
         for file in docs do
             let buildFilename, sideContent =
                 if file.Name = "readme.md" then
-                    "index.html", template.Partials.DocsLinks
+                    "index.html", View.docsLinks
                 else
-                    Path.ChangeExtension(file.Name, ".html"), template.Partials.DocsNav
+                    Path.ChangeExtension(file.Name, ".html"), View.docsNav
 
-            let mainContent = Markdown.renderFile file.FullName
+            let parsedMarkdownDocument = Markdown.renderFile file.FullName
 
             let html =
-                { Title = mainContent.Title
+                { Title = parsedMarkdownDocument.Title
                   SideContent = sideContent
-                  MainContent = mainContent.Body
-                  CopyrightYear = DateTime.Now.Year }
-                |> template.LayoutTwoCol
+                  MainContent = parsedMarkdownDocument.Body }
+                |> View.layoutTwoCol
+                |> renderHtml
 
             File.WriteAllText(Path.Join(buildDir.FullName, buildFilename), html)
 
 [<EntryPoint>]
 let main args =
-    if args.Length <> 1 then failwith "Must provide the working directory as the first argument"
+    if args.Length = 0 then
+        failwith "Must provide the working directory as the first argument"
 
-    let workingDir = DirectoryInfo(args.[0])
-    use http = new HttpClient()
+    let workingDir = DirectoryInfo(if args.Length = 2 then args[1] else args[0])
 
     // Clean build
-    Log.info "Clearing build directory..."
+    printfn "Clearing build directory..."
     let buildDirPath = DirectoryInfo(Path.Join(workingDir.FullName, "../docs"))
-    if buildDirPath.Exists then buildDirPath.Delete (recursive = true)
-    else buildDirPath.Create ()
 
-    // Copy asset
-    Log.info "Copying assets..."
-    let assetsDir = DirectoryInfo(Path.Join(workingDir.FullName, "assets"))
-    Directory.copyRecursive buildDirPath assetsDir
+    if buildDirPath.Exists then
+        for file in buildDirPath.EnumerateFiles("*.html", EnumerationOptions(RecurseSubdirectories = true)) do
+            file.Delete()
+    else
+        buildDirPath.Create ()
 
-    // Render homepage
-    let template = Templates(workingDir.FullName)
-
-    Log.info "Rendering homepage..."
+    printfn "Rendering homepage..."
     let indexMarkdown = Path.Join(workingDir.FullName, "../README.md") |> File.ReadAllText
-    // let indexMarkdown = http.GetStringAsync(@"https://raw.githubusercontent.com/pimbrouwers/Falco/master/README.md").Result
     let mainContent = Markdown.render indexMarkdown
 
     { Title = String.Empty
-      MainContent = mainContent.Body
-      CopyrightYear = DateTime.Now.Year }
-    |> template.Layout
+      MainContent = mainContent.Body }
+    |> View.layout
+    |> renderHtml
     |> fun text -> File.WriteAllText(Path.Join(buildDirPath.FullName, "index.html"), text)
 
-    // Render docs
+    printfn "Rendering docs..."
     let docsDir = DirectoryInfo(Path.Join(workingDir.FullName, "../documentation"))
     let docsBuildDir = DirectoryInfo(Path.Join(buildDirPath.FullName, "docs"))
-
-    // Log.info "Downloading external markdown files..."
-    // let markupMarkdown = http.GetStringAsync(@"https://raw.githubusercontent.com/pimbrouwers/Falco.Markup/master/README.md").Result
-    // let markupFilename = Path.Join(docsDir.FullName, "markup.md")
-    // if (File.Exists(markupFilename)) then File.Delete(markupFilename)
-    // File.WriteAllText(markupFilename, markupMarkdown)
-
-    Log.info "Rendering docs..."
     let readme = FileInfo(Path.Join(workingDir.FullName, "../readme.md"))
     let docFiles = Array.append [|readme|] (docsDir.GetFiles("*.md"))
-    Docs.build template docFiles docsBuildDir
+    Docs.build docFiles docsBuildDir
 
     // Additional languages
     let languageCodes = []
 
     for languageCode in languageCodes do
-        Log.info "Rendering /%s docs" languageCode
+        printfn "Rendering /%s docs" languageCode
         let languageDir = DirectoryInfo(Path.Join(docsDir.FullName, languageCode))
         let languageBuildDir = DirectoryInfo(Path.Join(docsBuildDir.FullName, languageCode))
-        Docs.build template (languageDir.GetFiles()) languageBuildDir
+        Docs.build (languageDir.GetFiles()) languageBuildDir
 
-    // CNAME
-    let cname = FileInfo(Path.Join(workingDir.FullName, "../CNAME"))
-    cname.CopyTo (Path.Join(buildDirPath.FullName, "CNAME")) |> ignore
     0

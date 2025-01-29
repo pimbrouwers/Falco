@@ -2,11 +2,14 @@
 module Falco.Request
 
 open System.IO
+open System.Security.Claims
 open System.Text
 open System.Text.Json
+open System.Threading
 open System.Threading.Tasks
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Http
+open Falco.Multipart
 open Falco.Security
 open Falco.StringUtils
 
@@ -30,64 +33,57 @@ let getBodyString (ctx : HttpContext) : Task<string> =
         return! reader.ReadToEndAsync()
     }
 
-/// Retrieves the cookie from the request as an instance of
-/// CookieCollectionReader.
-let getCookie (ctx : HttpContext) : CookieCollectionReader =
-    CookieCollectionReader(ctx.Request.Cookies)
+/// Retrieves the cookie from the request.
+let getCookies (ctx : HttpContext) : RequestData =
+    RequestValue.parseCookies ctx.Request.Cookies
+    |> RequestData
 
-/// Retrieves a specific header from the request.
-let getHeaders (ctx : HttpContext) : HeaderCollectionReader  =
-    HeaderCollectionReader(ctx.Request.Headers)
+/// Retrieves the headers from the request.
+let getHeaders (ctx : HttpContext) : RequestData  =
+    RequestValue.parseHeaders ctx.Request.Headers
+    |> RequestData
 
-/// Retrieves all route values from the request as RouteCollectionReader.
-let getRoute (ctx : HttpContext) : RouteCollectionReader =
-    RouteCollectionReader(ctx.Request.RouteValues, ctx.Request.Query)
+/// Retrieves all route values from the request, including query string.
+let getRoute (ctx : HttpContext) : RequestData =
+    RequestValue.parseRoute (ctx.Request.RouteValues, ctx.Request.Query)
+    |> RequestData
 
-/// Retrieves the query string from the request as an instance of
-/// QueryCollectionReader.
-let getQuery (ctx : HttpContext) : QueryCollectionReader =
-    QueryCollectionReader(ctx.Request.Query)
+/// Retrieves the query string and route values from the request.
+let getQuery (ctx : HttpContext) : RequestData =
+    RequestValue.parseQuery ctx.Request.Query
+    |> RequestData
 
-/// Retrieves the form collection from the request as an instance of
-/// FormCollectionReader.
-let getForm (ctx : HttpContext) : Task<FormCollectionReader> =
+/// Retrieves the form collection and route values from the request.
+///
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
+let getForm (ctx : HttpContext) : Task<FormData> =
     task {
-        let! form = ctx.Request.ReadFormAsync()
+        use tokenSource = new CancellationTokenSource()
+
+        let! form =
+            if ctx.Request.IsMultipart() then
+                ctx.Request.StreamFormAsync(tokenSource.Token)
+            else
+                ctx.Request.ReadFormAsync(tokenSource.Token)
+
         let files = if isNull(form.Files) then None else Some form.Files
-        return FormCollectionReader(form, files)
+
+        let requestValue = RequestValue.parseForm (form, Some ctx.Request.RouteValues)
+
+        return FormData(requestValue, files)
     }
 
-/// Retrieves the form collection from the request as an instance of
-/// FormCollectionReader, if the CSRF token is valid, otherwise it
-/// returns None.
-let getFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
+/// Retrieves the form collection from the request, if the CSRF token is valid,
+/// otherwise returns None.
+///
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
+let getFormSecure (ctx : HttpContext) : Task<FormData option> =
     task {
-        let! isAuth = Xss.validateToken ctx
+        let! isAuth = Xsrf.validateToken ctx
         if isAuth then
             let! form = getForm ctx
-            return Some form
-        else
-            return None
-    }
-
-/// Streams the form collection from the request as an instance of
-/// FormCollectionReader. Intended to be used for multipart form submissions.
-let streamForm
-    (ctx : HttpContext) : Task<FormCollectionReader> =
-    task {
-        let! form = ctx.Request.StreamFormAsync()
-        let files = if isNull(form.Files) then None else Some form.Files
-        return FormCollectionReader(form, files)
-    }
-
-/// Streams the form collection from the request as an instance of
-/// FormCollectionReader, if the CSRF token is valid. otherwise it returns
-/// None. Intended to be used for multipart form submissions.
-let streamFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
-    task {
-        let! isAuth = Xss.validateToken ctx
-        if isAuth then
-            let! form = streamForm ctx
             return Some form
         else
             return None
@@ -97,8 +93,27 @@ let streamFormSecure (ctx : HttpContext) : Task<FormCollectionReader option> =
 /// JsonSerializerOptions.
 let getJsonOptions<'T>
     (options : JsonSerializerOptions)
-    (ctx : HttpContext) : Task<'T> =
-    JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options).AsTask()
+    (ctx : HttpContext) : Task<'T> = task {
+
+        if ctx.Request.ContentLength |> Option.ofNullable |> Option.defaultValue 0L = 0L then
+            return JsonSerializer.Deserialize<'T>("{}", options)
+        else
+            use tokenSource = new CancellationTokenSource()
+            let! json = JsonSerializer.DeserializeAsync<'T>(ctx.Request.Body, options, tokenSource.Token).AsTask()
+            return json
+    }
+
+
+let internal defaultJsonOptions =
+    let options = JsonSerializerOptions()
+    options.AllowTrailingCommas <- true
+    options.PropertyNameCaseInsensitive <- true
+    options
+
+/// Attempts to bind request body using System.Text.Json and default
+/// JsonSerializerOptions.
+let getJson<'T> (ctx : HttpContext) =
+    getJsonOptions<'T> defaultJsonOptions ctx
 
 // ------------
 // Handlers
@@ -113,63 +128,34 @@ let bodyString
         return! next body ctx
     }
 
-/// Projects CookieCollectionReader onto 'T and provides
-/// to next HttpHandler.
-let mapCookie
-    (map : CookieCollectionReader -> 'T)
-    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
-    getCookie ctx
-    |> map
-    |> fun cookie -> next cookie ctx
-
-/// Projects HeaderCollectionReader onto 'T and provides
-/// to next HttpHandler.
-let mapHeader
-    (map : HeaderCollectionReader -> 'T)
-    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
-        getHeaders ctx
-        |> map
-        |> fun header -> next header ctx
-
-/// Projects RouteCollectionReader onto 'T and provides
+/// Projects route values onto 'T and provides
 /// to next HttpHandler.
 let mapRoute
-    (map : RouteCollectionReader -> 'T)
+    (map : RequestData -> 'T)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     getRoute ctx
     |> map
     |> fun route -> next route ctx
 
-/// Projects QueryCollectionReader onto 'T and provides
+/// Projects query string onto 'T and provides
 /// to next HttpHandler.
 let mapQuery
-    (map : QueryCollectionReader -> 'T)
+    (map : RequestData -> 'T)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     getQuery ctx
     |> map
     |> fun query -> next query ctx
 
 
-/// Projects FormCollectionReader onto 'T and provides
-/// to next HttpHandler.
+/// Projects form dta onto 'T and provides to next HttpHandler.
+///
+/// Automatically detects if request is content-type: multipart/form-data, and
+/// if so, will enable streaming.
 let mapForm
-    (map : FormCollectionReader -> 'T)
+    (map : FormData -> 'T)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     task {
         let! form = getForm ctx
-        return! next (map form) ctx
-    }
-
-/// Streams multipart/form-data into FormCollectionReader and projects onto 'T
-/// and provides to next HttpHandler.
-///
-/// Important: This is intended to be used with multipart/form-data submissions
-/// and will not work if this content-type is not present.
-let mapFormStream
-    (map : FormCollectionReader -> 'T)
-    (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! form = streamForm ctx
         return! next (map form) ctx
     }
 
@@ -178,7 +164,7 @@ let validateCsrfToken
     (handleOk : HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
     task {
-        let! isValid = Xss.validateToken ctx
+        let! isValid = Xsrf.validateToken ctx
 
         let respondWith =
             match isValid with
@@ -188,10 +174,13 @@ let validateCsrfToken
         return! respondWith ctx
     }
 
-/// Projects FormCollectionReader onto 'T and provides
+/// Projects form data onto 'T and provides
 /// to next HttpHandler.
+///
+/// Automatically detects if request is multipart/form-data, and will enable
+/// streaming.
 let mapFormSecure
-    (map : FormCollectionReader -> 'T)
+    (map : FormData -> 'T)
     (next : 'T -> HttpHandler)
     (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
     task {
@@ -207,32 +196,10 @@ let mapFormSecure
         return! respondWith ctx
     }
 
-/// Streams multipart/form-data into FormCollectionReader and projects onto 'T
-/// and provides to next HttpHandler.
-///
-/// Important: This is intended to be used with multipart/form-data submissions
-/// and will not work if this content-type is not present.
-let mapFormStreamSecure
-    (map : FormCollectionReader -> 'T)
-    (next : 'T -> HttpHandler)
-    (handleInvalidToken : HttpHandler) : HttpHandler = fun ctx ->
-    task {
-        let! form = streamFormSecure ctx
-
-        let respondWith =
-            match form with
-            | Some form ->
-                next (map form)
-            | None ->
-                handleInvalidToken
-
-        return! respondWith ctx
-    }
-
 /// Projects JSON using custom JsonSerializerOptions
 /// onto 'T and provides to next HttpHandler, throws
 /// JsonException if errors occur during deserialization.
-let mapJsonOption
+let mapJsonOptions<'T>
     (options : JsonSerializerOptions)
     (next : 'T -> HttpHandler) : HttpHandler = fun ctx ->
     task {
@@ -240,18 +207,13 @@ let mapJsonOption
         return! next json ctx
     }
 
-let internal defaultJsonOptions =
-    let options = JsonSerializerOptions()
-    options.AllowTrailingCommas <- true
-    options.PropertyNameCaseInsensitive <- true
-    options
-
 /// Projects JSON onto 'T and provides to next
 /// HttpHandler, throws JsonException if errors
 /// occur during deserialization.
-let mapJson
+let mapJson<'T>
     (next : 'T -> HttpHandler) : HttpHandler =
-    mapJsonOption defaultJsonOptions next
+    mapJsonOptions<'T> defaultJsonOptions next
+
 
 // ------------
 // Authentication
@@ -260,54 +222,69 @@ let mapJson
 /// Attempts to authenticate the current request using the provided
 /// scheme and passes AuthenticateResult into next HttpHandler.
 let authenticate
-    (scheme : string)
+    (authScheme : string)
     (next : AuthenticateResult -> HttpHandler) : HttpHandler = fun ctx ->
     task {
-        let! authenticateResult = Auth.authenticate scheme ctx
+        let! authenticateResult = ctx.AuthenticateAsync(authScheme)
         return! next authenticateResult ctx
     }
 
-/// Proceeds if the authentication status of current IPrincipal is true.
+/// Authenticate the current request using the default authentication scheme.
+///
+/// Proceeds if the authentication status of current `IPrincipal` is true.
+///
+/// The default authentication scheme can be configured using
+/// `Microsoft.AspNetCore.Authentication.AuthenticationOptions.DefaultAuthenticateScheme.`
 let ifAuthenticated
-    (handleOk : HttpHandler)
-    (handleError : HttpHandler) : HttpHandler = fun ctx ->
-    let isAuthenticated = Auth.isAuthenticated ctx
-    if isAuthenticated then handleOk ctx
-    else handleError ctx
+    (authScheme : string)
+    (handleOk : HttpHandler) : HttpHandler =
+    authenticate authScheme (fun authenticateResult ctx ->
+        if authenticateResult.Succeeded then
+            handleOk ctx
+        else
+            ctx.ForbidAsync())
 
 /// Proceeds if the authentication status of current IPrincipal is true
 /// and they exist in a list of roles.
 let ifAuthenticatedInRole
+    (authScheme : string)
     (roles : string list)
-    (handleOk : HttpHandler)
-    (handleError : HttpHandler) : HttpHandler =
-    fun ctx ->
-        let isAuthenticated = Auth.isAuthenticated ctx
-        let isInRole = Auth.isInRole roles ctx
-
-        match isAuthenticated, isInRole with
-        | true, true -> handleOk ctx
-        | _          -> handleError ctx
+    (handleOk : HttpHandler) : HttpHandler =
+    authenticate authScheme (fun authenticateResult ctx ->
+        let isInRole = List.exists authenticateResult.Principal.IsInRole roles
+        match authenticateResult.Succeeded, isInRole with
+        | true, true ->
+            handleOk ctx
+        | _ ->
+            ctx.ForbidAsync())
 
 /// Proceeds if the authentication status of current IPrincipal is true
 /// and has a specific scope.
 let ifAuthenticatedWithScope
+    (authScheme : string)
     (issuer : string)
     (scope : string)
-    (handleOk : HttpHandler)
-    (handleError : HttpHandler) : HttpHandler =
-    fun ctx ->
-        let isAuthenticated = Auth.isAuthenticated ctx
-        let hasScope = Auth.hasScope issuer scope ctx
-
-        match isAuthenticated, hasScope with
-        | true, true -> handleOk ctx
-        | _          -> handleError ctx
+    (handleOk : HttpHandler) : HttpHandler =
+    authenticate authScheme (fun authenticateResult ctx ->
+        if authenticateResult.Succeeded then
+            let hasScope =
+                let predicate (claim : Claim) = (strEquals claim.Issuer issuer) && (strEquals claim.Type "scope")
+                match Seq.tryFind predicate authenticateResult.Principal.Claims with
+                | Some claim -> Array.contains scope (strSplit [|' '|] claim.Value)
+                | None -> false
+            if hasScope then
+                handleOk ctx
+            else
+                ctx.ForbidAsync()
+        else
+            ctx.ForbidAsync())
 
 /// Proceeds if the authentication status of current IPrincipal is false.
 let ifNotAuthenticated
-    (handleOk : HttpHandler)
-    (handleError : HttpHandler) : HttpHandler = fun ctx ->
-    let isAuthenticated = Auth.isAuthenticated ctx
-    if isAuthenticated then handleError ctx
-    else handleOk ctx
+    (authScheme : string)
+    (handleOk : HttpHandler) : HttpHandler =
+    authenticate authScheme (fun authenticateResult ctx ->
+        if authenticateResult.Succeeded then
+            ctx.ForbidAsync()
+        else
+            handleOk ctx)

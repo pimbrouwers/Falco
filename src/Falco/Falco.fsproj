@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>Falco</AssemblyName>
-    <Version>4.0.6</Version>
+    <Version>5.0.0</Version>
 
     <!-- General info -->
     <Description>A functional-first toolkit for building brilliant ASP.NET Core applications using F#.</Description>
@@ -10,7 +10,7 @@
     <NeutralLanguage>en-CA</NeutralLanguage>
 
     <!-- Build config -->
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <DebugType>embedded</DebugType>
     <OutputType>Library</OutputType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -39,23 +39,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Falco.Markup" Version="1.*" />
     <PackageReference Update="FSharp.Core" Version="6.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.*" PrivateAssets="All" />
-    <PackageReference Include="Falco.Markup" Version="1.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Core.fs" />
     <Compile Include="String.fs" />
-    <Compile Include="Routing.fs" />
+    <Compile Include="RequestValue.fs" />
+    <Compile Include="RequestData.fs" />
     <Compile Include="Multipart.fs" />
-    <Compile Include="Extensions.fs" />
     <Compile Include="Security.fs" />
-    <Compile Include="StringCollectionReader.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="Response.fs" />
-    <Compile Include="ConfigBuilder.fs" />
-    <Compile Include="HostBuilder.fs" />
+    <Compile Include="Routing.fs" />
+    <Compile Include="WebApplication.fs" />
   </ItemGroup>
 
   <ItemGroup>

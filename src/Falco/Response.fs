@@ -6,7 +6,6 @@ open System.IO
 open System.Security.Claims
 open System.Text
 open System.Text.Json
-open System.Threading.Tasks
 open Falco.Markup
 open Falco.Security
 open Microsoft.AspNetCore.Antiforgery
@@ -22,17 +21,10 @@ open Microsoft.Net.Http.Headers
 /// Sets multiple headers for response.
 let withHeaders
     (headers : (string * string) list) : HttpResponseModifier = fun ctx ->
-    let setHeader (name, content : string) =
-        if not(ctx.Response.Headers.ContainsKey(name)) then
-            ctx.Response.Headers.Add(name, StringValues(content))
-
-    headers |> List.iter setHeader
+    headers
+    |> List.iter (fun (name, content : string) ->
+        ctx.Response.Headers[name] <- StringValues(content))
     ctx
-
-/// Sets ContentLength for response.
-let withContentLength
-    (contentLength : int64) : HttpResponseModifier =
-    withHeaders [ HeaderNames.ContentLength, (string contentLength) ]
 
 /// Sets ContentType header for response.
 let withContentType
@@ -89,12 +81,25 @@ let redirectPermanently (url: string) =
 let redirectTemporarily (url: string) =
     redirect (TemporarilyTo url)
 
-let private writeBytes
-    (bytes : byte[])
+let private setContentLength
+    (contentLength : int64)
     (ctx : HttpContext) =
-    let byteLen = bytes.Length
-    ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
-    ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes)).AsTask() :> Task
+    ctx.Response.ContentLength <- contentLength
+
+let private writeBytes
+    (bytes : byte[]) : HttpHandler = fun ctx ->
+        task {
+            setContentLength bytes.LongLength ctx
+            do! ctx.Response.Body.WriteAsync(bytes, 0, bytes.Length)
+        }
+
+let private writeStream
+    (str : Stream) : HttpHandler = fun ctx ->
+        task {
+            setContentLength str.Length ctx
+            str.Position <- 0
+            do! str.CopyToAsync(ctx.Response.Body)
+        }
 
 /// Returns an inline binary (i.e., Byte[]) response with the specified
 /// Content-Type.
@@ -132,20 +137,12 @@ let ofAttachment
     >> withHeaders headers
     >> writeBytes bytes
 
-let private writeString
-    (encoding : Encoding)
-    (httpBodyStr : string)
-    (ctx : HttpContext) =
-    if isNull httpBodyStr then Task.CompletedTask
-    else
-        let httpBodyBytes = encoding.GetBytes httpBodyStr
-        writeBytes httpBodyBytes ctx
-
 /// Writes string to response body with provided encoding.
 let ofString
     (encoding : Encoding)
-    (str : string) : HttpHandler = fun ctx ->
-    writeString encoding str ctx
+    (str : string) : HttpHandler =
+    if isNull str then ofEmpty
+    else writeBytes (encoding.GetBytes(str))
 
 /// Returns a "text/plain; charset=utf-8" response with provided string to
 /// client.
@@ -171,7 +168,7 @@ let ofHtml
 let ofHtmlCsrf
     (view : AntiforgeryTokenSet -> XmlNode) : HttpHandler =
     let withCsrfToken handleToken : HttpHandler = fun ctx ->
-        let csrfToken = Xss.getToken ctx
+        let csrfToken = Xsrf.getToken ctx
         handleToken csrfToken ctx
 
     withCsrfToken (fun token -> token |> view |> ofHtml)
@@ -180,20 +177,14 @@ let ofHtmlCsrf
 /// serialized object provided to the client.
 let ofJsonOptions
     (options : JsonSerializerOptions)
-    (obj : 'T) : HttpHandler =
-    let jsonHandler : HttpHandler = fun ctx ->
-        task {
-            use str = new MemoryStream()
-            do! JsonSerializer.SerializeAsync(str, obj, options = options)
-            let bytes = str.ToArray()
-            let byteLen = bytes.Length
-            ctx.Response.ContentLength <- Nullable<int64>(byteLen |> int64)
-            let! _ = ctx.Response.BodyWriter.WriteAsync(ReadOnlyMemory<byte>(bytes))
-            return()
-        }
-
-    withContentType "application/json; charset=utf-8"
-    >> jsonHandler
+    (obj : 'T) : HttpHandler = fun ctx ->
+    task {
+        use str = new MemoryStream()
+        do! JsonSerializer.SerializeAsync(str, obj, options)
+        return!
+            withContentType "application/json; charset=utf-8" ctx
+            |> writeStream str
+    }
 
 /// Returns a "application/json; charset=utf-8" response with the serialized
 /// object provided to the client.
@@ -202,85 +193,76 @@ let ofJson
     withContentType "application/json; charset=utf-8"
     >> ofJsonOptions Request.defaultJsonOptions obj
 
+/// Signs in claim principal for provided scheme then responds with a
+/// 301 redirect to provided URL.
+let signIn
+    (authScheme : string)
+    (claimsPrincipal : ClaimsPrincipal) : HttpHandler = fun ctx ->
+    task {
+        do! ctx.SignInAsync(authScheme, claimsPrincipal)
+    }
+
+/// Signs in claim principal for provided scheme and options then responds with a
+/// 301 redirect to provided URL.
+let signInOptions
+    (authScheme : string)
+    (claimsPrincipal : ClaimsPrincipal)
+    (options : AuthenticationProperties) : HttpHandler = fun ctx ->
+    task {
+        do! ctx.SignInAsync(authScheme, claimsPrincipal, options)
+    }
+
 /// Signs in claim principal for provided scheme then responds with a 301 redirect
 /// to provided URL.
 let signInAndRedirect
     (authScheme : string)
     (claimsPrincipal : ClaimsPrincipal)
-    (url : string) : HttpHandler = fun ctx ->
+    (url : string) : HttpHandler =
+    let options = AuthenticationProperties(RedirectUri = url)
+    signInOptions authScheme claimsPrincipal options
+
+/// Terminates authenticated context for provided scheme then responds with a 301
+/// redirect to provided URL.
+let signOut
+    (authScheme : string) : HttpHandler = fun ctx ->
     task {
-        do! Auth.signIn authScheme claimsPrincipal ctx
-        do! redirectTemporarily url ctx
+        do! ctx.SignOutAsync(authScheme)
     }
 
-/// Signs in claim principal for provided scheme and options then responds with a
-/// 301 redirect to provided URL.
-let signInOptionsAndRedirect
+/// Terminates authenticated context for provided scheme then responds with a 301
+/// redirect to provided URL.
+let signOutOptions
     (authScheme : string)
-    (claimsPrincipal : ClaimsPrincipal)
-    (options : AuthenticationProperties)
-    (url : string) : HttpHandler = fun ctx ->
+    (options : AuthenticationProperties) : HttpHandler = fun ctx ->
     task {
-        do! Auth.signInOptions authScheme claimsPrincipal options ctx
-        do! redirectTemporarily url ctx
+        do! ctx.SignOutAsync(authScheme, options)
     }
 
 /// Terminates authenticated context for provided scheme then responds with a 301
 /// redirect to provided URL.
 let signOutAndRedirect
     (authScheme : string)
-    (url : string) : HttpHandler = fun ctx ->
+    (url : string) : HttpHandler =
+    let options = AuthenticationProperties(RedirectUri = url)
+    signOutOptions authScheme options
+
+/// Challenges the specified authentication scheme.
+/// An authentication challenge can be issued when an unauthenticated user
+/// requests an endpoint that requires authentication. Then given redirectUri is
+/// forwarded to the authentication handler for use after authentication succeeds.
+let challengeOptions
+    (authScheme : string)
+    (options : AuthenticationProperties) : HttpHandler = fun ctx ->
     task {
-        do! Auth.signOut authScheme ctx
-        do! redirectTemporarily url ctx
+        do! ctx.ChallengeAsync(authScheme, options)
     }
 
 /// Challenges the specified authentication scheme.
 /// An authentication challenge can be issued when an unauthenticated user
 /// requests an endpoint that requires authentication. Then given redirectUri is
 /// forwarded to the authentication handler for use after authentication succeeds.
-let challengeWithRedirect
+let challengeAndRedirect
     (authScheme : string)
-    (redirectUri : string) : HttpHandler = fun ctx ->
-    task {
-        let properties = AuthenticationProperties(RedirectUri = redirectUri)
-        do! Auth.challenge authScheme properties ctx
-    }
-
-/// Pretty prints the content of the current request to the screen.
-///
-/// Important: This is intended to be used for debugging during
-/// development only. DO NOT USE in production.
-let debugRequest : HttpHandler = fun ctx ->
-    task {
-        let verb = Request.getVerb ctx
-        let headers = Request.getHeaders ctx
-        let! body = Request.getBodyString ctx
-
-        let tab = "    "
-
-        let sw = new StringWriter(StringBuilder(16))
-        sw.Write(string verb)
-        sw.Write(' ')
-        sw.Write(ctx.Request.Path)
-        sw.Write(ctx.Request.QueryString)
-        sw.WriteLine()
-        sw.WriteLine()
-
-        sw.WriteLine("Headers:")
-
-        for k in headers.Keys do
-            sw.Write(tab)
-            sw.WriteLine(k)
-            sw.Write(tab)
-            sw.Write(tab)
-            sw.WriteLine(headers.Get k)
-            sw.WriteLine()
-
-        sw.WriteLine()
-        sw.Write(body)
-
-        let debugText = sw.ToString()
-
-        return ofPlainText debugText ctx
-    }
+    (redirectUri : string) : HttpHandler =
+    let options = AuthenticationProperties(RedirectUri = redirectUri)
+    challengeOptions authScheme options

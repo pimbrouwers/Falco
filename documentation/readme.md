@@ -4,7 +4,7 @@ title: Welcome to Falco's documentation
 
 # Documentation
 
-Welcome to Falco's documentation, visit the [getting started](get-started.md) page for installation and a brief overview. There is also a more detailed [Tutorial](tutorial.md) that shows how to create a small but complete application with Falco. The rest of the docs describe each component of Falco in detail.
+Welcome to Falco's documentation, visit the [getting started](get-started.md) page for installation and a brief overview. There are also more detailed [examples](example-hello-world.md) that shows how to create a small but complete application with Falco. The rest of the docs describe each component of Falco in detail.
 
 ## Guides
 
@@ -15,6 +15,5 @@ Falco depends only on the high-performance base components of .NET and ASP.NET C
 - [Writing responses](response.md)
 - [Accessing request data](request.md)
 - [View engine](markup.md)
-- [Host configuration](host.md)
-- [App configuration](config.md)
-- [Security](security.md)
+- [Security](authentication.md)
+- [Examples](example-hello-world.md)

@@ -1,17 +1,19 @@
 ﻿[<AutoOpen>]
 module Falco.Tests.Common
 
+#nowarn "44"
+
 open System
 open System.IO
 open System.IO.Pipelines
 open System.Security.Claims
 open System.Threading.Tasks
-open FSharp.Control.Tasks.V2.ContextInsensitive
 open FsUnit.Xunit
 open Microsoft.AspNetCore.Antiforgery
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Routing
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Net.Http.Headers
 open NSubstitute
@@ -61,6 +63,7 @@ let getHttpContextWriteable (authenticated : bool) =
 
     let req = Substitute.For<HttpRequest>()
     req.Headers.Returns(Substitute.For<HeaderDictionary>()) |> ignore
+    req.RouteValues.Returns(Substitute.For<RouteValueDictionary>()) |> ignore
 
     let resp = Substitute.For<HttpResponse>()
     let respBody = new MemoryStream()
@@ -68,7 +71,6 @@ let getHttpContextWriteable (authenticated : bool) =
     resp.Headers.Returns(Substitute.For<HeaderDictionary>()) |> ignore
     resp.BodyWriter.Returns(PipeWriter.Create(respBody)) |> ignore
     resp.Body <- respBody
-    resp.StatusCode <- 200
 
     let serviceCollection = ServiceCollection()
 
