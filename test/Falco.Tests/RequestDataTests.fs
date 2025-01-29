@@ -107,9 +107,9 @@ let ``RequestData value lookups are case-insensitive`` () =
 [<Fact>]
 let ``RequestData collection should resolve primitives`` () =
     let dt = DateTime(1986, 12, 12)
-    let dtStr = dt.ToString(CultureInfo.InvariantCulture)
-    let dtOffsetStr = DateTimeOffset(dt).ToString(CultureInfo.InvariantCulture)
-    let timespanStr = TimeSpan.FromSeconds(1.0).ToString("c", CultureInfo.InvariantCulture)
+    let dtStr = dt.ToString("o")
+    let dtOffsetStr = DateTimeOffset(dt).ToString("o")
+    let timespanStr = TimeSpan.FromSeconds(1.0).ToString()
     let guidStr = Guid.NewGuid().ToString()
 
     let values =
