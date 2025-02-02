@@ -45,6 +45,7 @@ The best way to get started is by visiting the [documentation](https://falcofram
 - [Falco.Htmx](https://github.com/dpraimeyuu/Falco.Htmx) - a full featured integration with [htmx JS package](https://htmx.org/).
 - [Falco.OpenApi](https://github.com/pimbrouwers/Falco.OpenApi) - a library for generating OpenAPI documentation from Falco applications.
 - [Falco.Template](https://github.com/pimbrouwers/Falco.Template) - a .NET SDK [project template](https://learn.microsoft.com/en-us/dotnet/core/tools/custom-templates) to help get started with Falco quickly.
+- [CloudSeed](https://cloudseed.xyz/) - a simple, scalable project boilerplate for F# / .NET.
 
 ### Community Projects
 
@@ -55,10 +56,15 @@ The best way to get started is by visiting the [documentation](https://falcofram
 
 ### Articles
 
+- Hamilton Greene - [Spin up a Fullstack F# WebApp in 10 minutes with the CloudSeed Project Template](https://hamy.xyz/blog/2025-01_fsharp-webapp-10-minutes)
+- Hamilton Greene - [Why I'm Ditching F# + Giraffe For Falco For Building WebApps](https://hamy.xyz/blog/2025-01_ditching-giraffe-for-falco)
 - Istvan - [Running ASP.Net web application with Falco on AWS Lambda](https://dev.l1x.be/posts/2020/12/18/running-asp.net-web-application-with-falco-on-aws-lambda/)
 
 ### Videos
 
+- Hamilton Greene - [Build a Fullstack Webapp with F# + Falco](https://www.youtube.com/watch?v=ELPdHdtEIY8)
+- Hamilton Greene - [Build a Single-File Web API with F# + Falco](https://www.youtube.com/watch?v=SJCHBqrc3sE)
+- Hamilton Greene - [Why I'm Ditching F# + Giraffe For Falco For Building WebApps](https://www.youtube.com/watch?v=tonPeWfu_WM)
 - Ben Gobeil - [Why I'm Using Falco Instead Of Saturn | How To Switch Your Backend In SAFE Stack | StonkWatch Ep.13](https://youtu.be/DTy5gIUWvpo)
 
 
