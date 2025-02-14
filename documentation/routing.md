@@ -75,7 +75,7 @@ let greetingHandler name : HttpHandler =
     Response.ofPlainText message
 
 let endpoints =
-    [ mapGet "/hello/{name:alpha}" (fun route -> r.GetString "name") greetingHandler ]
+    [ mapGet "/hello/{name:alpha}" (fun route -> route.GetString "name") greetingHandler ]
 
 wapp.UseRouting()
     .UseFalco(endpoints)
