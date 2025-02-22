@@ -158,7 +158,7 @@ module View =
                             [ Text.raw "docs" ]
                         Elem.a [ Attr.href "https://github.com/pimbrouwers/Falco"; Attr.title "Fork Falco on GitHub"; Attr.alt "Falco GitHub Link"; Attr.targetBlank; Attr.class' "dib mh2 ml3-l no-underline white-90 hover-white" ]
                             [ Text.raw "code" ]
-                        Elem.a [ Attr.href "https://github.com/pimbrouwers/Falco/tree/master/samples"; Attr.title "Falco code samples"; Attr.alt "Faclo code samples link"; Attr.class' "dib ml2 mh3-l no-underline white-90 hover-white" ]
+                        Elem.a [ Attr.href "https://github.com/pimbrouwers/Falco/tree/master/examples"; Attr.title "Falco code samples"; Attr.alt "Faclo code samples link"; Attr.class' "dib ml2 mh3-l no-underline white-90 hover-white" ]
                             [ Text.raw "samples" ]
                         Elem.a [ Attr.href "https://github.com/pimbrouwers/Falco/discussions"; Attr.title "Need help?"; Attr.alt "Faclo GitHub discussions link"; Attr.class' "dib ml2 mh3-l no-underline white-90 hover-white" ]
                             [ Text.raw "help" ]
