@@ -12,11 +12,11 @@ let wapp = WebApplication.Create()
 wapp.Run(Response.ofPlainText "Hello world")
 ```
 
-[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building fast and functional-first web applications using F#. You can think of it as [minimal API](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-8.0&tabs=visual-studio) on *steroids*.
+[Falco](https://github.com/pimbrouwers/Falco) is a toolkit for building functional-first, full-stack web applications using F#.
 
-- Designed for building pure F# full-stack web applications.
 - Built on the high-performance components of ASP.NET Core.
 - Seamlessly integrates with existing .NET Core middleware and libraries.
+- Designed to be simple, lightweight and easy to learn.
 
 ## Key Features
 
